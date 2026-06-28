@@ -83,7 +83,7 @@ export const buildSidebarGroups = (_ui: NavigationUi, includeAdmin = false): Nav
     {
       title: 'Daily',
       items: [
-        { id: 'my_day', label: 'My Day with Luna', icon: '🪞' },
+        { id: 'my_day', label: 'My Day with Luna29', icon: '🪞' },
         { id: 'reflections', label: 'Voice Reflection', icon: '🎙️' },
         { id: 'voice_files', label: 'My Voice Files', icon: '🗂️' },
       ],
@@ -93,7 +93,7 @@ export const buildSidebarGroups = (_ui: NavigationUi, includeAdmin = false): Nav
       items: [
         { id: 'dashboard', label: 'Member Home', icon: '🏠' },
         { id: 'labs', label: 'Health Reports', icon: '📄' },
-        { id: 'monthly_reflection', label: 'Your month with Luna', icon: '🗓️' },
+        { id: 'monthly_reflection', label: 'Your month with Luna29', icon: '🗓️' },
         { id: 'insights_paywall', label: 'Unlock Insights', icon: '🔐' },
       ],
     },

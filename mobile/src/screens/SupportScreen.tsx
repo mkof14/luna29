@@ -5,6 +5,7 @@ import { MobileScreenHeader } from '../components/MobileScreenHeader';
 import { SurfaceCard } from '../components/SurfaceCard';
 import { colors } from '../theme/tokens';
 import { MobileLang, resolveLangBase } from '../i18n/mobileCopy';
+import { publicWebLink } from '../config/publicWeb';
 
 export function SupportScreen({
   onBack,
@@ -22,9 +23,9 @@ export function SupportScreen({
       title: 'Support & FAQ',
       subtitle: 'Help, safety, and contact.',
       q: 'Common questions',
-      q1: 'How often should I use Luna?\n30–60 seconds each evening is enough.',
-      q2: 'Can I skip days?\nYes. Luna remains gentle and continuous.',
-      q3: 'Can I talk to Luna instead of writing?\nYes. Voice Notes are the core daily action.',
+      q1: 'How often should I use Luna29?\n30–60 seconds each evening is enough.',
+      q2: 'Can I skip days?\nYes. Luna29 remains gentle and continuous.',
+      q3: 'Can I talk to Luna29 instead of writing?\nYes. Voice Notes are the core daily action.',
       q4: 'Can I share my day with a partner?\nYes. Use “Explain today to my partner” in your member flow.',
       need: 'Need direct help?',
       contact: 'Contact support',
@@ -36,15 +37,15 @@ export function SupportScreen({
       safetyText: 'If you feel unsafe or in immediate distress, contact local emergency services right away.',
       docsTitle: 'Helpful links',
       docsText: 'Open core public pages and legal docs.',
-      openHome: 'Open Luna Home',
+      openHome: 'Open Luna29 Home',
     },
     ru: {
       title: 'Поддержка и FAQ',
       subtitle: 'Помощь, безопасность и контакт.',
       q: 'Частые вопросы',
-      q1: 'Как часто использовать Luna?\nДостаточно 30–60 секунд вечером.',
-      q2: 'Можно пропускать дни?\nДа. Luna остается мягкой и последовательной.',
-      q3: 'Можно говорить с Luna вместо текста?\nДа. Голосовые заметки — ключевое ежедневное действие.',
+      q1: 'Как часто использовать Luna29?\nДостаточно 30–60 секунд вечером.',
+      q2: 'Можно пропускать дни?\nДа. Luna29 остается мягкой и последовательной.',
+      q3: 'Можно говорить с Luna29 вместо текста?\nДа. Голосовые заметки — ключевое ежедневное действие.',
       q4: 'Можно поделиться днем с партнером?\nДа. Используйте “Explain today to my partner” в мембер-потоке.',
       need: 'Нужна помощь?',
       contact: 'Написать в поддержку',
@@ -56,15 +57,15 @@ export function SupportScreen({
       safetyText: 'Если вы в небезопасном состоянии или остром дистрессе, обратитесь в местные экстренные службы.',
       docsTitle: 'Полезные ссылки',
       docsText: 'Откройте ключевые публичные страницы и юридические документы.',
-      openHome: 'Открыть Luna Home',
+      openHome: 'Открыть Luna29 Home',
     },
     es: {
       title: 'Soporte y FAQ',
       subtitle: 'Ayuda, seguridad y contacto.',
       q: 'Preguntas comunes',
-      q1: 'Con que frecuencia usar Luna?\n30–60 segundos por la noche es suficiente.',
-      q2: 'Puedo saltar dias?\nSi. Luna sigue siendo suave y continua.',
-      q3: 'Puedo hablar con Luna en lugar de escribir?\nSi. Las notas de voz son la accion diaria principal.',
+      q1: 'Con que frecuencia usar Luna29?\n30–60 segundos por la noche es suficiente.',
+      q2: 'Puedo saltar dias?\nSi. Luna29 sigue siendo suave y continua.',
+      q3: 'Puedo hablar con Luna29 en lugar de escribir?\nSi. Las notas de voz son la accion diaria principal.',
       q4: 'Puedo compartir mi dia con mi pareja?\nSi. Usa “Explain today to my partner” en tu flujo member.',
       need: 'Necesitas ayuda directa?',
       contact: 'Contactar soporte',
@@ -76,7 +77,7 @@ export function SupportScreen({
       safetyText: 'Si te sientes insegura o en crisis inmediata, contacta servicios de emergencia locales.',
       docsTitle: 'Links utiles',
       docsText: 'Abre paginas publicas clave y documentos legales.',
-      openHome: 'Abrir Luna Home',
+      openHome: 'Abrir Luna29 Home',
     },
   }[resolveLangBase(lang)];
   return (
@@ -97,7 +98,7 @@ export function SupportScreen({
         <Text style={styles.cardTitle}>{copy.need}</Text>
         <Text style={styles.text}>{copy.emailLabel}: dnainform@gmail.com</Text>
         <LunaButton variant="secondary" onPress={() => void Linking.openURL('mailto:dnainform@gmail.com')}>{copy.contact}</LunaButton>
-        <LunaButton variant="secondary" onPress={() => void Linking.openURL('https://luna-eta-rust.vercel.app/faq')}>{copy.faq}</LunaButton>
+        <LunaButton variant="secondary" onPress={() => void Linking.openURL(publicWebLink('faq'))}>{copy.faq}</LunaButton>
         <LunaButton variant="secondary" onPress={onOpenPartnerFaq}>{copy.partner}</LunaButton>
         <LunaButton variant="secondary" onPress={onOpenLegal}>{copy.legal}</LunaButton>
       </SurfaceCard>
@@ -110,7 +111,7 @@ export function SupportScreen({
       <SurfaceCard style={styles.cardB}>
         <Text style={styles.cardTitle}>{copy.docsTitle}</Text>
         <Text style={styles.text}>{copy.docsText}</Text>
-        <LunaButton variant="secondary" onPress={() => void Linking.openURL('https://luna-eta-rust.vercel.app/')}>{copy.openHome}</LunaButton>
+        <LunaButton variant="secondary" onPress={() => void Linking.openURL(publicWebLink('home'))}>{copy.openHome}</LunaButton>
       </SurfaceCard>
     </ScrollView>
   );

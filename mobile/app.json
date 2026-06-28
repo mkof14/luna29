@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Luna",
+    "name": "Luna29",
     "slug": "luna-mobile",
     "version": "1.0.0",
     "scheme": "luna",
@@ -19,7 +19,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.mkof14.lunamobile",
       "infoPlist": {
-        "NSUserNotificationsUsageDescription": "Luna uses notifications for gentle evening reflection reminders.",
+        "NSUserNotificationsUsageDescription": "Luna29 uses notifications for gentle evening reflection reminders.",
         "ITSAppUsesNonExemptEncryption": false
       }
     },

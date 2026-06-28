@@ -148,11 +148,11 @@ const ensureReportId = () => {
   try {
     const current = localStorage.getItem(REPORT_ID_STORAGE_KEY);
     if (current) return current;
-    const created = `LUNA-${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
+    const created = `LUNA29-${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
     localStorage.setItem(REPORT_ID_STORAGE_KEY, created);
     return created;
   } catch {
-    return `LUNA-${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
+    return `LUNA29-${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
   }
 };
 
@@ -406,7 +406,7 @@ export const LabsView: React.FC<{ day: number; age: number; lang: Language; user
 
   const reportGeneratedAt = useMemo(() => new Date().toLocaleString(reportLocale), [analysis?.text, parsedValues.length, reportIdentityLine, reportLocale]);
   const reportCopyright = useMemo(() => {
-    const base = detailedUi.copyright || 'Copyright © Luna Balance. All rights reserved.';
+    const base = detailedUi.copyright || 'Copyright © Luna29 Balance. All rights reserved.';
     return base.includes('2026') ? base : base.replace('Copyright ©', 'Copyright © 2026');
   }, [detailedUi.copyright]);
   const analysisSource = useMemo(() => {
@@ -1184,7 +1184,7 @@ export const LabsView: React.FC<{ day: number; age: number; lang: Language; user
 
           <article ref={reportSectionRef} className="rounded-[2rem] border border-slate-200/80 dark:border-slate-700/70 bg-gradient-to-br from-[#f3e5f4]/95 via-[#eee8fb]/92 to-[#e3edf9]/90 dark:from-[#0d1f3f]/95 dark:via-[#132a50]/93 dark:to-[#17345f]/92 p-6 shadow-luna-rich space-y-4">
             <div className="flex items-center gap-3">
-              <img src="/images/Luna%20logo3.png" alt="Luna symbol" className="h-10 w-10 object-contain" />
+              <img src="/images/Luna%20logo3.png" alt="Luna29 symbol" className="h-10 w-10 object-contain" />
               <div>
                 <p className="text-sm md:text-base font-black uppercase tracking-[0.14em] text-luna-purple">{reportUi.reportTitle}</p>
                 <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">{reportUi.reportSubtitle}</p>

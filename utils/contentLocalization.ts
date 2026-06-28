@@ -1,8 +1,7 @@
-import { Language } from '../constants';
+import { Language, LangCopy } from '../constants';
+import { SUPPORTED_LANGUAGES } from '../utils/languages';
 
-export type LocalizedText = Record<Language, string>;
-
-export const SUPPORTED_LANGUAGES: Language[] = ['en', 'ru', 'uk', 'es', 'fr', 'de', 'zh', 'ja', 'pt'];
+export type LocalizedText = LangCopy<string>;
 const TRANSLATION_CACHE_KEY = 'luna_translation_cache_v1';
 
 const phraseDictionary: Record<string, Partial<Record<Language, string>>> = {
@@ -200,7 +199,7 @@ export const localizeText = async (value: string, sourceLang: Language): Promise
   );
 
   return translations.reduce((acc, [lang, translated]) => {
-    acc[lang] = translated;
+    acc[lang] = translated ?? fallback[lang] ?? normalized;
     return acc;
   }, {} as LocalizedText);
 };

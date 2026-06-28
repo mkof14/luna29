@@ -1,23 +1,11 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Language } from '../constants';
+import { LANGUAGE_PICKER } from '../utils/languages';
 
 interface LanguageSelectorProps {
   current: Language;
   onSelect: (lang: Language) => void;
 }
-
-const LANGUAGES: { code: Language; label: string; full: string; native: string; flag: string }[] = [
-  { code: 'en', label: 'EN', full: 'English', native: 'English', flag: '🇺🇸' },
-  { code: 'de', label: 'DE', full: 'German', native: 'Deutsch', flag: '🇩🇪' },
-  { code: 'es', label: 'ES', full: 'Spanish', native: 'Español', flag: '🇪🇸' },
-  { code: 'fr', label: 'FR', full: 'French', native: 'Français', flag: '🇫🇷' },
-  { code: 'ja', label: 'JA', full: 'Japanese', native: '日本語', flag: '🇯🇵' },
-  { code: 'pt', label: 'PT', full: 'Portuguese', native: 'Português', flag: '🇵🇹' },
-  { code: 'ru', label: 'RU', full: 'Russian', native: 'Русский', flag: '🇷🇺' },
-  { code: 'uk', label: 'UK', full: 'Ukrainian', native: 'Українська', flag: '🇺🇦' },
-  { code: 'zh', label: 'ZH', full: 'Chinese', native: '中文', flag: '🇨🇳' }
-];
 
 const LanguageSelector: React.FC<LanguageSelectorProps> = ({ current, onSelect }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -33,7 +21,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ current, onSelect }
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const currentLang = LANGUAGES.find(l => l.code === current) || LANGUAGES[0];
+  const currentLang = LANGUAGE_PICKER.find(l => l.code === current) || LANGUAGE_PICKER[0];
 
   return (
     <div className="relative" ref={containerRef}>
@@ -57,7 +45,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ current, onSelect }
             <div className="px-5 py-3 mb-2 border-b border-slate-100 dark:border-slate-800">
                <span className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400 dark:text-slate-500">Select Language</span>
             </div>
-            {LANGUAGES.map((lang) => (
+            {LANGUAGE_PICKER.map((lang) => (
               <button
                 key={lang.code}
                 onClick={() => {

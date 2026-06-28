@@ -1,10 +1,10 @@
 
 import React from 'react';
 import { HealthEvent } from '../types';
-import { Language } from '../constants';
+import { Language, LangCopy, getLang } from '../constants';
 
 export const HistoryView: React.FC<{ log: HealthEvent[]; lang?: Language; onBack?: () => void }> = ({ log, lang = 'en', onBack }) => {
-  const copyByLang: Record<Language, {
+  const copyByLang: LangCopy< {
     daily: string; cycle: (day: string | number) => string; health: string; support: (name: string) => string; login: string; started: string; profile: string; system: string;
     titleA: string; titleB: string; subtitle: string; noEntries: string;
   }> = {
@@ -18,7 +18,7 @@ export const HistoryView: React.FC<{ log: HealthEvent[]; lang?: Language; onBack
     ja: { daily: 'デイリーチェックインを保存しました。', cycle: (day) => `サイクルを${day}日目に更新しました。`, health: '健康データを更新しました。', support: (name) => `サポートを更新: ${name}。`, login: 'ログインしました。', started: '開始しました。', profile: 'プロフィールを更新しました。', system: 'システムイベント。', titleA: '私の', titleB: '記録。', subtitle: 'これまでの歩みを振り返ります。すべての記録があなたの物語です。', noEntries: 'まだ記録がありません' },
     pt: { daily: 'Check-in diário salvo.', cycle: (day) => `Ciclo atualizado para o dia ${day}.`, health: 'Dados de saúde atualizados.', support: (name) => `Suporte atualizado: ${name}.`, login: 'Login realizado.', started: 'Iniciado.', profile: 'Perfil atualizado.', system: 'Evento do sistema.', titleA: 'Minha', titleB: 'Jornada.', subtitle: 'Um olhar para sua jornada. Cada registro faz parte da sua história.', noEntries: 'Ainda sem registros' },
   };
-  const copy = copyByLang[lang];
+  const copy = getLang(copyByLang, lang);
   const sortedLog = [...log].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
   const getEventSummary = (event: HealthEvent) => {

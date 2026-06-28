@@ -19,7 +19,7 @@ export function MyDayWithLunaScreen({
     <ScrollView contentContainerStyle={styles.container}>
       <ImageBackground source={require('../../assets/bg-soft-1.webp')} imageStyle={styles.heroImage} style={styles.heroCard}>
         <View style={styles.heroOverlay}>
-          <MobileScreenHeader title="My Day with Luna" subtitle="A calm personal note for today." onBack={onBack} tone="light" />
+          <MobileScreenHeader title="My Day with Luna29" subtitle="A calm personal note for today." onBack={onBack} tone="light" />
         </View>
       </ImageBackground>
 
@@ -45,7 +45,7 @@ export function MyDayWithLunaScreen({
           <LunaButton
             variant="secondary"
             onPress={() => {
-              Alert.alert('Saved', 'My Day note saved to your Luna story.');
+              Alert.alert('Saved', 'My Day note saved to your Luna29 story.');
             }}
           >
             Save
@@ -54,14 +54,14 @@ export function MyDayWithLunaScreen({
             variant="secondary"
             onPress={() => {
               void Share.share({
-                title: 'My Day with Luna',
-                message: `My Day with Luna\n\nBody: ${context.cycle}\nEnergy: ${context.energy}\nMood: ${context.mood}\nSleep: ${context.sleep}`,
+                title: 'My Day with Luna29',
+                message: `My Day with Luna29\n\nBody: ${context.cycle}\nEnergy: ${context.energy}\nMood: ${context.mood}\nSleep: ${context.sleep}`,
               });
             }}
           >
             Share
           </LunaButton>
-          <LunaButton onPress={onSpeak}>Speak to Luna</LunaButton>
+          <LunaButton onPress={onSpeak}>Speak to Luna29</LunaButton>
         </View>
       </SurfaceCard>
     </ScrollView>

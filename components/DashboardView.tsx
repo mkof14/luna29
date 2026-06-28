@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Mic, Sparkles, Activity, PenLine, SkipForward } from 'lucide-react';
-import { Language, TranslationSchema } from '../constants';
+import { Language, TranslationSchema, LangCopy, getLang } from '../constants';
 import { CyclePhase, HealthEvent, HormoneData, RuleOutput } from '../types';
 import HormoneGauge from './HormoneGauge';
 import { FuelCompass } from './FuelCompass';
@@ -36,7 +36,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   setShowLive,
   navigateTo,
 }) => {
-  const retentionCopyByLang: Record<Language, {
+  const retentionCopyByLang: LangCopy< {
     title: string;
     streak: string;
     activeDays: string;
@@ -74,7 +74,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       notifyBlocked: 'Notifications blocked in browser settings',
       testNow: 'Test Notification',
       dueNow: 'A gentle reminder for tonight',
-      startNow: 'Open Luna',
+      startNow: 'Open Luna29',
       nextReminder: 'Next reminder',
       noData: 'No weekly activity yet. Start with one check-in.',
     },
@@ -95,7 +95,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       notifyBlocked: 'Уведомления заблокированы в настройках браузера',
       testNow: 'Тест уведомления',
       dueNow: 'Мягкое напоминание на вечер',
-      startNow: 'Открыть Luna',
+      startNow: 'Открыть Luna29',
       nextReminder: 'Следующее напоминание',
       noData: 'Пока нет активности за неделю. Начните с одного check-in.',
     },
@@ -116,7 +116,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       notifyBlocked: 'Сповіщення заблоковані в налаштуваннях браузера',
       testNow: 'Тест сповіщення',
       dueNow: "М'яке нагадування на вечір",
-      startNow: 'Відкрити Luna',
+      startNow: 'Відкрити Luna29',
       nextReminder: 'Наступне нагадування',
       noData: 'Ще немає активності за тиждень. Почніть з одного check-in.',
     },
@@ -137,7 +137,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       notifyBlocked: 'Notificaciones bloqueadas en el navegador',
       testNow: 'Probar notificación',
       dueNow: 'Un recordatorio suave para esta noche',
-      startNow: 'Abrir Luna',
+      startNow: 'Abrir Luna29',
       nextReminder: 'Siguiente recordatorio',
       noData: 'Aún no hay actividad semanal. Empieza con un check-in.',
     },
@@ -158,7 +158,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       notifyBlocked: 'Notifications bloquées dans le navigateur',
       testNow: 'Tester la notification',
       dueNow: 'Un rappel doux pour ce soir',
-      startNow: 'Ouvrir Luna',
+      startNow: 'Ouvrir Luna29',
       nextReminder: 'Prochain rappel',
       noData: 'Aucune activité cette semaine. Commencez par un check-in.',
     },
@@ -179,7 +179,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       notifyBlocked: 'Benachrichtigungen im Browser blockiert',
       testNow: 'Testbenachrichtigung',
       dueNow: 'Eine sanfte Erinnerung für heute Abend',
-      startNow: 'Luna öffnen',
+      startNow: 'Luna29 öffnen',
       nextReminder: 'Nächste Erinnerung',
       noData: 'Noch keine Wochenaktivität. Starte mit einem Check-in.',
     },
@@ -200,7 +200,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       notifyBlocked: '浏览器设置中通知被阻止',
       testNow: '测试通知',
       dueNow: '今晚的温柔提醒',
-      startNow: '打开 Luna',
+      startNow: '打开 Luna29',
       nextReminder: '下次提醒',
       noData: '本周暂无活动，先做一次 check-in。',
     },
@@ -221,7 +221,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       notifyBlocked: 'ブラウザ設定で通知がブロックされています',
       testNow: '通知テスト',
       dueNow: '今夜のやさしいリマインダー',
-      startNow: 'Luna を開く',
+      startNow: 'Luna29 を開く',
       nextReminder: '次の通知',
       noData: '今週の活動がまだありません。check-inから開始してください。',
     },
@@ -242,13 +242,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       notifyBlocked: 'Notificações bloqueadas no navegador',
       testNow: 'Testar notificação',
       dueNow: 'Um lembrete suave para esta noite',
-      startNow: 'Abrir Luna',
+      startNow: 'Abrir Luna29',
       nextReminder: 'Próximo lembrete',
       noData: 'Ainda sem atividade semanal. Comece com um check-in.',
     },
   };
-  const retentionCopy = retentionCopyByLang[lang] || retentionCopyByLang.en;
-  const billingCopyByLang: Record<Language, {
+  const retentionCopy = getLang(retentionCopyByLang, lang) || retentionCopyByLang.en;
+  const billingCopyByLang: LangCopy< {
     title: string;
     loading: string;
     status: string;
@@ -369,7 +369,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       inactive: 'Inativa',
     },
   };
-  const billingCopy = billingCopyByLang[lang] || billingCopyByLang.en;
+  const billingCopy = getLang(billingCopyByLang, lang) || billingCopyByLang.en;
   const REMINDER_STORAGE_KEY = 'luna_daily_reminder_v1';
   const EVENING_SKIP_STORAGE_KEY = 'luna_evening_reflection_skip_v1';
 
@@ -481,78 +481,61 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     return now.getHours() === hh && now.getMinutes() === mm;
   }, [reminderEnabled, reminderTime, tick]);
 
-  const gentleReminderMessagesByLang: Record<Language, string[]> = {
+  const gentleReminderMessagesByLang: LangCopy< string[]> = {
     en: [
-      'A quiet moment with Luna tonight.',
+      'A quiet moment with Luna29 tonight.',
       'How did today feel for you?',
       'Take a minute to reflect.',
     ],
     ru: [
-      'Тихий момент с Luna этим вечером.',
+      'Тихий момент с Luna29 этим вечером.',
       'Как вы прожили этот день?',
       'Уделите минуту мягкой рефлексии.',
     ],
     uk: [
-      'Тиха мить з Luna цього вечора.',
+      'Тиха мить з Luna29 цього вечора.',
       'Як ви прожили цей день?',
       'Приділіть хвилину спокійній рефлексії.',
     ],
     es: [
-      'A quiet moment with Luna tonight.',
+      'A quiet moment with Luna29 tonight.',
       'How did today feel for you?',
       'Take a minute to reflect.',
     ],
     fr: [
-      'A quiet moment with Luna tonight.',
+      'A quiet moment with Luna29 tonight.',
       'How did today feel for you?',
       'Take a minute to reflect.',
     ],
     de: [
-      'A quiet moment with Luna tonight.',
+      'A quiet moment with Luna29 tonight.',
       'How did today feel for you?',
       'Take a minute to reflect.',
     ],
     zh: [
-      'A quiet moment with Luna tonight.',
+      'A quiet moment with Luna29 tonight.',
       'How did today feel for you?',
       'Take a minute to reflect.',
     ],
     ja: [
-      'A quiet moment with Luna tonight.',
+      'A quiet moment with Luna29 tonight.',
       'How did today feel for you?',
       'Take a minute to reflect.',
     ],
     pt: [
-      'A quiet moment with Luna tonight.',
+      'A quiet moment with Luna29 tonight.',
       'How did today feel for you?',
       'Take a minute to reflect.',
     ],
   };
 
   const gentleReminderMessage = useMemo(() => {
-    const pool = gentleReminderMessagesByLang[lang] || gentleReminderMessagesByLang.en;
+    const pool = getLang(gentleReminderMessagesByLang, lang) || gentleReminderMessagesByLang.en;
     const daySeed = new Date().getDate() + new Date().getMonth() * 31;
     return pool[daySeed % pool.length];
   }, [lang, tick]);
 
-  const eveningCopyByLang: Record<
-    Language,
-    {
-      title: string;
-      prompt: string;
-      speak: string;
-      write: string;
-      skip: string;
-      writePlaceholder: string;
-      save: string;
-      saved: string;
-      responseTitle: string;
-      patternTitle: string;
-      learning: string;
-      skipped: string;
-      questions: string[];
-    }
-  > = {
+  const eveningCopyByLang = {
     en: {
       title: 'A small reflection for tonight',
       prompt: 'What stayed with you today?',
@@ -562,10 +545,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       writePlaceholder: 'A few words are enough...',
       save: 'Save reflection',
       saved: 'Saved for tonight.',
-      responseTitle: 'Luna heard you',
-      patternTitle: 'Something Luna is starting to notice',
-      learning: 'Luna is still learning about you. The more you reflect, the clearer your rhythm becomes.',
-      skipped: 'You skipped tonight. Luna will be here tomorrow.',
+      responseTitle: 'Luna29 heard you',
+      patternTitle: 'Something Luna29 is starting to notice',
+      learning: 'Luna29 is still learning about you. The more you reflect, the clearer your rhythm becomes.',
+      skipped: 'You skipped tonight. Luna29 will be here tomorrow.',
       questions: [
         'What stayed with you today?',
         'What felt the heaviest today?',
@@ -582,10 +565,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       writePlaceholder: 'Достаточно нескольких слов...',
       save: 'Сохранить рефлексию',
       saved: 'Сохранено на сегодня.',
-      responseTitle: 'Luna вас услышала',
-      patternTitle: 'Luna начинает замечать',
-      learning: 'Luna все еще изучает ваш ритм. Чем чаще вы рефлексируете, тем яснее становится картина.',
-      skipped: 'Вы пропустили сегодня. Luna будет рядом завтра.',
+      responseTitle: 'Luna29 вас услышала',
+      patternTitle: 'Luna29 начинает замечать',
+      learning: 'Luna29 все еще изучает ваш ритм. Чем чаще вы рефлексируете, тем яснее становится картина.',
+      skipped: 'Вы пропустили сегодня. Luna29 будет рядом завтра.',
       questions: [
         'Что осталось с вами после этого дня?',
         'Что сегодня ощущалось самым тяжелым?',
@@ -602,10 +585,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       writePlaceholder: 'Кількох слів достатньо...',
       save: 'Зберегти рефлексію',
       saved: 'Збережено на сьогодні.',
-      responseTitle: 'Luna вас почула',
-      patternTitle: 'Luna починає помічати',
-      learning: 'Luna ще вивчає ваш ритм. Чим частіше ви рефлексуєте, тим чіткішою стає картина.',
-      skipped: 'Ви пропустили сьогодні. Luna буде поруч завтра.',
+      responseTitle: 'Luna29 вас почула',
+      patternTitle: 'Luna29 починає помічати',
+      learning: 'Luna29 ще вивчає ваш ритм. Чим частіше ви рефлексуєте, тим чіткішою стає картина.',
+      skipped: 'Ви пропустили сьогодні. Luna29 буде поруч завтра.',
       questions: [
         'Що залишилось з вами після цього дня?',
         'Що сьогодні відчувалось найважчим?',
@@ -613,14 +596,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         'Що дало вам трохи енергії сьогодні?',
       ],
     },
-    es: { title: 'A small reflection for tonight', prompt: 'What stayed with you today?', speak: 'Speak', write: 'Write', skip: 'Skip today', writePlaceholder: 'A few words are enough...', save: 'Save reflection', saved: 'Saved for tonight.', responseTitle: 'Luna heard you', patternTitle: 'Something Luna is starting to notice', learning: 'Luna is still learning about you. The more you reflect, the clearer your rhythm becomes.', skipped: 'You skipped tonight. Luna will be here tomorrow.', questions: ['What stayed with you today?', 'What felt the heaviest today?', 'What is still on your mind tonight?', 'What gave you a little energy today?'] },
-    fr: { title: 'A small reflection for tonight', prompt: 'What stayed with you today?', speak: 'Speak', write: 'Write', skip: 'Skip today', writePlaceholder: 'A few words are enough...', save: 'Save reflection', saved: 'Saved for tonight.', responseTitle: 'Luna heard you', patternTitle: 'Something Luna is starting to notice', learning: 'Luna is still learning about you. The more you reflect, the clearer your rhythm becomes.', skipped: 'You skipped tonight. Luna will be here tomorrow.', questions: ['What stayed with you today?', 'What felt the heaviest today?', 'What is still on your mind tonight?', 'What gave you a little energy today?'] },
-    de: { title: 'A small reflection for tonight', prompt: 'What stayed with you today?', speak: 'Speak', write: 'Write', skip: 'Skip today', writePlaceholder: 'A few words are enough...', save: 'Save reflection', saved: 'Saved for tonight.', responseTitle: 'Luna heard you', patternTitle: 'Something Luna is starting to notice', learning: 'Luna is still learning about you. The more you reflect, the clearer your rhythm becomes.', skipped: 'You skipped tonight. Luna will be here tomorrow.', questions: ['What stayed with you today?', 'What felt the heaviest today?', 'What is still on your mind tonight?', 'What gave you a little energy today?'] },
-    zh: { title: 'A small reflection for tonight', prompt: 'What stayed with you today?', speak: 'Speak', write: 'Write', skip: 'Skip today', writePlaceholder: 'A few words are enough...', save: 'Save reflection', saved: 'Saved for tonight.', responseTitle: 'Luna heard you', patternTitle: 'Something Luna is starting to notice', learning: 'Luna is still learning about you. The more you reflect, the clearer your rhythm becomes.', skipped: 'You skipped tonight. Luna will be here tomorrow.', questions: ['What stayed with you today?', 'What felt the heaviest today?', 'What is still on your mind tonight?', 'What gave you a little energy today?'] },
-    ja: { title: 'A small reflection for tonight', prompt: 'What stayed with you today?', speak: 'Speak', write: 'Write', skip: 'Skip today', writePlaceholder: 'A few words are enough...', save: 'Save reflection', saved: 'Saved for tonight.', responseTitle: 'Luna heard you', patternTitle: 'Something Luna is starting to notice', learning: 'Luna is still learning about you. The more you reflect, the clearer your rhythm becomes.', skipped: 'You skipped tonight. Luna will be here tomorrow.', questions: ['What stayed with you today?', 'What felt the heaviest today?', 'What is still on your mind tonight?', 'What gave you a little energy today?'] },
-    pt: { title: 'A small reflection for tonight', prompt: 'What stayed with you today?', speak: 'Speak', write: 'Write', skip: 'Skip today', writePlaceholder: 'A few words are enough...', save: 'Save reflection', saved: 'Saved for tonight.', responseTitle: 'Luna heard you', patternTitle: 'Something Luna is starting to notice', learning: 'Luna is still learning about you. The more you reflect, the clearer your rhythm becomes.', skipped: 'You skipped tonight. Luna will be here tomorrow.', questions: ['What stayed with you today?', 'What felt the heaviest today?', 'What is still on your mind tonight?', 'What gave you a little energy today?'] },
+    es: { title: 'A small reflection for tonight', prompt: 'What stayed with you today?', speak: 'Speak', write: 'Write', skip: 'Skip today', writePlaceholder: 'A few words are enough...', save: 'Save reflection', saved: 'Saved for tonight.', responseTitle: 'Luna29 heard you', patternTitle: 'Something Luna29 is starting to notice', learning: 'Luna29 is still learning about you. The more you reflect, the clearer your rhythm becomes.', skipped: 'You skipped tonight. Luna29 will be here tomorrow.', questions: ['What stayed with you today?', 'What felt the heaviest today?', 'What is still on your mind tonight?', 'What gave you a little energy today?'] },
+    fr: { title: 'A small reflection for tonight', prompt: 'What stayed with you today?', speak: 'Speak', write: 'Write', skip: 'Skip today', writePlaceholder: 'A few words are enough...', save: 'Save reflection', saved: 'Saved for tonight.', responseTitle: 'Luna29 heard you', patternTitle: 'Something Luna29 is starting to notice', learning: 'Luna29 is still learning about you. The more you reflect, the clearer your rhythm becomes.', skipped: 'You skipped tonight. Luna29 will be here tomorrow.', questions: ['What stayed with you today?', 'What felt the heaviest today?', 'What is still on your mind tonight?', 'What gave you a little energy today?'] },
+    de: { title: 'A small reflection for tonight', prompt: 'What stayed with you today?', speak: 'Speak', write: 'Write', skip: 'Skip today', writePlaceholder: 'A few words are enough...', save: 'Save reflection', saved: 'Saved for tonight.', responseTitle: 'Luna29 heard you', patternTitle: 'Something Luna29 is starting to notice', learning: 'Luna29 is still learning about you. The more you reflect, the clearer your rhythm becomes.', skipped: 'You skipped tonight. Luna29 will be here tomorrow.', questions: ['What stayed with you today?', 'What felt the heaviest today?', 'What is still on your mind tonight?', 'What gave you a little energy today?'] },
+    zh: { title: 'A small reflection for tonight', prompt: 'What stayed with you today?', speak: 'Speak', write: 'Write', skip: 'Skip today', writePlaceholder: 'A few words are enough...', save: 'Save reflection', saved: 'Saved for tonight.', responseTitle: 'Luna29 heard you', patternTitle: 'Something Luna29 is starting to notice', learning: 'Luna29 is still learning about you. The more you reflect, the clearer your rhythm becomes.', skipped: 'You skipped tonight. Luna29 will be here tomorrow.', questions: ['What stayed with you today?', 'What felt the heaviest today?', 'What is still on your mind tonight?', 'What gave you a little energy today?'] },
+    ja: { title: 'A small reflection for tonight', prompt: 'What stayed with you today?', speak: 'Speak', write: 'Write', skip: 'Skip today', writePlaceholder: 'A few words are enough...', save: 'Save reflection', saved: 'Saved for tonight.', responseTitle: 'Luna29 heard you', patternTitle: 'Something Luna29 is starting to notice', learning: 'Luna29 is still learning about you. The more you reflect, the clearer your rhythm becomes.', skipped: 'You skipped tonight. Luna29 will be here tomorrow.', questions: ['What stayed with you today?', 'What felt the heaviest today?', 'What is still on your mind tonight?', 'What gave you a little energy today?'] },
+    pt: { title: 'A small reflection for tonight', prompt: 'What stayed with you today?', speak: 'Speak', write: 'Write', skip: 'Skip today', writePlaceholder: 'A few words are enough...', save: 'Save reflection', saved: 'Saved for tonight.', responseTitle: 'Luna29 heard you', patternTitle: 'Something Luna29 is starting to notice', learning: 'Luna29 is still learning about you. The more you reflect, the clearer your rhythm becomes.', skipped: 'You skipped tonight. Luna29 will be here tomorrow.', questions: ['What stayed with you today?', 'What felt the heaviest today?', 'What is still on your mind tonight?', 'What gave you a little energy today?'] },
   };
-  const eveningCopy = eveningCopyByLang[lang] || eveningCopyByLang.en;
+  const eveningCopy = getLang(eveningCopyByLang, lang) || eveningCopyByLang.en;
 
   const [eveningWriteOpen, setEveningWriteOpen] = useState(false);
   const [eveningText, setEveningText] = useState('');
@@ -716,7 +699,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   const sendTestNotification = () => {
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
-    new Notification('Luna', {
+    new Notification('Luna29', {
       body: gentleReminderMessage,
     });
   };
@@ -752,10 +735,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const premiumActive = useMemo(() => ['active', 'trialing'].includes((billing.status || '').toLowerCase()), [billing.status]);
   const canUsePaidInsights = billingEnabled && premiumActive;
 
-  const paywallCopyByLang: Partial<Record<Language, { locked: string; lineA: string; lineB: string; unlock: string; close: string; inPlan: string; featurePattern: string; featureMonthly: string; featureHistory: string; featureVoice: string }>> = {
+  const paywallCopyByLang: LangCopy<{ locked: string; lineA: string; lineB: string; unlock: string; close: string; inPlan: string; featurePattern: string; featureMonthly: string; featureHistory: string; featureVoice: string }> = {
     en: {
       locked: 'Locked',
-      lineA: 'Luna is starting to see patterns in your life.',
+      lineA: 'Luna29 is starting to see patterns in your life.',
       lineB: 'Unlock deeper insights to understand your rhythm over time.',
       unlock: 'Unlock insights',
       close: 'Not now',
@@ -767,7 +750,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     },
     ru: {
       locked: 'Закрыто',
-      lineA: 'Luna начинает видеть паттерны в вашей жизни.',
+      lineA: 'Luna29 начинает видеть паттерны в вашей жизни.',
       lineB: 'Откройте глубокие инсайты, чтобы лучше понимать свой ритм во времени.',
       unlock: 'Unlock insights',
       close: 'Позже',
@@ -779,7 +762,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     },
     uk: {
       locked: 'Закрито',
-      lineA: 'Luna починає бачити патерни у вашому житті.',
+      lineA: 'Luna29 починає бачити патерни у вашому житті.',
       lineB: 'Відкрийте глибші інсайти, щоб краще розуміти свій ритм з часом.',
       unlock: 'Unlock insights',
       close: 'Пізніше',
@@ -791,60 +774,24 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     },
   };
   const defaultPaywallCopy = paywallCopyByLang.en!;
-  const paywallCopy = paywallCopyByLang[lang] || defaultPaywallCopy;
+  const paywallCopy = getLang(paywallCopyByLang, lang) || defaultPaywallCopy;
 
   const openSoftPaywall = () => navigateTo('insights_paywall');
 
   const projectedState = useMemo(() => dataService.projectState(events), [events]);
-  const dailyMirrorCopyByLang: Record<
-    Language,
-    {
-      dayMorning: string;
-      dayAfternoon: string;
-      dayEvening: string;
-      reflectionTitle: string;
-      reflectionSub: string;
-      dailyAction: string;
-      speakTitle: string;
-      speakSub: string;
-      quickAction: string;
-      quickTitle: string;
-      quickSub: string;
-      rhythmTitle: string;
-      rhythmSub: string;
-      cycle: string;
-      energy: string;
-      mood: string;
-      sleep: string;
-      levelLow: string;
-      levelMedium: string;
-      levelHigh: string;
-      learning: string;
-      phaseSuffix: string;
-      insightsTitle: string;
-      learnTitle: string;
-      learnSub: string;
-      patternTitle: string;
-      patternOneA: string;
-      patternOneB: string;
-      patternTwoA: string;
-      patternTwoB: string;
-      disclaimer: string;
-      moreTools: string;
-    }
-  > = {
-    en: { dayMorning: 'Good morning', dayAfternoon: 'Good afternoon', dayEvening: 'Good evening', reflectionTitle: "Today's reflection", reflectionSub: 'Speak or check in. Luna reflects and helps you see your rhythm.', dailyAction: 'Daily action', speakTitle: 'Speak to Luna', speakSub: 'Tap to record', quickAction: 'Quick action', quickTitle: 'Quick check-in', quickSub: '30 sec today check-in', rhythmTitle: 'Your Rhythm', rhythmSub: 'A calm snapshot for today.', cycle: 'Cycle', energy: 'Energy', mood: 'Mood', sleep: 'Sleep', levelLow: 'Low', levelMedium: 'Medium', levelHigh: 'High', learning: 'Learning', phaseSuffix: 'phase', insightsTitle: 'Luna Insights', learnTitle: 'Luna is learning about you.', learnSub: 'Discovery coming soon.', patternTitle: 'Pattern preview', patternOneA: 'Energy drops', patternOneB: '2 days before cycle', patternTwoA: 'Sleep < 6h', patternTwoB: 'affects sensitivity', disclaimer: 'Observational guidance only. Not medical advice.', moreTools: 'More tools' },
-    ru: { dayMorning: 'Доброе утро', dayAfternoon: 'Добрый день', dayEvening: 'Добрый вечер', reflectionTitle: 'Сегодняшняя рефлексия', reflectionSub: 'Скажите голосом или сделайте check-in. Luna поможет увидеть ваш ритм.', dailyAction: 'Ежедневное действие', speakTitle: 'Поговорить с Luna', speakSub: 'Нажмите для записи', quickAction: 'Быстрое действие', quickTitle: 'Быстрый check-in', quickSub: '30 секунд сегодня', rhythmTitle: 'Ваш ритм', rhythmSub: 'Спокойный срез на сегодня.', cycle: 'Цикл', energy: 'Энергия', mood: 'Настроение', sleep: 'Сон', levelLow: 'Низкий', levelMedium: 'Средний', levelHigh: 'Высокий', learning: 'Изучаем', phaseSuffix: 'фаза', insightsTitle: 'Инсайты Luna', learnTitle: 'Luna изучает ваш ритм.', learnSub: 'Наблюдения скоро появятся.', patternTitle: 'Превью паттернов', patternOneA: 'Энергия снижается', patternOneB: 'за 2 дня до цикла', patternTwoA: 'Сон < 6 ч', patternTwoB: 'повышает чувствительность', disclaimer: 'Наблюдательные подсказки. Не медицинский совет.', moreTools: 'Дополнительные инструменты' },
-    uk: { dayMorning: 'Доброго ранку', dayAfternoon: 'Добрий день', dayEvening: 'Добрий вечір', reflectionTitle: 'Сьогоднішня рефлексія', reflectionSub: 'Скажіть голосом або зробіть check-in. Luna допоможе побачити ваш ритм.', dailyAction: 'Щоденна дія', speakTitle: 'Поговорити з Luna', speakSub: 'Натисніть для запису', quickAction: 'Швидка дія', quickTitle: 'Швидкий check-in', quickSub: '30 секунд сьогодні', rhythmTitle: 'Ваш ритм', rhythmSub: 'Спокійний зріз на сьогодні.', cycle: 'Цикл', energy: 'Енергія', mood: 'Настрій', sleep: 'Сон', levelLow: 'Низький', levelMedium: 'Середній', levelHigh: 'Високий', learning: 'Вивчаємо', phaseSuffix: 'фаза', insightsTitle: 'Інсайти Luna', learnTitle: 'Luna вивчає ваш ритм.', learnSub: 'Спостереження скоро зʼявляться.', patternTitle: 'Попередній перегляд патернів', patternOneA: 'Енергія знижується', patternOneB: 'за 2 дні до циклу', patternTwoA: 'Сон < 6 год', patternTwoB: 'підвищує чутливість', disclaimer: 'Лише спостережні підказки. Не медична порада.', moreTools: 'Додаткові інструменти' },
-    es: { dayMorning: 'Buenos días', dayAfternoon: 'Buenas tardes', dayEvening: 'Buenas noches', reflectionTitle: 'Reflexión de hoy', reflectionSub: 'Habla o haz check-in. Luna refleja y te ayuda a ver tu ritmo.', dailyAction: 'Acción diaria', speakTitle: 'Habla con Luna', speakSub: 'Toca para grabar', quickAction: 'Acción rápida', quickTitle: 'Check-in rápido', quickSub: '30 seg hoy', rhythmTitle: 'Tu ritmo', rhythmSub: 'Una vista tranquila de hoy.', cycle: 'Ciclo', energy: 'Energía', mood: 'Estado de ánimo', sleep: 'Sueño', levelLow: 'Bajo', levelMedium: 'Medio', levelHigh: 'Alto', learning: 'Aprendiendo', phaseSuffix: 'fase', insightsTitle: 'Insights de Luna', learnTitle: 'Luna está aprendiendo sobre ti.', learnSub: 'Pronto habrá descubrimientos.', patternTitle: 'Vista previa de patrones', patternOneA: 'La energía baja', patternOneB: '2 días antes del ciclo', patternTwoA: 'Sueño < 6h', patternTwoB: 'afecta la sensibilidad', disclaimer: 'Guía observacional. No es consejo médico.', moreTools: 'Más herramientas' },
-    fr: { dayMorning: 'Bonjour', dayAfternoon: 'Bon après-midi', dayEvening: 'Bonsoir', reflectionTitle: "Réflexion d'aujourd'hui", reflectionSub: 'Parlez ou faites un check-in. Luna reflète et vous aide à voir votre rythme.', dailyAction: 'Action quotidienne', speakTitle: 'Parler à Luna', speakSub: 'Touchez pour enregistrer', quickAction: 'Action rapide', quickTitle: 'Check-in rapide', quickSub: "30 s aujourd'hui", rhythmTitle: 'Votre rythme', rhythmSub: "Une vue calme pour aujourd'hui.", cycle: 'Cycle', energy: 'Énergie', mood: 'Humeur', sleep: 'Sommeil', levelLow: 'Bas', levelMedium: 'Moyen', levelHigh: 'Élevé', learning: 'En apprentissage', phaseSuffix: 'phase', insightsTitle: 'Insights Luna', learnTitle: 'Luna apprend à vous connaître.', learnSub: 'Découvertes à venir.', patternTitle: 'Aperçu des patterns', patternOneA: "L'énergie baisse", patternOneB: '2 jours avant le cycle', patternTwoA: 'Sommeil < 6h', patternTwoB: 'augmente la sensibilité', disclaimer: 'Indications observatoires uniquement. Pas un avis médical.', moreTools: 'Plus d’outils' },
-    de: { dayMorning: 'Guten Morgen', dayAfternoon: 'Guten Tag', dayEvening: 'Guten Abend', reflectionTitle: 'Reflexion von heute', reflectionSub: 'Sprich oder mache einen Check-in. Luna spiegelt und zeigt deinen Rhythmus.', dailyAction: 'Tagesaktion', speakTitle: 'Mit Luna sprechen', speakSub: 'Tippen zum Aufnehmen', quickAction: 'Schnellaktion', quickTitle: 'Schneller Check-in', quickSub: '30 Sek. heute', rhythmTitle: 'Dein Rhythmus', rhythmSub: 'Ein ruhiger Überblick für heute.', cycle: 'Zyklus', energy: 'Energie', mood: 'Stimmung', sleep: 'Schlaf', levelLow: 'Niedrig', levelMedium: 'Mittel', levelHigh: 'Hoch', learning: 'Lernstatus', phaseSuffix: 'Phase', insightsTitle: 'Luna Insights', learnTitle: 'Luna lernt dich kennen.', learnSub: 'Erkenntnisse kommen bald.', patternTitle: 'Pattern-Vorschau', patternOneA: 'Energie sinkt', patternOneB: '2 Tage vor Zyklus', patternTwoA: 'Schlaf < 6h', patternTwoB: 'erhöht Sensitivität', disclaimer: 'Nur beobachtende Hinweise. Kein medizinischer Rat.', moreTools: 'Weitere Tools' },
-    zh: { dayMorning: '早上好', dayAfternoon: '下午好', dayEvening: '晚上好', reflectionTitle: '今日反思', reflectionSub: '说一说或做一次 check-in。Luna 会帮助你看见自己的节律。', dailyAction: '每日动作', speakTitle: '和 Luna 说说', speakSub: '点击开始录音', quickAction: '快速动作', quickTitle: '快速 check-in', quickSub: '今日 30 秒', rhythmTitle: '你的节律', rhythmSub: '今天的平静快照。', cycle: '周期', energy: '能量', mood: '情绪', sleep: '睡眠', levelLow: '低', levelMedium: '中', levelHigh: '高', learning: '学习中', phaseSuffix: '阶段', insightsTitle: 'Luna 洞察', learnTitle: 'Luna 正在了解你。', learnSub: '即将发现更多规律。', patternTitle: '规律预览', patternOneA: '能量下降', patternOneB: '周期前 2 天', patternTwoA: '睡眠 < 6小时', patternTwoB: '影响情绪敏感度', disclaimer: '仅为观察性提示，不构成医疗建议。', moreTools: '更多工具' },
-    ja: { dayMorning: 'おはようございます', dayAfternoon: 'こんにちは', dayEvening: 'こんばんは', reflectionTitle: '今日のリフレクション', reflectionSub: '話すか check-in するだけ。Luna があなたのリズムを映します。', dailyAction: 'デイリーアクション', speakTitle: 'Luna に話す', speakSub: 'タップして録音', quickAction: 'クイックアクション', quickTitle: 'クイック check-in', quickSub: '今日30秒', rhythmTitle: 'あなたのリズム', rhythmSub: '今日の落ち着いたスナップショット。', cycle: 'サイクル', energy: 'エネルギー', mood: '気分', sleep: '睡眠', levelLow: '低い', levelMedium: '中くらい', levelHigh: '高い', learning: '学習中', phaseSuffix: 'フェーズ', insightsTitle: 'Luna インサイト', learnTitle: 'Luna があなたを学習中です。', learnSub: '発見はもうすぐ。', patternTitle: 'パターンプレビュー', patternOneA: 'エネルギー低下', patternOneB: '周期の2日前', patternTwoA: '睡眠 < 6時間', patternTwoB: '感受性に影響', disclaimer: '観察に基づくガイドです。医療助言ではありません。', moreTools: 'その他のツール' },
-    pt: { dayMorning: 'Bom dia', dayAfternoon: 'Boa tarde', dayEvening: 'Boa noite', reflectionTitle: 'Reflexão de hoje', reflectionSub: 'Fale ou faça check-in. A Luna reflete e mostra seu ritmo.', dailyAction: 'Ação diária', speakTitle: 'Fale com Luna', speakSub: 'Toque para gravar', quickAction: 'Ação rápida', quickTitle: 'Check-in rápido', quickSub: '30 seg hoje', rhythmTitle: 'Seu ritmo', rhythmSub: 'Um retrato calmo de hoje.', cycle: 'Ciclo', energy: 'Energia', mood: 'Humor', sleep: 'Sono', levelLow: 'Baixo', levelMedium: 'Médio', levelHigh: 'Alto', learning: 'Aprendendo', phaseSuffix: 'fase', insightsTitle: 'Insights Luna', learnTitle: 'A Luna está aprendendo sobre você.', learnSub: 'Novas descobertas em breve.', patternTitle: 'Prévia de padrões', patternOneA: 'Energia cai', patternOneB: '2 dias antes do ciclo', patternTwoA: 'Sono < 6h', patternTwoB: 'afeta sensibilidade', disclaimer: 'Apenas orientação observacional. Não é conselho médico.', moreTools: 'Mais ferramentas' },
+  const dailyMirrorCopyByLang = {
+    en: { dayMorning: 'Good morning', dayAfternoon: 'Good afternoon', dayEvening: 'Good evening', reflectionTitle: "Today's reflection", reflectionSub: 'Speak or check in. Luna29 reflects and helps you see your rhythm.', dailyAction: 'Daily action', speakTitle: 'Speak to Luna29', speakSub: 'Tap to record', quickAction: 'Quick action', quickTitle: 'Quick check-in', quickSub: '30 sec today check-in', rhythmTitle: 'Your Rhythm', rhythmSub: 'A calm snapshot for today.', cycle: 'Cycle', energy: 'Energy', mood: 'Mood', sleep: 'Sleep', levelLow: 'Low', levelMedium: 'Medium', levelHigh: 'High', learning: 'Learning', phaseSuffix: 'phase', insightsTitle: 'Luna29 Insights', learnTitle: 'Luna29 is learning about you.', learnSub: 'Discovery coming soon.', patternTitle: 'Pattern preview', patternOneA: 'Energy drops', patternOneB: '2 days before cycle', patternTwoA: 'Sleep < 6h', patternTwoB: 'affects sensitivity', disclaimer: 'Observational guidance only. Not medical advice.', moreTools: 'More tools' },
+    ru: { dayMorning: 'Доброе утро', dayAfternoon: 'Добрый день', dayEvening: 'Добрый вечер', reflectionTitle: 'Сегодняшняя рефлексия', reflectionSub: 'Скажите голосом или сделайте check-in. Luna29 поможет увидеть ваш ритм.', dailyAction: 'Ежедневное действие', speakTitle: 'Поговорить с Luna29', speakSub: 'Нажмите для записи', quickAction: 'Быстрое действие', quickTitle: 'Быстрый check-in', quickSub: '30 секунд сегодня', rhythmTitle: 'Ваш ритм', rhythmSub: 'Спокойный срез на сегодня.', cycle: 'Цикл', energy: 'Энергия', mood: 'Настроение', sleep: 'Сон', levelLow: 'Низкий', levelMedium: 'Средний', levelHigh: 'Высокий', learning: 'Изучаем', phaseSuffix: 'фаза', insightsTitle: 'Инсайты Luna29', learnTitle: 'Luna29 изучает ваш ритм.', learnSub: 'Наблюдения скоро появятся.', patternTitle: 'Превью паттернов', patternOneA: 'Энергия снижается', patternOneB: 'за 2 дня до цикла', patternTwoA: 'Сон < 6 ч', patternTwoB: 'повышает чувствительность', disclaimer: 'Наблюдательные подсказки. Не медицинский совет.', moreTools: 'Дополнительные инструменты' },
+    uk: { dayMorning: 'Доброго ранку', dayAfternoon: 'Добрий день', dayEvening: 'Добрий вечір', reflectionTitle: 'Сьогоднішня рефлексія', reflectionSub: 'Скажіть голосом або зробіть check-in. Luna29 допоможе побачити ваш ритм.', dailyAction: 'Щоденна дія', speakTitle: 'Поговорити з Luna29', speakSub: 'Натисніть для запису', quickAction: 'Швидка дія', quickTitle: 'Швидкий check-in', quickSub: '30 секунд сьогодні', rhythmTitle: 'Ваш ритм', rhythmSub: 'Спокійний зріз на сьогодні.', cycle: 'Цикл', energy: 'Енергія', mood: 'Настрій', sleep: 'Сон', levelLow: 'Низький', levelMedium: 'Середній', levelHigh: 'Високий', learning: 'Вивчаємо', phaseSuffix: 'фаза', insightsTitle: 'Інсайти Luna29', learnTitle: 'Luna29 вивчає ваш ритм.', learnSub: 'Спостереження скоро зʼявляться.', patternTitle: 'Попередній перегляд патернів', patternOneA: 'Енергія знижується', patternOneB: 'за 2 дні до циклу', patternTwoA: 'Сон < 6 год', patternTwoB: 'підвищує чутливість', disclaimer: 'Лише спостережні підказки. Не медична порада.', moreTools: 'Додаткові інструменти' },
+    es: { dayMorning: 'Buenos días', dayAfternoon: 'Buenas tardes', dayEvening: 'Buenas noches', reflectionTitle: 'Reflexión de hoy', reflectionSub: 'Habla o haz check-in. Luna29 refleja y te ayuda a ver tu ritmo.', dailyAction: 'Acción diaria', speakTitle: 'Habla con Luna29', speakSub: 'Toca para grabar', quickAction: 'Acción rápida', quickTitle: 'Check-in rápido', quickSub: '30 seg hoy', rhythmTitle: 'Tu ritmo', rhythmSub: 'Una vista tranquila de hoy.', cycle: 'Ciclo', energy: 'Energía', mood: 'Estado de ánimo', sleep: 'Sueño', levelLow: 'Bajo', levelMedium: 'Medio', levelHigh: 'Alto', learning: 'Aprendiendo', phaseSuffix: 'fase', insightsTitle: 'Insights de Luna29', learnTitle: 'Luna29 está aprendiendo sobre ti.', learnSub: 'Pronto habrá descubrimientos.', patternTitle: 'Vista previa de patrones', patternOneA: 'La energía baja', patternOneB: '2 días antes del ciclo', patternTwoA: 'Sueño < 6h', patternTwoB: 'afecta la sensibilidad', disclaimer: 'Guía observacional. No es consejo médico.', moreTools: 'Más herramientas' },
+    fr: { dayMorning: 'Bonjour', dayAfternoon: 'Bon après-midi', dayEvening: 'Bonsoir', reflectionTitle: "Réflexion d'aujourd'hui", reflectionSub: 'Parlez ou faites un check-in. Luna29 reflète et vous aide à voir votre rythme.', dailyAction: 'Action quotidienne', speakTitle: 'Parler à Luna29', speakSub: 'Touchez pour enregistrer', quickAction: 'Action rapide', quickTitle: 'Check-in rapide', quickSub: "30 s aujourd'hui", rhythmTitle: 'Votre rythme', rhythmSub: "Une vue calme pour aujourd'hui.", cycle: 'Cycle', energy: 'Énergie', mood: 'Humeur', sleep: 'Sommeil', levelLow: 'Bas', levelMedium: 'Moyen', levelHigh: 'Élevé', learning: 'En apprentissage', phaseSuffix: 'phase', insightsTitle: 'Insights Luna29', learnTitle: 'Luna29 apprend à vous connaître.', learnSub: 'Découvertes à venir.', patternTitle: 'Aperçu des patterns', patternOneA: "L'énergie baisse", patternOneB: '2 jours avant le cycle', patternTwoA: 'Sommeil < 6h', patternTwoB: 'augmente la sensibilité', disclaimer: 'Indications observatoires uniquement. Pas un avis médical.', moreTools: 'Plus d’outils' },
+    de: { dayMorning: 'Guten Morgen', dayAfternoon: 'Guten Tag', dayEvening: 'Guten Abend', reflectionTitle: 'Reflexion von heute', reflectionSub: 'Sprich oder mache einen Check-in. Luna29 spiegelt und zeigt deinen Rhythmus.', dailyAction: 'Tagesaktion', speakTitle: 'Mit Luna29 sprechen', speakSub: 'Tippen zum Aufnehmen', quickAction: 'Schnellaktion', quickTitle: 'Schneller Check-in', quickSub: '30 Sek. heute', rhythmTitle: 'Dein Rhythmus', rhythmSub: 'Ein ruhiger Überblick für heute.', cycle: 'Zyklus', energy: 'Energie', mood: 'Stimmung', sleep: 'Schlaf', levelLow: 'Niedrig', levelMedium: 'Mittel', levelHigh: 'Hoch', learning: 'Lernstatus', phaseSuffix: 'Phase', insightsTitle: 'Luna29 Insights', learnTitle: 'Luna29 lernt dich kennen.', learnSub: 'Erkenntnisse kommen bald.', patternTitle: 'Pattern-Vorschau', patternOneA: 'Energie sinkt', patternOneB: '2 Tage vor Zyklus', patternTwoA: 'Schlaf < 6h', patternTwoB: 'erhöht Sensitivität', disclaimer: 'Nur beobachtende Hinweise. Kein medizinischer Rat.', moreTools: 'Weitere Tools' },
+    zh: { dayMorning: '早上好', dayAfternoon: '下午好', dayEvening: '晚上好', reflectionTitle: '今日反思', reflectionSub: '说一说或做一次 check-in。Luna29 会帮助你看见自己的节律。', dailyAction: '每日动作', speakTitle: '和 Luna29 说说', speakSub: '点击开始录音', quickAction: '快速动作', quickTitle: '快速 check-in', quickSub: '今日 30 秒', rhythmTitle: '你的节律', rhythmSub: '今天的平静快照。', cycle: '周期', energy: '能量', mood: '情绪', sleep: '睡眠', levelLow: '低', levelMedium: '中', levelHigh: '高', learning: '学习中', phaseSuffix: '阶段', insightsTitle: 'Luna29 洞察', learnTitle: 'Luna29 正在了解你。', learnSub: '即将发现更多规律。', patternTitle: '规律预览', patternOneA: '能量下降', patternOneB: '周期前 2 天', patternTwoA: '睡眠 < 6小时', patternTwoB: '影响情绪敏感度', disclaimer: '仅为观察性提示，不构成医疗建议。', moreTools: '更多工具' },
+    ja: { dayMorning: 'おはようございます', dayAfternoon: 'こんにちは', dayEvening: 'こんばんは', reflectionTitle: '今日のリフレクション', reflectionSub: '話すか check-in するだけ。Luna29 があなたのリズムを映します。', dailyAction: 'デイリーアクション', speakTitle: 'Luna29 に話す', speakSub: 'タップして録音', quickAction: 'クイックアクション', quickTitle: 'クイック check-in', quickSub: '今日30秒', rhythmTitle: 'あなたのリズム', rhythmSub: '今日の落ち着いたスナップショット。', cycle: 'サイクル', energy: 'エネルギー', mood: '気分', sleep: '睡眠', levelLow: '低い', levelMedium: '中くらい', levelHigh: '高い', learning: '学習中', phaseSuffix: 'フェーズ', insightsTitle: 'Luna29 インサイト', learnTitle: 'Luna29 があなたを学習中です。', learnSub: '発見はもうすぐ。', patternTitle: 'パターンプレビュー', patternOneA: 'エネルギー低下', patternOneB: '周期の2日前', patternTwoA: '睡眠 < 6時間', patternTwoB: '感受性に影響', disclaimer: '観察に基づくガイドです。医療助言ではありません。', moreTools: 'その他のツール' },
+    pt: { dayMorning: 'Bom dia', dayAfternoon: 'Boa tarde', dayEvening: 'Boa noite', reflectionTitle: 'Reflexão de hoje', reflectionSub: 'Fale ou faça check-in. A Luna29 reflete e mostra seu ritmo.', dailyAction: 'Ação diária', speakTitle: 'Fale com Luna29', speakSub: 'Toque para gravar', quickAction: 'Ação rápida', quickTitle: 'Check-in rápido', quickSub: '30 seg hoje', rhythmTitle: 'Seu ritmo', rhythmSub: 'Um retrato calmo de hoje.', cycle: 'Ciclo', energy: 'Energia', mood: 'Humor', sleep: 'Sono', levelLow: 'Baixo', levelMedium: 'Médio', levelHigh: 'Alto', learning: 'Aprendendo', phaseSuffix: 'fase', insightsTitle: 'Insights Luna29', learnTitle: 'A Luna29 está aprendendo sobre você.', learnSub: 'Novas descobertas em breve.', patternTitle: 'Prévia de padrões', patternOneA: 'Energia cai', patternOneB: '2 dias antes do ciclo', patternTwoA: 'Sono < 6h', patternTwoB: 'afeta sensibilidade', disclaimer: 'Apenas orientação observacional. Não é conselho médico.', moreTools: 'Mais ferramentas' },
   };
-  const dm = dailyMirrorCopyByLang[lang] || dailyMirrorCopyByLang.en;
-  const todayMirrorCopyByLang: Record<Language, { open: string }> = {
+  const dm = getLang(dailyMirrorCopyByLang, lang) || dailyMirrorCopyByLang.en;
+  const todayMirrorCopyByLang: LangCopy< { open: string }> = {
     en: { open: 'Open Today' },
     ru: { open: 'Открыть Today' },
     uk: { open: 'Відкрити Today' },
@@ -855,7 +802,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     ja: { open: 'Open Today' },
     pt: { open: 'Open Today' },
   };
-  const todayMirrorCta = todayMirrorCopyByLang[lang] || todayMirrorCopyByLang.en;
+  const todayMirrorCta = getLang(todayMirrorCopyByLang, lang) || todayMirrorCopyByLang.en;
 
   const profileName = useMemo(() => projectedState.profile?.name?.trim() || 'Anna', [projectedState]);
 
@@ -898,7 +845,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     }
   >> = {
     en: {
-      title: 'Today with Luna',
+      title: 'Today with Luna29',
       slower: 'Today may feel a little slower.',
       steadier: 'Today may feel a little steadier.',
       sleepShortWithPhase: (phase) => `Your sleep was shorter last night, and your body is in the ${phase} phase.`,
@@ -909,7 +856,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       reflectionGeneral: 'Take this day gently and notice what your body asks for.',
     },
     ru: {
-      title: 'Сегодня с Luna',
+      title: 'Сегодня с Luna29',
       slower: 'Сегодня день может ощущаться немного медленнее.',
       steadier: 'Сегодня день может ощущаться немного ровнее.',
       sleepShortWithPhase: (phase) => `Сон был короче прошлой ночью, и ваше тело сейчас в фазе ${phase}.`,
@@ -920,7 +867,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       reflectionGeneral: 'Проведите этот день бережно и замечайте, что просит ваше тело.',
     },
     uk: {
-      title: 'Сьогодні з Luna',
+      title: 'Сьогодні з Luna29',
       slower: 'Сьогодні день може відчуватися трохи повільнішим.',
       steadier: 'Сьогодні день може відчуватися трохи рівнішим.',
       sleepShortWithPhase: (phase) => `Сон був коротшим минулої ночі, а ваше тіло зараз у фазі ${phase}.`,
@@ -932,7 +879,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     },
   };
   const defaultTodayWithLuna = todayWithLunaCopyByLang.en!;
-  const todayWithLuna = todayWithLunaCopyByLang[lang] || defaultTodayWithLuna;
+  const todayWithLuna = getLang(todayWithLunaCopyByLang, lang) || defaultTodayWithLuna;
   const latestVoiceReflectionText = useMemo(() => {
     const latestVoice = events
       .filter((event) => event.type === 'AUDIO_REFLECTION')
@@ -1169,7 +1116,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <article className="mt-6 rounded-[1.8rem] border border-luna-purple/25 bg-[linear-gradient(150deg,rgba(255,255,255,0.9),rgba(250,243,255,0.78)_48%,rgba(245,241,255,0.72)_100%)] dark:bg-[linear-gradient(150deg,rgba(13,35,72,0.82),rgba(24,51,96,0.7)_48%,rgba(23,46,90,0.64)_100%)] p-5 space-y-4 shadow-[0_14px_34px_rgba(109,78,175,0.2)]">
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-luna-purple">Here is your reflection</p>
               <div className="space-y-2">
-                <p className="text-sm font-black text-slate-800 dark:text-slate-100">What Luna heard</p>
+                <p className="text-sm font-black text-slate-800 dark:text-slate-100">What Luna29 heard</p>
                 <p className="text-sm font-medium text-slate-700 dark:text-slate-200">{resultHeard}</p>
               </div>
               <div className="space-y-2">
@@ -1177,7 +1124,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <p className="text-sm font-medium text-slate-700 dark:text-slate-200">{resultSuggestion}</p>
               </div>
               <div className="space-y-2">
-                <p className="text-sm font-black text-slate-800 dark:text-slate-100">Something Luna is starting to notice</p>
+                <p className="text-sm font-black text-slate-800 dark:text-slate-100">Something Luna29 is starting to notice</p>
                 <p className="text-sm font-medium text-slate-700 dark:text-slate-200">{resultPattern}</p>
               </div>
               {canUsePaidInsights ? (
@@ -1185,7 +1132,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <div className="space-y-2">
                     <p className="text-sm font-black text-slate-800 dark:text-slate-100">{paywallCopy.featureVoice}</p>
                     <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
-                      Luna notices that emotionally heavier days often follow shorter sleep and tighter work pressure.
+                      Luna29 notices that emotionally heavier days often follow shorter sleep and tighter work pressure.
                     </p>
                   </div>
                   <div className="space-y-2">
@@ -1210,7 +1157,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           )}
 
           <article className="mt-6 max-w-3xl rounded-[1.8rem] border border-slate-200/80 dark:border-[#3b5d8f] bg-[linear-gradient(150deg,rgba(255,255,255,0.92),rgba(248,248,255,0.8)_48%,rgba(242,245,255,0.76)_100%)] dark:bg-[linear-gradient(150deg,rgba(8,26,61,0.95),rgba(18,43,82,0.9)_48%,rgba(22,47,88,0.82)_100%)] p-5 shadow-luna-rich">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-luna-purple">Your story with Luna</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-luna-purple">Your story with Luna29</p>
             {(canUsePaidInsights ? recentStory : recentStory.slice(0, 2)).length > 0 ? (
               <div className="mt-3 space-y-3">
                 {(canUsePaidInsights ? recentStory : recentStory.slice(0, 2)).map((entry) => (
@@ -1221,7 +1168,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 ))}
               </div>
             ) : (
-              <p className="mt-2 text-sm font-medium text-slate-700 dark:text-slate-200">Your story with Luna is just beginning.</p>
+              <p className="mt-2 text-sm font-medium text-slate-700 dark:text-slate-200">Your story with Luna29 is just beginning.</p>
             )}
             {!canUsePaidInsights && recentStory.length > 2 && (
               <button

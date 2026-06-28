@@ -11,7 +11,7 @@ export const LunaLiveButton: React.FC<LunaLiveButtonProps> = ({ onClick, isActiv
     <button
       onClick={onClick}
       className="fixed bottom-10 right-10 z-[350] group outline-none"
-      aria-label="Luna Live Assistant"
+      aria-label="Luna29 Live Assistant"
     >
       {/* Outer Glow / Halo */}
       <div className={`absolute inset-[-20px] rounded-full blur-2xl transition-all duration-1000 ${isActive ? 'bg-luna-purple/40 opacity-100' : 'bg-luna-purple/5 opacity-0 group-hover:opacity-100'}`} />
@@ -24,7 +24,7 @@ export const LunaLiveButton: React.FC<LunaLiveButtonProps> = ({ onClick, isActiv
           <span className={`absolute rounded-full bg-luna-purple/25 blur-md ${isActive ? 'inset-[-10px] animate-pulse' : 'inset-[-8px] animate-pulse'}`} />
           <img
             src="/images/luna-logo-transparent.webp"
-            alt="Luna Live"
+            alt="Luna29 Live"
             className={`relative object-contain transition-transform duration-700 ${isActive ? 'h-[74px] w-[74px] md:h-[84px] md:w-[84px] scale-110' : 'h-[68px] w-[68px] md:h-[78px] md:w-[78px] group-hover:scale-110'}`}
           />
           <div className={`absolute rounded-full bg-luna-coral border-2 border-white dark:border-slate-900 animate-pulse ${isActive ? '-top-2 -right-2 w-5 h-5' : '-top-1 -right-1 w-4 h-4'}`} />
@@ -33,7 +33,7 @@ export const LunaLiveButton: React.FC<LunaLiveButtonProps> = ({ onClick, isActiv
         {/* Floating Label */}
         <div className="absolute right-full mr-6 top-1/2 -translate-y-1/2 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0 pointer-events-none">
           <div className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.4em] shadow-2xl">
-            Luna Live
+            Luna29 Live
           </div>
         </div>
       </div>

@@ -1,6 +1,6 @@
-import { Language } from '../constants';
+import {Language, LangCopy } from '../constants';
 import { ABOUT_COPY } from './aboutContent';
-const REPORT_EXPLAINER_BY_LANG: Record<Language, { title: string; body1: string; body2: string; bullets: string[] }> = {
+const REPORT_EXPLAINER_BY_LANG: LangCopy< { title: string; body1: string; body2: string; bullets: string[] }> = {
   en: {
     title: 'Why My Health Reports Matter',
     body1: 'My Health Reports convert raw lab values into a structured women-focused explanation: cycle context, thyroid/metabolic links, libido-related signals, and actionable next steps.',

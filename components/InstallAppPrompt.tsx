@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Language } from '../constants';
+import { Language, getLang } from '../constants';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -46,74 +46,65 @@ export const InstallAppPrompt: React.FC<InstallAppPromptProps> = ({ lang }) => {
     };
   }, []);
 
-  const copyByLang: Record<
-    Language,
-    {
-      title: string;
-      subtitle: string;
-      install: string;
-      later: string;
-      iosHint: string;
-    }
-  > = {
+  const copyByLang = {
     en: {
-      title: 'Install Luna App',
+      title: 'Install Luna29 App',
       subtitle: 'Open faster and use full-screen like a native app.',
       install: 'Install',
       later: 'Later',
       iosHint: 'On iPhone: Share -> Add to Home Screen',
     },
     ru: {
-      title: 'Установить Luna',
+      title: 'Установить Luna29',
       subtitle: 'Открывайте быстрее и в полноэкранном режиме, как приложение.',
       install: 'Установить',
       later: 'Позже',
       iosHint: 'На iPhone: Поделиться -> На экран Домой',
     },
     uk: {
-      title: 'Встановити Luna',
+      title: 'Встановити Luna29',
       subtitle: 'Відкривайте швидше та у повному екрані, як застосунок.',
       install: 'Встановити',
       later: 'Пізніше',
       iosHint: 'На iPhone: Поділитися -> На екран Додому',
     },
     es: {
-      title: 'Instalar Luna',
+      title: 'Instalar Luna29',
       subtitle: 'Abre mas rapido y en pantalla completa como una app.',
       install: 'Instalar',
       later: 'Luego',
       iosHint: 'En iPhone: Compartir -> Anadir a inicio',
     },
     fr: {
-      title: 'Installer Luna',
+      title: 'Installer Luna29',
       subtitle: 'Ouvrez plus vite et en plein ecran comme une app.',
       install: 'Installer',
       later: 'Plus tard',
       iosHint: "Sur iPhone: Partager -> Sur l ecran d accueil",
     },
     de: {
-      title: 'Luna installieren',
+      title: 'Luna29 installieren',
       subtitle: 'Schneller starten und im Vollbild wie eine App nutzen.',
       install: 'Installieren',
       later: 'Spater',
       iosHint: 'Auf iPhone: Teilen -> Zum Home-Bildschirm',
     },
     zh: {
-      title: '安装 Luna',
+      title: '安装 Luna29',
       subtitle: '像原生应用一样全屏打开，启动更快。',
       install: '安装',
       later: '稍后',
       iosHint: 'iPhone: 分享 -> 添加到主屏幕',
     },
     ja: {
-      title: 'Luna をインストール',
+      title: 'Luna29 をインストール',
       subtitle: 'ネイティブアプリのように全画面で素早く起動。',
       install: 'インストール',
       later: 'あとで',
       iosHint: 'iPhone: 共有 -> ホーム画面に追加',
     },
     pt: {
-      title: 'Instalar Luna',
+      title: 'Instalar Luna29',
       subtitle: 'Abra mais rapido e em tela cheia como app nativo.',
       install: 'Instalar',
       later: 'Depois',
@@ -121,7 +112,7 @@ export const InstallAppPrompt: React.FC<InstallAppPromptProps> = ({ lang }) => {
     },
   };
 
-  const copy = copyByLang[lang] || copyByLang.en;
+  const copy = getLang(copyByLang, lang) || copyByLang.en;
 
   const canShow = useMemo(() => {
     if (isDismissed || isStandalone) return false;

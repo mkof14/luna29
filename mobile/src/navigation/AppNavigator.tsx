@@ -236,15 +236,15 @@ export function AppNavigator() {
   }
 
   function handleSkip() {
-    Alert.alert('Luna', 'Skipped for today. You can return tonight.');
+    Alert.alert('Luna29', 'Skipped for today. You can return tonight.');
   }
 
   function handleSave() {
-    Alert.alert('Luna', 'Reflection saved.');
+    Alert.alert('Luna29', 'Reflection saved.');
   }
 
   function handleShare() {
-    Alert.alert('Luna', 'Share flow is prepared for next phase.');
+    Alert.alert('Luna29', 'Share flow is prepared for next phase.');
   }
 
   const activeTab = useMemo<TabKey>(() => {

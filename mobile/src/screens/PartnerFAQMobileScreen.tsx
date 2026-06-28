@@ -16,7 +16,7 @@ export function PartnerFAQMobileScreen({ onBack, lang }: { onBack: () => void; l
           a: 'Start with calm language. Ask what feels heavy and what might help right now.',
         },
         {
-          q: 'How often should we use Luna together?',
+          q: 'How often should we use Luna29 together?',
           a: 'A short evening check-in is enough. Consistency is more important than volume.',
         },
         {
@@ -28,7 +28,7 @@ export function PartnerFAQMobileScreen({ onBack, lang }: { onBack: () => void; l
           a: 'Avoid fixing mode. Start with listening and gentle validation.',
         },
         {
-          q: 'How can I use Luna with her daily?',
+          q: 'How can I use Luna29 with her daily?',
           a: 'Do one short evening check-in together and keep the tone calm.',
         },
       ],
@@ -38,10 +38,10 @@ export function PartnerFAQMobileScreen({ onBack, lang }: { onBack: () => void; l
       subtitle: 'Простые ответы для близкой поддержки.',
       items: [
         { q: 'Как лучше поддержать ее сегодня?', a: 'Начните со спокойных слов. Спросите, что сейчас ощущается тяжелым.' },
-        { q: 'Как часто использовать Luna вместе?', a: 'Достаточно короткой вечерней проверки. Регулярность важнее объема.' },
+        { q: 'Как часто использовать Luna29 вместе?', a: 'Достаточно короткой вечерней проверки. Регулярность важнее объема.' },
         { q: 'Как избегать конфликта при низкой энергии?', a: 'Используйте bridge-сообщения: коротко, мягко и по сути дня.' },
         { q: 'Чего лучше избегать в тяжелый день?', a: 'Не переходите в режим “исправить все”. Сначала выслушайте и поддержите.' },
-        { q: 'Как использовать Luna вместе каждый день?', a: 'Делайте один короткий вечерний check-in в спокойном тоне.' },
+        { q: 'Как использовать Luna29 вместе каждый день?', a: 'Делайте один короткий вечерний check-in в спокойном тоне.' },
       ],
     },
     es: {
@@ -49,10 +49,10 @@ export function PartnerFAQMobileScreen({ onBack, lang }: { onBack: () => void; l
       subtitle: 'Respuestas simples para apoyo cercano.',
       items: [
         { q: 'Cual es la mejor forma de apoyarla hoy?', a: 'Empieza con lenguaje calmado. Pregunta que se siente mas pesado.' },
-        { q: 'Con que frecuencia usar Luna juntos?', a: 'Un check-in corto por la noche es suficiente.' },
+        { q: 'Con que frecuencia usar Luna29 juntos?', a: 'Un check-in corto por la noche es suficiente.' },
         { q: 'Como evitar conflicto con energia baja?', a: 'Usa mensajes bridge: simples, amables y concretos.' },
         { q: 'Que evitar en un dia dificil?', a: 'Evita el modo de “arreglar todo”. Primero escucha y valida.' },
-        { q: 'Como usar Luna juntos cada dia?', a: 'Haz un check-in breve por la noche y mantiene tono calmado.' },
+        { q: 'Como usar Luna29 juntos cada dia?', a: 'Haz un check-in breve por la noche y mantiene tono calmado.' },
       ],
     },
   }[resolveLangBase(lang)];

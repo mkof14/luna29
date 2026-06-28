@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Language } from '../constants';
+import { Language, LangCopy, getLang } from '../constants';
 
 type GroundingState = {
   see: string[];
@@ -24,41 +24,7 @@ const defaultGrounding: GroundingState = {
 const defaultSteps = [false, false, false, false];
 
 export const CrisisCenterView: React.FC<{ lang: Language; onBack: () => void }> = ({ lang, onBack }) => {
-  const copyByLang: Record<
-    Language,
-    {
-      back: string;
-      title: string;
-      subtitle: string;
-      demand: string;
-      breathTitle: string;
-      breathProtocol: string;
-      start: string;
-      pause: string;
-      reset: string;
-      cycles: string;
-      groundingTitle: string;
-      groundingSubtitle: string;
-      toolsTitle: string;
-      call911: string;
-      call988: string;
-      copyMessage: string;
-      copied: string;
-      copyFailed: string;
-      noteTitle: string;
-      notePlaceholder: string;
-      checklistTitle: string;
-      checklist: string[];
-      commentsTitle: string;
-      comments: Array<{ quote: string; author: string }>;
-      quickStartTitle: string;
-      quickStart: string[];
-      breathingHint: string;
-      groundingHint: string;
-      toolsHint: string;
-      checklistHint: string;
-    }
-  > = {
+  const copyByLang = {
     en: {
       back: 'Back',
       title: 'Reset Room',
@@ -430,8 +396,8 @@ export const CrisisCenterView: React.FC<{ lang: Language; onBack: () => void }> 
     },
   };
 
-  const copy = copyByLang[lang] || copyByLang.en;
-  const phaseCopyByLang: Record<Language, { inhale: string; hold: string; exhale: string }> = {
+  const copy = getLang(copyByLang, lang) || copyByLang.en;
+  const phaseCopyByLang: LangCopy< { inhale: string; hold: string; exhale: string }> = {
     en: { inhale: 'Inhale', hold: 'Hold', exhale: 'Exhale' },
     ru: { inhale: 'Вдох', hold: 'Пауза', exhale: 'Выдох' },
     uk: { inhale: 'Вдих', hold: 'Пауза', exhale: 'Видих' },
@@ -442,7 +408,7 @@ export const CrisisCenterView: React.FC<{ lang: Language; onBack: () => void }> 
     ja: { inhale: '吸う', hold: '止める', exhale: '吐く' },
     pt: { inhale: 'Inspirar', hold: 'Pausa', exhale: 'Expirar' },
   };
-  const phaseText = phaseCopyByLang[lang] || phaseCopyByLang.en;
+  const phaseText = getLang(phaseCopyByLang, lang) || phaseCopyByLang.en;
   const phases = useMemo(
     () => [
       { key: 'inhale', label: phaseText.inhale, sec: 4 },
@@ -452,7 +418,7 @@ export const CrisisCenterView: React.FC<{ lang: Language; onBack: () => void }> 
     [phaseText.exhale, phaseText.hold, phaseText.inhale],
   );
 
-  const sensesByLang: Record<Language, { see: string; feel: string; hear: string; smell: string; taste: string }> = {
+  const sensesByLang: LangCopy< { see: string; feel: string; hear: string; smell: string; taste: string }> = {
     en: { see: 'See', feel: 'Feel', hear: 'Hear', smell: 'Smell', taste: 'Taste' },
     ru: { see: 'Вижу', feel: 'Ощущаю', hear: 'Слышу', smell: 'Чую', taste: 'Вкус' },
     uk: { see: 'Бачу', feel: 'Відчуваю', hear: 'Чую', smell: 'Нюхаю', taste: 'Смак' },
@@ -463,7 +429,7 @@ export const CrisisCenterView: React.FC<{ lang: Language; onBack: () => void }> 
     ja: { see: '見る', feel: '感じる', hear: '聞く', smell: '嗅ぐ', taste: '味わう' },
     pt: { see: 'Vejo', feel: 'Sinto', hear: 'Ouco', smell: 'Cheiro', taste: 'Sabor' },
   };
-  const senses = sensesByLang[lang] || sensesByLang.en;
+  const senses = getLang(sensesByLang, lang) || sensesByLang.en;
 
   const [isRunning, setIsRunning] = useState(false);
   const [phaseIndex, setPhaseIndex] = useState(0);
@@ -550,7 +516,7 @@ export const CrisisCenterView: React.FC<{ lang: Language; onBack: () => void }> 
   };
 
   const copyMessage = async () => {
-    const messageByLang: Record<Language, string> = {
+    const messageByLang: LangCopy< string> = {
       en: 'I am in overload right now. I am using my reset protocol and will reconnect shortly.',
       ru: 'Сейчас у меня перегрузка. Я в режиме стабилизации и вернусь к разговору позже.',
       uk: 'Зараз у мене перевантаження. Я в режимі стабілізації і повернусь до розмови пізніше.',
@@ -561,7 +527,7 @@ export const CrisisCenterView: React.FC<{ lang: Language; onBack: () => void }> 
       ja: '今は過負荷の状態です。リセット手順を使って落ち着き、少ししてから戻ります。',
       pt: 'Estou em sobrecarga agora. Estou usando meu protocolo reset e retorno em breve.',
     };
-    const message = messageByLang[lang] || messageByLang.en;
+    const message = getLang(messageByLang, lang) || messageByLang.en;
     try {
       await navigator.clipboard.writeText(message);
       setCopyFeedback(copy.copied);

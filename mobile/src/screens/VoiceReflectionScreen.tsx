@@ -8,7 +8,7 @@ import { BaseMobileLang, MobileLang, resolveLangBase } from '../i18n/mobileCopy'
 
 const copyByLang: Record<BaseMobileLang, Record<string, string>> = {
   en: {
-    headerTitle: 'Speak freely. Luna is listening.',
+    headerTitle: 'Speak freely. Luna29 is listening.',
     headerSubtitle: 'There is no right way to say it. A few honest words are enough.',
     title: 'Voice Reflection',
     text: 'Record a short reflection about how you feel and what happened during your day.',
@@ -24,7 +24,7 @@ const copyByLang: Record<BaseMobileLang, Record<string, string>> = {
     fallback: 'You shared that the day felt full and emotionally heavy.',
   },
   ru: {
-    headerTitle: 'Говорите свободно. Luna слушает.',
+    headerTitle: 'Говорите свободно. Luna29 слушает.',
     headerSubtitle: 'Нет правильного способа это сказать. Достаточно нескольких честных слов.',
     title: 'Голосовая заметка',
     text: 'Запишите короткое отражение о том, как вы себя чувствуете и что происходило сегодня.',
@@ -40,7 +40,7 @@ const copyByLang: Record<BaseMobileLang, Record<string, string>> = {
     fallback: 'Вы поделились, что день был насыщенным и эмоционально тяжелым.',
   },
   es: {
-    headerTitle: 'Habla libremente. Luna esta escuchando.',
+    headerTitle: 'Habla libremente. Luna29 esta escuchando.',
     headerSubtitle: 'No hay una forma correcta de decirlo. Unas palabras honestas son suficientes.',
     title: 'Nota de voz',
     text: 'Graba una breve reflexion sobre como te sentiste y que paso durante tu dia.',

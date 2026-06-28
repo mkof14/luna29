@@ -21,7 +21,7 @@ class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, Er
 
   componentDidCatch(error: unknown) {
     // eslint-disable-next-line no-console
-    console.error('Luna mobile runtime crash:', error);
+    console.error('Luna29 mobile runtime crash:', error);
   }
 
   render() {
@@ -30,7 +30,7 @@ class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, Er
     }
     return (
       <View style={styles.errorWrap}>
-        <Text style={styles.errorTitle}>Luna encountered an issue</Text>
+        <Text style={styles.errorTitle}>Luna29 encountered an issue</Text>
         <Text style={styles.errorText}>Please reload Expo Go once. If this repeats, share this message:</Text>
         <Text style={styles.errorCode}>{this.state.message}</Text>
       </View>
@@ -50,7 +50,7 @@ export default function App() {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to load AppNavigator';
       // eslint-disable-next-line no-console
-      console.error('Luna mobile boot error:', error);
+      console.error('Luna29 mobile boot error:', error);
       return { Component: null, error: message };
     }
   }, [bootKey]);
@@ -64,7 +64,7 @@ export default function App() {
         </AppErrorBoundary>
       ) : (
         <View style={styles.errorWrap}>
-          <Text style={styles.errorTitle}>Luna safe boot mode</Text>
+          <Text style={styles.errorTitle}>Luna29 safe boot mode</Text>
           <Text style={styles.errorText}>The app could not load full navigation on this device.</Text>
           {navLoad.error ? <Text style={styles.errorCode}>{navLoad.error}</Text> : null}
           <Pressable onPress={() => setBootKey((v) => v + 1)} style={styles.retryBtn}>

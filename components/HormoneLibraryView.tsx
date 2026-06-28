@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { INITIAL_HORMONES, TRANSLATIONS, Language } from '../constants';
+import { INITIAL_HORMONES, TRANSLATIONS, Language, LangCopy, getLang } from '../constants';
 import { HormoneData } from '../types';
 import { dataService } from '../services/dataService';
 import HormoneDetail from './HormoneDetail';
@@ -8,7 +8,7 @@ import { getLocalizedHormone } from '../utils/hormoneLocalization';
 
 export const HormoneLibraryView: React.FC<{ lang: Language; onBack: () => void }> = ({ lang, onBack }) => {
   const ui = TRANSLATIONS[lang];
-  const copyByLang: Record<Language, { back: string; titleA: string; titleB: string; part: string; active: string; details: string; wisdom: string; quote: string }> = {
+  const copyByLang: LangCopy< { back: string; titleA: string; titleB: string; part: string; active: string; details: string; wisdom: string; quote: string }> = {
     en: { back: 'Back', titleA: 'Knowledge', titleB: 'Base.', part: 'Part', active: 'Active', details: 'Details →', wisdom: "Your Body's Wisdom", quote: 'Understanding your body is your greatest strength.' },
     ru: { back: 'Назад', titleA: 'База', titleB: 'Знаний.', part: 'Раздел', active: 'Активно', details: 'Подробнее →', wisdom: 'Мудрость тела', quote: 'Понимание своего тела - ваша величайшая сила.' },
     uk: { back: 'Назад', titleA: 'База', titleB: 'Знань.', part: 'Розділ', active: 'Активно', details: 'Детальніше →', wisdom: 'Мудрість тіла', quote: 'Розуміння свого тіла - ваша найбільша сила.' },
@@ -19,8 +19,8 @@ export const HormoneLibraryView: React.FC<{ lang: Language; onBack: () => void }
     ja: { back: '戻る', titleA: '知識', titleB: 'ベース。', part: 'パート', active: '有効', details: '詳細 →', wisdom: '身体の知恵', quote: '自分の体を理解することは、あなたの最大の強みです。' },
     pt: { back: 'Voltar', titleA: 'Base de', titleB: 'Conhecimento.', part: 'Parte', active: 'Ativo', details: 'Detalhes →', wisdom: 'Sabedoria do corpo', quote: 'Entender seu corpo é sua maior força.' }
   };
-  const copy = copyByLang[lang];
-  const extraByLang: Record<Language, { innerWeatherTitle: string; innerWeatherText: string; points: string[]; usageTitle: string; usageItems: string[]; localTitle: string; localText: string }> = {
+  const copy = getLang(copyByLang, lang);
+  const extraByLang: LangCopy< { innerWeatherTitle: string; innerWeatherText: string; points: string[]; usageTitle: string; usageItems: string[]; localTitle: string; localText: string }> = {
     en: {
       innerWeatherTitle: 'INNER WEATHER',
       innerWeatherText: 'Energy, mood, and concentration change across time. Most shifts are rhythms, not randomness.',
@@ -103,7 +103,7 @@ export const HormoneLibraryView: React.FC<{ lang: Language; onBack: () => void }
       localText: 'Knowledge e suas interações estão em local-first e ficam neste dispositivo.',
     },
   };
-  const extra = extraByLang[lang] || extraByLang.en;
+  const extra = getLang(extraByLang, lang) || extraByLang.en;
   const [selectedHormone, setSelectedHormone] = useState<HormoneData | null>(null);
   
   // Get system state to cross-reference data

@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { ContactCopy } from '../types/uiCopy';
 import { hasMeaningfulText, normalizeUserText } from '../utils/text';
-import { Language } from '../constants';
+import { Language, LangCopy, getLang } from '../constants';
 import { contactService } from '../services/contactService';
 
 interface ContactViewProps {
@@ -12,7 +12,7 @@ interface ContactViewProps {
 }
 
 export const ContactView: React.FC<ContactViewProps> = ({ ui, lang, onBack }) => {
-  const copyByLang: Record<Language, {
+  const copyByLang: LangCopy< {
     back: string; sentTitle: string; sentText: string; sentCta: string; supportAvailability: string;
     schedule: string; emailOnly: string; namePlaceholder: string; messagePlaceholder: string; loadingFallback: string;
   }> = {
@@ -26,7 +26,7 @@ export const ContactView: React.FC<ContactViewProps> = ({ ui, lang, onBack }) =>
     ja: { back: '戻る', sentTitle: 'メッセージを受信しました', sentText: 'チームに通知されました。まもなくメールでご連絡します。', sentCta: 'お問い合わせに戻る', supportAvailability: 'サポート対応時間', schedule: '月曜 — 金曜 • 9:00 — 18:00 UTC', emailOnly: 'メール対応のみ', namePlaceholder: 'お名前を入力', messagePlaceholder: '本日、サポートチームはどのようにお手伝いできますか？', loadingFallback: '送信中...' },
     pt: { back: 'Voltar', sentTitle: 'Mensagem recebida', sentText: 'Nossa equipe foi notificada. Entraremos em contato por e-mail em breve.', sentCta: 'Voltar ao contato', supportAvailability: 'Disponibilidade do suporte', schedule: 'Segunda — Sexta • 9:00 — 18:00 UTC', emailOnly: 'Atendimento apenas por e-mail', namePlaceholder: 'Digite seu nome', messagePlaceholder: 'Como nossa equipe de suporte pode ajudar você hoje?', loadingFallback: 'Enviando...' }
   };
-  const copy = copyByLang[lang];
+  const copy = getLang(copyByLang, lang);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [subject, setSubject] = useState("support");

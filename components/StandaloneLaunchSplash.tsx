@@ -1,5 +1,5 @@
 import React from 'react';
-import { Language } from '../constants';
+import { Language, LangCopy, getLang } from '../constants';
 import { Logo } from './Logo';
 
 interface StandaloneLaunchSplashProps {
@@ -7,7 +7,7 @@ interface StandaloneLaunchSplashProps {
 }
 
 export const StandaloneLaunchSplash: React.FC<StandaloneLaunchSplashProps> = ({ lang }) => {
-  const copyByLang: Record<Language, { subtitle: string }> = {
+  const copyByLang: LangCopy< { subtitle: string }> = {
     en: { subtitle: 'Women health understanding system' },
     ru: { subtitle: 'Система понимания женского здоровья' },
     uk: { subtitle: 'Система розуміння жіночого здоровʼя' },
@@ -17,8 +17,10 @@ export const StandaloneLaunchSplash: React.FC<StandaloneLaunchSplashProps> = ({ 
     zh: { subtitle: '女性健康理解系统' },
     ja: { subtitle: '女性の健康理解システム' },
     pt: { subtitle: 'Sistema de entendimento da saude da mulher' },
+    ar: { subtitle: 'نظام لفهم صحة المرأة' },
+    he: { subtitle: 'מערכת להבנת בריאות האישה' },
   };
-  const copy = copyByLang[lang] || copyByLang.en;
+  const copy = getLang(copyByLang, lang) || copyByLang.en;
 
   return (
     <div className="fixed inset-0 z-[1400] md:hidden overflow-hidden">

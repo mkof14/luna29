@@ -1,12 +1,14 @@
 import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { Facebook, Heart, Instagram, Lock, MapPin, Mic, Music2, Sparkles, Youtube } from 'lucide-react';
 import { Logo } from './Logo';
-import { Language, TranslationSchema } from '../constants';
+import { Language, TranslationSchema, LangCopy, getLang } from '../constants';
 import LanguageSelector from './LanguageSelector';
 import ThemeToggle from './ThemeToggle';
 import { PUBLIC_BTN_PRIMARY, PUBLIC_BTN_PRIMARY_GLOW, PUBLIC_BTN_SECONDARY } from './public/publicButtonStyles';
 
 const HowItWorksView = lazy(() => import('./HowItWorksView').then((m) => ({ default: m.HowItWorksView })));
+const FAQView = lazy(() => import('./FAQView').then((m) => ({ default: m.FAQView })));
+const LearningView = lazy(() => import('./LearningView').then((m) => ({ default: m.LearningView })));
 const LegalDocumentView = lazy(() => import('./LegalDocumentView').then((m) => ({ default: m.LegalDocumentView })));
 const AboutLunaView = lazy(() => import('./AboutLunaView').then((m) => ({ default: m.AboutLunaView })));
 const PublicMapSection = lazy(() => import('./public/PublicMapSection').then((m) => ({ default: m.PublicMapSection })));
@@ -30,7 +32,7 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, onSignUp, lang, setLang, theme, setTheme, ui }) => {
-  type PublicPage = 'home' | 'map' | 'ritual' | 'bridge' | 'pricing' | 'about' | 'how_it_works' | 'privacy' | 'terms' | 'medical' | 'cookies' | 'data_rights';
+  type PublicPage = 'home' | 'map' | 'ritual' | 'bridge' | 'pricing' | 'about' | 'how_it_works' | 'faq' | 'learning' | 'privacy' | 'terms' | 'medical' | 'cookies' | 'data_rights';
   type TrialState = {
     startedAt: string;
     endsAt: string;
@@ -48,6 +50,8 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     if (pathname === '/pricing') return 'pricing';
     if (pathname === '/about') return 'about';
     if (pathname === '/how-it-works') return 'how_it_works';
+    if (pathname === '/faq') return 'faq';
+    if (pathname === '/training' || pathname === '/learning') return 'learning';
     if (pathname === '/privacy') return 'privacy';
     if (pathname === '/terms') return 'terms';
     if (pathname === '/disclaimer') return 'medical';
@@ -62,6 +66,8 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     if (page === 'pricing') return '/pricing';
     if (page === 'about') return '/about';
     if (page === 'how_it_works') return '/how-it-works';
+    if (page === 'faq') return '/faq';
+    if (page === 'learning') return '/learning';
     if (page === 'privacy') return '/privacy';
     if (page === 'terms') return '/terms';
     if (page === 'medical') return '/disclaimer';
@@ -103,20 +109,20 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
   const googlePlayHref = googlePlayUrl || expoPreviewUrl || '#';
   const showPreviewLink = (!appStoreUrl || !googlePlayUrl) && Boolean(expoPreviewUrl);
 
-  const storeBadgeCopyByLang: Record<Language, { title: string; appStore: string; googlePlay: string; preview: string; soon: string }> = {
-    en: { title: 'Luna Mobile', appStore: 'Download on the App Store', googlePlay: 'Get it on Google Play', preview: 'Open Mobile Preview', soon: 'Store links will be active after release.' },
-    ru: { title: 'Luna Mobile', appStore: 'Скачать в App Store', googlePlay: 'Скачать в Google Play', preview: 'Открыть мобильный превью', soon: 'Ссылки станут активны после релиза.' },
-    uk: { title: 'Luna Mobile', appStore: 'Завантажити в App Store', googlePlay: 'Отримати в Google Play', preview: 'Відкрити мобільне превʼю', soon: 'Посилання стануть активними після релізу.' },
-    es: { title: 'Luna Mobile', appStore: 'Descargar en App Store', googlePlay: 'Disponible en Google Play', preview: 'Abrir vista previa móvil', soon: 'Los enlaces estarán activos tras el lanzamiento.' },
-    fr: { title: 'Luna Mobile', appStore: 'Télécharger sur App Store', googlePlay: 'Disponible sur Google Play', preview: 'Ouvrir aperçu mobile', soon: 'Les liens seront actifs après la sortie.' },
-    de: { title: 'Luna Mobile', appStore: 'Im App Store laden', googlePlay: 'Bei Google Play', preview: 'Mobile Vorschau öffnen', soon: 'Store-Links werden nach dem Release aktiviert.' },
-    zh: { title: 'Luna Mobile', appStore: 'App Store 下载', googlePlay: 'Google Play 获取', preview: '打开移动预览', soon: '发布后将启用商店链接。' },
-    ja: { title: 'Luna Mobile', appStore: 'App Store で入手', googlePlay: 'Google Play で入手', preview: 'モバイルプレビューを開く', soon: 'リリース後にストアリンクを有効化します。' },
-    pt: { title: 'Luna Mobile', appStore: 'Baixar na App Store', googlePlay: 'Disponível no Google Play', preview: 'Abrir prévia móvel', soon: 'Os links serão ativados após o lançamento.' },
+  const storeBadgeCopyByLang: LangCopy< { title: string; appStore: string; googlePlay: string; preview: string; soon: string }> = {
+    en: { title: 'Luna29 Mobile', appStore: 'Download on the App Store', googlePlay: 'Get it on Google Play', preview: 'Open Mobile Preview', soon: 'Store links will be active after release.' },
+    ru: { title: 'Luna29 Mobile', appStore: 'Скачать в App Store', googlePlay: 'Скачать в Google Play', preview: 'Открыть мобильный превью', soon: 'Ссылки станут активны после релиза.' },
+    uk: { title: 'Luna29 Mobile', appStore: 'Завантажити в App Store', googlePlay: 'Отримати в Google Play', preview: 'Відкрити мобільне превʼю', soon: 'Посилання стануть активними після релізу.' },
+    es: { title: 'Luna29 Mobile', appStore: 'Descargar en App Store', googlePlay: 'Disponible en Google Play', preview: 'Abrir vista previa móvil', soon: 'Los enlaces estarán activos tras el lanzamiento.' },
+    fr: { title: 'Luna29 Mobile', appStore: 'Télécharger sur App Store', googlePlay: 'Disponible sur Google Play', preview: 'Ouvrir aperçu mobile', soon: 'Les liens seront actifs après la sortie.' },
+    de: { title: 'Luna29 Mobile', appStore: 'Im App Store laden', googlePlay: 'Bei Google Play', preview: 'Mobile Vorschau öffnen', soon: 'Store-Links werden nach dem Release aktiviert.' },
+    zh: { title: 'Luna29 Mobile', appStore: 'App Store 下载', googlePlay: 'Google Play 获取', preview: '打开移动预览', soon: '发布后将启用商店链接。' },
+    ja: { title: 'Luna29 Mobile', appStore: 'App Store で入手', googlePlay: 'Google Play で入手', preview: 'モバイルプレビューを開く', soon: 'リリース後にストアリンクを有効化します。' },
+    pt: { title: 'Luna29 Mobile', appStore: 'Baixar na App Store', googlePlay: 'Disponível no Google Play', preview: 'Abrir prévia móvel', soon: 'Os links serão ativados após o lançamento.' },
   };
-  const storeBadges = storeBadgeCopyByLang[lang] || storeBadgeCopyByLang.en;
+  const storeBadges = getLang(storeBadgeCopyByLang, lang) || storeBadgeCopyByLang.en;
 
-  const loadingLabelByLang: Record<Language, string> = {
+  const loadingLabelByLang: LangCopy< string> = {
     en: 'Loading',
     ru: 'Загрузка',
     uk: 'Завантаження',
@@ -129,25 +135,14 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
   };
   const lazyFallback = (
     <div className="min-h-[40vh] flex items-center justify-center text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
-      {loadingLabelByLang[lang]}...
+      {getLang(loadingLabelByLang, lang)}...
     </div>
   );
 
-  const installGuideByLang: Record<
-    Language,
-    {
-      title: string;
-      subtitle: string;
-      iosStep1: string;
-      iosStep2: string;
-      androidStep1: string;
-      androidStep2: string;
-      cta: string;
-    }
-  > = {
+  const installGuideByLang = {
     en: {
-      title: 'Install Luna As App',
-      subtitle: 'Use Luna full-screen and open in one tap.',
+      title: 'Install Luna29 As App',
+      subtitle: 'Use Luna29 full-screen and open in one tap.',
       iosStep1: 'Tap Share in Safari.',
       iosStep2: 'Select Add to Home Screen.',
       androidStep1: 'Tap Install when browser suggests it.',
@@ -155,8 +150,8 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       cta: 'Create Account',
     },
     ru: {
-      title: 'Установите Luna Как App',
-      subtitle: 'Открывайте Luna в полноэкранном режиме в один тап.',
+      title: 'Установите Luna29 Как App',
+      subtitle: 'Открывайте Luna29 в полноэкранном режиме в один тап.',
       iosStep1: 'Нажмите Поделиться в Safari.',
       iosStep2: 'Выберите На экран Домой.',
       androidStep1: 'Нажмите Установить, когда браузер предложит.',
@@ -164,8 +159,8 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       cta: 'Создать Аккаунт',
     },
     uk: {
-      title: 'Встановіть Luna Як App',
-      subtitle: 'Відкривайте Luna у повному екрані в один дотик.',
+      title: 'Встановіть Luna29 Як App',
+      subtitle: 'Відкривайте Luna29 у повному екрані в один дотик.',
       iosStep1: 'Натисніть Поділитися в Safari.',
       iosStep2: 'Оберіть На екран Додому.',
       androidStep1: 'Натисніть Встановити, коли браузер запропонує.',
@@ -173,8 +168,8 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       cta: 'Створити Акаунт',
     },
     es: {
-      title: 'Instala Luna Como App',
-      subtitle: 'Abre Luna en pantalla completa con un toque.',
+      title: 'Instala Luna29 Como App',
+      subtitle: 'Abre Luna29 en pantalla completa con un toque.',
       iosStep1: 'Toca Compartir en Safari.',
       iosStep2: 'Elige Anadir a inicio.',
       androidStep1: 'Toca Instalar cuando el navegador lo sugiera.',
@@ -182,8 +177,8 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       cta: 'Crear Cuenta',
     },
     fr: {
-      title: 'Installer Luna Comme App',
-      subtitle: 'Ouvrez Luna en plein ecran en un geste.',
+      title: 'Installer Luna29 Comme App',
+      subtitle: 'Ouvrez Luna29 en plein ecran en un geste.',
       iosStep1: 'Touchez Partager dans Safari.',
       iosStep2: 'Choisissez Sur l ecran d accueil.',
       androidStep1: 'Touchez Installer lorsque le navigateur le propose.',
@@ -191,8 +186,8 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       cta: 'Creer Un Compte',
     },
     de: {
-      title: 'Luna Als App Installieren',
-      subtitle: 'Luna im Vollbild mit einem Tippen offnen.',
+      title: 'Luna29 Als App Installieren',
+      subtitle: 'Luna29 im Vollbild mit einem Tippen offnen.',
       iosStep1: 'In Safari auf Teilen tippen.',
       iosStep2: 'Zum Home-Bildschirm auswahlen.',
       androidStep1: 'Auf Installieren tippen, wenn der Browser es anbietet.',
@@ -200,8 +195,8 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       cta: 'Konto Erstellen',
     },
     zh: {
-      title: '将 Luna 安装为 App',
-      subtitle: '全屏打开 Luna，一键进入。',
+      title: '将 Luna29 安装为 App',
+      subtitle: '全屏打开 Luna29，一键进入。',
       iosStep1: '在 Safari 中点击分享。',
       iosStep2: '选择添加到主屏幕。',
       androidStep1: '浏览器提示时点击安装。',
@@ -209,7 +204,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       cta: '创建账号',
     },
     ja: {
-      title: 'Luna をアプリとしてインストール',
+      title: 'Luna29 をアプリとしてインストール',
       subtitle: '全画面で素早く起動できます。',
       iosStep1: 'Safari の共有をタップ。',
       iosStep2: 'ホーム画面に追加を選択。',
@@ -218,8 +213,8 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       cta: 'アカウント作成',
     },
     pt: {
-      title: 'Instale Luna Como App',
-      subtitle: 'Abra Luna em tela cheia com um toque.',
+      title: 'Instale Luna29 Como App',
+      subtitle: 'Abra Luna29 em tela cheia com um toque.',
       iosStep1: 'Toque em Compartilhar no Safari.',
       iosStep2: 'Escolha Adicionar a Tela Inicial.',
       androidStep1: 'Toque em Instalar quando o navegador sugerir.',
@@ -227,7 +222,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       cta: 'Criar Conta',
     },
   };
-  const installGuide = installGuideByLang[lang] || installGuideByLang.en;
+  const installGuide = getLang(installGuideByLang, lang) || installGuideByLang.en;
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -264,35 +259,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     setHomeCalibrateHidePanel(params.get('hide_calibration_panel') === '1');
   }, []);
 
-  const pricingUiByLang: Record<
-    Language,
-    {
-      monthToggle: string;
-      yearToggle: string;
-      trialBadge: string;
-      trialDaysLeft: string;
-      flexibleBilling: string;
-      planCompare: string;
-      monthly: string;
-      yearly: string;
-      cancelAnyTime: string;
-      bestValue: string;
-      includes: string;
-      includesText: string;
-      memberAccess: string;
-      featurePrivate: string;
-      featureBodyMap: string;
-      featureBridge: string;
-      featureAdmin: string;
-      continueTrial: string;
-      startTrial: string;
-      freeTier?: string;
-      paidTier?: string;
-      trialActiveFeedback: string;
-      trialUsedFeedback: string;
-      trialStartedFeedback: string;
-    }
-  > = {
+  const pricingUiByLang = {
     en: {
       monthToggle: 'Month',
       yearToggle: 'Year',
@@ -306,7 +273,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       bestValue: 'Best value • 25% off',
       includes: 'Includes',
       includesText: 'One account, full features, and all future core updates included.',
-      memberAccess: 'Luna Member Access',
+      memberAccess: 'Luna29 Member Access',
       featurePrivate: '✓ Health data stays on your device',
       featureBodyMap: '✓ Body rhythm map and daily guidance',
       featureBridge: '✓ Partner bridge and note tools',
@@ -332,7 +299,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       bestValue: 'Лучшая цена • скидка 25%',
       includes: 'Включено',
       includesText: 'Один аккаунт, полный функционал и все будущие базовые обновления.',
-      memberAccess: 'Доступ в зону участника Luna',
+      memberAccess: 'Доступ в зону участника Luna29',
       featurePrivate: '✓ Данные здоровья остаются на вашем устройстве',
       featureBodyMap: '✓ Карта ритмов тела и ежедневные подсказки',
       featureBridge: '✓ Мост с партнером и инструменты заметок',
@@ -358,7 +325,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       bestValue: 'Найкраща ціна • мінус 25%',
       includes: 'Включено',
       includesText: 'Один акаунт, повний функціонал і всі майбутні базові оновлення.',
-      memberAccess: 'Доступ до зони учасника Luna',
+      memberAccess: 'Доступ до зони учасника Luna29',
       featurePrivate: '✓ Дані здоровʼя залишаються на вашому пристрої',
       featureBodyMap: '✓ Карта ритмів тіла і щоденні підказки',
       featureBridge: '✓ Міст для партнера та інструменти нотаток',
@@ -384,7 +351,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       bestValue: 'Mejor valor • 25% menos',
       includes: 'Incluye',
       includesText: 'Una cuenta, funciones completas y futuras actualizaciones principales incluidas.',
-      memberAccess: 'Acceso Miembro Luna',
+      memberAccess: 'Acceso Miembro Luna29',
       featurePrivate: '✓ Zona privada completa con check-ins',
       featureBodyMap: '✓ Mapa de ritmo corporal y guia diaria',
       featureBridge: '✓ Bridge para pareja y herramientas de reflexion',
@@ -408,7 +375,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       bestValue: 'Meilleure valeur • -25%',
       includes: 'Inclus',
       includesText: 'Un compte, toutes les fonctions, et toutes les mises a jour principales incluses.',
-      memberAccess: 'Acces Membre Luna',
+      memberAccess: 'Acces Membre Luna29',
       featurePrivate: '✓ Zone membre complete avec check-ins prives',
       featureBodyMap: '✓ Carte des rythmes corporels et guidance quotidienne',
       featureBridge: '✓ Bridge partenaire et outils de reflexion',
@@ -432,7 +399,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       bestValue: 'Bester Preis • 25% Rabatt',
       includes: 'Enthaelt',
       includesText: 'Ein Konto, voller Funktionsumfang und alle kuenftigen Kern-Updates inklusive.',
-      memberAccess: 'Luna Mitgliederzugang',
+      memberAccess: 'Luna29 Mitgliederzugang',
       featurePrivate: '✓ Voller Mitgliederbereich mit privaten Check-ins',
       featureBodyMap: '✓ Koerperrhythmus-Karte und taegliche Guidance',
       featureBridge: '✓ Partner-Bridge und Reflexions-Tools',
@@ -456,7 +423,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       bestValue: '最优价格 • 省 25%',
       includes: '包含',
       includesText: '一个账号、完整功能，以及后续核心更新。',
-      memberAccess: 'Luna 会员访问',
+      memberAccess: 'Luna29 会员访问',
       featurePrivate: '✓ 完整会员区与私密 check-in',
       featureBodyMap: '✓ 身体节律地图与每日引导',
       featureBridge: '✓ 伴侣 bridge 与反思工具',
@@ -480,7 +447,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       bestValue: '最もお得 • 25%オフ',
       includes: '含まれるもの',
       includesText: '1アカウント、全機能、今後の主要アップデートを含みます。',
-      memberAccess: 'Luna メンバーアクセス',
+      memberAccess: 'Luna29 メンバーアクセス',
       featurePrivate: '✓ 非公開チェックインを含むメンバーゾーン',
       featureBodyMap: '✓ ボディリズムマップと日次ガイダンス',
       featureBridge: '✓ パートナーブリッジと内省ツール',
@@ -504,7 +471,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       bestValue: 'Melhor valor • 25% off',
       includes: 'Inclui',
       includesText: 'Uma conta, todos os recursos e futuras atualizacoes principais inclusas.',
-      memberAccess: 'Acesso Membro Luna',
+      memberAccess: 'Acesso Membro Luna29',
       featurePrivate: '✓ Zona membro completa com check-ins privados',
       featureBodyMap: '✓ Mapa de ritmo corporal e guia diaria',
       featureBridge: '✓ Bridge com parceiro e ferramentas de reflexao',
@@ -566,7 +533,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
   }, []);
 
   const startTrial = () => {
-    const pricingUi = pricingUiByLang[lang] || pricingUiByLang.en;
+    const pricingUi = getLang(pricingUiByLang, lang) || pricingUiByLang.en;
     const existing = readTrialState();
     if (existing?.status === 'active') {
       setTrialState(existing);
@@ -598,7 +565,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     onSignUp();
   };
 
-  const pricingLabelByLang: Record<Language, string> = {
+  const pricingLabelByLang: LangCopy< string> = {
     en: 'Pricing',
     ru: 'Цены',
     uk: 'Ціни',
@@ -609,7 +576,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     ja: '料金',
     pt: 'Precos',
   };
-  const howItWorksLabelByLang: Record<Language, string> = {
+  const howItWorksLabelByLang: LangCopy< string> = {
     en: 'How It Works',
     ru: 'Как Это Работает',
     uk: 'Як Це Працює',
@@ -619,6 +586,30 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     zh: '如何使用',
     ja: '使い方',
     pt: 'Como Funciona',
+  };
+  const faqLabelByLang: LangCopy<string> = {
+    en: 'FAQ',
+    ru: 'FAQ',
+    uk: 'FAQ',
+    es: 'Preguntas frecuentes',
+    fr: 'FAQ',
+    de: 'FAQ',
+    zh: '常见问题',
+    ja: 'FAQ',
+    pt: 'FAQ',
+  };
+  const learningLabelByLang: LangCopy<string> = {
+  en: 'Learning',
+  ru: 'Обучение',
+  uk: 'Навчання',
+  es: 'Aprendizaje',
+  fr: 'Apprentissage',
+  de: 'Lernen',
+  zh: '学习',
+  ja: '学び',
+  pt: 'Aprendizagem',
+  ar: 'التعلّم',
+  he: 'לימוד',
   };
 
   const [landingNarratives, setLandingNarratives] = useState<import('../utils/publicLandingNarratives').LandingNarratives | null>(null);
@@ -646,22 +637,22 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
   }, []);
 
   const homeStory = landingNarratives?.homeStory || {
-    heroTitle: 'Luna',
-    heroLead: 'Luna — The physiology of feeling.',
+    heroTitle: 'Luna29',
+    heroLead: 'Luna29 — The physiology of feeling.',
     heroBody: 'A personal system for physiological clarity.',
-    heroCta: 'Try Luna',
+    heroCta: 'Try Luna29',
     heroSub: 'Private. Calm. Personal.',
     explainTitle: 'Short Explanation',
-    explainParagraphs: ['Luna helps understand body state through data and notes.', 'Open member tools to continue your journey.'],
-    flowTitle: 'How Luna Works',
+    explainParagraphs: ['Luna29 helps understand body state through data and notes.', 'Open member tools to continue your journey.'],
+    flowTitle: 'How Luna29 Works',
     flowItems: [{ title: 'Body', text: 'Rhythms and markers' }, { title: 'Senses', text: 'Observations and notes' }, { title: 'Words', text: 'Clear communication' }],
-    sections: [{ title: 'Luna Balance', body: 'Visual rhythm map.' }, { title: 'Voice Note', body: 'Structured voice notes.' }],
-    differenceTitle: 'Why Luna Is Different',
+    sections: [{ title: 'Luna29 Balance', body: 'Visual rhythm map.' }, { title: 'Voice Note', body: 'Structured voice notes.' }],
+    differenceTitle: 'Why Luna29 Is Different',
     differenceList: ['body', 'state', 'clarity'],
-    differenceBody: 'Luna links signals into a clear picture.',
-    finalTitle: 'Luna is your personal system for physiological clarity.',
+    differenceBody: 'Luna29 links signals into a clear picture.',
+    finalTitle: 'Luna29 is your personal system for physiological clarity.',
     finalBody: 'Pause, understand, and move forward with clarity.',
-    finalCta: 'Try Luna',
+    finalCta: 'Try Luna29',
   };
   const homeToggle = landingNarratives?.homeToggle || { more: 'Show Full Story', less: 'Show Less' };
   const hormoneFocus = landingNarratives?.hormoneFocus || {
@@ -679,16 +670,16 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
   };
   const pricingCopy = landingNarratives?.pricingCopy || {
     title: 'Simple, Transparent Pricing',
-    subtitle: 'One plan. Full Luna member zone.',
+    subtitle: 'One plan. Full Luna29 member zone.',
     month: '$12.99',
     year: '$89',
     monthNote: 'per month',
     yearNote: 'per year',
     saveBadge: 'Save 25% yearly',
-    cta: 'Buy Luna Access',
+    cta: 'Buy Luna29 Access',
     recommended: 'Recommended: $12.99/month.',
   };
-  const pricingUi = pricingUiByLang[lang] || pricingUiByLang.en;
+  const pricingUi = getLang(pricingUiByLang, lang) || pricingUiByLang.en;
   const visibleExplainParagraphs = isHomeExpanded ? homeStory.explainParagraphs : homeStory.explainParagraphs.slice(0, 2);
   const visibleSections = isHomeExpanded ? homeStory.sections : homeStory.sections.slice(0, 2);
 
@@ -697,9 +688,9 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     { id: 'map', label: ui.publicHome.tabs.map },
     { id: 'ritual', label: 'Ritual Path' },
     { id: 'bridge', label: ui.navigation.bridge || 'The Bridge' },
-    { id: 'pricing', label: pricingLabelByLang[lang] || 'Pricing' },
+    { id: 'pricing', label: getLang(pricingLabelByLang, lang) || 'Pricing' },
   ] as const;
-  const footerSectionTitlesByLang: Record<Language, { explore: string; guides: string; legal: string; install: string; account: string }> = {
+  const footerSectionTitlesByLang: LangCopy< { explore: string; guides: string; legal: string; install: string; account: string }> = {
     en: { explore: 'Explore', guides: 'Guides', legal: 'Legal', install: 'Install App', account: 'Account' },
     ru: { explore: 'Разделы', guides: 'Гайды', legal: 'Юридический', install: 'Установить App', account: 'Аккаунт' },
     uk: { explore: 'Розділи', guides: 'Гайди', legal: 'Юридичний', install: 'Встановити App', account: 'Акаунт' },
@@ -711,7 +702,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     pt: { explore: 'Secoes', guides: 'Guias', legal: 'Legal', install: 'Instalar App', account: 'Conta' },
   };
 
-  const legalLabelsByLang: Record<Language, { legal: string; privacy: string; terms: string; medical: string; cookies: string; dataRights: string }> = {
+  const legalLabelsByLang: LangCopy< { legal: string; privacy: string; terms: string; medical: string; cookies: string; dataRights: string }> = {
     en: { legal: 'Legal', privacy: 'Privacy Notice', terms: 'Terms', medical: 'Disclaimer', cookies: 'Cookies', dataRights: 'Data Rights' },
     ru: { legal: 'Юридический раздел', privacy: 'Приватность', terms: 'Условия', medical: 'Дисклеймер', cookies: 'Cookies', dataRights: 'Права на данные' },
     uk: { legal: 'Юридичний розділ', privacy: 'Приватність', terms: 'Умови', medical: 'Дисклеймер', cookies: 'Cookies', dataRights: 'Права на дані' },
@@ -722,9 +713,9 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     ja: { legal: '法務', privacy: 'プライバシー', terms: '利用規約', medical: '免責', cookies: 'Cookies', dataRights: 'データ権利' },
     pt: { legal: 'Legal', privacy: 'Privacidade', terms: 'Termos', medical: 'Aviso', cookies: 'Cookies', dataRights: 'Direitos de Dados' },
   };
-  const legalLabels = legalLabelsByLang[lang];
-  const footerSectionTitles = footerSectionTitlesByLang[lang] || footerSectionTitlesByLang.en;
-  const themeLabelByLang: Record<Language, string> = {
+  const legalLabels = getLang(legalLabelsByLang, lang);
+  const footerSectionTitles = getLang(footerSectionTitlesByLang, lang) || footerSectionTitlesByLang.en;
+  const themeLabelByLang: LangCopy< string> = {
     en: 'Theme',
     ru: 'Тема',
     uk: 'Тема',
@@ -735,25 +726,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     ja: 'テーマ',
     pt: 'Tema',
   };
-  const installActionsByLang: Record<
-    Language,
-    {
-      ios: string;
-      android: string;
-      iosTip: string;
-      androidTip: string;
-      noPrompt: string;
-      explainTitle: string;
-      explainBody: string;
-      stepPrefix: string;
-      iosStep1: string;
-      iosStep2: string;
-      androidStep1: string;
-      androidStep2: string;
-      admin: string;
-      social: string;
-    }
-  > = {
+  const installActionsByLang = {
     en: {
       ios: 'iPhone Install',
       android: 'Android Install',
@@ -761,11 +734,11 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       androidTip: 'Use browser menu -> Install App.',
       noPrompt: 'Install prompt is not available in this browser session.',
       explainTitle: 'How Install Works',
-      explainBody: 'Install adds Luna to your home screen and opens full-screen like an app.',
+      explainBody: 'Install adds Luna29 to your home screen and opens full-screen like an app.',
       stepPrefix: 'Step',
-      iosStep1: 'Open Luna in Safari.',
+      iosStep1: 'Open Luna29 in Safari.',
       iosStep2: 'Tap Share and choose Add to Home Screen.',
-      androidStep1: 'Open Luna in Chrome/Edge.',
+      androidStep1: 'Open Luna29 in Chrome/Edge.',
       androidStep2: 'Tap browser menu and choose Install App.',
       admin: 'Admin',
       social: 'Social',
@@ -777,11 +750,11 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       androidTip: 'Используйте меню браузера -> Установить приложение.',
       noPrompt: 'Системный install prompt сейчас недоступен в этом браузере.',
       explainTitle: 'Как работает установка',
-      explainBody: 'После установки Luna появится на домашнем экране и будет открываться как приложение.',
+      explainBody: 'После установки Luna29 появится на домашнем экране и будет открываться как приложение.',
       stepPrefix: 'Шаг',
-      iosStep1: 'Откройте Luna в Safari.',
+      iosStep1: 'Откройте Luna29 в Safari.',
       iosStep2: 'Нажмите Поделиться и выберите На экран Домой.',
-      androidStep1: 'Откройте Luna в Chrome/Edge.',
+      androidStep1: 'Откройте Luna29 в Chrome/Edge.',
       androidStep2: 'Откройте меню браузера и выберите Установить приложение.',
       admin: 'Админ',
       social: 'Соцсети',
@@ -793,11 +766,11 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       androidTip: 'Використайте меню браузера -> Встановити застосунок.',
       noPrompt: 'Системний install prompt зараз недоступний у цьому браузері.',
       explainTitle: 'Як працює встановлення',
-      explainBody: 'Після встановлення Luna зʼявиться на головному екрані та відкриватиметься як застосунок.',
+      explainBody: 'Після встановлення Luna29 зʼявиться на головному екрані та відкриватиметься як застосунок.',
       stepPrefix: 'Крок',
-      iosStep1: 'Відкрийте Luna у Safari.',
+      iosStep1: 'Відкрийте Luna29 у Safari.',
       iosStep2: 'Натисніть Поділитися і оберіть На екран Додому.',
-      androidStep1: 'Відкрийте Luna у Chrome/Edge.',
+      androidStep1: 'Відкрийте Luna29 у Chrome/Edge.',
       androidStep2: 'Відкрийте меню браузера і оберіть Встановити застосунок.',
       admin: 'Адмін',
       social: 'Соцмережі',
@@ -809,11 +782,11 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       androidTip: 'Usa menu del navegador -> Instalar app.',
       noPrompt: 'El prompt de instalacion no esta disponible ahora.',
       explainTitle: 'Como funciona la instalacion',
-      explainBody: 'Al instalar, Luna aparece en inicio y se abre en pantalla completa como app.',
+      explainBody: 'Al instalar, Luna29 aparece en inicio y se abre en pantalla completa como app.',
       stepPrefix: 'Paso',
-      iosStep1: 'Abre Luna en Safari.',
+      iosStep1: 'Abre Luna29 en Safari.',
       iosStep2: 'Toca Compartir y luego Anadir a inicio.',
-      androidStep1: 'Abre Luna en Chrome/Edge.',
+      androidStep1: 'Abre Luna29 en Chrome/Edge.',
       androidStep2: 'Abre menu del navegador y elige Instalar app.',
       admin: 'Admin',
       social: 'Redes',
@@ -825,11 +798,11 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       androidTip: 'Utilisez menu navigateur -> Installer app.',
       noPrompt: "Le prompt d installation n est pas disponible actuellement.",
       explainTitle: "Comment l installation fonctionne",
-      explainBody: 'Apres installation, Luna apparait sur accueil et s ouvre en plein ecran.',
+      explainBody: 'Apres installation, Luna29 apparait sur accueil et s ouvre en plein ecran.',
       stepPrefix: 'Etape',
-      iosStep1: 'Ouvrez Luna dans Safari.',
+      iosStep1: 'Ouvrez Luna29 dans Safari.',
       iosStep2: "Touchez Partager puis Sur l ecran d accueil.",
-      androidStep1: 'Ouvrez Luna dans Chrome/Edge.',
+      androidStep1: 'Ouvrez Luna29 dans Chrome/Edge.',
       androidStep2: 'Ouvrez le menu du navigateur puis Installer app.',
       admin: 'Admin',
       social: 'Reseaux',
@@ -841,11 +814,11 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       androidTip: 'Browsermenu -> App installieren.',
       noPrompt: 'Installationsdialog ist in dieser Sitzung nicht verfugbar.',
       explainTitle: 'So funktioniert die Installation',
-      explainBody: 'Nach Installation erscheint Luna auf dem Homescreen und startet im Vollbild.',
+      explainBody: 'Nach Installation erscheint Luna29 auf dem Homescreen und startet im Vollbild.',
       stepPrefix: 'Schritt',
-      iosStep1: 'Luna in Safari offnen.',
+      iosStep1: 'Luna29 in Safari offnen.',
       iosStep2: 'Teilen tippen und Zum Home-Bildschirm wahlen.',
-      androidStep1: 'Luna in Chrome/Edge offnen.',
+      androidStep1: 'Luna29 in Chrome/Edge offnen.',
       androidStep2: 'Browsermenu offnen und App installieren wahlen.',
       admin: 'Admin',
       social: 'Social',
@@ -857,11 +830,11 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       androidTip: '使用浏览器菜单 -> 安装应用。',
       noPrompt: '当前浏览器会话中无法触发安装弹窗。',
       explainTitle: '安装说明',
-      explainBody: '安装后 Luna 会出现在主屏幕，并以全屏应用方式打开。',
+      explainBody: '安装后 Luna29 会出现在主屏幕，并以全屏应用方式打开。',
       stepPrefix: '步骤',
-      iosStep1: '在 Safari 中打开 Luna。',
+      iosStep1: '在 Safari 中打开 Luna29。',
       iosStep2: '点击分享，选择添加到主屏幕。',
-      androidStep1: '在 Chrome/Edge 中打开 Luna。',
+      androidStep1: '在 Chrome/Edge 中打开 Luna29。',
       androidStep2: '打开浏览器菜单，选择安装应用。',
       admin: '管理',
       social: '社交',
@@ -875,9 +848,9 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       explainTitle: 'インストール方法',
       explainBody: 'インストールするとホーム画面に追加され、全画面アプリとして起動できます。',
       stepPrefix: '手順',
-      iosStep1: 'Safari で Luna を開く。',
+      iosStep1: 'Safari で Luna29 を開く。',
       iosStep2: '共有を押してホーム画面に追加を選択。',
-      androidStep1: 'Chrome/Edge で Luna を開く。',
+      androidStep1: 'Chrome/Edge で Luna29 を開く。',
       androidStep2: 'ブラウザメニューからアプリをインストール。',
       admin: '管理',
       social: 'SNS',
@@ -889,17 +862,17 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       androidTip: 'Use menu do navegador -> Instalar app.',
       noPrompt: 'O prompt de instalacao nao esta disponivel nesta sessao.',
       explainTitle: 'Como funciona a instalacao',
-      explainBody: 'Depois de instalar, Luna aparece na tela inicial e abre em tela cheia.',
+      explainBody: 'Depois de instalar, Luna29 aparece na tela inicial e abre em tela cheia.',
       stepPrefix: 'Passo',
-      iosStep1: 'Abra Luna no Safari.',
+      iosStep1: 'Abra Luna29 no Safari.',
       iosStep2: 'Toque em Compartilhar e escolha Adicionar a Tela Inicial.',
-      androidStep1: 'Abra Luna no Chrome/Edge.',
+      androidStep1: 'Abra Luna29 no Chrome/Edge.',
       androidStep2: 'Abra o menu do navegador e escolha Instalar app.',
       admin: 'Admin',
       social: 'Sociais',
     },
   };
-  const installActions = installActionsByLang[lang] || installActionsByLang.en;
+  const installActions = getLang(installActionsByLang, lang) || installActionsByLang.en;
   const installGuideModalByLang: Partial<
     Record<
       Language,
@@ -922,12 +895,12 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     en: {
       title: 'Install App',
       how: 'How Install Works',
-      intro: 'Install adds Luna to your home screen and opens full-screen like an app.',
+      intro: 'Install adds Luna29 to your home screen and opens full-screen like an app.',
       iosTitle: 'iPhone Install',
       androidTitle: 'Android Install',
-      iosStep1: 'Step 1: Open Luna in Safari.',
+      iosStep1: 'Step 1: Open Luna29 in Safari.',
       iosStep2: 'Step 2: Tap Share and choose Add to Home Screen.',
-      androidStep1: 'Step 1: Open Luna in Chrome/Edge.',
+      androidStep1: 'Step 1: Open Luna29 in Chrome/Edge.',
       androidStep2: 'Step 2: Tap browser menu and choose Install App.',
       fallback: 'Open Safari -> Share -> Add to Home Screen.',
       close: 'Close',
@@ -936,19 +909,19 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     ru: {
       title: 'Install App',
       how: 'How Install Works',
-      intro: 'Install добавляет Luna на домашний экран и открывает в полноэкранном режиме как app.',
+      intro: 'Install добавляет Luna29 на домашний экран и открывает в полноэкранном режиме как app.',
       iosTitle: 'iPhone Install',
       androidTitle: 'Android Install',
-      iosStep1: 'Step 1: Open Luna in Safari.',
+      iosStep1: 'Step 1: Open Luna29 in Safari.',
       iosStep2: 'Step 2: Tap Share and choose Add to Home Screen.',
-      androidStep1: 'Step 1: Open Luna in Chrome/Edge.',
+      androidStep1: 'Step 1: Open Luna29 in Chrome/Edge.',
       androidStep2: 'Step 2: Tap browser menu and choose Install App.',
       fallback: 'Open Safari -> Share -> Add to Home Screen.',
       close: 'Закрыть',
       openPrompt: 'Открыть Android Install',
     },
   };
-  const installGuideModal = installGuideModalByLang[lang] || installGuideModalByLang.en!;
+  const installGuideModal = getLang(installGuideModalByLang, lang) || installGuideModalByLang.en!;
 
   const socialLinks = [
     {
@@ -984,7 +957,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       iconColor: 'text-[#111111] dark:text-white',
     },
   ];
-  const aboutLabelByLang: Record<Language, string> = {
+  const aboutLabelByLang: LangCopy< string> = {
     en: 'About',
     ru: 'О проекте',
     uk: 'Про проект',
@@ -1000,25 +973,27 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     { id: 'map', label: ui.publicHome.tabs.map },
     { id: 'ritual', label: 'Ritual Path' },
     { id: 'bridge', label: ui.navigation.bridge || 'The Bridge' },
-    { id: 'pricing', label: pricingLabelByLang[lang] || 'Pricing' },
-    { id: 'about', label: aboutLabelByLang[lang] || 'About' },
-    { id: 'how_it_works', label: howItWorksLabelByLang[lang] || 'How It Works' },
+    { id: 'pricing', label: getLang(pricingLabelByLang, lang) || 'Pricing' },
+    { id: 'about', label: getLang(aboutLabelByLang, lang) || 'About' },
+    { id: 'how_it_works', label: getLang(howItWorksLabelByLang, lang) || 'How It Works' },
+    { id: 'faq', label: getLang(faqLabelByLang, lang) || 'FAQ' },
+    { id: 'learning', label: getLang(learningLabelByLang, lang) || 'Learning' },
     { id: 'privacy', label: legalLabels.privacy },
     { id: 'terms', label: legalLabels.terms },
     { id: 'medical', label: legalLabels.medical },
     { id: 'cookies', label: legalLabels.cookies },
     { id: 'data_rights', label: legalLabels.dataRights },
   ];
-  const aboutPageTitleByLang: Record<Language, string> = {
-    en: 'About Luna',
-    ru: 'О Luna',
-    uk: 'Про Luna',
-    es: 'Sobre Luna',
-    fr: 'A propos de Luna',
-    de: 'Uber Luna',
-    zh: '关于 Luna',
-    ja: 'Luna について',
-    pt: 'Sobre Luna',
+  const aboutPageTitleByLang: LangCopy< string> = {
+    en: 'About Luna29',
+    ru: 'О Luna29',
+    uk: 'Про Luna29',
+    es: 'Sobre Luna29',
+    fr: 'A propos de Luna29',
+    de: 'Uber Luna29',
+    zh: '关于 Luna29',
+    ja: 'Luna29 について',
+    pt: 'Sobre Luna29',
   };
   const publicSharedByLang: Partial<
     Record<
@@ -1033,106 +1008,63 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     en: {
       flowSummary: 'Together this forms a clear picture of your inner state.',
       appliedTitle: 'Applied In Member Zone',
-      appliedBody: 'In the member zone, Luna Balance becomes practical: move through cycle day, see phase shifts, read sensitivity states, and connect markers to daily decisions.',
+      appliedBody: 'In the member zone, Luna29 Balance becomes practical: move through cycle day, see phase shifts, read sensitivity states, and connect markers to daily decisions.',
     },
     ru: {
       flowSummary: 'Вместе это формирует понятную картину внутреннего состояния.',
       appliedTitle: 'Практика в зоне участника',
-      appliedBody: 'В зоне участника Luna Balance становится практичной: вы двигаетесь по дню цикла, видите сдвиги фаз, состояния чувствительности и связываете маркеры с ежедневными решениями.',
+      appliedBody: 'В зоне участника Luna29 Balance становится практичной: вы двигаетесь по дню цикла, видите сдвиги фаз, состояния чувствительности и связываете маркеры с ежедневными решениями.',
     },
     uk: {
       flowSummary: 'Разом це формує зрозумілу картину внутрішнього стану.',
       appliedTitle: 'Практика в зоні учасника',
-      appliedBody: 'У зоні учасника Luna Balance стає практичною: рух по дню циклу, зміни фаз, стани чутливості та звʼязок маркерів із щоденними рішеннями.',
+      appliedBody: 'У зоні учасника Luna29 Balance стає практичною: рух по дню циклу, зміни фаз, стани чутливості та звʼязок маркерів із щоденними рішеннями.',
     },
     es: {
       flowSummary: 'En conjunto, esto forma una imagen clara de tu estado interno.',
       appliedTitle: 'Aplicado en zona de miembro',
-      appliedBody: 'En la zona de miembros, Luna Balance se vuelve práctico: día del ciclo, cambios de fase, sensibilidad y conexión de marcadores con decisiones diarias.',
+      appliedBody: 'En la zona de miembros, Luna29 Balance se vuelve práctico: día del ciclo, cambios de fase, sensibilidad y conexión de marcadores con decisiones diarias.',
     },
     fr: {
       flowSummary: 'Ensemble, cela forme une image claire de votre état intérieur.',
       appliedTitle: 'Appliqué dans la zone membre',
-      appliedBody: 'Dans la zone membre, Luna Balance devient pratique: jour du cycle, transitions de phase, états de sensibilité et lien avec les décisions quotidiennes.',
+      appliedBody: 'Dans la zone membre, Luna29 Balance devient pratique: jour du cycle, transitions de phase, états de sensibilité et lien avec les décisions quotidiennes.',
     },
     de: {
       flowSummary: 'Zusammen ergibt das ein klares Bild deines inneren Zustands.',
       appliedTitle: 'Angewendet in der Mitgliederzone',
-      appliedBody: 'In der Mitgliederzone wird Luna Balance praktisch: Zyklustag, Phasenwechsel, Sensitivitätszustände und Verknüpfung der Marker mit täglichen Entscheidungen.',
+      appliedBody: 'In der Mitgliederzone wird Luna29 Balance praktisch: Zyklustag, Phasenwechsel, Sensitivitätszustände und Verknüpfung der Marker mit täglichen Entscheidungen.',
     },
     zh: {
       flowSummary: '这些模块组合在一起，形成清晰的内在状态图景。',
       appliedTitle: '在会员区中落地',
-      appliedBody: '在会员区，Luna Balance 变得可执行：查看周期日、阶段变化、敏感状态，并将指标连接到日常决策。',
+      appliedBody: '在会员区，Luna29 Balance 变得可执行：查看周期日、阶段变化、敏感状态，并将指标连接到日常决策。',
     },
     ja: {
       flowSummary: 'これらを合わせることで、内的状態の全体像が明確になります。',
       appliedTitle: 'メンバーゾーンで実用化',
-      appliedBody: 'メンバーゾーンでは Luna Balance を実践的に使えます。周期日・フェーズ変化・感受性を確認し、日々の意思決定に接続します。',
+      appliedBody: 'メンバーゾーンでは Luna29 Balance を実践的に使えます。周期日・フェーズ変化・感受性を確認し、日々の意思決定に接続します。',
     },
     pt: {
       flowSummary: 'Juntos, esses blocos formam uma visão clara do seu estado interno.',
       appliedTitle: 'Aplicado na zona de membros',
-      appliedBody: 'Na área de membros, Luna Balance vira prática: dia do ciclo, mudanças de fase, estados de sensibilidade e ligação dos marcadores com decisões diárias.',
+      appliedBody: 'Na área de membros, Luna29 Balance vira prática: dia do ciclo, mudanças de fase, estados de sensibilidade e ligação dos marcadores com decisões diárias.',
     },
   };
-  const publicShared = publicSharedByLang[lang] || publicSharedByLang.en!;
-  const homeRefCopyByLang: Record<
-    Language,
-    {
-      heroTitle: string;
-      heroBody: string;
-      heroCta: string;
-      heroSub: string;
-      whyTitle: string;
-      whyIntro: string;
-      whyPoint1: string;
-      whyPoint2: string;
-      whyPoint3: string;
-      whyPoint4: string;
-      whyOutro: string;
-      bodyCardTitle: string;
-      bodyCardText: string;
-      sensesCardTitle: string;
-      sensesCardText: string;
-      wordsCardTitle: string;
-      wordsCardText: string;
-      miniNote: string;
-      rhythmTitle: string;
-      previous: string;
-      today: string;
-      nextPhase: string;
-      patternsTitle: string;
-      patternLabel: string;
-      patternText1: string;
-      patternText2: string;
-      voiceTitle: string;
-      voiceText1: string;
-      voiceText2: string;
-      voiceText3: string;
-      record: string;
-      bridgeTitle: string;
-      bridgeText1: string;
-      bridgeText2: string;
-      bridgeText3: string;
-      bridgeText4: string;
-      resetHeading: string;
-      resetTitle: string;
-      resetCta: string;
-    }
-  > = {
+  const publicShared = getLang(publicSharedByLang, lang) || publicSharedByLang.en!;
+  const homeRefCopyByLang = {
     en: {
-      heroTitle: 'Luna — The physiology of feeling.',
+      heroTitle: 'Luna29 — The physiology of feeling.',
       heroBody: 'A personal system that connects body rhythms, lived observations, and calm language for your inner state.',
-      heroCta: 'Try Luna',
+      heroCta: 'Try Luna29',
       heroSub: 'Private. Calm. Personal.',
-      whyTitle: 'Why Luna exists',
+      whyTitle: 'Why Luna29 exists',
       whyIntro: 'In everyday life many states are difficult to read.',
       whyPoint1: 'Fatigue.',
       whyPoint2: 'Pressure.',
       whyPoint3: 'Emotional overload.',
       whyPoint4: 'Unclear signals from the body.',
-      whyOutro: 'Luna helps make these states clearer through observation, notes, and patterns that appear over time.',
+      whyOutro: 'Luna29 helps make these states clearer through observation, notes, and patterns that appear over time.',
       bodyCardTitle: 'Your\nBody',
       bodyCardText: 'physiological rhythms and markers',
       sensesCardTitle: 'Your\nSenses',
@@ -1155,25 +1087,25 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       record: 'Record',
       bridgeTitle: 'Мост',
       bridgeText1: 'Sometimes it is difficult to explain how you feel.',
-      bridgeText2: 'Luna helps formulate calm and clear words for your state.',
+      bridgeText2: 'Luna29 helps formulate calm and clear words for your state.',
       bridgeText3: 'For yourself first.',
       bridgeText4: 'And, if you choose, for someone close to you.',
       resetHeading: 'Комната восстановления',
       resetTitle: 'Begin observing your rhythm.',
-      resetCta: 'Create your Luna space',
+      resetCta: 'Create your Luna29 space',
     },
     ru: {
-      heroTitle: 'Luna — физиология чувств.',
+      heroTitle: 'Luna29 — физиология чувств.',
       heroBody: 'Личная система, которая соединяет ритмы тела, наблюдения из жизни и спокойный язык для вашего внутреннего состояния.',
-      heroCta: 'Попробовать Luna',
+      heroCta: 'Попробовать Luna29',
       heroSub: 'Приватно. Спокойно. Лично.',
-      whyTitle: 'Почему существует Luna',
+      whyTitle: 'Почему существует Luna29',
       whyIntro: 'В повседневной жизни многие состояния трудно распознать.',
       whyPoint1: 'Усталость.',
       whyPoint2: 'Напряжение.',
       whyPoint3: 'Эмоциональная перегрузка.',
       whyPoint4: 'Неясные сигналы от тела.',
-      whyOutro: 'Luna помогает сделать эти состояния понятнее через наблюдение, заметки и паттерны, которые проявляются со временем.',
+      whyOutro: 'Luna29 помогает сделать эти состояния понятнее через наблюдение, заметки и паттерны, которые проявляются со временем.',
       bodyCardTitle: 'Ваше\nтело',
       bodyCardText: 'физиологические ритмы и маркеры',
       sensesCardTitle: 'Ваши\nощущения',
@@ -1196,25 +1128,25 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       record: 'Запись',
       bridgeTitle: 'Puente',
       bridgeText1: 'Иногда сложно объяснить, что вы чувствуете.',
-      bridgeText2: 'Luna помогает формулировать состояние спокойно и ясно.',
+      bridgeText2: 'Luna29 помогает формулировать состояние спокойно и ясно.',
       bridgeText3: 'Сначала для себя.',
       bridgeText4: 'И, если захотите, для близкого человека.',
       resetHeading: 'Sala de reinicio',
       resetTitle: 'Начните наблюдать свой ритм.',
-      resetCta: 'Создать своё пространство Luna',
+      resetCta: 'Создать своё пространство Luna29',
     },
     uk: {
-      heroTitle: 'Luna — фізіологія відчуттів.',
+      heroTitle: 'Luna29 — фізіологія відчуттів.',
       heroBody: 'Персональна система, що поєднує ритми тіла, щоденні спостереження та спокійну мову для вашого внутрішнього стану.',
-      heroCta: 'Спробувати Luna',
+      heroCta: 'Спробувати Luna29',
       heroSub: 'Приватно. Спокійно. Особисто.',
-      whyTitle: 'Чому існує Luna',
+      whyTitle: 'Чому існує Luna29',
       whyIntro: 'У щоденному житті багато станів важко зчитати.',
       whyPoint1: 'Втома.',
       whyPoint2: 'Напруга.',
       whyPoint3: 'Емоційне перевантаження.',
       whyPoint4: 'Нечіткі сигнали тіла.',
-      whyOutro: 'Luna допомагає зробити ці стани зрозумілішими через спостереження, нотатки та патерни, що проявляються з часом.',
+      whyOutro: 'Luna29 допомагає зробити ці стани зрозумілішими через спостереження, нотатки та патерни, що проявляються з часом.',
       bodyCardTitle: 'Ваше\nтіло',
       bodyCardText: 'фізіологічні ритми та маркери',
       sensesCardTitle: 'Ваші\nвідчуття',
@@ -1237,25 +1169,25 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       record: 'Запис',
       bridgeTitle: 'Міст',
       bridgeText1: 'Іноді складно пояснити, що ви відчуваєте.',
-      bridgeText2: 'Luna допомагає формулювати ваш стан спокійно й чітко.',
+      bridgeText2: 'Luna29 допомагає формулювати ваш стан спокійно й чітко.',
       bridgeText3: 'Спочатку для себе.',
       bridgeText4: 'А якщо захочете, і для близької людини.',
       resetHeading: 'Кімната відновлення',
       resetTitle: 'Почніть спостерігати свій ритм.',
-      resetCta: 'Створити свій простір Luna',
+      resetCta: 'Створити свій простір Luna29',
     },
     es: {
-      heroTitle: 'Luna — la fisiología del sentir.',
+      heroTitle: 'Luna29 — la fisiología del sentir.',
       heroBody: 'Un sistema personal que conecta ritmos del cuerpo, observaciones cotidianas y un lenguaje sereno para tu estado interior.',
-      heroCta: 'Probar Luna',
+      heroCta: 'Probar Luna29',
       heroSub: 'Privado. Calma. Personal.',
-      whyTitle: 'Por qué existe Luna',
+      whyTitle: 'Por qué existe Luna29',
       whyIntro: 'En la vida diaria muchos estados son difíciles de leer.',
       whyPoint1: 'Fatiga.',
       whyPoint2: 'Presión.',
       whyPoint3: 'Sobrecarga emocional.',
       whyPoint4: 'Señales poco claras del cuerpo.',
-      whyOutro: 'Luna ayuda a aclarar estos estados mediante observación, reflexión y patrones que aparecen con el tiempo.',
+      whyOutro: 'Luna29 ayuda a aclarar estos estados mediante observación, reflexión y patrones que aparecen con el tiempo.',
       bodyCardTitle: 'Tu\ncuerpo',
       bodyCardText: 'ritmos fisiológicos y marcadores',
       sensesCardTitle: 'Tus\nsensaciones',
@@ -1278,25 +1210,25 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       record: 'Grabar',
       bridgeTitle: 'Le Pont',
       bridgeText1: 'A veces es difícil explicar cómo te sientes.',
-      bridgeText2: 'Luna te ayuda a formular tu estado con calma y claridad.',
+      bridgeText2: 'Luna29 te ayuda a formular tu estado con calma y claridad.',
       bridgeText3: 'Primero para ti.',
       bridgeText4: 'Y, si lo eliges, para alguien cercano.',
       resetHeading: 'Salle de réinitialisation',
       resetTitle: 'Empieza a observar tu ritmo.',
-      resetCta: 'Crear tu espacio Luna',
+      resetCta: 'Crear tu espacio Luna29',
     },
     fr: {
-      heroTitle: 'Luna — la physiologie du ressenti.',
+      heroTitle: 'Luna29 — la physiologie du ressenti.',
       heroBody: 'Un systeme personnel qui relie les rythmes du corps, les observations du quotidien et un langage calme pour votre etat interieur.',
-      heroCta: 'Essayer Luna',
+      heroCta: 'Essayer Luna29',
       heroSub: 'Prive. Calme. Personnel.',
-      whyTitle: 'Pourquoi Luna existe',
+      whyTitle: 'Pourquoi Luna29 existe',
       whyIntro: 'Dans la vie quotidienne, de nombreux etats sont difficiles a lire.',
       whyPoint1: 'Fatigue.',
       whyPoint2: 'Pression.',
       whyPoint3: 'Surcharge emotionnelle.',
       whyPoint4: 'Signaux corporels peu clairs.',
-      whyOutro: 'Luna aide a clarifier ces etats par l observation, la reflexion et les tendances qui apparaissent avec le temps.',
+      whyOutro: 'Luna29 aide a clarifier ces etats par l observation, la reflexion et les tendances qui apparaissent avec le temps.',
       bodyCardTitle: 'Votre\ncorps',
       bodyCardText: 'rythmes physiologiques et marqueurs',
       sensesCardTitle: 'Vos\nsens',
@@ -1319,25 +1251,25 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       record: 'Enregistrer',
       bridgeTitle: 'Die Brücke',
       bridgeText1: 'Parfois, il est difficile d expliquer ce que vous ressentez.',
-      bridgeText2: 'Luna vous aide a formuler votre etat avec calme et clarte.',
+      bridgeText2: 'Luna29 vous aide a formuler votre etat avec calme et clarte.',
       bridgeText3: 'D abord pour vous.',
       bridgeText4: 'Et, si vous le souhaitez, pour une personne proche.',
       resetHeading: 'Reset-Raum',
       resetTitle: 'Commencez a observer votre rythme.',
-      resetCta: 'Creer votre espace Luna',
+      resetCta: 'Creer votre espace Luna29',
     },
     de: {
-      heroTitle: 'Luna — die Physiologie des Fuehlens.',
+      heroTitle: 'Luna29 — die Physiologie des Fuehlens.',
       heroBody: 'Ein persoenliches System, das Koerperrhythmen, alltaegliche Beobachtungen und eine ruhige Sprache fuer Ihren inneren Zustand verbindet.',
-      heroCta: 'Luna testen',
+      heroCta: 'Luna29 testen',
       heroSub: 'Privat. Ruhig. Persoenlich.',
-      whyTitle: 'Warum Luna existiert',
+      whyTitle: 'Warum Luna29 existiert',
       whyIntro: 'Im Alltag sind viele Zustaende schwer zu erkennen.',
       whyPoint1: 'Muedigkeit.',
       whyPoint2: 'Druck.',
       whyPoint3: 'Emotionale Ueberlastung.',
       whyPoint4: 'Unklare Signale des Koerpers.',
-      whyOutro: 'Luna hilft, diese Zustaende durch Beobachtung, Reflexion und Muster, die mit der Zeit sichtbar werden, klarer zu machen.',
+      whyOutro: 'Luna29 hilft, diese Zustaende durch Beobachtung, Reflexion und Muster, die mit der Zeit sichtbar werden, klarer zu machen.',
       bodyCardTitle: 'Ihr\nKoerper',
       bodyCardText: 'physiologische Rhythmen und Marker',
       sensesCardTitle: 'Ihre\nWahrnehmung',
@@ -1360,25 +1292,25 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       record: 'Aufnehmen',
       bridgeTitle: '连接桥',
       bridgeText1: 'Manchmal ist es schwer zu erklaeren, wie Sie sich fuehlen.',
-      bridgeText2: 'Luna hilft, Ihren Zustand ruhig und klar zu formulieren.',
+      bridgeText2: 'Luna29 hilft, Ihren Zustand ruhig und klar zu formulieren.',
       bridgeText3: 'Zuerst fuer sich selbst.',
       bridgeText4: 'Und, wenn Sie moechten, fuer eine nahestehende Person.',
       resetHeading: '重置空间',
       resetTitle: 'Beginnen Sie, Ihren Rhythmus zu beobachten.',
-      resetCta: 'Ihren Luna-Bereich erstellen',
+      resetCta: 'Ihren Luna29-Bereich erstellen',
     },
     zh: {
-      heroTitle: 'Luna - 感受的生理学。',
+      heroTitle: 'Luna29 - 感受的生理学。',
       heroBody: '一个个人系统，将身体节律、日常观察与平静表达连接起来，帮助你理解自己的内在状态。',
-      heroCta: '体验 Luna',
+      heroCta: '体验 Luna29',
       heroSub: '私密。平静。专属。',
-      whyTitle: '为什么有 Luna',
+      whyTitle: '为什么有 Luna29',
       whyIntro: '在日常生活中，很多状态都不容易被读懂。',
       whyPoint1: '疲劳。',
       whyPoint2: '压力。',
       whyPoint3: '情绪过载。',
       whyPoint4: '身体信号不清晰。',
-      whyOutro: 'Luna 通过观察、反思和随时间出现的规律，让这些状态更清晰。',
+      whyOutro: 'Luna29 通过观察、反思和随时间出现的规律，让这些状态更清晰。',
       bodyCardTitle: '你的\n身体',
       bodyCardText: '生理节律与关键指标',
       sensesCardTitle: '你的\n感受',
@@ -1401,25 +1333,25 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       record: '录音',
       bridgeTitle: 'ブリッジ',
       bridgeText1: '有时很难解释自己的感受。',
-      bridgeText2: 'Luna 帮助你用平静而清晰的语言表达当前状态。',
+      bridgeText2: 'Luna29 帮助你用平静而清晰的语言表达当前状态。',
       bridgeText3: '先对自己说清楚。',
       bridgeText4: '如果你愿意，也可以说给亲近的人。',
       resetHeading: 'リセットルーム',
       resetTitle: '开始观察你的节律。',
-      resetCta: '创建你的 Luna 空间',
+      resetCta: '创建你的 Luna29 空间',
     },
     ja: {
-      heroTitle: 'Luna - 感覚の生理学。',
+      heroTitle: 'Luna29 - 感覚の生理学。',
       heroBody: '身体のリズム、日々の観察、そして穏やかな言葉をつなぎ、あなたの内側の状態を理解するためのパーソナルシステムです。',
-      heroCta: 'Lunaを試す',
+      heroCta: 'Luna29を試す',
       heroSub: 'プライベート。穏やか。パーソナル。',
-      whyTitle: 'なぜ Luna があるのか',
+      whyTitle: 'なぜ Luna29 があるのか',
       whyIntro: '日常の中には、読み取りにくい状態がたくさんあります。',
       whyPoint1: '疲労。',
       whyPoint2: 'プレッシャー。',
       whyPoint3: '感情の過負荷。',
       whyPoint4: '身体からの不明瞭なサイン。',
-      whyOutro: 'Luna は観察と振り返り、そして時間とともに現れるパターンによって、これらの状態をより明確にします。',
+      whyOutro: 'Luna29 は観察と振り返り、そして時間とともに現れるパターンによって、これらの状態をより明確にします。',
       bodyCardTitle: 'あなたの\n身体',
       bodyCardText: '生理リズムとマーカー',
       sensesCardTitle: 'あなたの\n感覚',
@@ -1442,25 +1374,25 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       record: '録音',
       bridgeTitle: 'A Ponte',
       bridgeText1: '気持ちを説明するのが難しいときがあります。',
-      bridgeText2: 'Luna は、その状態を穏やかで明確な言葉にするのを助けます。',
+      bridgeText2: 'Luna29 は、その状態を穏やかで明確な言葉にするのを助けます。',
       bridgeText3: 'まずは自分のために。',
       bridgeText4: 'そして望むなら、大切な人のためにも。',
       resetHeading: 'Sala de reinício',
       resetTitle: 'あなたのリズム観察を始めましょう。',
-      resetCta: 'Lunaスペースを作成',
+      resetCta: 'Luna29スペースを作成',
     },
     pt: {
-      heroTitle: 'Luna — a fisiologia de sentir.',
+      heroTitle: 'Luna29 — a fisiologia de sentir.',
       heroBody: 'Um sistema pessoal que conecta ritmos do corpo, observacoes do dia a dia e uma linguagem calma para o seu estado interno.',
-      heroCta: 'Experimentar Luna',
+      heroCta: 'Experimentar Luna29',
       heroSub: 'Privado. Calmo. Pessoal.',
-      whyTitle: 'Por que a Luna existe',
+      whyTitle: 'Por que a Luna29 existe',
       whyIntro: 'Na vida cotidiana, muitos estados sao dificeis de entender.',
       whyPoint1: 'Fadiga.',
       whyPoint2: 'Pressao.',
       whyPoint3: 'Sobrecarga emocional.',
       whyPoint4: 'Sinais pouco claros do corpo.',
-      whyOutro: 'A Luna ajuda a tornar esses estados mais claros por meio de observacao, reflexao e padroes que aparecem com o tempo.',
+      whyOutro: 'A Luna29 ajuda a tornar esses estados mais claros por meio de observacao, reflexao e padroes que aparecem com o tempo.',
       bodyCardTitle: 'Seu\ncorpo',
       bodyCardText: 'ritmos fisiologicos e marcadores',
       sensesCardTitle: 'Seus\nsentidos',
@@ -1483,15 +1415,15 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       record: 'Gravar',
       bridgeTitle: 'A Ponte',
       bridgeText1: 'As vezes e dificil explicar como voce se sente.',
-      bridgeText2: 'A Luna ajuda a formular seu estado com calma e clareza.',
+      bridgeText2: 'A Luna29 ajuda a formular seu estado com calma e clareza.',
       bridgeText3: 'Primeiro para voce.',
       bridgeText4: 'E, se quiser, para alguem proximo.',
       resetHeading: 'Sala de reinício',
       resetTitle: 'Comece a observar seu ritmo.',
-      resetCta: 'Criar seu espaco Luna',
+      resetCta: 'Criar seu espaco Luna29',
     }
   };
-  const homeRefCopy = homeRefCopyByLang[lang]?.heroTitle ? homeRefCopyByLang[lang] : homeRefCopyByLang.en;
+  const homeRefCopy = getLang(homeRefCopyByLang, lang)?.heroTitle ? getLang(homeRefCopyByLang, lang) : homeRefCopyByLang.en;
   const dailyCompanionByLang: Partial<Record<
     Language,
     {
@@ -1519,12 +1451,12 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       heroTitle: 'Your daily emotional mirror',
       heroSubtitle: 'Understand yourself through body, senses, and words.',
       primaryCta: "Start today's note",
-      secondaryCta: 'See how Luna works',
+      secondaryCta: 'See how Luna29 works',
       whatTitle: 'A simple daily structure',
-      whatBody: 'Luna helps you understand your day with calm and clarity.',
+      whatBody: 'Luna29 helps you understand your day with calm and clarity.',
       ritualTitle: 'A small daily ritual',
       ritualSubtitle: 'A clear flow you can repeat in under a minute.',
-      stepSpeak: 'Speak to Luna',
+      stepSpeak: 'Speak to Luna29',
       stepCheckin: 'Quick check-in',
       stepRhythm: 'See your rhythm',
       stepPattern: 'Discover patterns',
@@ -1533,18 +1465,18 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       patternOne: 'Energy drops two days before cycle',
       patternTwo: 'Sleep under 6h affects emotional sensitivity',
       finalTitle: 'Begin observing your rhythm',
-      finalCta: 'Create your Luna space',
+      finalCta: 'Create your Luna29 space',
     },
     ru: {
       heroTitle: 'Ваше ежедневное эмоциональное зеркало',
       heroSubtitle: 'Понимайте себя через тело, ощущения и слова.',
       primaryCta: 'Начать сегодняшнюю заметку',
-      secondaryCta: 'Как работает Luna',
+      secondaryCta: 'Как работает Luna29',
       whatTitle: 'Простая ежедневная структура',
-      whatBody: 'Luna помогает понять день спокойно и без перегрузки.',
+      whatBody: 'Luna29 помогает понять день спокойно и без перегрузки.',
       ritualTitle: 'Небольшой ежедневный ритуал',
       ritualSubtitle: 'Простой поток, который легко повторять каждый день.',
-      stepSpeak: 'Поговорить с Luna',
+      stepSpeak: 'Поговорить с Luna29',
       stepCheckin: 'Быстрый check-in',
       stepRhythm: 'Увидеть ритм',
       stepPattern: 'Замечать паттерны',
@@ -1553,18 +1485,18 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       patternOne: 'Энергия снижается за два дня до цикла',
       patternTwo: 'Сон меньше 6 часов усиливает эмоциональную чувствительность',
       finalTitle: 'Начните наблюдать свой ритм',
-      finalCta: 'Создать пространство Luna',
+      finalCta: 'Создать пространство Luna29',
     },
     uk: {
       heroTitle: 'Ваше щоденне емоційне дзеркало',
       heroSubtitle: 'Розумійте себе через тіло, відчуття і слова.',
       primaryCta: 'Почати сьогоднішню нотатку',
-      secondaryCta: 'Як працює Luna',
+      secondaryCta: 'Як працює Luna29',
       whatTitle: 'Проста щоденна структура',
-      whatBody: 'Luna допомагає спокійно зрозуміти свій день.',
+      whatBody: 'Luna29 допомагає спокійно зрозуміти свій день.',
       ritualTitle: 'Невеликий щоденний ритуал',
       ritualSubtitle: 'Короткий щоденний потік без перевантаження.',
-      stepSpeak: 'Поговорити з Luna',
+      stepSpeak: 'Поговорити з Luna29',
       stepCheckin: 'Швидкий check-in',
       stepRhythm: 'Побачити ритм',
       stepPattern: 'Помічати патерни',
@@ -1573,18 +1505,18 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       patternOne: 'Енергія знижується за два дні до циклу',
       patternTwo: 'Сон менше 6 годин підвищує емоційну чутливість',
       finalTitle: 'Почніть спостерігати свій ритм',
-      finalCta: 'Створити свій простір Luna',
+      finalCta: 'Створити свій простір Luna29',
     },
     es: {
       heroTitle: 'Tu espejo emocional diario',
       heroSubtitle: 'Comprendete a traves del cuerpo, los sentidos y las palabras.',
       primaryCta: 'Empezar la nota de hoy',
-      secondaryCta: 'Ver como funciona Luna',
+      secondaryCta: 'Ver como funciona Luna29',
       whatTitle: 'Una estructura diaria simple',
-      whatBody: 'Luna te ayuda a entender tu dia con calma y claridad.',
+      whatBody: 'Luna29 te ayuda a entender tu dia con calma y claridad.',
       ritualTitle: 'Un pequeno ritual diario',
       ritualSubtitle: 'Un flujo claro que puedes repetir en menos de un minuto.',
-      stepSpeak: 'Hablar con Luna',
+      stepSpeak: 'Hablar con Luna29',
       stepCheckin: 'Check-in rapido',
       stepRhythm: 'Ver tu ritmo',
       stepPattern: 'Descubrir patrones',
@@ -1593,18 +1525,18 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       patternOne: 'La energia baja dos dias antes del ciclo',
       patternTwo: 'Dormir menos de 6 h aumenta la sensibilidad emocional',
       finalTitle: 'Comienza a observar tu ritmo',
-      finalCta: 'Crear tu espacio Luna',
+      finalCta: 'Crear tu espacio Luna29',
     },
     fr: {
       heroTitle: 'Votre miroir emotionnel quotidien',
       heroSubtitle: 'Comprenez-vous a travers le corps, les sensations et les mots.',
       primaryCta: "Commencer la note d'aujourd'hui",
-      secondaryCta: 'Voir comment Luna fonctionne',
+      secondaryCta: 'Voir comment Luna29 fonctionne',
       whatTitle: 'Une structure quotidienne simple',
-      whatBody: 'Luna vous aide a comprendre votre journee avec calme et clarte.',
+      whatBody: 'Luna29 vous aide a comprendre votre journee avec calme et clarte.',
       ritualTitle: 'Un petit rituel quotidien',
       ritualSubtitle: 'Un flux clair a repeter en moins d une minute.',
-      stepSpeak: 'Parler avec Luna',
+      stepSpeak: 'Parler avec Luna29',
       stepCheckin: 'Check-in rapide',
       stepRhythm: 'Voir votre rythme',
       stepPattern: 'Decouvrir des tendances',
@@ -1613,18 +1545,18 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       patternOne: 'L energie baisse deux jours avant le cycle',
       patternTwo: 'Moins de 6 h de sommeil augmente la sensibilite emotionnelle',
       finalTitle: 'Commencez a observer votre rythme',
-      finalCta: 'Creer votre espace Luna',
+      finalCta: 'Creer votre espace Luna29',
     },
     de: {
       heroTitle: 'Dein taeglicher emotionaler Spiegel',
       heroSubtitle: 'Verstehe dich ueber Koerper, Sinne und Worte.',
       primaryCta: 'Heutige Notiz starten',
-      secondaryCta: 'So funktioniert Luna',
+      secondaryCta: 'So funktioniert Luna29',
       whatTitle: 'Eine einfache Tagesstruktur',
-      whatBody: 'Luna hilft dir, deinen Tag ruhig und klar zu verstehen.',
+      whatBody: 'Luna29 hilft dir, deinen Tag ruhig und klar zu verstehen.',
       ritualTitle: 'Ein kleines taegliches Ritual',
       ritualSubtitle: 'Ein klarer Ablauf, den du in unter einer Minute wiederholst.',
-      stepSpeak: 'Mit Luna sprechen',
+      stepSpeak: 'Mit Luna29 sprechen',
       stepCheckin: 'Schneller Check-in',
       stepRhythm: 'Deinen Rhythmus sehen',
       stepPattern: 'Muster erkennen',
@@ -1633,18 +1565,18 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       patternOne: 'Die Energie sinkt zwei Tage vor dem Zyklus',
       patternTwo: 'Weniger als 6 h Schlaf erhoehen die emotionale Sensibilitaet',
       finalTitle: 'Beginne, deinen Rhythmus zu beobachten',
-      finalCta: 'Deinen Luna-Raum erstellen',
+      finalCta: 'Deinen Luna29-Raum erstellen',
     },
     zh: {
       heroTitle: '你的每日情绪镜像',
       heroSubtitle: '通过身体、感受与表达，更理解自己。',
       primaryCta: '开始今天的记录',
-      secondaryCta: '了解 Luna 如何工作',
+      secondaryCta: '了解 Luna29 如何工作',
       whatTitle: '简单的每日结构',
-      whatBody: 'Luna 帮助你以平静与清晰理解一天。',
+      whatBody: 'Luna29 帮助你以平静与清晰理解一天。',
       ritualTitle: '一个小小的每日仪式',
       ritualSubtitle: '不到一分钟即可完成的清晰流程。',
-      stepSpeak: '与 Luna 对话',
+      stepSpeak: '与 Luna29 对话',
       stepCheckin: '快速 check-in',
       stepRhythm: '查看你的节律',
       stepPattern: '发现规律',
@@ -1653,18 +1585,18 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       patternOne: '能量会在周期前两天下降',
       patternTwo: '睡眠少于 6 小时会提高情绪敏感度',
       finalTitle: '开始观察你的节律',
-      finalCta: '创建你的 Luna 空间',
+      finalCta: '创建你的 Luna29 空间',
     },
     ja: {
       heroTitle: 'あなたの毎日の感情ミラー',
       heroSubtitle: 'からだ、感覚、ことばを通して自分を理解する。',
       primaryCta: '今日のメモを始める',
-      secondaryCta: 'Luna の仕組みを見る',
+      secondaryCta: 'Luna29 の仕組みを見る',
       whatTitle: 'シンプルな毎日の構成',
-      whatBody: 'Luna は一日を穏やかに分かりやすく整えます。',
+      whatBody: 'Luna29 は一日を穏やかに分かりやすく整えます。',
       ritualTitle: '小さな毎日のリチュアル',
       ritualSubtitle: '1分以内で繰り返せる明確な流れ。',
-      stepSpeak: 'Luna と話す',
+      stepSpeak: 'Luna29 と話す',
       stepCheckin: 'クイック check-in',
       stepRhythm: 'リズムを見る',
       stepPattern: 'パターンを見つける',
@@ -1673,18 +1605,18 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       patternOne: 'エネルギーは周期の2日前に下がりやすい',
       patternTwo: '睡眠 6 時間未満で感情の敏感さが上がりやすい',
       finalTitle: 'あなたのリズムを観察しよう',
-      finalCta: 'Luna スペースを作成',
+      finalCta: 'Luna29 スペースを作成',
     },
     pt: {
       heroTitle: 'Seu espelho emocional diario',
       heroSubtitle: 'Entenda-se por meio do corpo, dos sentidos e das palavras.',
       primaryCta: 'Iniciar a nota de hoje',
-      secondaryCta: 'Ver como Luna funciona',
+      secondaryCta: 'Ver como Luna29 funciona',
       whatTitle: 'Uma estrutura diaria simples',
-      whatBody: 'A Luna ajuda voce a entender seu dia com calma e clareza.',
+      whatBody: 'A Luna29 ajuda voce a entender seu dia com calma e clareza.',
       ritualTitle: 'Um pequeno ritual diario',
       ritualSubtitle: 'Um fluxo claro para repetir em menos de um minuto.',
-      stepSpeak: 'Falar com a Luna',
+      stepSpeak: 'Falar com a Luna29',
       stepCheckin: 'Check-in rapido',
       stepRhythm: 'Ver seu ritmo',
       stepPattern: 'Descobrir padroes',
@@ -1693,10 +1625,10 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       patternOne: 'A energia cai dois dias antes do ciclo',
       patternTwo: 'Dormir menos de 6h aumenta a sensibilidade emocional',
       finalTitle: 'Comece a observar seu ritmo',
-      finalCta: 'Criar seu espaco Luna',
+      finalCta: 'Criar seu espaco Luna29',
     },
   };
-  const dailyCompanionCopy = dailyCompanionByLang[lang] || dailyCompanionByLang.en!;
+  const dailyCompanionCopy = getLang(dailyCompanionByLang, lang) || dailyCompanionByLang.en!;
   const homeActionByLang: Partial<
     Record<
       Language,
@@ -1710,14 +1642,14 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     >
   > = {
     en: {
-      talkLine: 'You can speak with Luna by voice any day.',
+      talkLine: 'You can speak with Luna29 by voice any day.',
       actions: [
-        { label: 'Start Note', sub: 'Talk with Luna now' },
+        { label: 'Start Note', sub: 'Talk with Luna29 now' },
         { label: 'Check-In', sub: '30 sec emotional check-in' },
         { label: 'See Insights', sub: 'Get a gentle daily response' },
         { label: 'Body Map', sub: 'See your rhythm visually' },
       ],
-      servicesTitle: 'What Luna includes',
+      servicesTitle: 'What Luna29 includes',
       servicesSubtitle: 'Core services available after sign in.',
       services: [
         { title: 'Voice Note', body: 'Record how your day felt and get a calm note.' },
@@ -1727,14 +1659,14 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       ],
     },
     ru: {
-      talkLine: 'С Luna можно говорить голосом каждый день.',
+      talkLine: 'С Luna29 можно говорить голосом каждый день.',
       actions: [
-        { label: 'Начать Заметку', sub: 'Поговорить с Luna сейчас' },
+        { label: 'Начать Заметку', sub: 'Поговорить с Luna29 сейчас' },
         { label: 'Check-In', sub: 'Эмоциональный check-in за 30 сек' },
         { label: 'Смотреть Инсайты', sub: 'Получить мягкую ежедневную обратную связь' },
         { label: 'Карта Тела', sub: 'Увидеть ритм визуально' },
       ],
-      servicesTitle: 'Что включает Luna',
+      servicesTitle: 'Что включает Luna29',
       servicesSubtitle: 'Основные функции и сервисы после входа.',
       services: [
         { title: 'Voice Note', body: 'Записывайте состояние голосом и получайте спокойную заметку.' },
@@ -1744,14 +1676,14 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       ],
     },
     uk: {
-      talkLine: 'З Luna можна говорити голосом щодня.',
+      talkLine: 'З Luna29 можна говорити голосом щодня.',
       actions: [
-        { label: 'Почати Нотатку', sub: 'Поговорити з Luna зараз' },
+        { label: 'Почати Нотатку', sub: 'Поговорити з Luna29 зараз' },
         { label: 'Check-In', sub: 'Емоційний check-in за 30 сек' },
         { label: 'Дивитись Інсайти', sub: 'Отримати м’який щоденний відгук' },
         { label: 'Мапа Тіла', sub: 'Побачити ритм візуально' },
       ],
-      servicesTitle: 'Що включає Luna',
+      servicesTitle: 'Що включає Luna29',
       servicesSubtitle: 'Ключові функції та сервіси після входу.',
       services: [
         { title: 'Voice Note', body: 'Записуйте стан голосом і отримуйте спокійну нотатку.' },
@@ -1761,14 +1693,14 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       ],
     },
     es: {
-      talkLine: 'Puedes hablar con Luna por voz cada dia.',
+      talkLine: 'Puedes hablar con Luna29 por voz cada dia.',
       actions: [
-        { label: 'Iniciar Nota', sub: 'Hablar con Luna ahora' },
+        { label: 'Iniciar Nota', sub: 'Hablar con Luna29 ahora' },
         { label: 'Check-In', sub: 'Check-in emocional en 30 seg' },
         { label: 'Ver Insights', sub: 'Recibir una respuesta diaria suave' },
         { label: 'Mapa Corporal', sub: 'Ver tu ritmo de forma visual' },
       ],
-      servicesTitle: 'Que incluye Luna',
+      servicesTitle: 'Que incluye Luna29',
       servicesSubtitle: 'Funciones y servicios principales despues de iniciar sesion.',
       services: [
         { title: 'Voice Note', body: 'Graba como te sentiste hoy y recibe una nota tranquila.' },
@@ -1778,14 +1710,14 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       ],
     },
     fr: {
-      talkLine: 'Vous pouvez parler avec Luna a voix haute chaque jour.',
+      talkLine: 'Vous pouvez parler avec Luna29 a voix haute chaque jour.',
       actions: [
-        { label: 'Demarrer Note', sub: 'Parler avec Luna maintenant' },
+        { label: 'Demarrer Note', sub: 'Parler avec Luna29 maintenant' },
         { label: 'Check-In', sub: 'Check-in emotionnel en 30 sec' },
         { label: 'Voir Insights', sub: 'Obtenir un retour quotidien en douceur' },
         { label: 'Carte du Corps', sub: 'Voir votre rythme visuellement' },
       ],
-      servicesTitle: 'Ce que Luna inclut',
+      servicesTitle: 'Ce que Luna29 inclut',
       servicesSubtitle: 'Fonctions et services essentiels apres connexion.',
       services: [
         { title: 'Voice Note', body: 'Enregistrez votre etat du jour et recevez une note calme.' },
@@ -1795,14 +1727,14 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       ],
     },
     de: {
-      talkLine: 'Du kannst jeden Tag per Stimme mit Luna sprechen.',
+      talkLine: 'Du kannst jeden Tag per Stimme mit Luna29 sprechen.',
       actions: [
-        { label: 'Notiz Starten', sub: 'Jetzt mit Luna sprechen' },
+        { label: 'Notiz Starten', sub: 'Jetzt mit Luna29 sprechen' },
         { label: 'Check-In', sub: 'Emotionaler Check-in in 30 Sek' },
         { label: 'Insights Sehen', sub: 'Sanfte taegliche Rueckmeldung erhalten' },
         { label: 'Koerperkarte', sub: 'Deinen Rhythmus visuell sehen' },
       ],
-      servicesTitle: 'Was Luna beinhaltet',
+      servicesTitle: 'Was Luna29 beinhaltet',
       servicesSubtitle: 'Wichtige Funktionen und Services nach dem Login.',
       services: [
         { title: 'Voice Note', body: 'Nimm deinen Tag per Stimme auf und erhalte eine ruhige Notiz.' },
@@ -1812,14 +1744,14 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       ],
     },
     zh: {
-      talkLine: '你每天都可以用语音与 Luna 对话。',
+      talkLine: '你每天都可以用语音与 Luna29 对话。',
       actions: [
-        { label: '开始记录', sub: '现在就和 Luna 说说话' },
+        { label: '开始记录', sub: '现在就和 Luna29 说说话' },
         { label: '快速 Check-In', sub: '30 秒情绪 check-in' },
         { label: '查看洞察', sub: '获得温和的每日反馈' },
         { label: '身体地图', sub: '可视化查看你的节律' },
       ],
-      servicesTitle: 'Luna 包含的内容',
+      servicesTitle: 'Luna29 包含的内容',
       servicesSubtitle: '登录后可用的核心功能与服务。',
       services: [
         { title: 'Voice Note', body: '语音记录你的一天，并获得平静总结。' },
@@ -1829,14 +1761,14 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       ],
     },
     ja: {
-      talkLine: '毎日、Luna に声で話しかけられます。',
+      talkLine: '毎日、Luna29 に声で話しかけられます。',
       actions: [
-        { label: 'メモ開始', sub: '今すぐ Luna と話す' },
+        { label: 'メモ開始', sub: '今すぐ Luna29 と話す' },
         { label: 'クイック Check-In', sub: '30秒の感情 check-in' },
         { label: 'インサイトを見る', sub: 'やさしい毎日のフィードバックを受け取る' },
         { label: 'ボディマップ', sub: 'リズムを視覚的に確認する' },
       ],
-      servicesTitle: 'Luna に含まれる機能',
+      servicesTitle: 'Luna29 に含まれる機能',
       servicesSubtitle: 'サインイン後に使える主な機能とサービス。',
       services: [
         { title: 'Voice Note', body: '一日の気持ちを音声で記録し、穏やかなメモを受け取る。' },
@@ -1846,14 +1778,14 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       ],
     },
     pt: {
-      talkLine: 'Voce pode falar com a Luna por voz todos os dias.',
+      talkLine: 'Voce pode falar com a Luna29 por voz todos os dias.',
       actions: [
-        { label: 'Iniciar Nota', sub: 'Falar com a Luna agora' },
+        { label: 'Iniciar Nota', sub: 'Falar com a Luna29 agora' },
         { label: 'Check-In', sub: 'Check-in emocional em 30 seg' },
         { label: 'Ver Insights', sub: 'Receber um retorno diario suave' },
         { label: 'Mapa Corporal', sub: 'Ver seu ritmo de forma visual' },
       ],
-      servicesTitle: 'O que a Luna inclui',
+      servicesTitle: 'O que a Luna29 inclui',
       servicesSubtitle: 'Funcoes e servicos principais apos entrar.',
       services: [
         { title: 'Voice Note', body: 'Grave como seu dia foi e receba uma nota calma.' },
@@ -1863,19 +1795,19 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       ],
     },
   };
-  const homeActionCopy = homeActionByLang[lang] || homeActionByLang.en!;
-  const homeEyebrowByLang: Partial<Record<Language, string>> = {
-    en: 'Luna Home',
-    ru: 'Главная Luna',
-    uk: 'Головна Luna',
-    es: 'Inicio Luna',
-    fr: 'Accueil Luna',
-    de: 'Luna Start',
-    zh: 'Luna 首页',
-    ja: 'Luna ホーム',
-    pt: 'Inicio Luna',
+  const homeActionCopy = getLang(homeActionByLang, lang) || homeActionByLang.en!;
+  const homeEyebrowByLang: Partial<LangCopy< string>> = {
+    en: 'Luna29 Home',
+    ru: 'Главная Luna29',
+    uk: 'Головна Luna29',
+    es: 'Inicio Luna29',
+    fr: 'Accueil Luna29',
+    de: 'Luna29 Start',
+    zh: 'Luna29 首页',
+    ja: 'Luna29 ホーム',
+    pt: 'Inicio Luna29',
   };
-  const homePatternNoteByLang: Partial<Record<Language, string>> = {
+  const homePatternNoteByLang: Partial<LangCopy< string>> = {
     en: 'Observational examples from daily use.',
     ru: 'Наблюдательные примеры из ежедневного использования.',
     uk: 'Приклади спостережень із щоденного використання.',
@@ -1938,8 +1870,8 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       { title: 'Suas Palavras', text: 'reflexoes por voz e pensamentos suaves' },
     ],
   };
-  const homePillars = homePillarsByLang[lang] || homePillarsByLang.en!;
-  const homeFeatureChipLabelsByLang: Partial<Record<Language, string[]>> = {
+  const homePillars = getLang(homePillarsByLang, lang) || homePillarsByLang.en!;
+  const homeFeatureChipLabelsByLang: Partial<LangCopy< string[]>> = {
     en: ['Voice recording', 'Gentle insights', 'Body Map rhythm', 'Notes history'],
     ru: ['Голосовая запись', 'Мягкие инсайты', 'Body Map ритма', 'История отражений'],
     uk: ['Голосовий запис', 'М’які інсайти', 'Body Map ритму', 'Історія нотаток'],
@@ -1950,8 +1882,8 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     ja: ['音声記録', 'やさしいインサイト', 'Body Map リズム', 'リフレクション履歴'],
     pt: ['Gravacao por voz', 'Insights suaves', 'Ritmo no Body Map', 'Historico de reflexoes'],
   };
-  const homeFeatureChipLabels = homeFeatureChipLabelsByLang[lang] || homeFeatureChipLabelsByLang.en!;
-  const publicHomeNavLabelsByLang: Record<Language, { home: string; ritual: string; map: string; adminLogin: string }> = {
+  const homeFeatureChipLabels = getLang(homeFeatureChipLabelsByLang, lang) || homeFeatureChipLabelsByLang.en!;
+  const publicHomeNavLabelsByLang: LangCopy< { home: string; ritual: string; map: string; adminLogin: string }> = {
     en: { home: 'Home', ritual: 'Ritual Path', map: 'Body Map', adminLogin: 'Admin Login' },
     ru: { home: 'Главная', ritual: 'Ритуальный путь', map: 'Карта тела', adminLogin: 'Вход Админ' },
     uk: { home: 'Головна', ritual: 'Ритуальний шлях', map: 'Мапа тіла', adminLogin: 'Вхід Адмін' },
@@ -1962,15 +1894,17 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     ja: { home: 'ホーム', ritual: 'リチュアルパス', map: 'ボディマップ', adminLogin: '管理者ログイン' },
     pt: { home: 'Inicio', ritual: 'Caminho ritual', map: 'Mapa corporal', adminLogin: 'Login Admin' },
   };
-  const publicHomeNavLabels = publicHomeNavLabelsByLang[lang] || publicHomeNavLabelsByLang.en;
+  const publicHomeNavLabels = getLang(publicHomeNavLabelsByLang, lang) || publicHomeNavLabelsByLang.en;
   const pageTitle = useMemo(() => {
     if (activePage === 'home') return ui.publicHome.pageTitle.home;
     if (activePage === 'map') return ui.publicHome.pageTitle.map;
     if (activePage === 'ritual') return ui.publicHome.pageTitle.ritual;
     if (activePage === 'bridge') return ui.navigation.bridge || 'The Bridge';
-    if (activePage === 'pricing') return pricingLabelByLang[lang] || 'Pricing';
-    if (activePage === 'about') return aboutPageTitleByLang[lang] || 'About Luna';
-    if (activePage === 'how_it_works') return howItWorksLabelByLang[lang] || 'How It Works';
+    if (activePage === 'pricing') return getLang(pricingLabelByLang, lang) || 'Pricing';
+    if (activePage === 'about') return getLang(aboutPageTitleByLang, lang) || 'About Luna29';
+    if (activePage === 'how_it_works') return getLang(howItWorksLabelByLang, lang) || 'How It Works';
+    if (activePage === 'faq') return getLang(faqLabelByLang, lang) || 'FAQ';
+    if (activePage === 'learning') return getLang(learningLabelByLang, lang) || 'Learning';
     if (activePage === 'terms') return legalLabels.terms;
     if (activePage === 'medical') return legalLabels.medical;
     if (activePage === 'cookies') return legalLabels.cookies;
@@ -1984,30 +1918,34 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       window.history.pushState({}, '', path);
     }
 
-    const titleByPageByLang: Record<Language, Record<PublicPage, string>> = {
-      en: { home: 'Luna | Public Home', map: 'Luna Balance | Visual Rhythm Map', ritual: 'Ritual Path | Luna', bridge: 'The Bridge | Luna', pricing: 'Pricing | Luna', about: 'About Luna', how_it_works: 'How It Works | Luna', privacy: 'Privacy Notice | Luna', terms: 'Terms | Luna', medical: 'Disclaimer | Luna', cookies: 'Cookies Notice | Luna', data_rights: 'Data Rights | Luna' },
-      ru: { home: 'Luna | Публичная Главная', map: 'Luna Balance | Карта ритма', ritual: 'Ритуальный путь | Luna', bridge: 'Мост | Luna', pricing: 'Тарифы | Luna', about: 'О Luna', how_it_works: 'Как это работает | Luna', privacy: 'Уведомление о приватности | Luna', terms: 'Условия | Luna', medical: 'Дисклеймер | Luna', cookies: 'Уведомление о cookies | Luna', data_rights: 'Права на данные | Luna' },
-      uk: { home: 'Luna | Публічна Головна', map: 'Luna Balance | Мапа ритму', ritual: 'Ритуальний шлях | Luna', bridge: 'Міст | Luna', pricing: 'Тарифи | Luna', about: 'Про Luna', how_it_works: 'Як це працює | Luna', privacy: 'Повідомлення про приватність | Luna', terms: 'Умови | Luna', medical: 'Дисклеймер | Luna', cookies: 'Повідомлення про cookies | Luna', data_rights: 'Права на дані | Luna' },
-      es: { home: 'Luna | Inicio público', map: 'Luna Balance | Mapa visual del ritmo', ritual: 'Ruta ritual | Luna', bridge: 'Puente | Luna', pricing: 'Precios | Luna', about: 'Sobre Luna', how_it_works: 'Cómo funciona | Luna', privacy: 'Aviso de privacidad | Luna', terms: 'Términos | Luna', medical: 'Descargo | Luna', cookies: 'Aviso de cookies | Luna', data_rights: 'Derechos de datos | Luna' },
-      fr: { home: 'Luna | Accueil public', map: 'Luna Balance | Carte visuelle du rythme', ritual: 'Chemin rituel | Luna', bridge: 'Le Pont | Luna', pricing: 'Tarifs | Luna', about: 'À propos de Luna', how_it_works: 'Comment ça marche | Luna', privacy: 'Avis de confidentialité | Luna', terms: "Conditions | Luna", medical: 'Avertissement | Luna', cookies: 'Avis cookies | Luna', data_rights: 'Droits sur les données | Luna' },
-      de: { home: 'Luna | Öffentliche Startseite', map: 'Luna Balance | Visuelle Rhythmuskarte', ritual: 'Ritualpfad | Luna', bridge: 'Die Brücke | Luna', pricing: 'Preise | Luna', about: 'Über Luna', how_it_works: 'So funktioniert es | Luna', privacy: 'Datenschutzhinweis | Luna', terms: 'Nutzungsbedingungen | Luna', medical: 'Haftungsausschluss | Luna', cookies: 'Cookie-Hinweis | Luna', data_rights: 'Datenrechte | Luna' },
-      zh: { home: 'Luna | 公开主页', map: 'Luna Balance | 可视化节律图', ritual: '仪式路径 | Luna', bridge: '连接桥 | Luna', pricing: '价格 | Luna', about: '关于 Luna', how_it_works: '工作方式 | Luna', privacy: '隐私声明 | Luna', terms: '服务条款 | Luna', medical: '免责声明 | Luna', cookies: 'Cookie 声明 | Luna', data_rights: '数据权利 | Luna' },
-      ja: { home: 'Luna | 公開ホーム', map: 'Luna Balance | リズムマップ', ritual: 'リチュアルパス | Luna', bridge: 'ブリッジ | Luna', pricing: '料金 | Luna', about: 'Lunaについて', how_it_works: '使い方 | Luna', privacy: 'プライバシー通知 | Luna', terms: '利用規約 | Luna', medical: '免責事項 | Luna', cookies: 'Cookie通知 | Luna', data_rights: 'データ権利 | Luna' },
-      pt: { home: 'Luna | Início público', map: 'Luna Balance | Mapa visual do ritmo', ritual: 'Caminho ritual | Luna', bridge: 'A Ponte | Luna', pricing: 'Preços | Luna', about: 'Sobre Luna', how_it_works: 'Como funciona | Luna', privacy: 'Aviso de privacidade | Luna', terms: 'Termos | Luna', medical: 'Aviso legal | Luna', cookies: 'Aviso de cookies | Luna', data_rights: 'Direitos de dados | Luna' },
+    const titleByPageByLang: LangCopy< Record<PublicPage, string>> = {
+      en: { home: 'Luna29 | Public Home', map: 'Luna29 Balance | Visual Rhythm Map', ritual: 'Ritual Path | Luna29', bridge: 'The Bridge | Luna29', pricing: 'Pricing | Luna29', about: 'About Luna29', how_it_works: 'How It Works | Luna29', faq: 'FAQ | Luna29', learning: 'Learning | Luna29', privacy: 'Privacy Notice | Luna29', terms: 'Terms | Luna29', medical: 'Disclaimer | Luna29', cookies: 'Cookies Notice | Luna29', data_rights: 'Data Rights | Luna29' },
+      ru: { home: 'Luna29 | Публичная Главная', map: 'Luna29 Balance | Карта ритма', ritual: 'Ритуальный путь | Luna29', bridge: 'Мост | Luna29', pricing: 'Тарифы | Luna29', about: 'О Luna29', how_it_works: 'Как это работает | Luna29', faq: 'FAQ | Luna29', learning: 'Обучение | Luna29', privacy: 'Уведомление о приватности | Luna29', terms: 'Условия | Luna29', medical: 'Дисклеймер | Luna29', cookies: 'Уведомление о cookies | Luna29', data_rights: 'Права на данные | Luna29' },
+      uk: { home: 'Luna29 | Публічна Головна', map: 'Luna29 Balance | Мапа ритму', ritual: 'Ритуальний шлях | Luna29', bridge: 'Міст | Luna29', pricing: 'Тарифи | Luna29', about: 'Про Luna29', how_it_works: 'Як це працює | Luna29', faq: 'FAQ | Luna29', learning: 'Навчання | Luna29', privacy: 'Повідомлення про приватність | Luna29', terms: 'Умови | Luna29', medical: 'Дисклеймер | Luna29', cookies: 'Повідомлення про cookies | Luna29', data_rights: 'Права на дані | Luna29' },
+      es: { home: 'Luna29 | Inicio público', map: 'Luna29 Balance | Mapa visual del ritmo', ritual: 'Ruta ritual | Luna29', bridge: 'Puente | Luna29', pricing: 'Precios | Luna29', about: 'Sobre Luna29', how_it_works: 'Cómo funciona | Luna29', faq: 'FAQ | Luna29', learning: 'Aprendizaje | Luna29', privacy: 'Aviso de privacidad | Luna29', terms: 'Términos | Luna29', medical: 'Descargo | Luna29', cookies: 'Aviso de cookies | Luna29', data_rights: 'Derechos de datos | Luna29' },
+      fr: { home: 'Luna29 | Accueil public', map: 'Luna29 Balance | Carte visuelle du rythme', ritual: 'Chemin rituel | Luna29', bridge: 'Le Pont | Luna29', pricing: 'Tarifs | Luna29', about: 'À propos de Luna29', how_it_works: 'Comment ça marche | Luna29', faq: 'FAQ | Luna29', learning: 'Apprentissage | Luna29', privacy: 'Avis de confidentialité | Luna29', terms: "Conditions | Luna29", medical: 'Avertissement | Luna29', cookies: 'Avis cookies | Luna29', data_rights: 'Droits sur les données | Luna29' },
+      de: { home: 'Luna29 | Öffentliche Startseite', map: 'Luna29 Balance | Visuelle Rhythmuskarte', ritual: 'Ritualpfad | Luna29', bridge: 'Die Brücke | Luna29', pricing: 'Preise | Luna29', about: 'Über Luna29', how_it_works: 'So funktioniert es | Luna29', faq: 'FAQ | Luna29', learning: 'Lernen | Luna29', privacy: 'Datenschutzhinweis | Luna29', terms: 'Nutzungsbedingungen | Luna29', medical: 'Haftungsausschluss | Luna29', cookies: 'Cookie-Hinweis | Luna29', data_rights: 'Datenrechte | Luna29' },
+      zh: { home: 'Luna29 | 公开主页', map: 'Luna29 Balance | 可视化节律图', ritual: '仪式路径 | Luna29', bridge: '连接桥 | Luna29', pricing: '价格 | Luna29', about: '关于 Luna29', how_it_works: '工作方式 | Luna29', faq: '常见问题 | Luna29', learning: '学习 | Luna29', privacy: '隐私声明 | Luna29', terms: '服务条款 | Luna29', medical: '免责声明 | Luna29', cookies: 'Cookie 声明 | Luna29', data_rights: '数据权利 | Luna29' },
+      ja: { home: 'Luna29 | 公開ホーム', map: 'Luna29 Balance | リズムマップ', ritual: 'リチュアルパス | Luna29', bridge: 'ブリッジ | Luna29', pricing: '料金 | Luna29', about: 'Luna29について', how_it_works: '使い方 | Luna29', faq: 'FAQ | Luna29', learning: '学習 | Luna29', privacy: 'プライバシー通知 | Luna29', terms: '利用規約 | Luna29', medical: '免責事項 | Luna29', cookies: 'Cookie通知 | Luna29', data_rights: 'データ権利 | Luna29' },
+      pt: { home: 'Luna29 | Início público', map: 'Luna29 Balance | Mapa visual do ritmo', ritual: 'Caminho ritual | Luna29', bridge: 'A Ponte | Luna29', pricing: 'Preços | Luna29', about: 'Sobre Luna29', how_it_works: 'Como funciona | Luna29', faq: 'FAQ | Luna29', learning: 'Aprendizagem | Luna29', privacy: 'Aviso de privacidade | Luna29', terms: 'Termos | Luna29', medical: 'Aviso legal | Luna29', cookies: 'Aviso de cookies | Luna29', data_rights: 'Direitos de dados | Luna29' },
+      ar: { home: 'Luna29 | الصفحة العامة', map: 'Luna29 Balance | خريطة الإيقاع', ritual: 'المسار الطقسي | Luna29', bridge: 'الجسر | Luna29', pricing: 'الأسعار | Luna29', about: 'حول Luna29', how_it_works: 'كيف يعمل | Luna29', faq: 'الأسئلة الشائعة | Luna29', learning: 'التعلّم | Luna29', privacy: 'إشعار الخصوصية | Luna29', terms: 'الشروط | Luna29', medical: 'إخلاء المسؤولية | Luna29', cookies: 'إشعار cookies | Luna29', data_rights: 'حقوق البيانات | Luna29' },
+      he: { home: 'Luna29 | דף ציבורי', map: 'Luna29 Balance | מפת קצב ויזואלית', ritual: 'נתיב טקסי | Luna29', bridge: 'הגשר | Luna29', pricing: 'מחירים | Luna29', about: 'אודות Luna29', how_it_works: 'איך זה עובד | Luna29', faq: 'שאלות נפוצות | Luna29', learning: 'לימוד | Luna29', privacy: 'הודעת פרטיות | Luna29', terms: 'תנאים | Luna29', medical: 'הצהרת אחריות | Luna29', cookies: 'הודעת cookies | Luna29', data_rights: 'זכויות נתונים | Luna29' },
     };
-    const descriptionByPageByLang: Record<Language, Record<PublicPage, string>> = {
-      en: { home: 'Luna public home. Calm orientation and access to member tools.', map: 'Luna Balance visualizes physiological rhythms and inner dynamics.', ritual: 'Ritual Path by Luna: a path, not a checklist. A simple daily rhythm that protects attention and preserves signal.', bridge: 'The Bridge by Luna helps formulate state, explain calmly, and preserve respect in conversations.', pricing: 'Luna member access pricing and trial options.', about: 'About Luna and the BioMath origin.', how_it_works: 'How Luna works in practice.', privacy: 'Luna privacy notice.', terms: 'Luna terms of service.', medical: 'Luna disclaimer information.', cookies: 'Luna cookies notice.', data_rights: 'Luna data rights information.' },
-      ru: { home: 'Публичная главная страница Luna: спокойная навигация и доступ к инструментам участника.', map: 'Luna Balance визуализирует физиологические ритмы и внутреннюю динамику.', ritual: 'Ритуальный путь Luna: путь, а не чеклист. Ежедневный ритм, который бережет внимание.', bridge: 'Мост Luna помогает ясно формулировать состояние и сохранять уважение в разговоре.', pricing: 'Тарифы и пробный доступ Luna.', about: 'О Luna и происхождении BioMath.', how_it_works: 'Как Luna работает на практике.', privacy: 'Уведомление о приватности Luna.', terms: 'Условия использования Luna.', medical: 'Дисклеймер Luna.', cookies: 'Уведомление о cookies Luna.', data_rights: 'Информация о правах на данные в Luna.' },
-      uk: { home: 'Публічна головна сторінка Luna: спокійна орієнтація і доступ до інструментів учасника.', map: 'Luna Balance візуалізує фізіологічні ритми та внутрішню динаміку.', ritual: 'Ритуальний шлях Luna: шлях, а не чеклист. Простий ритм, що береже увагу.', bridge: 'Міст Luna допомагає чітко формулювати стан і зберігати повагу в розмові.', pricing: 'Тарифи та пробний доступ Luna.', about: 'Про Luna і походження BioMath.', how_it_works: 'Як Luna працює на практиці.', privacy: 'Повідомлення про приватність Luna.', terms: 'Умови використання Luna.', medical: 'Дисклеймер Luna.', cookies: 'Повідомлення про cookies Luna.', data_rights: 'Інформація про права на дані в Luna.' },
-      es: { home: 'Inicio público de Luna: orientación tranquila y acceso a herramientas para miembros.', map: 'Luna Balance visualiza ritmos fisiológicos y dinámica interna.', ritual: 'Ruta ritual de Luna: un camino, no una lista. Ritmo diario simple que protege la atención.', bridge: 'El Puente de Luna ayuda a formular tu estado con calma y respeto.', pricing: 'Opciones de precio y prueba de Luna.', about: 'Sobre Luna y el origen BioMath.', how_it_works: 'Cómo funciona Luna en la práctica.', privacy: 'Aviso de privacidad de Luna.', terms: 'Términos de servicio de Luna.', medical: 'Información de descargo de Luna.', cookies: 'Aviso de cookies de Luna.', data_rights: 'Información de derechos de datos de Luna.' },
-      fr: { home: 'Accueil public Luna: orientation calme et accès aux outils membre.', map: 'Luna Balance visualise les rythmes physiologiques et la dynamique intérieure.', ritual: 'Chemin rituel Luna: un chemin, pas une checklist. Un rythme quotidien simple qui protège l’attention.', bridge: 'Le Pont de Luna aide à formuler votre état calmement et avec respect.', pricing: 'Tarifs Luna et options d’essai.', about: 'À propos de Luna et de l’origine BioMath.', how_it_works: 'Comment Luna fonctionne en pratique.', privacy: 'Avis de confidentialité Luna.', terms: 'Conditions d’utilisation Luna.', medical: 'Informations d’avertissement Luna.', cookies: 'Avis cookies Luna.', data_rights: 'Informations sur les droits des données Luna.' },
-      de: { home: 'Öffentliche Luna-Startseite: ruhige Orientierung und Zugang zu Mitglieder-Tools.', map: 'Luna Balance visualisiert physiologische Rhythmen und innere Dynamik.', ritual: 'Luna Ritualpfad: ein Pfad statt einer Checkliste. Ein einfacher Rhythmus, der Aufmerksamkeit schützt.', bridge: 'Die Luna-Brücke hilft, den Zustand klar und respektvoll zu formulieren.', pricing: 'Luna Preise und Testoptionen.', about: 'Über Luna und den BioMath-Ursprung.', how_it_works: 'Wie Luna in der Praxis funktioniert.', privacy: 'Luna Datenschutzhinweis.', terms: 'Luna Nutzungsbedingungen.', medical: 'Luna Haftungsausschluss.', cookies: 'Luna Cookie-Hinweis.', data_rights: 'Luna Informationen zu Datenrechten.' },
-      zh: { home: 'Luna 公开主页：提供平静指引并连接会员工具。', map: 'Luna Balance 可视化生理节律与内在变化。', ritual: 'Luna 仪式路径：不是清单，而是节律。简单日常节律帮助保护注意力。', bridge: 'Luna 连接桥帮助你平静、清晰地表达状态并保持沟通尊重。', pricing: 'Luna 会员价格与试用选项。', about: '关于 Luna 与 BioMath 起源。', how_it_works: 'Luna 的实际工作方式。', privacy: 'Luna 隐私声明。', terms: 'Luna 服务条款。', medical: 'Luna 免责声明信息。', cookies: 'Luna Cookie 声明。', data_rights: 'Luna 数据权利信息。' },
-      ja: { home: 'Luna公開ホーム。落ち着いた導線とメンバーツールへのアクセス。', map: 'Luna Balance は生理リズムと内面の変化を可視化します。', ritual: 'Lunaリチュアルパス: チェックリストではなく道筋。注意を守るシンプルな日次リズム。', bridge: 'Lunaブリッジは状態を穏やかに言語化し、対話の尊重を保つのに役立ちます。', pricing: 'Lunaメンバー料金とトライアル。', about: 'LunaとBioMathの起源について。', how_it_works: 'Lunaの実際の使い方。', privacy: 'Lunaプライバシー通知。', terms: 'Luna利用規約。', medical: 'Luna免責情報。', cookies: 'Luna Cookie通知。', data_rights: 'Lunaデータ権利情報。' },
-      pt: { home: 'Início público da Luna: orientação calma e acesso às ferramentas de membros.', map: 'Luna Balance visualiza ritmos fisiológicos e dinâmica interna.', ritual: 'Caminho ritual da Luna: um caminho, não checklist. Ritmo diário simples que protege atenção.', bridge: 'A Ponte da Luna ajuda a formular estado com calma e respeito na conversa.', pricing: 'Planos e opções de teste da Luna.', about: 'Sobre a Luna e a origem BioMath.', how_it_works: 'Como a Luna funciona na prática.', privacy: 'Aviso de privacidade da Luna.', terms: 'Termos de serviço da Luna.', medical: 'Informações de aviso legal da Luna.', cookies: 'Aviso de cookies da Luna.', data_rights: 'Informações de direitos de dados da Luna.' },
+    const descriptionByPageByLang: LangCopy< Record<PublicPage, string>> = {
+      en: { home: 'Luna29 public home. Calm orientation and access to member tools.', map: 'Luna29 Balance visualizes physiological rhythms and inner dynamics.', ritual: 'Ritual Path by Luna29: a path, not a checklist. A simple daily rhythm that protects attention and preserves signal.', bridge: 'The Bridge by Luna29 helps formulate state, explain calmly, and preserve respect in conversations.', pricing: 'Luna29 member access pricing and trial options.', about: 'About Luna29 and the BioMath origin.', how_it_works: 'How Luna29 works in practice.', faq: 'Detailed FAQ about Luna29 Balance, privacy, safety, and daily use.', learning: 'Luna29 Learning: terminology, concepts, and practical guidance.', privacy: 'Luna29 privacy notice.', terms: 'Luna29 terms of service.', medical: 'Luna29 disclaimer information.', cookies: 'Luna29 cookies notice.', data_rights: 'Luna29 data rights information.' },
+      ru: { home: 'Публичная главная страница Luna29: спокойная навигация и доступ к инструментам участника.', map: 'Luna29 Balance визуализирует физиологические ритмы и внутреннюю динамику.', ritual: 'Ритуальный путь Luna29: путь, а не чеклист. Ежедневный ритм, который бережет внимание.', bridge: 'Мост Luna29 помогает ясно формулировать состояние и сохранять уважение в разговоре.', pricing: 'Тарифы и пробный доступ Luna29.', about: 'О Luna29 и происхождении BioMath.', how_it_works: 'Как Luna29 работает на практике.', faq: 'Подробный FAQ о Luna29 Balance, приватности, безопасности и ежедневном использовании.', learning: 'Обучение Luna29: терминология, идеи и практические рекомендации.', privacy: 'Уведомление о приватности Luna29.', terms: 'Условия использования Luna29.', medical: 'Дисклеймер Luna29.', cookies: 'Уведомление о cookies Luna29.', data_rights: 'Информация о правах на данные в Luna29.' },
+      uk: { home: 'Публічна головна сторінка Luna29: спокійна орієнтація і доступ до інструментів учасника.', map: 'Luna29 Balance візуалізує фізіологічні ритми та внутрішню динаміку.', ritual: 'Ритуальний шлях Luna29: шлях, а не чеклист. Простий ритм, що береже увагу.', bridge: 'Міст Luna29 допомагає чітко формулювати стан і зберігати повагу в розмові.', pricing: 'Тарифи та пробний доступ Luna29.', about: 'Про Luna29 і походження BioMath.', how_it_works: 'Як Luna29 працює на практиці.', faq: 'Детальний FAQ про Luna29 Balance, приватність і безпеку.', learning: 'Навчання Luna29: термінологія, ідеї та практичні поради.', privacy: 'Повідомлення про приватність Luna29.', terms: 'Умови використання Luna29.', medical: 'Дисклеймер Luna29.', cookies: 'Повідомлення про cookies Luna29.', data_rights: 'Інформація про права на дані в Luna29.' },
+      es: { home: 'Inicio público de Luna29: orientación tranquila y acceso a herramientas para miembros.', map: 'Luna29 Balance visualiza ritmos fisiológicos y dinámica interna.', ritual: 'Ruta ritual de Luna29: un camino, no una lista. Ritmo diario simple que protege la atención.', bridge: 'El Puente de Luna29 ayuda a formular tu estado con calma y respeto.', pricing: 'Opciones de precio y prueba de Luna29.', about: 'Sobre Luna29 y el origen BioMath.', how_it_works: 'Cómo funciona Luna29 en la práctica.', faq: 'FAQ detallado sobre Luna29 Balance, privacidad y uso diario.', learning: 'Aprendizaje Luna29: terminología, conceptos y guía práctica.', privacy: 'Aviso de privacidad de Luna29.', terms: 'Términos de servicio de Luna29.', medical: 'Información de descargo de Luna29.', cookies: 'Aviso de cookies de Luna29.', data_rights: 'Información de derechos de datos de Luna29.' },
+      fr: { home: 'Accueil public Luna29: orientation calme et accès aux outils membre.', map: 'Luna29 Balance visualise les rythmes physiologiques et la dynamique intérieure.', ritual: 'Chemin rituel Luna29: un chemin, pas une checklist. Un rythme quotidien simple qui protège l’attention.', bridge: 'Le Pont de Luna29 aide à formuler votre état calmement et avec respect.', pricing: 'Tarifs Luna29 et options d’essai.', about: 'À propos de Luna29 et de l’origine BioMath.', how_it_works: 'Comment Luna29 fonctionne en pratique.', faq: 'FAQ détaillé sur Luna29 Balance, confidentialité et usage quotidien.', learning: 'Apprentissage Luna29: terminologie, concepts et guide pratique.', privacy: 'Avis de confidentialité Luna29.', terms: 'Conditions d’utilisation Luna29.', medical: 'Informations d’avertissement Luna29.', cookies: 'Avis cookies Luna29.', data_rights: 'Informations sur les droits des données Luna29.' },
+      de: { home: 'Öffentliche Luna29-Startseite: ruhige Orientierung und Zugang zu Mitglieder-Tools.', map: 'Luna29 Balance visualisiert physiologische Rhythmen und innere Dynamik.', ritual: 'Luna29 Ritualpfad: ein Pfad statt einer Checkliste. Ein einfacher Rhythmus, der Aufmerksamkeit schützt.', bridge: 'Die Luna29-Brücke hilft, den Zustand klar und respektvoll zu formulieren.', pricing: 'Luna29 Preise und Testoptionen.', about: 'Über Luna29 und den BioMath-Ursprung.', how_it_works: 'Wie Luna29 in der Praxis funktioniert.', faq: 'Ausführliches FAQ zu Luna29 Balance, Datenschutz und Alltag.', learning: 'Luna29 Lernen: Terminologie, Konzepte und praktische Orientierung.', privacy: 'Luna29 Datenschutzhinweis.', terms: 'Luna29 Nutzungsbedingungen.', medical: 'Luna29 Haftungsausschluss.', cookies: 'Luna29 Cookie-Hinweis.', data_rights: 'Luna29 Informationen zu Datenrechten.' },
+      zh: { home: 'Luna29 公开主页：提供平静指引并连接会员工具。', map: 'Luna29 Balance 可视化生理节律与内在变化。', ritual: 'Luna29 仪式路径：不是清单，而是节律。简单日常节律帮助保护注意力。', bridge: 'Luna29 连接桥帮助你平静、清晰地表达状态并保持沟通尊重。', pricing: 'Luna29 会员价格与试用选项。', about: '关于 Luna29 与 BioMath 起源。', how_it_works: 'Luna29 的实际工作方式。', faq: '关于 Luna29 Balance、隐私与日常使用的详细 FAQ。', learning: 'Luna29 学习：术语、核心概念与实践指南。', privacy: 'Luna29 隐私声明。', terms: 'Luna29 服务条款。', medical: 'Luna29 免责声明信息。', cookies: 'Luna29 Cookie 声明。', data_rights: 'Luna29 数据权利信息。' },
+      ja: { home: 'Luna29公開ホーム。落ち着いた導線とメンバーツールへのアクセス。', map: 'Luna29 Balance は生理リズムと内面の変化を可視化します。', ritual: 'Luna29リチュアルパス: チェックリストではなく道筋。注意を守るシンプルな日次リズム。', bridge: 'Luna29ブリッジは状態を穏やかに言語化し、対話の尊重を保つのに役立ちます。', pricing: 'Luna29メンバー料金とトライアル。', about: 'Luna29とBioMathの起源について。', how_it_works: 'Luna29の実際の使い方。', faq: 'Luna29 Balance、プライバシー、日常利用に関する詳細FAQ。', learning: 'Luna29学習: 用語、概念、実践ガイド。', privacy: 'Luna29プライバシー通知。', terms: 'Luna29利用規約。', medical: 'Luna29免責情報。', cookies: 'Luna29 Cookie通知。', data_rights: 'Luna29データ権利情報。' },
+      pt: { home: 'Início público da Luna29: orientação calma e acesso às ferramentas de membros.', map: 'Luna29 Balance visualiza ritmos fisiológicos e dinâmica interna.', ritual: 'Caminho ritual da Luna29: um caminho, não checklist. Ritmo diário simples que protege atenção.', bridge: 'A Ponte da Luna29 ajuda a formular estado com calma e respeito na conversa.', pricing: 'Planos e opções de teste da Luna29.', about: 'Sobre a Luna29 e a origem BioMath.', how_it_works: 'Como a Luna29 funciona na prática.', faq: 'FAQ detalhado sobre Luna29 Balance, privacidade e uso diário.', learning: 'Aprendizagem Luna29: terminologia, conceitos e guia prática.', privacy: 'Aviso de privacidade da Luna29.', terms: 'Termos de serviço da Luna29.', medical: 'Informações de aviso legal da Luna29.', cookies: 'Aviso de cookies da Luna29.', data_rights: 'Informações de direitos de dados da Luna29.' },
+      ar: { home: 'الصفحة العامة لـ Luna29: توجيه هادئ ووصول لأدوات العضو.', map: 'Luna29 Balance يعرض الإيقاعات الفسيولوجية والديناميكية الداخلية.', ritual: 'المسار الطقسي Luna29: مسار لا قائمة. إيقاع يومي بسيط يحمي الانتباه.', bridge: 'جسر Luna29 يساعد على صياغة الحالة بهدوء واحترام.', pricing: 'أسعار Luna29 وخيارات التجربة.', about: 'حول Luna29 وأصل BioMath.', how_it_works: 'كيف تعمل Luna29 عملياً.', faq: 'FAQ مفصل عن Luna29 Balance والخصوصية والاستخدام اليومي.', learning: 'تعلّم Luna29: مصطلحات ومفاهيم وإرشاد عملي.', privacy: 'إشعار خصوصية Luna29.', terms: 'شروط خدمة Luna29.', medical: 'معلومات إخلاء المسؤولية Luna29.', cookies: 'إشعار cookies Luna29.', data_rights: 'معلومات حقوق البيانات Luna29.' },
+      he: { home: 'דף ציבורי Luna29: כיוון רגוע וגישה לכלי חבר.', map: 'Luna29 Balance מציגה קצבי גוף ושינויי מצב פנימיים.', ritual: 'נתיב טקסי Luna29: דרך, לא רשימה. קצב יומי עדין ששומר על תשומת הלב.', bridge: 'הגשר Luna29 עוזר לנסח מצב בשקט ובכבוד.', pricing: 'מחירי Luna29 ואפשרויות ניסיון.', about: 'אודות Luna29 ומקור BioMath.', how_it_works: 'איך Luna29 עובדת בפועל.', faq: 'FAQ מפורט על Luna29 Balance, פרטיות ושימוש יומי.', learning: 'לימוד Luna29: מונחים, רעיונות והנחיה מעשית.', privacy: 'הודעת פרטיות Luna29.', terms: 'תנאי שירות Luna29.', medical: 'מידע הצהרת אחריות Luna29.', cookies: 'הודעת cookies Luna29.', data_rights: 'מידע זכויות נתונים Luna29.' },
     };
-    const titleByPage = titleByPageByLang[lang] || titleByPageByLang.en;
-    const descriptionByPage = descriptionByPageByLang[lang] || descriptionByPageByLang.en;
+    const titleByPage = getLang(titleByPageByLang, lang) || titleByPageByLang.en;
+    const descriptionByPage = getLang(descriptionByPageByLang, lang) || descriptionByPageByLang.en;
 
     document.title = titleByPage[activePage];
     const descriptionEl = document.querySelector('meta[name="description"]');
@@ -2083,10 +2021,11 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
             <span className={`${theme === 'dark' ? 'text-violet-100/35' : 'text-slate-400'}`}>·</span>
             <button onClick={() => setActivePage('map')} className={`text-[1.02rem] transition-colors ${theme === 'dark' ? (activePage === 'map' ? 'text-violet-100' : 'text-violet-100/70 hover:text-violet-100') : (activePage === 'map' ? 'text-slate-900' : 'text-slate-600 hover:text-slate-900')}`}>{publicHomeNavLabels.map}</button>
             <span className={`${theme === 'dark' ? 'text-violet-100/35' : 'text-slate-400'}`}>·</span>
-            <button onClick={() => setActivePage('pricing')} className={`text-[1.02rem] transition-colors ${theme === 'dark' ? (activePage === 'pricing' ? 'text-violet-100' : 'text-violet-100/70 hover:text-violet-100') : (activePage === 'pricing' ? 'text-slate-900' : 'text-slate-600 hover:text-slate-900')}`}>{pricingLabelByLang[lang] || 'Pricing'}</button>
+            <button onClick={() => setActivePage('pricing')} className={`text-[1.02rem] transition-colors ${theme === 'dark' ? (activePage === 'pricing' ? 'text-violet-100' : 'text-violet-100/70 hover:text-violet-100') : (activePage === 'pricing' ? 'text-slate-900' : 'text-slate-600 hover:text-slate-900')}`}>{getLang(pricingLabelByLang, lang) || 'Pricing'}</button>
           </nav>
           <div className="hidden md:flex items-center gap-2">
             <LanguageSelector current={lang} onSelect={setLang} />
+            <ThemeToggle theme={theme} toggle={() => setTheme(theme === 'light' ? 'dark' : 'light')} />
             <button
               data-testid="public-signin-up"
               onClick={onSignIn}
@@ -2096,6 +2035,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
             </button>
           </div>
           <div className="md:hidden flex items-center gap-2">
+            <ThemeToggle theme={theme} toggle={() => setTheme(theme === 'light' ? 'dark' : 'light')} />
             <div>
               <LanguageSelector current={lang} onSelect={setLang} />
             </div>
@@ -2118,7 +2058,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
               <div className="relative z-10 p-6 md:p-10 lg:p-12">
                 <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-8 md:gap-10 items-center">
                   <div className="space-y-6">
-                    <p className="text-[10px] font-black uppercase tracking-[0.34em] text-luna-purple">{homeEyebrowByLang[lang] || homeEyebrowByLang.en}</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.34em] text-luna-purple">{getLang(homeEyebrowByLang, lang) || homeEyebrowByLang.en}</p>
                     <h1 className="text-[clamp(2.3rem,4.9vw,5rem)] leading-[0.96] tracking-tight font-black text-slate-900 dark:text-slate-100">
                       {dailyCompanionCopy.heroTitle}
                     </h1>
@@ -2183,7 +2123,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
                     <div className="relative rounded-[2.2rem] overflow-hidden border border-white/45 dark:border-white/10 shadow-[0_24px_60px_rgba(40,24,84,0.28)]">
                       <img
                         src="/images/face_image.webp"
-                        alt="Luna daily note mood"
+                        alt="Luna29 daily note mood"
                         loading="eager"
                         fetchPriority="high"
                         decoding="async"
@@ -2308,7 +2248,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
 
               <article className="rounded-[2.2rem] border border-slate-200/70 dark:border-[#2a4670] bg-white/76 dark:bg-[#0d1f45]/86 shadow-luna-rich p-7 md:p-8">
                 <h2 className="text-3xl md:text-[2.2rem] font-black tracking-tight text-slate-900 dark:text-slate-100">{dailyCompanionCopy.patternTitle}</h2>
-                <p className="mt-2 text-sm font-medium text-slate-600 dark:text-slate-300">{homePatternNoteByLang[lang] || homePatternNoteByLang.en}</p>
+                <p className="mt-2 text-sm font-medium text-slate-600 dark:text-slate-300">{getLang(homePatternNoteByLang, lang) || homePatternNoteByLang.en}</p>
                 <div className="mt-4 space-y-3">
                   <article className="rounded-[1.25rem] border border-slate-200/80 dark:border-[#2a4670] bg-slate-50/86 dark:bg-[#11284f]/76 p-4 transition-all hover:-translate-y-1 hover:shadow-[0_14px_30px_rgba(125,93,173,0.22)]">
                     <p className="text-[10px] font-black uppercase tracking-[0.18em] text-luna-purple">{dailyCompanionCopy.patternCardLabel}</p>
@@ -2443,7 +2383,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
           <Suspense fallback={lazyFallback}>
             <PublicPricingSection
               lang={lang}
-              pricingLabel={pricingLabelByLang[lang] || 'Pricing'}
+              pricingLabel={getLang(pricingLabelByLang, lang) || 'Pricing'}
               billingPeriod={billingPeriod}
               setBillingPeriod={setBillingPeriod}
               pricingCopy={pricingCopy}
@@ -2459,7 +2399,9 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
 
         <Suspense fallback={lazyFallback}>
           {activePage === 'about' && <AboutLunaView lang={lang} mode="public" />}
-          {activePage === 'how_it_works' && <HowItWorksView lang={lang} onBack={onSignUp} />}
+          {activePage === 'how_it_works' && <HowItWorksView lang={lang} onBack={() => setActivePage('home')} />}
+          {activePage === 'faq' && <FAQView lang={lang} mode="public" onBack={() => setActivePage('home')} />}
+          {activePage === 'learning' && <LearningView lang={lang} onBack={() => setActivePage('home')} />}
           {activePage === 'terms' && <LegalDocumentView lang={lang} doc="terms" mode="public" onBack={() => setActivePage('home')} />}
           {activePage === 'medical' && <LegalDocumentView lang={lang} doc="medical" mode="public" onBack={() => setActivePage('home')} />}
           {activePage === 'cookies' && <LegalDocumentView lang={lang} doc="cookies" mode="public" onBack={() => setActivePage('home')} />}
@@ -2477,7 +2419,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
                 <img src="/images/luna-logo-transparent.webp" alt="" aria-hidden="true" className="h-24 w-auto md:h-28 object-contain select-none pointer-events-none" />
                 <Logo size="sm" className="cursor-default text-5xl leading-none" />
               </div>
-              <p className="text-lg font-semibold text-slate-800 dark:text-slate-400">Luna — The physiology of feeling.</p>
+              <p className="text-lg font-semibold text-slate-800 dark:text-slate-400">Luna29 — The physiology of feeling.</p>
             </div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-12 gap-x-8 gap-y-8">
@@ -2495,10 +2437,16 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
               <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-700 dark:text-slate-400">{footerSectionTitles.guides}</p>
               <div className="flex flex-col gap-3 text-[13px] font-light tracking-[0.03em] text-slate-800 dark:text-slate-300">
                 <button onClick={() => setActivePage('about')} className="text-left font-light hover:text-luna-purple transition-colors">
-                  {aboutLabelByLang[lang] || 'About'}
+                  {getLang(aboutLabelByLang, lang) || 'About'}
                 </button>
                 <button onClick={() => setActivePage('how_it_works')} className="text-left font-light hover:text-luna-purple transition-colors">
-                  {howItWorksLabelByLang[lang] || 'How It Works'}
+                  {getLang(howItWorksLabelByLang, lang) || 'How It Works'}
+                </button>
+                <button onClick={() => setActivePage('faq')} className="text-left font-light hover:text-luna-purple transition-colors">
+                  {getLang(faqLabelByLang, lang) || 'FAQ'}
+                </button>
+                <button onClick={() => setActivePage('learning')} className="text-left font-light hover:text-luna-purple transition-colors">
+                  {getLang(learningLabelByLang, lang) || 'Learning'}
                 </button>
               </div>
             </nav>
@@ -2573,7 +2521,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
               <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-3">
                   <span className="text-[13px] font-light tracking-[0.03em] text-slate-800 dark:text-slate-300">
-                    {themeLabelByLang[lang] || themeLabelByLang.en}
+                    {getLang(themeLabelByLang, lang) || themeLabelByLang.en}
                   </span>
                   <ThemeToggle theme={theme} toggle={() => setTheme(theme === 'light' ? 'dark' : 'light')} />
                 </div>

@@ -1,4 +1,4 @@
-import { Language } from '../constants';
+import { Language, LangCopy, getLang } from '../constants';
 
 export type VoiceFilesCopy = {
   back: string;
@@ -17,7 +17,7 @@ export type VoiceFilesCopy = {
   transcript: string;
 };
 
-  const copyByLang: Record<Language, {
+  const copyByLang: LangCopy< {
     back: string;
     title: string;
     subtitle: string;
@@ -180,5 +180,5 @@ export type VoiceFilesCopy = {
   };
 
 export function getVoiceFilesCopy(lang: Language): VoiceFilesCopy {
-  return copyByLang[lang] || copyByLang.en;
+  return getLang(copyByLang, lang) || copyByLang.en;
 }

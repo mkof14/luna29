@@ -187,7 +187,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onBack }) => {
 
       <header className="text-center space-y-4 max-w-2xl mx-auto">
         <h2 className="text-6xl font-black tracking-tighter text-slate-900 dark:text-slate-100 uppercase">My Identity</h2>
-        <p className="text-lg font-bold text-slate-500 dark:text-slate-400 italic">This data forms the primary lens through which Luna observes your biological rhythm.</p>
+        <p className="text-lg font-bold text-slate-500 dark:text-slate-400 italic">This data forms the primary lens through which Luna29 observes your biological rhythm.</p>
       </header>
 
       <div className="grid grid-cols-1 gap-12">
@@ -373,7 +373,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onBack }) => {
         </div>
         <p className="text-[11px] font-black uppercase tracking-[0.6em] mb-6 animate-pulse">Sovereign Data Protocol</p>
         <p className="text-lg font-bold italic max-w-2xl mx-auto leading-relaxed uppercase tracking-tighter">
-          Luna operates as a closed system. This identity is stored exclusively on your device hardware. It is never transmitted, sold, or shared with external entities.
+          Luna29 operates as a closed system. This identity is stored exclusively on your device hardware. It is never transmitted, sold, or shared with external entities.
         </p>
       </div>
     </div>

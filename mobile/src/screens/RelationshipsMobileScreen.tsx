@@ -81,7 +81,7 @@ export function RelationshipsMobileScreen({ onBack, lang }: { onBack: () => void
         <LunaButton
           variant="secondary"
           onPress={() => {
-            void Share.share({ message: `${selectedPrompt}\n\n${partnerMessage}`, title: 'Luna partner message' });
+            void Share.share({ message: `${selectedPrompt}\n\n${partnerMessage}`, title: 'Luna29 partner message' });
           }}
         >
           {copy.message}

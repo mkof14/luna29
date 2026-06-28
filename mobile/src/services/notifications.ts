@@ -40,8 +40,8 @@ export async function scheduleEveningReflectionReminder(): Promise<void> {
 
     await Notifications.scheduleNotificationAsync({
       content: {
-        title: 'Luna',
-        body: 'A quiet moment with Luna tonight.',
+        title: 'Luna29',
+        body: 'A quiet moment with Luna29 tonight.',
         sound: true,
       },
       trigger: {

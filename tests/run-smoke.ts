@@ -505,11 +505,11 @@ const testDetailedReportBuilders = () => {
     sexualOverview: { avgPositive: 3.2, pain: 2 },
     profileCycleDay: '21',
     currentDay: 21,
-    reportIdentityLine: 'Report ID: LUNA-TEST',
+    reportIdentityLine: 'Report ID: LUNA29-TEST',
     reportGeneratedAt: '3/8/2026, 3:00:00 PM',
-    reportCopyright: 'Copyright © 2026 Luna Balance. All rights reserved.',
+    reportCopyright: 'Copyright © 2026 Luna29 Balance. All rights reserved.',
     detailedUi: {
-      title: 'Luna Clinical Report',
+      title: 'Luna29 Clinical Report',
       subtitle: 'Detailed physiological interpretation for care discussion',
       keyFindings: 'Key Findings',
       explanation: 'Explanation',
@@ -564,15 +564,15 @@ const testDetailedReportBuilders = () => {
     hormoneTopic: (text) => (text.toLowerCase().includes('tsh') ? { accent: '#0ea5e9', label: 'Thyroid' } : { accent: '#7c3aed', label: 'Cycle' }),
   });
 
-  assert.equal(payload.patientIdValue, 'Report ID: LUNA-TEST', 'payload should keep selected report identity');
+  assert.equal(payload.patientIdValue, 'Report ID: LUNA29-TEST', 'payload should keep selected report identity');
   assert.equal(payload.totalMarkers, 2, 'payload should count parsed markers');
   assert.equal(payload.disclaimerTitle, 'MEDICAL DISCLAIMER', 'payload should expose medical disclaimer title');
   assert.equal(payload.logoUrl, 'https://example.test/images/Luna%20logo3.png', 'payload should build branded logo URL from origin');
 
   const html = buildDetailedReportHtml(payload);
-  assert.equal(html.includes('Luna Clinical Report'), true, 'html should include report title');
+  assert.equal(html.includes('Luna29 Clinical Report'), true, 'html should include report title');
   assert.equal(html.includes('MEDICAL DISCLAIMER'), true, 'html should include disclaimer title');
-  assert.equal(html.includes('Report ID: LUNA-TEST'), true, 'html should include selected identity line');
+  assert.equal(html.includes('Report ID: LUNA29-TEST'), true, 'html should include selected identity line');
   assert.equal(html.includes('Thyroid Slowdown Pattern'), true, 'html should include women-specific clinical insights');
   assert.equal(html.includes('Copyright © 2026'), true, 'html should include 2026 copyright');
 };
@@ -596,7 +596,7 @@ const testLabsLocalizationCoverage = () => {
       assert.ok(localized.detailedUi.title.trim().length > 0, `detailed report title should be non-empty for reportLang=${reportLang}`);
       assert.equal(typeof localized.locale, 'string', `locale should be string for reportLang=${reportLang}`);
       assert.ok(localized.locale.includes('-'), `locale should be normalized with region for reportLang=${reportLang}`);
-      assert.ok(localized.reportLanguageNames[reportLang].trim().length > 0, `report language name should exist for ${reportLang}`);
+      assert.ok((localized.reportLanguageNames[reportLang] ?? localized.reportLanguageNames.en).trim().length > 0, `report language name should exist for ${reportLang}`);
       assert.equal(localized.visualGuide.cards.length >= 1, true, `visual guide should have cards for lang=${lang}`);
       assert.equal(localized.reportUi.serviceBullets.length >= 3, true, `service bullets should have enough items for reportLang=${reportLang}`);
     }

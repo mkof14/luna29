@@ -1,5 +1,5 @@
 import React from 'react';
-import { Language } from '../../constants';
+import { Language, LangCopy, getLang } from '../../constants';
 import { PUBLIC_BTN_PRIMARY, PUBLIC_BTN_PRIMARY_GLOW } from './publicButtonStyles';
 
 interface PublicRitualSectionProps {
@@ -11,10 +11,7 @@ export const PublicRitualSection: React.FC<PublicRitualSectionProps> = ({
   onSignIn,
   lang,
 }) => {
-  const ritualCopyByLang: Record<
-    Language,
-    { eyebrow: string; title: string; subtitle: string; morningTitle: string; morningBody: string; middayTitle: string; middayBody: string; eveningTitle: string; eveningBody: string }
-  > = {
+  const ritualCopyByLang = {
     en: { eyebrow: 'RITUAL PATH', title: 'A PATH, NOT A TASK LIST', subtitle: 'A simple daily rhythm to protect attention and preserve signal.', morningTitle: 'MORNING', morningBody: 'Name your baseline before the world sets your pace.', middayTitle: 'MIDDAY', middayBody: 'Re-check capacity and adjust plans with respect for your energy.', eveningTitle: 'EVENING', eveningBody: 'Close the day with a short note to preserve signal, not noise.' },
     ru: { eyebrow: 'RITUAL PATH', title: 'ПУТЬ, А НЕ СПИСОК ДЕЛ', subtitle: 'Простой ежедневный ритм, который защищает внимание и сохраняет сигнал состояния.', morningTitle: 'УТРО', morningBody: 'Назовите базовое состояние до того, как мир задаст темп.', middayTitle: 'ДЕНЬ', middayBody: 'Переоцените ресурс и скорректируйте планы с уважением к энергии.', eveningTitle: 'ВЕЧЕР', eveningBody: 'Закройте день короткой заметкой, чтобы сохранить сигнал, а не шум.' },
     uk: { eyebrow: 'RITUAL PATH', title: 'ШЛЯХ, А НЕ СПИСОК ЗАВДАНЬ', subtitle: 'Простий щоденний ритм для захисту уваги і збереження сигналу стану.', morningTitle: 'РАНОК', morningBody: 'Назвіть свій базовий стан до того, як світ задасть темп.', middayTitle: 'ДЕНЬ', middayBody: 'Переоцініть ресурс і скоригуйте плани відповідно до енергії.', eveningTitle: 'ВЕЧІР', eveningBody: 'Завершіть день короткою нотаткою, зберігаючи сигнал, а не шум.' },
@@ -25,19 +22,19 @@ export const PublicRitualSection: React.FC<PublicRitualSectionProps> = ({
     ja: { eyebrow: 'RITUAL PATH', title: 'タスクではなく、道筋', subtitle: '注意力を守り、状態のシグナルを残すシンプルな日次リズム。', morningTitle: '朝', morningBody: '世界にペースを決められる前に、自分の基準状態を言語化する。', middayTitle: '昼', middayBody: '容量を再確認し、エネルギーに合わせて予定を調整する。', eveningTitle: '夜', eveningBody: '短い振り返りで一日を閉じ、ノイズではなくシグナルを残す。' },
     pt: { eyebrow: 'CAMINHO RITUAL', title: 'UM CAMINHO, NAO UMA LISTA', subtitle: 'Um ritmo diario simples que protege atencao e preserva sinal.', morningTitle: 'MANHA', morningBody: 'Nomeie sua base antes que o mundo imponha o ritmo.', middayTitle: 'MEIO-DIA', middayBody: 'Reavalie capacidade e ajuste planos com respeito a sua energia.', eveningTitle: 'NOITE', eveningBody: 'Feche o dia com uma reflexao curta para preservar sinal, nao ruido.' },
   };
-  const sharedByLang: Record<Language, { noteTitle: string; noteLine1: string; noteLine2: string; enterMember: string; memberSignIn: string }> = {
-    en: { noteTitle: 'LUNA NOTE', noteLine1: 'This Home is public by design. It gives orientation without extracting attention.', noteLine2: 'Your private member zone is where personal data, check-ins, and deeper tools live.', enterMember: 'Enter Member Zone', memberSignIn: 'Already a member? Sign in' },
-    ru: { noteTitle: 'ЗАМЕТКА LUNA', noteLine1: 'Эта главная страница публичная по дизайну: она дает ориентир без перегруза внимания.', noteLine2: 'Приватная зона участника — место для личных данных, отметок состояния и более глубоких инструментов.', enterMember: 'Перейти в зону участника', memberSignIn: 'Уже участник? Войти' },
-    uk: { noteTitle: 'НОТАТКА LUNA', noteLine1: 'Ця головна сторінка публічна за задумом: вона дає орієнтацію без виснаження уваги.', noteLine2: 'Приватна зона учасника — місце для персональних даних, відміток стану та глибших інструментів.', enterMember: 'Увійти в зону учасника', memberSignIn: 'Вже учасниця? Увійти' },
-    es: { noteTitle: 'NOTA LUNA', noteLine1: 'Esta página principal es pública por diseño: orienta sin secuestrar tu atención.', noteLine2: 'Tu zona privada de miembro es donde viven datos personales, registros y herramientas profundas.', enterMember: 'Entrar a zona de miembro', memberSignIn: '¿Ya eres miembro? Iniciar sesión' },
-    fr: { noteTitle: 'NOTE LUNA', noteLine1: 'Cette page d accueil est publique par design: elle oriente sans capter excessivement votre attention.', noteLine2: 'Votre zone membre privée contient les données personnelles, suivis et outils avancés.', enterMember: 'Entrer dans la zone membre', memberSignIn: 'Déjà membre ? Se connecter' },
-    de: { noteTitle: 'LUNA HINWEIS', noteLine1: 'Diese Startseite ist bewusst öffentlich: Sie gibt Orientierung ohne Aufmerksamkeitsdruck.', noteLine2: 'In deiner privaten Mitgliederzone liegen persönliche Daten, Status-Checks und tiefere Tools.', enterMember: 'Zur Mitgliederzone', memberSignIn: 'Schon Mitglied? Anmelden' },
-    zh: { noteTitle: 'LUNA 提示', noteLine1: '主页采用公开设计：提供方向，不消耗注意力。', noteLine2: '你的私密会员区才是个人数据、状态记录和深度工具所在。', enterMember: '进入会员区', memberSignIn: '已经是会员？登录' },
-    ja: { noteTitle: 'LUNA NOTE', noteLine1: 'このホームは公開設計です。注意を奪わず、方向だけを示します。', noteLine2: '個人データ、状態チェック、深いツールはプライベートなメンバーゾーンにあります。', enterMember: 'メンバーゾーンへ', memberSignIn: 'メンバーですか？ サインイン' },
-    pt: { noteTitle: 'NOTA LUNA', noteLine1: 'Esta página inicial é pública por design: orienta sem sequestrar sua atenção.', noteLine2: 'Sua zona privada de membro é onde ficam dados pessoais, registros de estado e ferramentas profundas.', enterMember: 'Entrar na zona de membro', memberSignIn: 'Ja e membro? Entrar' },
+  const sharedByLang: LangCopy< { noteTitle: string; noteLine1: string; noteLine2: string; enterMember: string; memberSignIn: string }> = {
+    en: { noteTitle: 'LUNA29 NOTE', noteLine1: 'This Home is public by design. It gives orientation without extracting attention.', noteLine2: 'Your private member zone is where personal data, check-ins, and deeper tools live.', enterMember: 'Enter Member Zone', memberSignIn: 'Already a member? Sign in' },
+    ru: { noteTitle: 'ЗАМЕТКА LUNA29', noteLine1: 'Эта главная страница публичная по дизайну: она дает ориентир без перегруза внимания.', noteLine2: 'Приватная зона участника — место для личных данных, отметок состояния и более глубоких инструментов.', enterMember: 'Перейти в зону участника', memberSignIn: 'Уже участник? Войти' },
+    uk: { noteTitle: 'НОТАТКА LUNA29', noteLine1: 'Ця головна сторінка публічна за задумом: вона дає орієнтацію без виснаження уваги.', noteLine2: 'Приватна зона учасника — місце для персональних даних, відміток стану та глибших інструментів.', enterMember: 'Увійти в зону учасника', memberSignIn: 'Вже учасниця? Увійти' },
+    es: { noteTitle: 'NOTA LUNA29', noteLine1: 'Esta página principal es pública por diseño: orienta sin secuestrar tu atención.', noteLine2: 'Tu zona privada de miembro es donde viven datos personales, registros y herramientas profundas.', enterMember: 'Entrar a zona de miembro', memberSignIn: '¿Ya eres miembro? Iniciar sesión' },
+    fr: { noteTitle: 'NOTE LUNA29', noteLine1: 'Cette page d accueil est publique par design: elle oriente sans capter excessivement votre attention.', noteLine2: 'Votre zone membre privée contient les données personnelles, suivis et outils avancés.', enterMember: 'Entrer dans la zone membre', memberSignIn: 'Déjà membre ? Se connecter' },
+    de: { noteTitle: 'LUNA29 HINWEIS', noteLine1: 'Diese Startseite ist bewusst öffentlich: Sie gibt Orientierung ohne Aufmerksamkeitsdruck.', noteLine2: 'In deiner privaten Mitgliederzone liegen persönliche Daten, Status-Checks und tiefere Tools.', enterMember: 'Zur Mitgliederzone', memberSignIn: 'Schon Mitglied? Anmelden' },
+    zh: { noteTitle: 'LUNA29 提示', noteLine1: '主页采用公开设计：提供方向，不消耗注意力。', noteLine2: '你的私密会员区才是个人数据、状态记录和深度工具所在。', enterMember: '进入会员区', memberSignIn: '已经是会员？登录' },
+    ja: { noteTitle: 'LUNA29 NOTE', noteLine1: 'このホームは公開設計です。注意を奪わず、方向だけを示します。', noteLine2: '個人データ、状態チェック、深いツールはプライベートなメンバーゾーンにあります。', enterMember: 'メンバーゾーンへ', memberSignIn: 'メンバーですか？ サインイン' },
+    pt: { noteTitle: 'NOTA LUNA29', noteLine1: 'Esta página inicial é pública por design: orienta sem sequestrar sua atenção.', noteLine2: 'Sua zona privada de membro é onde ficam dados pessoais, registros de estado e ferramentas profundas.', enterMember: 'Entrar na zona de membro', memberSignIn: 'Ja e membro? Entrar' },
   };
-  const copy = ritualCopyByLang[lang] || ritualCopyByLang.en;
-  const shared = sharedByLang[lang] || sharedByLang.en;
+  const copy = getLang(ritualCopyByLang, lang) || ritualCopyByLang.en;
+  const shared = getLang(sharedByLang, lang) || sharedByLang.en;
   return (
     <section className="max-w-[1100px] mx-auto animate-in fade-in duration-500">
       <div className="luna-page-shell luna-page-ritual rounded-[3rem] border border-slate-200/70 dark:border-slate-800/80 bg-gradient-to-br from-[#fbf3f8]/90 via-[#f3eef7]/86 to-[#ecf2fa]/82 dark:from-[#070f23]/92 dark:via-[#0b1733]/90 dark:to-[#122345]/88 p-8 md:p-12 shadow-[0_24px_64px_rgba(88,68,128,0.16)] dark:shadow-[0_24px_64px_rgba(0,0,0,0.5)] space-y-12">

@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { CyclePhase, HealthEvent } from '../types';
-import { FUEL_DATA, TRANSLATIONS, Language } from '../constants';
+import { FUEL_DATA, TRANSLATIONS, Language, LangCopy, getLang } from '../constants';
 import { dataService } from '../services/dataService';
 import { generateCulinaryInsight } from '../services/geminiService';
 
@@ -13,7 +13,7 @@ interface FuelCompassProps {
 export const FuelCompass: React.FC<FuelCompassProps> = ({ phase, lang }) => {
   const data = FUEL_DATA[phase];
   const ui = TRANSLATIONS[lang];
-  const phaseByLang: Record<Language, Record<CyclePhase, string>> = {
+  const phaseByLang: LangCopy< Record<CyclePhase, string>> = {
     en: { Menstrual: 'Menstrual', Follicular: 'Follicular', Ovulatory: 'Ovulatory', Luteal: 'Luteal' },
     ru: { Menstrual: 'Менструальная', Follicular: 'Фолликулярная', Ovulatory: 'Овуляторная', Luteal: 'Лютеиновая' },
     uk: { Menstrual: 'Менструальна', Follicular: 'Фолікулярна', Ovulatory: 'Овуляторна', Luteal: 'Лютеїнова' },
@@ -24,8 +24,8 @@ export const FuelCompass: React.FC<FuelCompassProps> = ({ phase, lang }) => {
     ja: { Menstrual: '月経期', Follicular: '卵胞期', Ovulatory: '排卵期', Luteal: '黄体期' },
     pt: { Menstrual: 'Menstrual', Follicular: 'Folicular', Ovulatory: 'Ovulatória', Luteal: 'Lútea' },
   };
-  const phaseLabel = phaseByLang[lang][phase] || phase;
-  const reasonByLang: Record<Language, Record<CyclePhase, string>> = {
+  const phaseLabel = getLang(phaseByLang, lang)[phase] || phase;
+  const reasonByLang: LangCopy< Record<CyclePhase, string>> = {
     en: {
       Menstrual: 'Your body is renewing itself. Focus on warmth and minerals.',
       Follicular: 'Energy is rising. Support your body with fiber and fresh foods.',
@@ -81,7 +81,7 @@ export const FuelCompass: React.FC<FuelCompassProps> = ({ phase, lang }) => {
       Luteal: 'Seu corpo desacelera. Foque em energia estável e minerais calmantes.'
     }
   };
-  const tokenMapByLang: Record<Language, Record<string, string>> = {
+  const tokenMapByLang: LangCopy< Record<string, string>> = {
     en: {},
     ru: { Iron: 'Железо', Zinc: 'Цинк', 'Warm Soups': 'Теплые супы', 'Vitamin C': 'Витамин C', Magnesium: 'Магний', 'Cold Drinks': 'Холодные напитки', 'Too much Caffeine': 'Много кофеина', Sugar: 'Сахар', 'Salty Snacks': 'Соленые снеки', 'Vitamin B12': 'Витамин B12', 'Lentils or Red Meat': 'Чечевица или красное мясо', 'Spinach & Kale': 'Шпинат и кейл', Beets: 'Свекла', 'Warm Broth': 'Теплый бульон', 'Dark Chocolate': 'Темный шоколад', Seaweed: 'Морские водоросли', Beans: 'Бобовые', 'Warm herbal tea': 'Теплый травяной чай', 'Gentle warmth': 'Мягкое тепло', 'Slow breathing': 'Медленное дыхание', 'Stay hydrated': 'Поддерживать гидратацию', 'B-Vitamins': 'Витамины группы B', 'Fresh Veggies': 'Свежие овощи', Probiotics: 'Пробиотики', 'Vitamin E': 'Витамин E', Folate: 'Фолат', Alcohol: 'Алкоголь', 'Heavy Fats': 'Тяжелые жиры', 'Heavy Dairy': 'Тяжелая молочка', CoQ10: 'Коэнзим Q10', Selenium: 'Селен', 'Kimchi or Kraut': 'Кимчи или квашеная капуста', Kefir: 'Кефир', 'Broccoli & Cauliflower': 'Брокколи и цветная капуста', Seeds: 'Семена', Citrus: 'Цитрусовые', 'Chicken or Fish': 'Курица или рыба', Nuts: 'Орехи', 'Try something creative': 'Сделать что-то творческое', 'Lemon water': 'Вода с лимоном', 'Morning sun': 'Утреннее солнце', 'Start a new habit': 'Начать новую привычку', 'Omega-3': 'Омега-3', Fiber: 'Клетчатка', 'Healthy Fats': 'Полезные жиры', Hydration: 'Гидратация', 'Vitamin A': 'Витамин A', 'Too much Salt': 'Много соли', 'Fried Foods': 'Жареная еда', 'White Bread': 'Белый хлеб', NAC: 'NAC', 'Vitamin D3': 'Витамин D3', Antioxidants: 'Антиоксиданты', Salmon: 'Лосось', Avocado: 'Авокадо', Quinoa: 'Киноа', Berries: 'Ягоды', Sprouts: 'Проростки', Peppers: 'Перец', 'Flax Seeds': 'Семена льна', Walnuts: 'Грецкие орехи', 'Dinner with friends': 'Ужин с друзьями', 'Active movement': 'Активное движение', 'Cool showers': 'Прохладный душ', 'Talk and connect': 'Общение и контакт', 'Slow Carbs': 'Медленные углеводы', Calcium: 'Кальций', 'Vitamin B6': 'Витамин B6', 'White Flour': 'Белая мука', Stimulants: 'Стимуляторы', 'Late-night Snacks': 'Поздние перекусы', Inositol: 'Инозитол', 'GABA support': 'Поддержка GABA', 'Roasted Veggies': 'Запеченные овощи', Oats: 'Овсянка', Bananas: 'Бананы', 'Sesame Seeds': 'Кунжут', 'Sunflower Seeds': 'Семечки подсолнечника', 'Tofu or Beef': 'Тофу или говядина', Spinach: 'Шпинат', 'Peppermint Tea': 'Мятный чай', 'Early screen-off': 'Ранний отказ от экранов', Journaling: 'Дневник', 'Warm baths': 'Теплые ванны', 'Keep things simple': 'Упростить день' },
     uk: {},
@@ -92,8 +92,8 @@ export const FuelCompass: React.FC<FuelCompassProps> = ({ phase, lang }) => {
     ja: {},
     pt: {}
   };
-  const tokenMap = tokenMapByLang[lang];
-  const wordMapByLang: Record<Language, Record<string, string>> = {
+  const tokenMap = getLang(tokenMapByLang, lang);
+  const wordMapByLang: LangCopy< Record<string, string>> = {
     en: {},
     ru: {},
     uk: { Warm: 'Теплі', Soups: 'супи', Vitamin: 'Вітамін', Fresh: 'Свіжі', Veggies: 'овочі', Healthy: 'Корисні', Fats: 'жири', Foods: 'продукти', Hydration: 'Гідратація', Stress: 'Стрес', Sleep: 'Сон', Energy: 'Енергія', Tea: 'чай', Water: 'вода', Seeds: 'насіння', Fish: 'риба', Nuts: 'горіхи', Fiber: 'Клітковина', Magnesium: 'Магній', Calcium: 'Кальцій', Protein: 'Білок', Sugar: 'Цукор', Salt: 'Сіль' },
@@ -109,21 +109,21 @@ export const FuelCompass: React.FC<FuelCompassProps> = ({ phase, lang }) => {
     if (lang === 'en' || lang === 'ru') return item;
     return item
       .split(/(\s+|&|-|\/|,)/)
-      .map((part) => wordMapByLang[lang][part] || part)
+      .map((part) => getLang(wordMapByLang, lang)[part] || part)
       .join('');
   };
-  const copyByLang: Record<Language, { done: string; mealIdea: string; mealHint: string; thinking: string; generate: string; suggestion: string; reset: string }> = {
-    en: { done: 'Done', mealIdea: 'Meal Idea', mealHint: `Get a meal idea that fits your ${phaseLabel} phase.`, thinking: 'Thinking...', generate: 'Generate Recipe', suggestion: "Luna's Suggestion", reset: 'Reset' },
-    ru: { done: 'Готово', mealIdea: 'Идея для обеда', mealHint: `Получите идею питания для ${phaseLabel} фазы.`, thinking: 'Думаю...', generate: 'Создать рецепт', suggestion: 'Рекомендация Luna', reset: 'Сбросить' },
-    uk: { done: 'Готово', mealIdea: 'Ідея для обіду', mealHint: `Отримайте ідею харчування для ${phaseLabel} фази.`, thinking: 'Думаю...', generate: 'Створити рецепт', suggestion: 'Пропозиція Luna', reset: 'Скинути' },
-    es: { done: 'Hecho', mealIdea: 'Idea de comida', mealHint: `Obtén una idea de comida para la fase ${phaseLabel}.`, thinking: 'Pensando...', generate: 'Generar receta', suggestion: 'Sugerencia de Luna', reset: 'Reiniciar' },
-    fr: { done: 'Fait', mealIdea: 'Idée repas', mealHint: `Obtenez une idée de repas pour la phase ${phaseLabel}.`, thinking: 'Réflexion...', generate: 'Générer une recette', suggestion: 'Suggestion de Luna', reset: 'Réinitialiser' },
-    de: { done: 'Erledigt', mealIdea: 'Essensidee', mealHint: `Erhalte eine Essensidee für die ${phaseLabel}-Phase.`, thinking: 'Denke...', generate: 'Rezept erstellen', suggestion: 'Luna Vorschlag', reset: 'Zurücksetzen' },
-    zh: { done: '完成', mealIdea: '餐食建议', mealHint: `获取适合${phaseLabel}的餐食建议。`, thinking: '思考中...', generate: '生成食谱', suggestion: 'Luna 建议', reset: '重置' },
-    ja: { done: '完了', mealIdea: '食事アイデア', mealHint: `${phaseLabel}に合う食事アイデアを取得します。`, thinking: '考え中...', generate: 'レシピ生成', suggestion: 'Lunaの提案', reset: 'リセット' },
-    pt: { done: 'Concluído', mealIdea: 'Ideia de refeição', mealHint: `Receba uma ideia de refeição para a fase ${phaseLabel}.`, thinking: 'Pensando...', generate: 'Gerar receita', suggestion: 'Sugestão da Luna', reset: 'Redefinir' }
+  const copyByLang: LangCopy< { done: string; mealIdea: string; mealHint: string; thinking: string; generate: string; suggestion: string; reset: string }> = {
+    en: { done: 'Done', mealIdea: 'Meal Idea', mealHint: `Get a meal idea that fits your ${phaseLabel} phase.`, thinking: 'Thinking...', generate: 'Generate Recipe', suggestion: "Luna29's Suggestion", reset: 'Reset' },
+    ru: { done: 'Готово', mealIdea: 'Идея для обеда', mealHint: `Получите идею питания для ${phaseLabel} фазы.`, thinking: 'Думаю...', generate: 'Создать рецепт', suggestion: 'Рекомендация Luna29', reset: 'Сбросить' },
+    uk: { done: 'Готово', mealIdea: 'Ідея для обіду', mealHint: `Отримайте ідею харчування для ${phaseLabel} фази.`, thinking: 'Думаю...', generate: 'Створити рецепт', suggestion: 'Пропозиція Luna29', reset: 'Скинути' },
+    es: { done: 'Hecho', mealIdea: 'Idea de comida', mealHint: `Obtén una idea de comida para la fase ${phaseLabel}.`, thinking: 'Pensando...', generate: 'Generar receta', suggestion: 'Sugerencia de Luna29', reset: 'Reiniciar' },
+    fr: { done: 'Fait', mealIdea: 'Idée repas', mealHint: `Obtenez une idée de repas pour la phase ${phaseLabel}.`, thinking: 'Réflexion...', generate: 'Générer une recette', suggestion: 'Suggestion de Luna29', reset: 'Réinitialiser' },
+    de: { done: 'Erledigt', mealIdea: 'Essensidee', mealHint: `Erhalte eine Essensidee für die ${phaseLabel}-Phase.`, thinking: 'Denke...', generate: 'Rezept erstellen', suggestion: 'Luna29 Vorschlag', reset: 'Zurücksetzen' },
+    zh: { done: '完成', mealIdea: '餐食建议', mealHint: `获取适合${phaseLabel}的餐食建议。`, thinking: '思考中...', generate: '生成食谱', suggestion: 'Luna29 建议', reset: '重置' },
+    ja: { done: '完了', mealIdea: '食事アイデア', mealHint: `${phaseLabel}に合う食事アイデアを取得します。`, thinking: '考え中...', generate: 'レシピ生成', suggestion: 'Luna29の提案', reset: 'リセット' },
+    pt: { done: 'Concluído', mealIdea: 'Ideia de refeição', mealHint: `Receba uma ideia de refeição para a fase ${phaseLabel}.`, thinking: 'Pensando...', generate: 'Gerar receita', suggestion: 'Sugestão da Luna29', reset: 'Redefinir' }
   };
-  const copy = copyByLang[lang];
+  const copy = getLang(copyByLang, lang);
   type FuelCategoryKey = keyof typeof ui.fuel.categories;
   
   const [log, setLog] = useState(() => dataService.getLog());
@@ -219,7 +219,7 @@ export const FuelCompass: React.FC<FuelCompassProps> = ({ phase, lang }) => {
           
           <div className="p-8 bg-slate-100/50 dark:bg-slate-950 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 shadow-luna-inset">
             <p className="text-sm font-medium text-slate-600 dark:text-slate-400 italic leading-relaxed">
-               "{reasonByLang[lang][phase] || data.reason}"
+               "{getLang(reasonByLang, lang)[phase] || data.reason}"
             </p>
           </div>
 

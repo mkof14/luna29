@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { UI_COPY } from '../constants';
+import { UI_COPY, LangCopy, getLang } from '../constants';
 import { Language } from '../constants';
 
 interface Action {
@@ -10,7 +10,7 @@ interface Action {
 }
 
 export const NextActionsPanel: React.FC<{ actions: Action[]; lang?: Language }> = ({ actions, lang = 'en' }) => {
-  const copyByLang: Record<Language, { balancedTitle: string; balancedBody: string; observation: string; note: string }> = {
+  const copyByLang: LangCopy< { balancedTitle: string; balancedBody: string; observation: string; note: string }> = {
     en: {
       balancedTitle: 'All systems are in balance',
       balancedBody: 'Today your body does not require any special observation prompts.',
@@ -66,7 +66,7 @@ export const NextActionsPanel: React.FC<{ actions: Action[]; lang?: Language }> 
       note: 'Isto não são tarefas, mas temas para seu diálogo interno.'
     }
   };
-  const copy = copyByLang[lang];
+  const copy = getLang(copyByLang, lang);
 
   if (actions.length === 0) {
     return (

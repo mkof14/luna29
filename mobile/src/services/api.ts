@@ -102,7 +102,7 @@ export async function fetchTodayView(mobileId?: string): Promise<TodayViewPayloa
   if (!hasApiBaseUrl) {
     return {
       userName: 'Anna',
-      title: 'Today with Luna',
+      title: 'Today with Luna29',
       explanation: 'Today may feel a little slower. Sleep was shorter last night and your body is in the luteal phase.',
       continuity: continuityMessage,
       context: defaultContextSignal,

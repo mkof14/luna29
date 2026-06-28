@@ -9,7 +9,7 @@ import {
 } from './types';
 
 /**
- * LUNA BALANCE: COMPONENT SPECIFICATION v2.2
+ * LUNA29 BALANCE: COMPONENT SPECIFICATION v2.2
  * Detailed architecture for the UI presentation layer.
  */
 

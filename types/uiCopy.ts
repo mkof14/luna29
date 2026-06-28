@@ -15,6 +15,7 @@ export interface AuthCopy {
     signup: string;
     noAccount: string;
     hasAccount: string;
+    backToPublic?: string;
   };
 }
 

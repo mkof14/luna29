@@ -1,5 +1,5 @@
 import React from 'react';
-import { Language } from '../../constants';
+import { Language, LangCopy, getLang } from '../../constants';
 
 interface PublicMapSectionProps {
   lang: Language;
@@ -24,42 +24,42 @@ export const PublicMapSection: React.FC<PublicMapSectionProps> = ({
   appliedBody,
   bodyMapBackgroundStyle,
 }) => {
-  const lunaBalanceVisionByLang: Record<Language, { title: string; subtitle: string; points: [string, string, string, string]; ending: string }> = {
-    en: { title: 'Luna Balance', subtitle: 'Luna Balance is a visual map of physiological rhythms. It shows how hormonal and biological markers interact and influence your state.', points: ['Energy', 'Mood', 'Focus', 'Recovery'], ending: 'Instead of isolated numbers, Luna builds a clear picture of inner dynamics over time.' },
-    ru: { title: 'Luna Balance', subtitle: 'Luna Balance — визуальная карта физиологических ритмов. Она показывает, как гормональные и биологические маркеры взаимодействуют и влияют на состояние.', points: ['Энергия', 'Настроение', 'Концентрация', 'Восстановление'], ending: 'Вместо отдельных чисел Luna формирует целостную картину внутренней динамики во времени.' },
-    uk: { title: 'Luna Balance', subtitle: 'Luna Balance — візуальна карта фізіологічних ритмів. Вона показує, як гормональні й біологічні маркери взаємодіють і впливають на стан.', points: ['Енергія', 'Настрій', 'Концентрація', 'Відновлення'], ending: 'Замість окремих чисел Luna формує цілісну картину внутрішньої динаміки у часі.' },
-    es: { title: 'Luna Balance', subtitle: 'Luna Balance es un mapa visual de ritmos fisiológicos. Muestra cómo los marcadores hormonales y biológicos interactúan e influyen en tu estado.', points: ['Energía', 'Ánimo', 'Enfoque', 'Recuperación'], ending: 'En lugar de números aislados, Luna construye una imagen clara de tu dinámica interna a lo largo del tiempo.' },
-    fr: { title: 'Luna Balance', subtitle: 'Luna Balance est une carte visuelle des rythmes physiologiques. Elle montre comment les marqueurs hormonaux et biologiques interagissent et influencent votre état.', points: ['Énergie', 'Humeur', 'Focus', 'Récupération'], ending: 'Au lieu de chiffres isolés, Luna construit une image claire de votre dynamique interne dans le temps.' },
-    de: { title: 'Luna Balance', subtitle: 'Luna Balance ist eine visuelle Karte physiologischer Rhythmen. Sie zeigt, wie hormonelle und biologische Marker interagieren und deinen Zustand beeinflussen.', points: ['Energie', 'Stimmung', 'Fokus', 'Regeneration'], ending: 'Statt isolierter Zahlen zeigt Luna ein klares Bild deiner inneren Dynamik über die Zeit.' },
-    zh: { title: 'Luna Balance', subtitle: 'Luna Balance 是一张生理节律可视化地图，展示激素与生物指标如何相互作用并影响你的状态。', points: ['能量', '情绪', '专注', '恢复'], ending: 'Luna 不只给你零散数字，而是给出随时间变化的内在动态全景。' },
-    ja: { title: 'Luna Balance', subtitle: 'Luna Balance は生理リズムを可視化するマップです。ホルモンや生体指標の相互作用を示し、今の状態を読み解きます。', points: ['エネルギー', '気分', '集中', '回復'], ending: '単発の数値ではなく、時間軸での内的ダイナミクスを明確に可視化します。' },
-    pt: { title: 'Luna Balance', subtitle: 'Luna Balance e um mapa visual de ritmos fisiologicos. Mostra como marcadores hormonais e biologicos interagem e influenciam seu estado.', points: ['Energia', 'Humor', 'Foco', 'Recuperacao'], ending: 'Em vez de numeros isolados, a Luna constrói uma imagem clara da dinamica interna ao longo do tempo.' },
+  const lunaBalanceVisionByLang: LangCopy< { title: string; subtitle: string; points: [string, string, string, string]; ending: string }> = {
+    en: { title: 'Luna29 Balance', subtitle: 'Luna29 Balance is a visual map of physiological rhythms. It shows how hormonal and biological markers interact and influence your state.', points: ['Energy', 'Mood', 'Focus', 'Recovery'], ending: 'Instead of isolated numbers, Luna29 builds a clear picture of inner dynamics over time.' },
+    ru: { title: 'Luna29 Balance', subtitle: 'Luna29 Balance — визуальная карта физиологических ритмов. Она показывает, как гормональные и биологические маркеры взаимодействуют и влияют на состояние.', points: ['Энергия', 'Настроение', 'Концентрация', 'Восстановление'], ending: 'Вместо отдельных чисел Luna29 формирует целостную картину внутренней динамики во времени.' },
+    uk: { title: 'Luna29 Balance', subtitle: 'Luna29 Balance — візуальна карта фізіологічних ритмів. Вона показує, як гормональні й біологічні маркери взаємодіють і впливають на стан.', points: ['Енергія', 'Настрій', 'Концентрація', 'Відновлення'], ending: 'Замість окремих чисел Luna29 формує цілісну картину внутрішньої динаміки у часі.' },
+    es: { title: 'Luna29 Balance', subtitle: 'Luna29 Balance es un mapa visual de ritmos fisiológicos. Muestra cómo los marcadores hormonales y biológicos interactúan e influyen en tu estado.', points: ['Energía', 'Ánimo', 'Enfoque', 'Recuperación'], ending: 'En lugar de números aislados, Luna29 construye una imagen clara de tu dinámica interna a lo largo del tiempo.' },
+    fr: { title: 'Luna29 Balance', subtitle: 'Luna29 Balance est une carte visuelle des rythmes physiologiques. Elle montre comment les marqueurs hormonaux et biologiques interagissent et influencent votre état.', points: ['Énergie', 'Humeur', 'Focus', 'Récupération'], ending: 'Au lieu de chiffres isolés, Luna29 construit une image claire de votre dynamique interne dans le temps.' },
+    de: { title: 'Luna29 Balance', subtitle: 'Luna29 Balance ist eine visuelle Karte physiologischer Rhythmen. Sie zeigt, wie hormonelle und biologische Marker interagieren und deinen Zustand beeinflussen.', points: ['Energie', 'Stimmung', 'Fokus', 'Regeneration'], ending: 'Statt isolierter Zahlen zeigt Luna29 ein klares Bild deiner inneren Dynamik über die Zeit.' },
+    zh: { title: 'Luna29 Balance', subtitle: 'Luna29 Balance 是一张生理节律可视化地图，展示激素与生物指标如何相互作用并影响你的状态。', points: ['能量', '情绪', '专注', '恢复'], ending: 'Luna29 不只给你零散数字，而是给出随时间变化的内在动态全景。' },
+    ja: { title: 'Luna29 Balance', subtitle: 'Luna29 Balance は生理リズムを可視化するマップです。ホルモンや生体指標の相互作用を示し、今の状態を読み解きます。', points: ['エネルギー', '気分', '集中', '回復'], ending: '単発の数値ではなく、時間軸での内的ダイナミクスを明確に可視化します。' },
+    pt: { title: 'Luna29 Balance', subtitle: 'Luna29 Balance e um mapa visual de ritmos fisiologicos. Mostra como marcadores hormonais e biologicos interagem e influenciam seu estado.', points: ['Energia', 'Humor', 'Foco', 'Recuperacao'], ending: 'Em vez de numeros isolados, a Luna29 constrói uma imagem clara da dinamica interna ao longo do tempo.' },
   };
-  const innerWeatherByLang: Record<Language, { title: string; intro: string; points: [string, string, string]; line1: string; line2: string; line3: string }> = {
-    en: { title: 'INNER WEATHER', intro: 'Short explanation:', points: ['energy shifts', 'mood shifts', 'focus shifts'], line1: 'But these changes are rarely random.', line2: 'Most often they are rhythms of physiology.', line3: 'Luna helps you see this movement as a map of inner weather.' },
-    ru: { title: 'ВНУТРЕННЯЯ ПОГОДА', intro: 'Короткое объяснение:', points: ['энергия меняется', 'настроение меняется', 'концентрация меняется'], line1: 'Но эти изменения редко случайны.', line2: 'Чаще это ритмы физиологии.', line3: 'Luna помогает увидеть эту динамику как карту внутренней погоды.' },
-    uk: { title: 'ВНУТРІШНЯ ПОГОДА', intro: 'Коротке пояснення:', points: ['енергія змінюється', 'настрій змінюється', 'фокус змінюється'], line1: 'Але ці зміни рідко випадкові.', line2: 'Найчастіше це ритми фізіології.', line3: 'Luna допомагає побачити цю динаміку як карту внутрішньої погоди.' },
-    es: { title: 'CLIMA INTERNO', intro: 'Explicación breve:', points: ['la energía cambia', 'el ánimo cambia', 'el foco cambia'], line1: 'Pero estos cambios rara vez son aleatorios.', line2: 'Con más frecuencia son ritmos fisiológicos.', line3: 'Luna te ayuda a ver esta dinámica como un mapa de clima interno.' },
-    fr: { title: 'METEO INTERIEURE', intro: 'Explication courte:', points: ['l energie change', 'l humeur change', 'la concentration change'], line1: 'Mais ces changements sont rarement aleatoires.', line2: 'Le plus souvent, ce sont des rythmes physiologiques.', line3: 'Luna vous aide a voir cette dynamique comme une carte de meteo interieure.' },
-    de: { title: 'INNERES WETTER', intro: 'Kurze Erklärung:', points: ['Energie verändert sich', 'Stimmung verändert sich', 'Fokus verändert sich'], line1: 'Diese Veränderungen sind jedoch selten zufällig.', line2: 'Meist sind es physiologische Rhythmen.', line3: 'Luna hilft dir, diese Dynamik als innere Wetterkarte zu sehen.' },
-    zh: { title: '内在天气', intro: '简短说明：', points: ['能量会变化', '情绪会变化', '专注会变化'], line1: '但这些变化很少是随机的。', line2: '更常见的是生理节律在起作用。', line3: 'Luna 帮助你把这种动态看作一张内在天气地图。' },
-    ja: { title: 'インナーウェザー', intro: '短い説明：', points: ['エネルギーは変わる', '気分は変わる', '集中は変わる'], line1: 'しかし、これらの変化は偶然ではありません。', line2: '多くは生理的リズムです。', line3: 'Luna はこの動きを「内なる天気図」として見える化します。' },
-    pt: { title: 'CLIMA INTERNO', intro: 'Explicação curta:', points: ['a energia muda', 'o humor muda', 'a concentração muda'], line1: 'Mas essas mudanças raramente são aleatórias.', line2: 'Na maioria das vezes, são ritmos da fisiologia.', line3: 'A Luna ajuda você a ver essa dinâmica como um mapa do clima interno.' },
+  const innerWeatherByLang: LangCopy< { title: string; intro: string; points: [string, string, string]; line1: string; line2: string; line3: string }> = {
+    en: { title: 'INNER WEATHER', intro: 'Short explanation:', points: ['energy shifts', 'mood shifts', 'focus shifts'], line1: 'But these changes are rarely random.', line2: 'Most often they are rhythms of physiology.', line3: 'Luna29 helps you see this movement as a map of inner weather.' },
+    ru: { title: 'ВНУТРЕННЯЯ ПОГОДА', intro: 'Короткое объяснение:', points: ['энергия меняется', 'настроение меняется', 'концентрация меняется'], line1: 'Но эти изменения редко случайны.', line2: 'Чаще это ритмы физиологии.', line3: 'Luna29 помогает увидеть эту динамику как карту внутренней погоды.' },
+    uk: { title: 'ВНУТРІШНЯ ПОГОДА', intro: 'Коротке пояснення:', points: ['енергія змінюється', 'настрій змінюється', 'фокус змінюється'], line1: 'Але ці зміни рідко випадкові.', line2: 'Найчастіше це ритми фізіології.', line3: 'Luna29 допомагає побачити цю динаміку як карту внутрішньої погоди.' },
+    es: { title: 'CLIMA INTERNO', intro: 'Explicación breve:', points: ['la energía cambia', 'el ánimo cambia', 'el foco cambia'], line1: 'Pero estos cambios rara vez son aleatorios.', line2: 'Con más frecuencia son ritmos fisiológicos.', line3: 'Luna29 te ayuda a ver esta dinámica como un mapa de clima interno.' },
+    fr: { title: 'METEO INTERIEURE', intro: 'Explication courte:', points: ['l energie change', 'l humeur change', 'la concentration change'], line1: 'Mais ces changements sont rarement aleatoires.', line2: 'Le plus souvent, ce sont des rythmes physiologiques.', line3: 'Luna29 vous aide a voir cette dynamique comme une carte de meteo interieure.' },
+    de: { title: 'INNERES WETTER', intro: 'Kurze Erklärung:', points: ['Energie verändert sich', 'Stimmung verändert sich', 'Fokus verändert sich'], line1: 'Diese Veränderungen sind jedoch selten zufällig.', line2: 'Meist sind es physiologische Rhythmen.', line3: 'Luna29 hilft dir, diese Dynamik als innere Wetterkarte zu sehen.' },
+    zh: { title: '内在天气', intro: '简短说明：', points: ['能量会变化', '情绪会变化', '专注会变化'], line1: '但这些变化很少是随机的。', line2: '更常见的是生理节律在起作用。', line3: 'Luna29 帮助你把这种动态看作一张内在天气地图。' },
+    ja: { title: 'インナーウェザー', intro: '短い説明：', points: ['エネルギーは変わる', '気分は変わる', '集中は変わる'], line1: 'しかし、これらの変化は偶然ではありません。', line2: '多くは生理的リズムです。', line3: 'Luna29 はこの動きを「内なる天気図」として見える化します。' },
+    pt: { title: 'CLIMA INTERNO', intro: 'Explicação curta:', points: ['a energia muda', 'o humor muda', 'a concentração muda'], line1: 'Mas essas mudanças raramente são aleatórias.', line2: 'Na maioria das vezes, são ritmos da fisiologia.', line3: 'A Luna29 ajuda você a ver essa dinâmica como um mapa do clima interno.' },
   };
-  const mapCoreLabelByLang: Record<Language, string> = {
-    en: 'Luna Balance Core',
-    ru: 'Ядро Luna Balance',
-    uk: 'Ядро Luna Balance',
-    es: 'Nucleo De Luna Balance',
-    fr: 'Noyau Luna Balance',
-    de: 'Luna Balance Kern',
-    zh: 'Luna Balance 核心',
-    ja: 'Luna Balance コア',
-    pt: 'Nucleo Luna Balance',
+  const mapCoreLabelByLang: LangCopy< string> = {
+    en: 'Luna29 Balance Core',
+    ru: 'Ядро Luna29 Balance',
+    uk: 'Ядро Luna29 Balance',
+    es: 'Nucleo De Luna29 Balance',
+    fr: 'Noyau Luna29 Balance',
+    de: 'Luna29 Balance Kern',
+    zh: 'Luna29 Balance 核心',
+    ja: 'Luna29 Balance コア',
+    pt: 'Nucleo Luna29 Balance',
   };
-  const lunaBalanceVision = lunaBalanceVisionByLang[lang] || lunaBalanceVisionByLang.en;
-  const innerWeather = innerWeatherByLang[lang] || innerWeatherByLang.en;
-  const coreLabel = mapCoreLabelByLang[lang] || mapCoreLabelByLang.en;
+  const lunaBalanceVision = getLang(lunaBalanceVisionByLang, lang) || lunaBalanceVisionByLang.en;
+  const innerWeather = getLang(innerWeatherByLang, lang) || innerWeatherByLang.en;
+  const coreLabel = getLang(mapCoreLabelByLang, lang) || mapCoreLabelByLang.en;
   const cards = [
     { title: lunaBalanceVision.points[0], text: mapCards.weatherText, icon: '🌙' },
     { title: lunaBalanceVision.points[1], text: mapCards.memoryText, icon: '🌊' },

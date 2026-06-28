@@ -1,4 +1,3 @@
-
 import React, { useId } from 'react';
 
 interface LogoProps {
@@ -8,10 +7,8 @@ interface LogoProps {
 }
 
 /**
- * Luna Logo Component
- * Renders the brand name "Luna".
- * Updated: Removed the signature path and entry "blink" animations.
- * Only the smooth color shift remains.
+ * Luna29 Logo Component
+ * Renders the brand wordmark "Luna29".
  */
 export const Logo: React.FC<LogoProps> = ({ className = "", size = "md", variant = 'text' }) => {
   const gradientSeed = useId().replace(/:/g, '');
@@ -25,6 +22,7 @@ export const Logo: React.FC<LogoProps> = ({ className = "", size = "md", variant
   if (variant === 'animated') {
     const strokeGradientId = `luna-ink-stroke-${gradientSeed}`;
     const fillGradientId = `luna-ink-fill-${gradientSeed}`;
+    const suffixGradientId = `luna-ink-suffix-${gradientSeed}`;
     const letters = [
       { char: 'L', x: 30, dash: 170, delay: 0 },
       { char: 'u', x: 95, dash: 150, delay: 0.5 },
@@ -76,6 +74,24 @@ export const Logo: React.FC<LogoProps> = ({ className = "", size = "md", variant
                 />
               </stop>
             </linearGradient>
+            <linearGradient id={suffixGradientId} x1="100%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#f59e0b">
+                <animate
+                  attributeName="stop-color"
+                  values="#f59e0b;#ec4899;#a855f7;#2dd4bf;#f59e0b"
+                  dur="20s"
+                  repeatCount="indefinite"
+                />
+              </stop>
+              <stop offset="100%" stopColor="#f97316">
+                <animate
+                  attributeName="stop-color"
+                  values="#f97316;#8b5cf6;#14b8a6;#fb7185;#f97316"
+                  dur="20s"
+                  repeatCount="indefinite"
+                />
+              </stop>
+            </linearGradient>
           </defs>
 
           <style>
@@ -119,6 +135,10 @@ export const Logo: React.FC<LogoProps> = ({ className = "", size = "md", variant
                 opacity: 0;
                 filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.35));
               }
+              .luna-ink-suffix {
+                fill: url(#${suffixGradientId});
+                opacity: 0.95;
+              }
             `}
           </style>
 
@@ -140,6 +160,9 @@ export const Logo: React.FC<LogoProps> = ({ className = "", size = "md", variant
                 {letter.char}
               </text>
             ))}
+            <text x="228" y="68" className="luna-ink-suffix font-brand" style={{ fontSize: '3.8rem', fontWeight: 900 }}>
+              29
+            </text>
           </g>
         </svg>
       </div>
@@ -147,8 +170,9 @@ export const Logo: React.FC<LogoProps> = ({ className = "", size = "md", variant
   }
 
   return (
-    <span className={`font-brand animate-color-shift-luna leading-none pt-1 select-none transition-all hover:scale-105 active:scale-95 cursor-pointer inline-block drop-shadow-sm ${sizeClasses[size]} ${className}`}>
-      Luna
+    <span className={`font-brand leading-none pt-1 select-none transition-all hover:scale-105 active:scale-95 cursor-pointer inline-flex items-baseline drop-shadow-sm ${sizeClasses[size]} ${className}`}>
+      <span className="animate-color-shift-luna">Luna</span>
+      <span className="text-[0.58em] font-black tracking-tight leading-none translate-y-[0.04em] animate-color-shift-luna-suffix">29</span>
     </span>
   );
 };

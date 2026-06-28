@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Language } from '../constants';
+import { Language, LangCopy, getLang } from '../constants';
 import type { Copy, ExtraHowCopy } from '../utils/howItWorksContent';
 
 interface HowItWorksViewProps {
@@ -8,7 +8,7 @@ interface HowItWorksViewProps {
 }
 
 export const HowItWorksView: React.FC<HowItWorksViewProps> = ({ lang, onBack }) => {
-  const loadingByLang: Record<Language, string> = {
+  const loadingByLang: LangCopy< string> = {
     en: 'Loading...',
     ru: 'Загрузка...',
     uk: 'Завантаження...',
@@ -21,8 +21,8 @@ export const HowItWorksView: React.FC<HowItWorksViewProps> = ({ lang, onBack }) 
   };
   const [activeStep, setActiveStep] = useState(0);
   const [content, setContent] = useState<{
-    copy: Record<Language, Copy>;
-    extra: Record<Language, ExtraHowCopy>;
+    copy: LangCopy< Copy>;
+    extra: LangCopy< ExtraHowCopy>;
   } | null>(null);
   useEffect(() => {
     let alive = true;
@@ -37,7 +37,7 @@ export const HowItWorksView: React.FC<HowItWorksViewProps> = ({ lang, onBack }) 
   if (!content) {
     return (
       <section className="max-w-6xl mx-auto pb-20 p-6 md:p-8 luna-page-shell luna-page-knowledge animate-in fade-in duration-500">
-        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">{loadingByLang[lang] || loadingByLang.en}</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">{getLang(loadingByLang, lang) || loadingByLang.en}</p>
       </section>
     );
   }

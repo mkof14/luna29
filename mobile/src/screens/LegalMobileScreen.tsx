@@ -28,15 +28,15 @@ export function LegalMobileScreen({
       sections: [
         {
           title: 'Privacy Notice',
-          body: 'Luna keeps personal reflections private and uses protected services for account and security workflows.',
+          body: 'Luna29 keeps personal reflections private and uses protected services for account and security workflows.',
         },
         {
           title: 'Terms of Use',
-          body: 'By using Luna, you agree to use the service respectfully and keep your account credentials secure.',
+          body: 'By using Luna29, you agree to use the service respectfully and keep your account credentials secure.',
         },
         {
           title: 'Cookies & Device Data',
-          body: 'Luna uses essential cookies and local device data to keep sessions, language, and core experience stable.',
+          body: 'Luna29 uses essential cookies and local device data to keep sessions, language, and core experience stable.',
         },
         {
           title: 'Data Rights',
@@ -44,7 +44,7 @@ export function LegalMobileScreen({
         },
         {
           title: 'Medical Disclaimer',
-          body: 'Luna is an awareness companion and not a medical diagnosis tool. Consult your doctor when needed.',
+          body: 'Luna29 is an awareness companion and not a medical diagnosis tool. Consult your doctor when needed.',
         },
       ],
     },
@@ -54,15 +54,15 @@ export function LegalMobileScreen({
       sections: [
         {
           title: 'Уведомление о приватности',
-          body: 'Luna сохраняет личные записи приватными и использует защищенные сервисы для аккаунта и безопасности.',
+          body: 'Luna29 сохраняет личные записи приватными и использует защищенные сервисы для аккаунта и безопасности.',
         },
         {
           title: 'Условия использования',
-          body: 'Используя Luna, вы соглашаетесь бережно использовать сервис и хранить данные входа в безопасности.',
+          body: 'Используя Luna29, вы соглашаетесь бережно использовать сервис и хранить данные входа в безопасности.',
         },
         {
           title: 'Cookies и данные устройства',
-          body: 'Luna использует базовые cookies и локальные данные устройства для сессии, языка и стабильной работы.',
+          body: 'Luna29 использует базовые cookies и локальные данные устройства для сессии, языка и стабильной работы.',
         },
         {
           title: 'Права на данные',
@@ -70,7 +70,7 @@ export function LegalMobileScreen({
         },
         {
           title: 'Медицинский дисклеймер',
-          body: 'Luna — инструмент осознанности, а не диагностика. При необходимости обратитесь к врачу.',
+          body: 'Luna29 — инструмент осознанности, а не диагностика. При необходимости обратитесь к врачу.',
         },
       ],
     },
@@ -80,15 +80,15 @@ export function LegalMobileScreen({
       sections: [
         {
           title: 'Aviso de privacidad',
-          body: 'Luna mantiene privadas las reflexiones personales y usa servicios protegidos para cuenta y seguridad.',
+          body: 'Luna29 mantiene privadas las reflexiones personales y usa servicios protegidos para cuenta y seguridad.',
         },
         {
           title: 'Terminos de uso',
-          body: 'Al usar Luna aceptas usar el servicio con cuidado y mantener seguras tus credenciales.',
+          body: 'Al usar Luna29 aceptas usar el servicio con cuidado y mantener seguras tus credenciales.',
         },
         {
           title: 'Cookies y datos del dispositivo',
-          body: 'Luna usa cookies esenciales y datos locales para sesion, idioma y estabilidad de la experiencia.',
+          body: 'Luna29 usa cookies esenciales y datos locales para sesion, idioma y estabilidad de la experiencia.',
         },
         {
           title: 'Derechos de datos',
@@ -96,7 +96,7 @@ export function LegalMobileScreen({
         },
         {
           title: 'Descargo medico',
-          body: 'Luna es una companera de conciencia, no una herramienta de diagnostico medico.',
+          body: 'Luna29 es una companera de conciencia, no una herramienta de diagnostico medico.',
         },
       ],
     },

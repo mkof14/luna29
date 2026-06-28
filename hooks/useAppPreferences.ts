@@ -1,10 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Language, TRANSLATIONS } from '../constants';
-
-const SUPPORTED_LANGUAGES: readonly Language[] = ['en', 'ru', 'uk', 'es', 'fr', 'de', 'zh', 'ja', 'pt'];
-
-const isSupportedLanguage = (value: string | null): value is Language =>
-  Boolean(value && SUPPORTED_LANGUAGES.includes(value as Language));
+import { isRtlLanguage, isSupportedLanguage } from '../utils/languages';
 
 export const useAppPreferences = () => {
   const [lang, setLang] = useState<Language>(() => {
@@ -13,13 +9,16 @@ export const useAppPreferences = () => {
   });
 
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-    return 'light';
+    const saved = localStorage.getItem('luna_theme');
+    return saved === 'dark' ? 'dark' : 'light';
   });
 
   const ui = useMemo(() => TRANSLATIONS[lang], [lang]);
 
   useEffect(() => {
     localStorage.setItem('luna_lang', lang);
+    document.documentElement.lang = lang;
+    document.documentElement.dir = isRtlLanguage(lang) ? 'rtl' : 'ltr';
   }, [lang]);
 
   useEffect(() => {

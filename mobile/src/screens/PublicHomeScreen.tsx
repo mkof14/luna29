@@ -49,19 +49,19 @@ export function PublicHomeScreen({
     support: baseLang === 'ru' ? 'Поддержка' : baseLang === 'es' ? 'Soporte' : 'Support',
     signin: baseLang === 'ru' ? 'Вход / Админ' : baseLang === 'es' ? 'Entrar / Admin' : 'Sign in / Admin',
     oneMinute: baseLang === 'ru' ? 'Что можно сделать за одну минуту' : baseLang === 'es' ? 'Que puedes hacer en un minuto' : 'What you can do in one minute',
-    s1: baseLang === 'ru' ? '1. Поговорить с Luna' : baseLang === 'es' ? '1. Hablar con Luna' : '1. Speak to Luna',
+    s1: baseLang === 'ru' ? '1. Поговорить с Luna29' : baseLang === 'es' ? '1. Hablar con Luna29' : '1. Speak to Luna29',
     s2: baseLang === 'ru' ? '2. Сделать быстрый check-in' : baseLang === 'es' ? '2. Hacer un check-in rapido' : '2. Make a quick check-in',
     s3: baseLang === 'ru' ? '3. Получить мягкий отклик' : baseLang === 'es' ? '3. Recibir una reflexion suave' : '3. Receive a gentle reflection',
     pattern: baseLang === 'ru' ? 'Превью паттерна' : baseLang === 'es' ? 'Vista de patron' : 'Pattern preview',
     p1: baseLang === 'ru' ? 'Энергия может быть ниже, если сон короче.' : baseLang === 'es' ? 'La energia puede sentirse mas baja cuando duermes menos.' : 'Energy can feel lower when sleep is shorter.',
-    p2: baseLang === 'ru' ? 'Luna помогает замечать это заранее и быть мягче к себе.' : baseLang === 'es' ? 'Luna te ayuda a notarlo antes y a tratar tu dia con mas suavidad.' : 'Luna helps you notice this early and stay gentle with your day.',
+    p2: baseLang === 'ru' ? 'Luna29 помогает замечать это заранее и быть мягче к себе.' : baseLang === 'es' ? 'Luna29 te ayuda a notarlo antes y a tratar tu dia con mas suavidad.' : 'Luna29 helps you notice this early and stay gentle with your day.',
     footer: baseLang === 'ru' ? 'Футер' : baseLang === 'es' ? 'Footer' : 'Footer',
     supportFaq: baseLang === 'ru' ? 'Поддержка и FAQ' : baseLang === 'es' ? 'Soporte y FAQ' : 'Support & FAQ',
     legalPrivacy: baseLang === 'ru' ? 'Legal и Privacy' : baseLang === 'es' ? 'Legal y Privacy' : 'Legal & Privacy',
     openNow: baseLang === 'ru' ? 'Открыть апп сейчас' : baseLang === 'es' ? 'Abrir app ahora' : 'Open app now',
-    includes: baseLang === 'ru' ? 'Что включает Luna' : baseLang === 'es' ? 'Que incluye Luna' : 'What Luna includes',
+    includes: baseLang === 'ru' ? 'Что включает Luna29' : baseLang === 'es' ? 'Que incluye Luna29' : 'What Luna29 includes',
     startReflection: baseLang === 'ru' ? 'Начать заметку' : baseLang === 'es' ? 'Iniciar reflexion' : 'Start Reflection',
-    startReflectionText: baseLang === 'ru' ? 'Говорите с Luna своими словами.' : baseLang === 'es' ? 'Habla con Luna con tus propias palabras.' : 'Speak with Luna in your own words.',
+    startReflectionText: baseLang === 'ru' ? 'Говорите с Luna29 своими словами.' : baseLang === 'es' ? 'Habla con Luna29 con tus propias palabras.' : 'Speak with Luna29 in your own words.',
     checkin: 'Check-in',
     checkinText: baseLang === 'ru' ? 'Быстрый снимок настроения и энергии.' : baseLang === 'es' ? 'Resumen rapido de estado y energia.' : 'Quick mood and energy snapshot.',
     seeInsights: baseLang === 'ru' ? 'Смотреть инсайты' : baseLang === 'es' ? 'Ver insights' : 'See Insights',
@@ -95,7 +95,7 @@ export function PublicHomeScreen({
         <View style={styles.heroGlowTop} />
         <View style={styles.heroGlowBottom} />
         <View style={styles.heroTint}>
-          <Text style={styles.eyebrow}>Luna Home</Text>
+          <Text style={styles.eyebrow}>Luna29 Home</Text>
           <Text style={styles.title}>{copy.publicHome.title}</Text>
           <Text style={styles.subtitle}>{copy.publicHome.subtitle}</Text>
           <View style={styles.actionsRow}>

@@ -6,17 +6,18 @@ import { SurfaceCard } from '../components/SurfaceCard';
 import { colors } from '../theme/tokens';
 import { MobileLang, resolveLangBase } from '../i18n/mobileCopy';
 import { env, hasApiBaseUrl } from '../config/env';
+import { publicWebLink } from '../config/publicWeb';
 
 export function ContactMobileScreen({ onBack, lang }: { onBack: () => void; lang: MobileLang }) {
   const copy = {
-    en: { title: 'Contact', subtitle: 'Reach Luna support and partnership team.', mail: 'Email support', site: 'Open Luna website', send: 'Send message' },
-    ru: { title: 'Контакты', subtitle: 'Связь с поддержкой и партнёрской командой Luna.', mail: 'Написать в поддержку', site: 'Открыть сайт Luna', send: 'Отправить сообщение' },
-    es: { title: 'Contacto', subtitle: 'Contacta soporte y equipo de alianzas de Luna.', mail: 'Enviar email a soporte', site: 'Abrir sitio Luna', send: 'Enviar mensaje' },
+    en: { title: 'Contact', subtitle: 'Reach Luna29 support and partnership team.', mail: 'Email support', site: 'Open Luna29 website', send: 'Send message' },
+    ru: { title: 'Контакты', subtitle: 'Связь с поддержкой и партнёрской командой Luna29.', mail: 'Написать в поддержку', site: 'Открыть сайт Luna29', send: 'Отправить сообщение' },
+    es: { title: 'Contacto', subtitle: 'Contacta soporte y equipo de alianzas de Luna29.', mail: 'Enviar email a soporte', site: 'Abrir sitio Luna29', send: 'Enviar mensaje' },
   }[resolveLangBase(lang)];
 
   const [name, setName] = useState('Anna');
   const [email, setEmail] = useState('dnainform@gmail.com');
-  const [message, setMessage] = useState('I need support with my Luna account.');
+  const [message, setMessage] = useState('I need support with my Luna29 account.');
   const [status, setStatus] = useState('');
 
   async function sendMessage() {
@@ -49,7 +50,7 @@ export function ContactMobileScreen({ onBack, lang }: { onBack: () => void; lang
       <SurfaceCard>
         <Text style={styles.text}>dnainform@gmail.com</Text>
         <LunaButton variant="secondary" onPress={() => void Linking.openURL('mailto:dnainform@gmail.com')}>{copy.mail}</LunaButton>
-        <LunaButton variant="secondary" onPress={() => void Linking.openURL('https://luna-eta-rust.vercel.app/')}>{copy.site}</LunaButton>
+        <LunaButton variant="secondary" onPress={() => void Linking.openURL(publicWebLink('home'))}>{copy.site}</LunaButton>
       </SurfaceCard>
 
       <SurfaceCard style={styles.cardAlt}>

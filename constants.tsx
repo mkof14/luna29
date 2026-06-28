@@ -1,7 +1,16 @@
 
 import { HormoneStatus, HormoneData, CyclePhase } from './types';
 
-export type Language = 'en' | 'ru' | 'uk' | 'es' | 'fr' | 'de' | 'zh' | 'ja' | 'pt';
+export type Language = 'en' | 'ru' | 'uk' | 'es' | 'fr' | 'de' | 'zh' | 'ja' | 'pt' | 'ar' | 'he';
+
+export type LangCopy<T> = Partial<Record<Language, T>> & { en: T };
+
+export function getLang<T>(map: { en?: T } & Partial<Record<Language, T>>, lang: Language): T {
+  return (map[lang] ?? map.en) as T;
+}
+
+export const BRAND_NAME = 'Luna29';
+export const BRAND_NAME_UPPER = 'LUNA29';
 
 const en = {
   navigation: {
@@ -72,7 +81,7 @@ const en = {
     bridge: "Bridge",
     cycle: "Cycle",
     startCheckin: "Start Check-in",
-    talkToLuna: "Talk to Luna",
+    talkToLuna: "Talk to Luna29",
     archetypeModeActive: "Mode Active",
     thinking: "Thinking...",
     balanced: "Balanced.",
@@ -135,19 +144,19 @@ const en = {
     refineAction: "Refine Message",
     partnerFAQ: {
       title: "Partner FAQ",
-      subtitle: "Understanding the Luna system from the outside.",
+      subtitle: "Understanding the Luna29 system from the outside.",
       items: [
-        { q: "What is Luna?", a: "Luna is a wellness support system that maps physiological rhythms to help users understand their internal state. It's a mirror, not a coach." },
+        { q: "What is Luna29?", a: "Luna29 is a wellness support system that maps physiological rhythms to help users understand their internal state. It's a mirror, not a coach." },
         { q: "How can I support her?", a: "The best support is understanding. When she shares a 'Partner Note,' it's an invitation to sync with her current capacity, not a request for a solution." },
         { q: "Why does her mood change?", a: "Physiological cycles affect energy, sensitivity, and social bandwidth. These are natural shifts, not personal reactions." },
-        { q: "Is this medical?", a: "No. Luna is a mirror for self-observation. It doesn't diagnose. If you have medical concerns, please consult a professional." },
+        { q: "Is this medical?", a: "No. Luna29 is a mirror for self-observation. It doesn't diagnose. If you have medical concerns, please consult a professional." },
         { q: "How to read the 'Partner Note'?", a: "It's a bridge. It uses 'I' statements to explain her internal landscape. Read it as a weather report for her day." }
       ]
     }
   },
   contact: {
     headline: "Reach Out",
-    subheadline: "Direct communication with the Luna architecture team.",
+    subheadline: "Direct communication with the Luna29 architecture team.",
     supportTitle: "System Support",
     supportDesc: "Troubleshooting and technical inquiries.",
     feedbackTitle: "Evolution Ideas",
@@ -160,11 +169,11 @@ const en = {
   },
   auth: {
     recoveryHeadline: "Restore Access",
-    recoveryText: "Enter your account email and Luna will prepare a secure recovery route.",
+    recoveryText: "Enter your account email and Luna29 will prepare a secure recovery route.",
     email: "Email",
     recoveryCta: "Send Recovery Link",
-    headline: "Luna Authorization",
-    subheadline: "Private access to your Luna workspace and admin systems.",
+    headline: "Luna29 Authorization",
+    subheadline: "Private access to your Luna29 workspace and admin systems.",
     google: "Continue with Google",
     password: "Password",
     hide: "Hide",
@@ -173,7 +182,8 @@ const en = {
     login: "Sign In",
     signup: "Create Account",
     noAccount: "Need an account?",
-    hasAccount: "Already have an account?"
+    hasAccount: "Already have an account?",
+    backToPublic: "Back to public home",
   },
   publicHome: {
     tabs: {
@@ -190,7 +200,7 @@ const en = {
     signInUp: "Sign In / Up",
     heroTitleA: "Daily",
     heroTitleB: "Mirror.",
-    heroSubtitle: "Luna Home is a calm public entry point: observe your rhythm, understand your state, and enter private space when ready.",
+    heroSubtitle: "Luna29 Home is a calm public entry point: observe your rhythm, understand your state, and enter private space when ready.",
     panel: {
       phase: "Open",
       summary: "Presence before pressure. Rhythm before reaction.",
@@ -202,7 +212,7 @@ const en = {
       subtitle: "A section for sensing subtle shifts. Less diagnosis, more orientation.",
       cards: {
         weatherTitle: "Inner Weather",
-        weatherText: "Luna reads your state as weather: changing, valid, and worth listening to.",
+        weatherText: "Luna29 reads your state as weather: changing, valid, and worth listening to.",
         memoryTitle: "Rhythm Memory",
         memoryText: "Patterns become visible over days and weeks, helping you respond with less friction.",
         languageTitle: "Gentle Language",
@@ -218,7 +228,7 @@ const en = {
       middayText: "Re-check capacity and adjust plans with respect for your energy.",
       eveningTitle: "Evening",
       eveningText: "Close the day with a short note to preserve signal, not noise.",
-      noteTitle: "Luna Note",
+      noteTitle: "Luna29 Note",
       noteMain: "This Home is public by design. It gives orientation without extracting attention.",
       noteSub: "Your private member zone is where personal data, check-ins, and deeper tools live."
     },
@@ -226,14 +236,14 @@ const en = {
       title: "Privacy Promise",
       subtitle: "A protected center for your personal rhythm data.",
       cta: "Enter Member Zone",
-      body: "Luna follows a local-first approach. The public page remains informational and open. Personal records and role-specific tools stay inside the authenticated member space."
+      body: "Luna29 follows a local-first approach. The public page remains informational and open. Personal records and role-specific tools stay inside the authenticated member space."
     },
     footerTagline: "Public Home for orientation, rhythm, and note.",
-    footerCopy: "© 2026 LUNA • PUBLIC HOME"
+    footerCopy: "© 2026 LUNA29 • PUBLIC HOME"
   },
   shared: {
     footer: "Private & Local. Your data stays on your device.",
-    disclaimer: "Luna is not a medical service, medical device, diagnostic tool, or treatment provider. Luna does not provide medical advice, diagnosis, monitoring, or emergency care. Always consult a licensed healthcare professional."
+    disclaimer: "Luna29 is not a medical service, medical device, diagnostic tool, or treatment provider. Luna29 does not provide medical advice, diagnosis, monitoring, or emergency care. Always consult a licensed healthcare professional."
   }
 };
 
@@ -296,7 +306,7 @@ const ru = {
     bridge: "Мост",
     cycle: "Цикл",
     startCheckin: "Начать проверку",
-    talkToLuna: "Поговорить с Луной",
+    talkToLuna: "Поговорить с Luna29",
     archetypeModeActive: "Режим активен",
     thinking: "Думаю...",
     balanced: "Сбалансировано.",
@@ -359,23 +369,23 @@ const ru = {
     refineAction: "Уточнить сообщение",
     partnerFAQ: {
       title: "FAQ для партнеров",
-      subtitle: "Понимание системы Luna со стороны.",
+      subtitle: "Понимание системы Luna29 со стороны.",
       items: [
-        { q: "Что такое Luna?", a: "Luna — это система поддержки благополучия, которая сопоставляет физиологические ритмы, чтобы помочь пользователю понять свое внутреннее состояние. Это зеркало, а не коуч." },
+        { q: "Что такое Luna29?", a: "Luna29 — это система поддержки благополучия, которая сопоставляет физиологические ритмы, чтобы помочь пользователю понять свое внутреннее состояние. Это зеркало, а не коуч." },
         { q: "Как я могу ее поддержать?", a: "Лучшая поддержка — это понимание. Когда она делится «Запиской партнера», это приглашение синхронизироваться с ее текущими возможностями, а не просьба о решении." },
         { q: "Почему ее настроение меняется?", a: "Физиологические циклы влияют на энергию, чувствительность и социальную активность. Это естественные сдвиги, а не личные реакции." },
-        { q: "Это медицинское приложение?", a: "Нет. Luna — это зеркало для самонаблюдения. Она не ставит диагнозы. Если у вас есть медицинские вопросы, обратитесь к специалисту." },
+        { q: "Это медицинское приложение?", a: "Нет. Luna29 — это зеркало для самонаблюдения. Она не ставит диагнозы. Если у вас есть медицинские вопросы, обратитесь к специалисту." },
         { q: "Как читать «Записку партнера»?", a: "Это мост. В ней используются «Я-сообщения» для объяснения ее внутреннего ландшафта. Читайте это как прогноз погоды на ее день." }
       ]
     }
   },
   auth: {
     recoveryHeadline: "Восстановление доступа",
-    recoveryText: "Введите email аккаунта, и Luna подготовит безопасное восстановление.",
+    recoveryText: "Введите email аккаунта, и Luna29 подготовит безопасное восстановление.",
     email: "Email",
     recoveryCta: "Отправить ссылку",
-    headline: "Авторизация Luna",
-    subheadline: "Приватный вход в рабочее пространство Luna и админ-системы.",
+    headline: "Авторизация Luna29",
+    subheadline: "Приватный вход в рабочее пространство Luna29 и админ-системы.",
     google: "Войти через Google",
     password: "Пароль",
     hide: "Скрыть",
@@ -384,7 +394,8 @@ const ru = {
     login: "Войти",
     signup: "Создать аккаунт",
     noAccount: "Нужен аккаунт?",
-    hasAccount: "Уже есть аккаунт?"
+    hasAccount: "Уже есть аккаунт?",
+    backToPublic: "Назад на публичную главную",
   },
   publicHome: {
     tabs: {
@@ -401,7 +412,7 @@ const ru = {
     signInUp: "Вход / Регистрация",
     heroTitleA: "Ежедневное",
     heroTitleB: "Зеркало.",
-    heroSubtitle: "Luna — это спокойная публичная точка входа: наблюдайте свой ритм, понимайте состояние и входите в личное пространство, когда будете готовы.",
+    heroSubtitle: "Luna29 — это спокойная публичная точка входа: наблюдайте свой ритм, понимайте состояние и входите в личное пространство, когда будете готовы.",
     panel: {
       phase: "Открыто",
       summary: "Сначала присутствие. Потом действие.",
@@ -413,7 +424,7 @@ const ru = {
       subtitle: "Раздел для тонких сдвигов состояния. Меньше диагнозов, больше ориентации.",
       cards: {
         weatherTitle: "Внутренняя Погода",
-        weatherText: "Luna читает состояние как погоду: изменчивую, важную и достойную внимания.",
+        weatherText: "Luna29 читает состояние как погоду: изменчивую, важную и достойную внимания.",
         memoryTitle: "Память Ритма",
         memoryText: "Паттерны проявляются по дням и неделям, помогая действовать с меньшим напряжением.",
         languageTitle: "Мягкий Язык",
@@ -429,7 +440,7 @@ const ru = {
       middayText: "Проверьте ресурс и скорректируйте планы с уважением к энергии.",
       eveningTitle: "Вечер",
       eveningText: "Закройте день короткой заметкой, чтобы сохранять сигнал, а не шум.",
-      noteTitle: "Заметка Luna",
+      noteTitle: "Заметка Luna29",
       noteMain: "Эта главная страница публичная по дизайну. Она дает ориентир без борьбы за внимание.",
       noteSub: "Личная зона — это ваши данные, отметки состояния и более глубокие инструменты."
     },
@@ -437,14 +448,14 @@ const ru = {
       title: "Обещание Приватности",
       subtitle: "Защищенное пространство для ваших ритмов.",
       cta: "Войти в личную зону",
-      body: "Luna следует local-first подходу. Публичная страница остается информационной и открытой. Личные записи и ролевые инструменты находятся внутри авторизованной зоны."
+      body: "Luna29 следует local-first подходу. Публичная страница остается информационной и открытой. Личные записи и ролевые инструменты находятся внутри авторизованной зоны."
     },
     footerTagline: "Публичная главная для ориентации, ритма и заметок.",
-    footerCopy: "© 2026 LUNA • ПУБЛИЧНАЯ ГЛАВНАЯ"
+    footerCopy: "© 2026 LUNA29 • ПУБЛИЧНАЯ ГЛАВНАЯ"
   },
   shared: {
     footer: "Приватно и локально. Ваши данные остаются на вашем устройстве.",
-    disclaimer: "Luna не является медицинским сервисом, медицинским устройством, диагностическим инструментом или поставщиком лечения. Luna не предоставляет медицинских советов, диагнозов, мониторинга или экстренной помощи. Всегда обращайтесь к лицензированному медицинскому специалисту."
+    disclaimer: "Luna29 не является медицинским сервисом, медицинским устройством, диагностическим инструментом или поставщиком лечения. Luna29 не предоставляет медицинских советов, диагнозов, мониторинга или экстренной помощи. Всегда обращайтесь к лицензированному медицинскому специалисту."
   }
 };
 
@@ -492,7 +503,7 @@ const uk: TranslationSchema = {
     ...en.dashboard,
     quickCheckin: 'Чек-ін',
     startCheckin: 'Почати чек-ін',
-    talkToLuna: 'Поговорити з Luna',
+    talkToLuna: 'Поговорити з Luna29',
     dailyTip: 'Порада дня',
     bodyMap: 'Карта тіла',
   },
@@ -505,10 +516,10 @@ const uk: TranslationSchema = {
   auth: {
     ...en.auth,
     recoveryHeadline: 'Відновити доступ',
-    recoveryText: 'Введіть email облікового запису, і Luna підготує безпечне відновлення.',
+    recoveryText: 'Введіть email облікового запису, і Luna29 підготує безпечне відновлення.',
     recoveryCta: 'Надіслати посилання',
-    headline: 'Авторизація Luna',
-    subheadline: 'Приватний доступ до вашого простору Luna та адмін-систем.',
+    headline: 'Авторизація Luna29',
+    subheadline: 'Приватний доступ до вашого простору Luna29 та адмін-систем.',
     google: 'Продовжити з Google',
     password: 'Пароль',
     hide: 'Сховати',
@@ -526,13 +537,13 @@ const uk: TranslationSchema = {
     signInUp: 'Вхід / Реєстрація',
     heroTitleA: 'Щоденне',
     heroTitleB: 'Дзеркало.',
-    heroSubtitle: 'Luna — спокійна публічна точка входу: спостерігайте ритм, розумійте стан і заходьте у приватний простір, коли будете готові.',
+    heroSubtitle: 'Luna29 — спокійна публічна точка входу: спостерігайте ритм, розумійте стан і заходьте у приватний простір, коли будете готові.',
     footerTagline: 'Публічна головна для орієнтації, ритму та нотаток.',
-    footerCopy: '© 2026 LUNA • ПУБЛІЧНА ГОЛОВНА'
+    footerCopy: '© 2026 LUNA29 • ПУБЛІЧНА ГОЛОВНА'
   },
   shared: {
     footer: 'Приватно і локально. Ваші дані залишаються на вашому пристрої.',
-    disclaimer: 'Luna не є медичним сервісом, медичним пристроєм, діагностичним інструментом або засобом лікування. Luna не надає медичних порад, діагнозів, моніторингу чи екстреної допомоги. Завжди звертайтесь до ліцензованого медичного фахівця.'
+    disclaimer: 'Luna29 не є медичним сервісом, медичним пристроєм, діагностичним інструментом або засобом лікування. Luna29 не надає медичних порад, діагнозів, моніторингу чи екстреної допомоги. Завжди звертайтесь до ліцензованого медичного фахівця.'
   }
 };
 
@@ -564,7 +575,7 @@ const es: TranslationSchema = {
     ...en.dashboard,
     quickCheckin: 'Check-in',
     startCheckin: 'Iniciar check-in',
-    talkToLuna: 'Hablar con Luna',
+    talkToLuna: 'Hablar con Luna29',
     dailyTip: 'Consejo diario',
     bodyMap: 'Mapa corporal',
   },
@@ -577,10 +588,10 @@ const es: TranslationSchema = {
   auth: {
     ...en.auth,
     recoveryHeadline: 'Restablecer acceso',
-    recoveryText: 'Introduce el email de tu cuenta y Luna preparará una ruta segura de recuperación.',
+    recoveryText: 'Introduce el email de tu cuenta y Luna29 preparará una ruta segura de recuperación.',
     recoveryCta: 'Enviar enlace',
-    headline: 'Autorización Luna',
-    subheadline: 'Acceso privado a tu espacio Luna y sistemas de admin.',
+    headline: 'Autorización Luna29',
+    subheadline: 'Acceso privado a tu espacio Luna29 y sistemas de admin.',
     google: 'Continuar con Google',
     password: 'Contraseña',
     hide: 'Ocultar',
@@ -598,13 +609,13 @@ const es: TranslationSchema = {
     signInUp: 'Entrar / Crear cuenta',
     heroTitleA: 'Espejo',
     heroTitleB: 'Diario.',
-    heroSubtitle: 'Luna es una entrada pública y tranquila: observa tu ritmo, comprende tu estado y entra al espacio privado cuando quieras.',
+    heroSubtitle: 'Luna29 es una entrada pública y tranquila: observa tu ritmo, comprende tu estado y entra al espacio privado cuando quieras.',
     footerTagline: 'Página pública para orientación, ritmo y reflexión.',
-    footerCopy: '© 2026 LUNA • PÁGINA PÚBLICA'
+    footerCopy: '© 2026 LUNA29 • PÁGINA PÚBLICA'
   },
   shared: {
     footer: 'Privado y local. Tus datos se quedan en tu dispositivo.',
-    disclaimer: 'Luna no es un servicio médico, dispositivo médico, herramienta de diagnóstico ni proveedor de tratamiento. Luna no ofrece consejo médico, diagnóstico, monitorización ni atención de emergencia. Consulta siempre a un profesional sanitario autorizado.'
+    disclaimer: 'Luna29 no es un servicio médico, dispositivo médico, herramienta de diagnóstico ni proveedor de tratamiento. Luna29 no ofrece consejo médico, diagnóstico, monitorización ni atención de emergencia. Consulta siempre a un profesional sanitario autorizado.'
   }
 };
 
@@ -636,7 +647,7 @@ const fr: TranslationSchema = {
     ...en.dashboard,
     quickCheckin: 'Check-in',
     startCheckin: 'Commencer le check-in',
-    talkToLuna: 'Parler à Luna',
+    talkToLuna: 'Parler à Luna29',
     dailyTip: 'Conseil du jour',
     bodyMap: 'Carte du corps',
   },
@@ -649,10 +660,10 @@ const fr: TranslationSchema = {
   auth: {
     ...en.auth,
     recoveryHeadline: "Rétablir l'accès",
-    recoveryText: 'Entrez votre email de compte et Luna préparera une récupération sécurisée.',
+    recoveryText: 'Entrez votre email de compte et Luna29 préparera une récupération sécurisée.',
     recoveryCta: 'Envoyer le lien',
-    headline: 'Autorisation Luna',
-    subheadline: 'Accès privé à votre espace Luna et aux systèmes admin.',
+    headline: 'Autorisation Luna29',
+    subheadline: 'Accès privé à votre espace Luna29 et aux systèmes admin.',
     google: 'Continuer avec Google',
     password: 'Mot de passe',
     hide: 'Masquer',
@@ -670,13 +681,13 @@ const fr: TranslationSchema = {
     signInUp: 'Connexion / Inscription',
     heroTitleA: 'Miroir',
     heroTitleB: 'Quotidien.',
-    heroSubtitle: 'Luna est une entrée publique et apaisée: observez votre rythme, comprenez votre état et entrez dans votre espace privé quand vous êtes prête.',
+    heroSubtitle: 'Luna29 est une entrée publique et apaisée: observez votre rythme, comprenez votre état et entrez dans votre espace privé quand vous êtes prête.',
     footerTagline: 'Accueil public pour orientation, rythme et réflexion.',
-    footerCopy: '© 2026 LUNA • ACCUEIL PUBLIC'
+    footerCopy: '© 2026 LUNA29 • ACCUEIL PUBLIC'
   },
   shared: {
     footer: 'Privé et local. Vos données restent sur votre appareil.',
-    disclaimer: 'Luna n est pas un service medical, un dispositif medical, un outil de diagnostic ni un service de traitement. Luna ne fournit pas de conseil medical, de diagnostic, de suivi clinique ni de soins d urgence. Consultez toujours un professionnel de sante autorise.'
+    disclaimer: 'Luna29 n est pas un service medical, un dispositif medical, un outil de diagnostic ni un service de traitement. Luna29 ne fournit pas de conseil medical, de diagnostic, de suivi clinique ni de soins d urgence. Consultez toujours un professionnel de sante autorise.'
   }
 };
 
@@ -708,7 +719,7 @@ const de: TranslationSchema = {
     ...en.dashboard,
     quickCheckin: 'Check-in',
     startCheckin: 'Check-in starten',
-    talkToLuna: 'Mit Luna sprechen',
+    talkToLuna: 'Mit Luna29 sprechen',
     dailyTip: 'Tageshinweis',
     bodyMap: 'Körperkarte',
   },
@@ -721,10 +732,10 @@ const de: TranslationSchema = {
   auth: {
     ...en.auth,
     recoveryHeadline: 'Zugang wiederherstellen',
-    recoveryText: 'Gib deine Konto-E-Mail ein und Luna bereitet einen sicheren Wiederherstellungsweg vor.',
+    recoveryText: 'Gib deine Konto-E-Mail ein und Luna29 bereitet einen sicheren Wiederherstellungsweg vor.',
     recoveryCta: 'Link senden',
-    headline: 'Luna Anmeldung',
-    subheadline: 'Privater Zugang zu deinem Luna-Bereich und Admin-Systemen.',
+    headline: 'Luna29 Anmeldung',
+    subheadline: 'Privater Zugang zu deinem Luna29-Bereich und Admin-Systemen.',
     google: 'Mit Google fortfahren',
     password: 'Passwort',
     hide: 'Ausblenden',
@@ -742,13 +753,13 @@ const de: TranslationSchema = {
     signInUp: 'Anmelden / Registrieren',
     heroTitleA: 'Täglicher',
     heroTitleB: 'Spiegel.',
-    heroSubtitle: 'Luna ist ein ruhiger öffentlicher Einstieg: beobachte deinen Rhythmus, verstehe deinen Zustand und betrete den privaten Bereich, wenn du bereit bist.',
+    heroSubtitle: 'Luna29 ist ein ruhiger öffentlicher Einstieg: beobachte deinen Rhythmus, verstehe deinen Zustand und betrete den privaten Bereich, wenn du bereit bist.',
     footerTagline: 'Öffentliche Startseite für Orientierung, Rhythmus und Reflexion.',
-    footerCopy: '© 2026 LUNA • ÖFFENTLICHE STARTSEITE'
+    footerCopy: '© 2026 LUNA29 • ÖFFENTLICHE STARTSEITE'
   },
   shared: {
     footer: 'Privat und lokal. Deine Daten bleiben auf deinem Gerät.',
-    disclaimer: 'Luna ist kein medizinischer Dienst, kein Medizinprodukt, kein Diagnosetool und kein Behandlungsanbieter. Luna bietet keine medizinische Beratung, Diagnose, Ueberwachung oder Notfallversorgung. Wende dich immer an eine zugelassene medizinische Fachperson.'
+    disclaimer: 'Luna29 ist kein medizinischer Dienst, kein Medizinprodukt, kein Diagnosetool und kein Behandlungsanbieter. Luna29 bietet keine medizinische Beratung, Diagnose, Ueberwachung oder Notfallversorgung. Wende dich immer an eine zugelassene medizinische Fachperson.'
   }
 };
 
@@ -780,7 +791,7 @@ const zh: TranslationSchema = {
     ...en.dashboard,
     quickCheckin: '打卡',
     startCheckin: '开始打卡',
-    talkToLuna: '与 Luna 对话',
+    talkToLuna: '与 Luna29 对话',
     dailyTip: '每日提示',
     bodyMap: '身体地图',
   },
@@ -793,10 +804,10 @@ const zh: TranslationSchema = {
   auth: {
     ...en.auth,
     recoveryHeadline: '恢复访问',
-    recoveryText: '输入你的账号邮箱，Luna 将准备安全的恢复路径。',
+    recoveryText: '输入你的账号邮箱，Luna29 将准备安全的恢复路径。',
     recoveryCta: '发送恢复链接',
-    headline: 'Luna 登录',
-    subheadline: '私密访问你的 Luna 空间和管理系统。',
+    headline: 'Luna29 登录',
+    subheadline: '私密访问你的 Luna29 空间和管理系统。',
     google: '使用 Google 继续',
     password: '密码',
     hide: '隐藏',
@@ -814,13 +825,13 @@ const zh: TranslationSchema = {
     signInUp: '登录 / 注册',
     heroTitleA: '每日',
     heroTitleB: '镜像。',
-    heroSubtitle: 'Luna 是平静的公开入口：观察你的节律，理解你的状态，并在准备好时进入私密空间。',
+    heroSubtitle: 'Luna29 是平静的公开入口：观察你的节律，理解你的状态，并在准备好时进入私密空间。',
     footerTagline: '公开主页：用于定位、节律与反思。',
-    footerCopy: '© 2026 LUNA • 公开主页'
+    footerCopy: '© 2026 LUNA29 • 公开主页'
   },
   shared: {
     footer: '私密且本地化。你的数据保留在你的设备上。',
-    disclaimer: 'Luna 不是医疗服务、医疗设备、诊断工具或治疗提供方。Luna 不提供医疗建议、诊断、医疗监测或紧急护理。请始终咨询持证医疗专业人员。'
+    disclaimer: 'Luna29 不是医疗服务、医疗设备、诊断工具或治疗提供方。Luna29 不提供医疗建议、诊断、医疗监测或紧急护理。请始终咨询持证医疗专业人员。'
   }
 };
 
@@ -852,7 +863,7 @@ const ja: TranslationSchema = {
     ...en.dashboard,
     quickCheckin: 'チェックイン',
     startCheckin: 'チェックイン開始',
-    talkToLuna: 'Lunaと話す',
+    talkToLuna: 'Luna29と話す',
     dailyTip: '今日のヒント',
     bodyMap: 'ボディマップ',
   },
@@ -865,10 +876,10 @@ const ja: TranslationSchema = {
   auth: {
     ...en.auth,
     recoveryHeadline: 'アクセスを復元',
-    recoveryText: 'アカウントのメールを入力すると、Luna が安全な復旧ルートを準備します。',
+    recoveryText: 'アカウントのメールを入力すると、Luna29 が安全な復旧ルートを準備します。',
     recoveryCta: '復旧リンクを送信',
-    headline: 'Luna 認証',
-    subheadline: 'Lunaワークスペースと管理システムへのプライベートアクセス。',
+    headline: 'Luna29 認証',
+    subheadline: 'Luna29ワークスペースと管理システムへのプライベートアクセス。',
     google: 'Googleで続行',
     password: 'パスワード',
     hide: '非表示',
@@ -886,13 +897,13 @@ const ja: TranslationSchema = {
     signInUp: 'サインイン / サインアップ',
     heroTitleA: '毎日の',
     heroTitleB: 'ミラー。',
-    heroSubtitle: 'Luna は穏やかな公開入口です。リズムを観察し、状態を理解し、準備ができたらプライベート空間へ。',
+    heroSubtitle: 'Luna29 は穏やかな公開入口です。リズムを観察し、状態を理解し、準備ができたらプライベート空間へ。',
     footerTagline: '公開ホーム: 方向づけ、リズム、リフレクションのために。',
-    footerCopy: '© 2026 LUNA • 公開ホーム'
+    footerCopy: '© 2026 LUNA29 • 公開ホーム'
   },
   shared: {
     footer: 'プライベートかつローカル。データはあなたの端末に保存されます。',
-    disclaimer: 'Luna は医療サービス、医療機器、診断ツール、治療提供者ではありません。Luna は医療助言、診断、医療モニタリング、緊急対応を提供しません。必ず有資格の医療専門家に相談してください。'
+    disclaimer: 'Luna29 は医療サービス、医療機器、診断ツール、治療提供者ではありません。Luna29 は医療助言、診断、医療モニタリング、緊急対応を提供しません。必ず有資格の医療専門家に相談してください。'
   }
 };
 
@@ -924,7 +935,7 @@ const pt: TranslationSchema = {
     ...en.dashboard,
     quickCheckin: 'Check-in',
     startCheckin: 'Iniciar check-in',
-    talkToLuna: 'Falar com Luna',
+    talkToLuna: 'Falar com Luna29',
     dailyTip: 'Dica diária',
     bodyMap: 'Mapa corporal',
   },
@@ -937,10 +948,10 @@ const pt: TranslationSchema = {
   auth: {
     ...en.auth,
     recoveryHeadline: 'Restaurar acesso',
-    recoveryText: 'Digite o email da sua conta e a Luna preparará uma rota segura de recuperação.',
+    recoveryText: 'Digite o email da sua conta e a Luna29 preparará uma rota segura de recuperação.',
     recoveryCta: 'Enviar link',
-    headline: 'Autorização Luna',
-    subheadline: 'Acesso privado ao seu espaço Luna e sistemas admin.',
+    headline: 'Autorização Luna29',
+    subheadline: 'Acesso privado ao seu espaço Luna29 e sistemas admin.',
     google: 'Continuar com Google',
     password: 'Senha',
     hide: 'Ocultar',
@@ -958,14 +969,84 @@ const pt: TranslationSchema = {
     signInUp: 'Entrar / Cadastrar',
     heroTitleA: 'Espelho',
     heroTitleB: 'Diário.',
-    heroSubtitle: 'Luna é uma entrada pública e calma: observe seu ritmo, entenda seu estado e entre no espaço privado quando estiver pronta.',
+    heroSubtitle: 'Luna29 é uma entrada pública e calma: observe seu ritmo, entenda seu estado e entre no espaço privado quando estiver pronta.',
     footerTagline: 'Página pública para orientação, ritmo e reflexão.',
-    footerCopy: '© 2026 LUNA • PÁGINA PÚBLICA'
+    footerCopy: '© 2026 LUNA29 • PÁGINA PÚBLICA'
   },
   shared: {
     footer: 'Privado e local. Seus dados ficam no seu dispositivo.',
-    disclaimer: 'Luna nao e um servico medico, dispositivo medico, ferramenta diagnostica ou provedor de tratamento. Luna nao fornece aconselhamento medico, diagnostico, monitoramento clinico ou atendimento de emergencia. Consulte sempre um profissional de saude licenciado.'
+    disclaimer: 'Luna29 nao e um servico medico, dispositivo medico, ferramenta diagnostica ou provedor de tratamento. Luna29 nao fornece aconselhamento medico, diagnostico, monitoramento clinico ou atendimento de emergencia. Consulte sempre um profissional de saude licenciado.'
   }
+};
+
+const ar: TranslationSchema = {
+  ...en,
+  navigation: {
+    ...en.navigation,
+    home: 'الرئيسية',
+    dashboard: 'اليوم',
+    cycle: 'دورتي',
+    labs: 'تقارير الصحة',
+    history: 'رحلتي',
+    bridge: 'الجسر',
+    reflections: 'ملاحظة صوتية',
+    library: 'المعرفة',
+    faq: 'أسئلة',
+    contact: 'تواصل',
+    support: 'الدعم',
+    profile: 'الملف',
+  },
+  publicHome: {
+    ...en.publicHome,
+    signInUp: 'تسجيل الدخول / إنشاء حساب',
+    heroTitleA: 'مرآة',
+    heroTitleB: 'يومية.',
+    heroSubtitle: 'مساحة هادئة لفهم إيقاعك الداخلي والدخول إلى منطقتك الخاصة عندما تكونين جاهزة.',
+    footerTagline: 'الصفحة العامة للتوجيه والإيقاع والملاحظة.',
+    footerCopy: `© 2026 ${BRAND_NAME} • PUBLIC HOME`,
+  },
+  auth: {
+    ...en.auth,
+    headline: `تسجيل الدخول إلى ${BRAND_NAME}`,
+    subheadline: 'وصول خاص إلى مساحة العمل والأدوات الإدارية.',
+    login: 'دخول',
+    signup: 'إنشاء حساب',
+  },
+};
+
+const he: TranslationSchema = {
+  ...en,
+  navigation: {
+    ...en.navigation,
+    home: 'בית',
+    dashboard: 'היום',
+    cycle: 'המחזור שלי',
+    labs: 'דוחות בריאות',
+    history: 'המסע שלי',
+    bridge: 'הגשר',
+    reflections: 'הערה קולית',
+    library: 'ידע',
+    faq: 'שאלות',
+    contact: 'יצירת קשר',
+    support: 'תמיכה',
+    profile: 'פרופיל',
+  },
+  publicHome: {
+    ...en.publicHome,
+    signInUp: 'התחברות / הרשמה',
+    heroTitleA: 'מראה',
+    heroTitleB: 'יומית.',
+    heroSubtitle: 'מרחב שקט להבנת הקצב הפנימי שלך ולכניסה לאזור הפרטי כשאת מוכנה.',
+    footerTagline: 'דף ציבורי לכיוון, קצב והערה.',
+    footerCopy: `© 2026 ${BRAND_NAME} • PUBLIC HOME`,
+  },
+  auth: {
+    ...en.auth,
+    headline: `התחברות ל-${BRAND_NAME}`,
+    subheadline: 'גישה פרטית לסביבת העבודה ולמערכות הניהול.',
+    login: 'כניסה',
+    signup: 'יצירת חשבון',
+  },
 };
 
 export const TRANSLATIONS: Record<Language, TranslationSchema> = {
@@ -978,6 +1059,8 @@ export const TRANSLATIONS: Record<Language, TranslationSchema> = {
   zh,
   ja,
   pt,
+  ar,
+  he,
 };
 
 export interface FuelPhaseData {

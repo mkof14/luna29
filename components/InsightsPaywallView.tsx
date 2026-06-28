@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Sparkles } from 'lucide-react';
-import { Language } from '../constants';
+import { Language, getLang } from '../constants';
 import { billingService } from '../services/billingService';
 
 interface InsightsPaywallViewProps {
@@ -31,7 +31,7 @@ export const InsightsPaywallView: React.FC<InsightsPaywallViewProps> = ({ lang, 
     }
   >> = {
     en: {
-      top: 'Luna is beginning to understand your rhythm.',
+      top: 'Luna29 is beginning to understand your rhythm.',
       lineA: 'Unlock deeper insights about your body,',
       lineB: 'energy, and emotional patterns.',
       exampleA: 'Your energy often drops two days before your cycle begins.',
@@ -49,7 +49,7 @@ export const InsightsPaywallView: React.FC<InsightsPaywallViewProps> = ({ lang, 
       loading: 'Checking billing...',
     },
     ru: {
-      top: 'Luna начинает понимать ваш ритм.',
+      top: 'Luna29 начинает понимать ваш ритм.',
       lineA: 'Откройте глубокие инсайты о теле,',
       lineB: 'энергии и эмоциональных паттернах.',
       exampleA: 'Энергия часто снижается за два дня до начала цикла.',
@@ -67,7 +67,7 @@ export const InsightsPaywallView: React.FC<InsightsPaywallViewProps> = ({ lang, 
       loading: 'Проверка billing...',
     },
     uk: {
-      top: 'Luna починає розуміти ваш ритм.',
+      top: 'Luna29 починає розуміти ваш ритм.',
       lineA: 'Відкрийте глибші інсайти про тіло,',
       lineB: 'енергію та емоційні патерни.',
       exampleA: 'Енергія часто знижується за два дні до початку циклу.',
@@ -86,7 +86,7 @@ export const InsightsPaywallView: React.FC<InsightsPaywallViewProps> = ({ lang, 
     },
   };
   const defaultCopy = copyByLang.en!;
-  const copy = copyByLang[lang] || defaultCopy;
+  const copy = getLang(copyByLang, lang) || defaultCopy;
 
   const [billingEnabled, setBillingEnabled] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
@@ -139,7 +139,7 @@ export const InsightsPaywallView: React.FC<InsightsPaywallViewProps> = ({ lang, 
 
       <article className="rounded-[2.4rem] border border-slate-200/80 dark:border-[#2a4670] bg-white/88 dark:bg-[#081a3d]/94 p-7 md:p-9 shadow-luna-rich space-y-6">
         <div className="space-y-2">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-luna-purple">Luna Insights</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-luna-purple">Luna29 Insights</p>
           <h1 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-slate-100">{copy.top}</h1>
           <p className="text-base font-medium text-slate-700 dark:text-slate-200">{copy.lineA}</p>
           <p className="text-base font-medium text-slate-700 dark:text-slate-200">{copy.lineB}</p>

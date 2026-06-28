@@ -10,9 +10,9 @@ import { BaseMobileLang, MobileLang, resolveLangBase } from '../i18n/mobileCopy'
 const copyByLang: Record<BaseMobileLang, Record<string, string>> = {
   en: {
     greeting: 'Good evening',
-    subtitle: 'Today with Luna',
+    subtitle: 'Today with Luna29',
     compare: 'How does today feel compared to yesterday?',
-    speak: 'Speak to Luna',
+    speak: 'Speak to Luna29',
     quick: 'Quick check-in',
     today: 'Today',
     cycle: 'Cycle',
@@ -22,9 +22,9 @@ const copyByLang: Record<BaseMobileLang, Record<string, string>> = {
   },
   ru: {
     greeting: 'Добрый вечер',
-    subtitle: 'Сегодня с Luna',
+    subtitle: 'Сегодня с Luna29',
     compare: 'Как сегодня ощущается день по сравнению со вчера?',
-    speak: 'Говорить с Luna',
+    speak: 'Говорить с Luna29',
     quick: 'Быстрый check-in',
     today: 'Сегодня',
     cycle: 'Цикл',
@@ -34,9 +34,9 @@ const copyByLang: Record<BaseMobileLang, Record<string, string>> = {
   },
   es: {
     greeting: 'Buenas noches',
-    subtitle: 'Hoy con Luna',
+    subtitle: 'Hoy con Luna29',
     compare: 'Como se siente hoy comparado con ayer?',
-    speak: 'Hablar con Luna',
+    speak: 'Hablar con Luna29',
     quick: 'Check-in rapido',
     today: 'Hoy',
     cycle: 'Ciclo',

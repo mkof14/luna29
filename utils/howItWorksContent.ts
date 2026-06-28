@@ -1,4 +1,4 @@
-import { Language } from '../constants';
+import {Language, LangCopy } from '../constants';
 export type Copy = {
   eyebrow: string;
   title: string;
@@ -30,7 +30,7 @@ export type ExtraHowCopy = {
   reportsBody: string;
 };
 
-export const EXTRA_HOW_COPY: Record<Language, ExtraHowCopy> = {
+export const EXTRA_HOW_COPY: LangCopy< ExtraHowCopy> = {
   en: {
     dailyTitle: 'Daily Use Structure (90 Seconds)',
     dailyItems: [
@@ -159,15 +159,15 @@ export const EXTRA_HOW_COPY: Record<Language, ExtraHowCopy> = {
   },
 };
 
-export const COPY: Record<Language, Copy> = {
+export const COPY: LangCopy< Copy> = {
   en: {
     eyebrow: 'How It Works',
     title: 'From Daily Signal To Clear Decisions',
-    subtitle: 'Luna turns small daily inputs into visible rhythm patterns so users can understand themselves faster and act with less stress.',
+    subtitle: 'Luna29 turns small daily inputs into visible rhythm patterns so users can understand themselves faster and act with less stress.',
     flowTitle: 'Simple 4-Step Flow',
     flow: [
       { step: '01', title: 'Check In Daily', text: 'A short daily check-in captures energy, mood, stress, sleep, and context.', icon: 'pulse' },
-      { step: '02', title: 'See The Pattern', text: 'Luna maps changes over days and cycles so patterns become clear, not random.', icon: 'map' },
+      { step: '02', title: 'See The Pattern', text: 'Luna29 maps changes over days and cycles so patterns become clear, not random.', icon: 'map' },
       { step: '03', title: 'Get Gentle Guidance', text: 'The system proposes low-friction suggestions for pacing, care, and communication.', icon: 'guide' },
       { step: '04', title: 'Act And Reflect', text: 'Users adjust plans, share partner notes, and build a calmer routine over time.', icon: 'bridge' },
     ],
@@ -179,7 +179,7 @@ export const COPY: Record<Language, Copy> = {
     ],
     faqTitle: 'Quick Answers',
     faq: [
-      { q: 'Is Luna a medical diagnosis tool?', a: 'No. It is a self-observation and decision support system.' },
+      { q: 'Is Luna29 a medical diagnosis tool?', a: 'No. It is a self-observation and decision support system.' },
       { q: 'How long does daily use take?', a: 'Usually about 60 seconds per day for core check-in.' },
       { q: 'Is my data private?', a: 'Yes. The architecture is local-first with controlled member access.' },
     ],
@@ -199,11 +199,11 @@ export const COPY: Record<Language, Copy> = {
   ru: {
     eyebrow: 'Как Это Работает',
     title: 'От Ежедневного Сигнала К Ясным Решениям',
-    subtitle: 'Luna превращает короткие ежедневные отметки в понятные ритмы, чтобы пользователи быстрее понимали себя и действовали спокойнее.',
+    subtitle: 'Luna29 превращает короткие ежедневные отметки в понятные ритмы, чтобы пользователи быстрее понимали себя и действовали спокойнее.',
     flowTitle: 'Простой Путь Из 4 Шагов',
     flow: [
       { step: '01', title: 'Ежедневный Check-in', text: 'Короткая отметка фиксирует энергию, настроение, стресс, сон и контекст.', icon: 'pulse' },
-      { step: '02', title: 'Видимый Паттерн', text: 'Luna показывает изменения по дням и циклам — без хаоса и догадок.', icon: 'map' },
+      { step: '02', title: 'Видимый Паттерн', text: 'Luna29 показывает изменения по дням и циклам — без хаоса и догадок.', icon: 'map' },
       { step: '03', title: 'Мягкие Подсказки', text: 'Система предлагает щадящие шаги для темпа, заботы о себе и коммуникации.', icon: 'guide' },
       { step: '04', title: 'Действие И Рефлексия', text: 'Пользователь корректирует планы, делится запиской партнеру и выстраивает устойчивый ритм.', icon: 'bridge' },
     ],
@@ -235,11 +235,11 @@ export const COPY: Record<Language, Copy> = {
   uk: {
     eyebrow: 'Як Це Працює',
     title: 'Від Щоденного Сигналу До Ясних Рішень',
-    subtitle: 'Luna перетворює короткі щоденні дані у видимі ритми, щоб легше розуміти себе і діяти спокійно.',
+    subtitle: 'Luna29 перетворює короткі щоденні дані у видимі ритми, щоб легше розуміти себе і діяти спокійно.',
     flowTitle: 'Простий Шлях У 4 Кроки',
     flow: [
       { step: '01', title: 'Щоденний Check-in', text: 'Коротка відмітка фіксує енергію, настрій, стрес, сон і контекст.', icon: 'pulse' },
-      { step: '02', title: 'Побачити Патерн', text: 'Luna показує зміни по днях і циклах, щоб прибрати хаос.', icon: 'map' },
+      { step: '02', title: 'Побачити Патерн', text: 'Luna29 показує зміни по днях і циклах, щоб прибрати хаос.', icon: 'map' },
       { step: '03', title: 'Мʼякі Підказки', text: 'Система дає прості кроки для ритму, турботи та комунікації.', icon: 'guide' },
       { step: '04', title: 'Дія Та Рефлексія', text: 'Користувачка коригує плани і поступово формує стійкий режим.', icon: 'bridge' },
     ],
@@ -271,11 +271,11 @@ export const COPY: Record<Language, Copy> = {
   es: {
     eyebrow: 'Como Funciona',
     title: 'De Senales Diarias A Decisiones Claras',
-    subtitle: 'Luna convierte entradas diarias en patrones visibles para actuar con menos estres.',
+    subtitle: 'Luna29 convierte entradas diarias en patrones visibles para actuar con menos estres.',
     flowTitle: 'Flujo Simple De 4 Pasos',
     flow: [
       { step: '01', title: 'Check-in Diario', text: 'Un check-in corto capta energia, estado, estres, sueno y contexto.', icon: 'pulse' },
-      { step: '02', title: 'Ver El Patron', text: 'Luna muestra cambios por dias y ciclos para eliminar la sensacion de azar.', icon: 'map' },
+      { step: '02', title: 'Ver El Patron', text: 'Luna29 muestra cambios por dias y ciclos para eliminar la sensacion de azar.', icon: 'map' },
       { step: '03', title: 'Guia Suave', text: 'El sistema propone pasos simples para ritmo, cuidado y comunicacion.', icon: 'guide' },
       { step: '04', title: 'Actuar Y Reflexionar', text: 'Las usuarias ajustan planes y construyen una rutina mas estable.', icon: 'bridge' },
     ],
@@ -307,11 +307,11 @@ export const COPY: Record<Language, Copy> = {
   fr: {
     eyebrow: 'Comment Ca Marche',
     title: 'Du Signal Quotidien A Des Decisions Claires',
-    subtitle: 'Luna transforme de petites donnees quotidiennes en rythmes visibles pour agir avec moins de stress.',
+    subtitle: 'Luna29 transforme de petites donnees quotidiennes en rythmes visibles pour agir avec moins de stress.',
     flowTitle: 'Flux Simple En 4 Etapes',
     flow: [
       { step: '01', title: 'Check-in Quotidien', text: 'Un check-in court capte energie, humeur, stress, sommeil et contexte.', icon: 'pulse' },
-      { step: '02', title: 'Voir Le Schema', text: 'Luna cartographie les changements pour rendre les rythmes clairs.', icon: 'map' },
+      { step: '02', title: 'Voir Le Schema', text: 'Luna29 cartographie les changements pour rendre les rythmes clairs.', icon: 'map' },
       { step: '03', title: 'Guidance Douce', text: 'Le systeme propose des actions simples pour rythme, soin et communication.', icon: 'guide' },
       { step: '04', title: 'Agir Et Reflechir', text: 'Les utilisatrices ajustent leurs plans et construisent une routine stable.', icon: 'bridge' },
     ],
@@ -343,11 +343,11 @@ export const COPY: Record<Language, Copy> = {
   de: {
     eyebrow: 'So Funktioniert Es',
     title: 'Vom Tagesignal Zu Klaren Entscheidungen',
-    subtitle: 'Luna macht aus kleinen Tagesdaten sichtbare Rhythmusmuster fur ruhigere Entscheidungen.',
+    subtitle: 'Luna29 macht aus kleinen Tagesdaten sichtbare Rhythmusmuster fur ruhigere Entscheidungen.',
     flowTitle: 'Einfacher 4-Schritte Ablauf',
     flow: [
       { step: '01', title: 'Taeglicher Check-in', text: 'Ein kurzer Check-in erfasst Energie, Stimmung, Stress, Schlaf und Kontext.', icon: 'pulse' },
-      { step: '02', title: 'Muster Erkennen', text: 'Luna zeigt Veraenderungen uber Tage und Zyklen klar und nachvollziehbar.', icon: 'map' },
+      { step: '02', title: 'Muster Erkennen', text: 'Luna29 zeigt Veraenderungen uber Tage und Zyklen klar und nachvollziehbar.', icon: 'map' },
       { step: '03', title: 'Sanfte Guidance', text: 'Das System gibt einfache Hinweise fur Tempo, Selbstfursorge und Kommunikation.', icon: 'guide' },
       { step: '04', title: 'Handeln Und Reflektieren', text: 'Nutzerinnen passen Plane an und bauen langfristig stabile Routinen auf.', icon: 'bridge' },
     ],
@@ -359,7 +359,7 @@ export const COPY: Record<Language, Copy> = {
     ],
     faqTitle: 'Schnelle Antworten',
     faq: [
-      { q: 'Ist Luna ein medizinisches Diagnose-Tool?', a: 'Nein. Es ist Selbstbeobachtung und Entscheidungsunterstuetzung.' },
+      { q: 'Ist Luna29 ein medizinisches Diagnose-Tool?', a: 'Nein. Es ist Selbstbeobachtung und Entscheidungsunterstuetzung.' },
       { q: 'Wie lange dauert die taegliche Nutzung?', a: 'Meist etwa 60 Sekunden fur den Kern-Check-in.' },
       { q: 'Sind meine Daten privat?', a: 'Ja. Local-first Architektur mit kontrolliertem Mitgliederzugang.' },
     ],
@@ -379,11 +379,11 @@ export const COPY: Record<Language, Copy> = {
   zh: {
     eyebrow: '如何使用',
     title: '从每日信号到清晰决策',
-    subtitle: 'Luna 将每天的小输入转为可见节律，帮助用户更快理解自己、减轻压力。',
+    subtitle: 'Luna29 将每天的小输入转为可见节律，帮助用户更快理解自己、减轻压力。',
     flowTitle: '简单四步流程',
     flow: [
       { step: '01', title: '每日 Check-in', text: '简短记录能量、情绪、压力、睡眠和当下情境。', icon: 'pulse' },
-      { step: '02', title: '看到模式', text: 'Luna 按天和周期展示变化，让模式清晰可见。', icon: 'map' },
+      { step: '02', title: '看到模式', text: 'Luna29 按天和周期展示变化，让模式清晰可见。', icon: 'map' },
       { step: '03', title: '温和引导', text: '系统提供低负担建议，帮助节奏、照护和沟通。', icon: 'guide' },
       { step: '04', title: '行动与反思', text: '用户调整计划、记录反馈，逐步建立稳定日常。', icon: 'bridge' },
     ],
@@ -395,7 +395,7 @@ export const COPY: Record<Language, Copy> = {
     ],
     faqTitle: '快速问答',
     faq: [
-      { q: 'Luna 是医疗诊断工具吗？', a: '不是。它是自我观察与决策支持系统。' },
+      { q: 'Luna29 是医疗诊断工具吗？', a: '不是。它是自我观察与决策支持系统。' },
       { q: '每天要花多久？', a: '核心 check-in 通常约 60 秒。' },
       { q: '数据是否私密？', a: '是。采用 local-first 架构并控制会员访问。' },
     ],
@@ -415,11 +415,11 @@ export const COPY: Record<Language, Copy> = {
   ja: {
     eyebrow: '使い方',
     title: '毎日のサインから明確な判断へ',
-    subtitle: 'Luna は日々の小さな入力を見えるリズムに変え、理解と行動をやさしく支えます。',
+    subtitle: 'Luna29 は日々の小さな入力を見えるリズムに変え、理解と行動をやさしく支えます。',
     flowTitle: 'シンプルな4ステップ',
     flow: [
       { step: '01', title: '毎日の Check-in', text: '短い入力で、エネルギー・気分・ストレス・睡眠・状況を記録。', icon: 'pulse' },
-      { step: '02', title: 'パターンを可視化', text: 'Luna が日ごと・周期ごとの変化を示し、流れを理解しやすくします。', icon: 'map' },
+      { step: '02', title: 'パターンを可視化', text: 'Luna29 が日ごと・周期ごとの変化を示し、流れを理解しやすくします。', icon: 'map' },
       { step: '03', title: 'やさしいガイダンス', text: '負担の少ない提案で、ペース・セルフケア・対話を支援します。', icon: 'guide' },
       { step: '04', title: '実行と振り返り', text: '計画を調整し、少しずつ安定した習慣を作ります。', icon: 'bridge' },
     ],
@@ -431,7 +431,7 @@ export const COPY: Record<Language, Copy> = {
     ],
     faqTitle: 'クイックFAQ',
     faq: [
-      { q: 'Luna は医療診断ですか？', a: 'いいえ。自己観察と意思決定支援のためのツールです。' },
+      { q: 'Luna29 は医療診断ですか？', a: 'いいえ。自己観察と意思決定支援のためのツールです。' },
       { q: '毎日の利用時間は？', a: 'コア check-in は通常60秒ほどです。' },
       { q: 'データは安全ですか？', a: 'はい。local-first 構成で会員アクセスを制御しています。' },
     ],
@@ -451,11 +451,11 @@ export const COPY: Record<Language, Copy> = {
   pt: {
     eyebrow: 'Como Funciona',
     title: 'Do Sinal Diario A Decisoes Claras',
-    subtitle: 'Luna transforma pequenos dados diarios em padroes visiveis para agir com menos estresse.',
+    subtitle: 'Luna29 transforma pequenos dados diarios em padroes visiveis para agir com menos estresse.',
     flowTitle: 'Fluxo Simples Em 4 Etapas',
     flow: [
       { step: '01', title: 'Check-in Diario', text: 'Um check-in curto captura energia, humor, estresse, sono e contexto.', icon: 'pulse' },
-      { step: '02', title: 'Ver O Padrao', text: 'Luna mostra mudancas por dias e ciclos para tirar a sensacao de aleatorio.', icon: 'map' },
+      { step: '02', title: 'Ver O Padrao', text: 'Luna29 mostra mudancas por dias e ciclos para tirar a sensacao de aleatorio.', icon: 'map' },
       { step: '03', title: 'Guia Suave', text: 'O sistema sugere passos simples para ritmo, autocuidado e comunicacao.', icon: 'guide' },
       { step: '04', title: 'Agir E Refletir', text: 'As usuarias ajustam planos e constroem uma rotina mais estavel.', icon: 'bridge' },
     ],
@@ -467,7 +467,7 @@ export const COPY: Record<Language, Copy> = {
     ],
     faqTitle: 'Respostas Rapidas',
     faq: [
-      { q: 'Luna e uma ferramenta de diagnostico medico?', a: 'Nao. E um sistema de auto-observacao e suporte a decisao.' },
+      { q: 'Luna29 e uma ferramenta de diagnostico medico?', a: 'Nao. E um sistema de auto-observacao e suporte a decisao.' },
       { q: 'Quanto tempo leva por dia?', a: 'Normalmente 60 segundos para o check-in principal.' },
       { q: 'Meus dados sao privados?', a: 'Sim. Arquitetura local-first e acesso de membros controlado.' },
     ],

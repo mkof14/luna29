@@ -4,7 +4,7 @@ This document fixes the current Public Home visual language as the primary style
 
 ## Source of Truth
 
-- Primary implementation: `/Users/mk/Desktop/Luna/components/PublicLandingView.tsx`
+- Primary implementation: `components/PublicLandingView.tsx`
 - Scope: `activePage === 'home'` (`.luna-home-ref` block)
 
 All future public pages should inherit this style direction unless a page requires a justified exception.

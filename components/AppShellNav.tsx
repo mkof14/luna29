@@ -2,8 +2,9 @@ import React from 'react';
 import ThemeToggle from './ThemeToggle';
 import LanguageSelector from './LanguageSelector';
 import { Logo } from './Logo';
-import { Language } from '../constants';
+import { Language, getLang } from '../constants';
 import { TabType } from '../utils/navigation';
+import { langMap } from '../utils/languages';
 
 type NavItem = {
   id: TabType;
@@ -43,31 +44,10 @@ export const AppShellNav: React.FC<AppShellNavProps> = ({
   setTheme,
   onLogout,
 }) => {
-  const moreByLang: Record<Language, string> = {
-    en: 'More',
-    ru: 'Еще',
-    uk: 'Ще',
-    es: 'Más',
-    fr: 'Plus',
-    de: 'Mehr',
-    zh: '更多',
-    ja: 'その他',
-    pt: 'Mais'
-  };
-  const logoutByLang: Record<Language, string> = {
-    en: 'Logout',
-    ru: 'Выйти',
-    uk: 'Вийти',
-    es: 'Salir',
-    fr: 'Quitter',
-    de: 'Abmelden',
-    zh: '退出',
-    ja: 'ログアウト',
-    pt: 'Sair',
-  };
-  const copy = { more: moreByLang[lang], logout: logoutByLang[lang] };
-  const quickStartByLang: Record<Language, string> = {
-    en: 'Quick Start',
+  const moreByLang = langMap('More', { ru: 'Еще', uk: 'Ще', es: 'Más', fr: 'Plus', de: 'Mehr', zh: '更多', ja: 'その他', pt: 'Mais', ar: 'المزيد', he: 'עוד' });
+  const logoutByLang = langMap('Logout', { ru: 'Выйти', uk: 'Вийти', es: 'Salir', fr: 'Quitter', de: 'Abmelden', zh: '退出', ja: 'ログアウト', pt: 'Sair', ar: 'خروج', he: 'יציאה' });
+  const copy = { more: getLang(moreByLang, lang), logout: getLang(logoutByLang, lang) };
+  const quickStartByLang = langMap('Quick Start', {
     ru: 'Быстрый Старт',
     uk: 'Швидкий Старт',
     es: 'Inicio Rapido',
@@ -76,64 +56,80 @@ export const AppShellNav: React.FC<AppShellNavProps> = ({
     zh: '快速开始',
     ja: 'クイックスタート',
     pt: 'Inicio Rapido',
-  };
-  const quickStartHintByLang: Record<Language, Record<'dashboard' | 'cycle' | 'bridge' | 'other', string>> = {
-    en: {
+    ar: 'بدء سريع',
+    he: 'התחלה מהירה',
+  });
+  const quickStartHintByLang = langMap(
+    {
       dashboard: 'Step 1: Start with a quick check-in.',
       cycle: 'Step 2: Review your cycle context.',
       bridge: 'Step 3: Turn state into clear communication.',
       other: 'Core flow lives in Home → Cycle → Bridge.',
     },
-    ru: {
-      dashboard: 'Шаг 1: начните с короткого check-in.',
-      cycle: 'Шаг 2: проверьте контекст цикла.',
-      bridge: 'Шаг 3: переведите состояние в ясное сообщение.',
-      other: 'Базовый маршрут: Home → Cycle → Bridge.',
-    },
-    uk: {
-      dashboard: 'Крок 1: почніть із короткого check-in.',
-      cycle: 'Крок 2: перегляньте контекст циклу.',
-      bridge: 'Крок 3: перетворіть стан на зрозуміле повідомлення.',
-      other: 'Базовий маршрут: Home → Cycle → Bridge.',
-    },
-    es: {
-      dashboard: 'Paso 1: inicia con un check-in rapido.',
-      cycle: 'Paso 2: revisa el contexto del ciclo.',
-      bridge: 'Paso 3: convierte el estado en mensaje claro.',
-      other: 'Ruta base: Home → Cycle → Bridge.',
-    },
-    fr: {
-      dashboard: 'Etape 1: commencez par un check-in rapide.',
-      cycle: 'Etape 2: verifiez le contexte du cycle.',
-      bridge: 'Etape 3: transformez l etat en message clair.',
-      other: 'Parcours de base: Home → Cycle → Bridge.',
-    },
-    de: {
-      dashboard: 'Schritt 1: mit kurzem Check-in starten.',
-      cycle: 'Schritt 2: Zykluskontext ansehen.',
-      bridge: 'Schritt 3: Zustand in klare Botschaft ubersetzen.',
-      other: 'Basispfad: Home → Cycle → Bridge.',
-    },
-    zh: {
-      dashboard: '第1步：先做一次快速 check-in。',
-      cycle: '第2步：查看周期上下文。',
-      bridge: '第3步：把状态转成清晰表达。',
-      other: '核心路径：Home → Cycle → Bridge。',
-    },
-    ja: {
-      dashboard: 'ステップ1: まず短いチェックイン。',
-      cycle: 'ステップ2: サイクル文脈を確認。',
-      bridge: 'ステップ3: 状態を明確な言葉に変換。',
-      other: '基本導線: Home → Cycle → Bridge。',
-    },
-    pt: {
-      dashboard: 'Passo 1: comece com um check-in rapido.',
-      cycle: 'Passo 2: revise o contexto do ciclo.',
-      bridge: 'Passo 3: transforme o estado em mensagem clara.',
-      other: 'Fluxo base: Home → Cycle → Bridge.',
-    },
-  };
-  const quickStartCopy = quickStartHintByLang[lang] || quickStartHintByLang.en;
+    {
+      ru: {
+        dashboard: 'Шаг 1: начните с короткого check-in.',
+        cycle: 'Шаг 2: проверьте контекст цикла.',
+        bridge: 'Шаг 3: переведите состояние в ясное сообщение.',
+        other: 'Базовый маршрут: Home → Cycle → Bridge.',
+      },
+      uk: {
+        dashboard: 'Крок 1: почніть із короткого check-in.',
+        cycle: 'Крок 2: перегляньте контекст циклу.',
+        bridge: 'Крок 3: перетворіть стан на зрозуміле повідомлення.',
+        other: 'Базовий маршрут: Home → Cycle → Bridge.',
+      },
+      es: {
+        dashboard: 'Paso 1: inicia con un check-in rapido.',
+        cycle: 'Paso 2: revisa el contexto del ciclo.',
+        bridge: 'Paso 3: convierte el estado en mensaje claro.',
+        other: 'Ruta base: Home → Cycle → Bridge.',
+      },
+      fr: {
+        dashboard: 'Etape 1: commencez par un check-in rapide.',
+        cycle: 'Etape 2: verifiez le contexte du cycle.',
+        bridge: 'Etape 3: transformez l etat en message clair.',
+        other: 'Parcours de base: Home → Cycle → Bridge.',
+      },
+      de: {
+        dashboard: 'Schritt 1: mit kurzem Check-in starten.',
+        cycle: 'Schritt 2: Zykluskontext ansehen.',
+        bridge: 'Schritt 3: Zustand in klare Botschaft ubersetzen.',
+        other: 'Basispfad: Home → Cycle → Bridge.',
+      },
+      zh: {
+        dashboard: '第1步：先做一次快速 check-in。',
+        cycle: '第2步：查看周期上下文。',
+        bridge: '第3步：把状态转成清晰表达。',
+        other: '核心路径：Home → Cycle → Bridge。',
+      },
+      ja: {
+        dashboard: 'ステップ1: まず短いチェックイン。',
+        cycle: 'ステップ2: サイクル文脈を確認。',
+        bridge: 'ステップ3: 状態を明確な言葉に変換。',
+        other: '基本導線: Home → Cycle → Bridge。',
+      },
+      pt: {
+        dashboard: 'Passo 1: comece com um check-in rapido.',
+        cycle: 'Passo 2: revise o contexto do ciclo.',
+        bridge: 'Passo 3: transforme o estado em mensagem clara.',
+        other: 'Fluxo base: Home → Cycle → Bridge.',
+      },
+      ar: {
+        dashboard: 'الخطوة 1: ابدئي بفحص سريع.',
+        cycle: 'الخطوة 2: راجعي سياق الدورة.',
+        bridge: 'الخطوة 3: حوّلي حالتك إلى تواصل واضح.',
+        other: 'المسار الأساسي: Home → Cycle → Bridge.',
+      },
+      he: {
+        dashboard: 'שלב 1: התחילי עם check-in קצר.',
+        cycle: 'שלב 2: בדקי את הקשר המחזור.',
+        bridge: 'שלב 3: הפכי מצב לתקשורת ברורה.',
+        other: 'מסלול ליבה: Home → Cycle → Bridge.',
+      },
+    }
+  );
+  const quickStartCopy = getLang(quickStartHintByLang, lang) || quickStartHintByLang.en;
   const quickStartKey: 'dashboard' | 'cycle' | 'bridge' | 'other' =
     activeTab === 'today_mirror'
       ? 'dashboard'
@@ -236,7 +232,7 @@ export const AppShellNav: React.FC<AppShellNavProps> = ({
           </div>
         </div>
         <div className="max-w-7xl mx-auto px-6 pb-2 hidden md:flex items-center gap-3">
-          <span className="text-[8px] font-black uppercase tracking-[0.25em] text-luna-purple">{quickStartByLang[lang]}</span>
+          <span className="text-[8px] font-black uppercase tracking-[0.25em] text-luna-purple">{getLang(quickStartByLang, lang)}</span>
           <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">{quickStartCopy[quickStartKey]}</p>
         </div>
       </header>

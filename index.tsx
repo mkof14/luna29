@@ -5,8 +5,8 @@ import App from './App';
 import './styles.css';
 
 const applyInitialTheme = () => {
-  document.documentElement.classList.remove('dark');
-  localStorage.setItem('luna_theme', 'light');
+  const saved = localStorage.getItem('luna_theme');
+  document.documentElement.classList.toggle('dark', saved === 'dark');
 };
 
 applyInitialTheme();

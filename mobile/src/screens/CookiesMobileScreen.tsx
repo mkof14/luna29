@@ -9,7 +9,7 @@ export function CookiesMobileScreen({ onBack }: { onBack: () => void }) {
     <ScrollView contentContainerStyle={styles.container}>
       <MobileScreenHeader title="Cookies & Device Data" subtitle="Session, language, and security essentials." onBack={onBack} />
       <SurfaceCard>
-        <Text style={styles.text}>Luna uses essential cookies/device storage for login session, language preference, and basic analytics stability.</Text>
+        <Text style={styles.text}>Luna29 uses essential cookies/device storage for login session, language preference, and basic analytics stability.</Text>
       </SurfaceCard>
     </ScrollView>
   );

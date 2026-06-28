@@ -30,7 +30,7 @@ export function InsightsPaywallScreen({
 
   const copyByLang: Record<BaseMobileLang, Record<string, string>> = {
     en: {
-      title: 'Luna is beginning to understand your rhythm.',
+      title: 'Luna29 is beginning to understand your rhythm.',
       subtitle: 'Unlock deeper insights about your body, energy, and emotional patterns.',
       note1: 'Your energy often drops two days before your cycle begins.',
       note2: 'Short sleep also makes the next day heavier.',
@@ -48,7 +48,7 @@ export function InsightsPaywallScreen({
       back: 'Back',
     },
     ru: {
-      title: 'Luna начинает понимать ваш ритм.',
+      title: 'Luna29 начинает понимать ваш ритм.',
       subtitle: 'Откройте более глубокие инсайты о теле, энергии и эмоциональных паттернах.',
       note1: 'Энергия часто снижается за два дня до начала цикла.',
       note2: 'Короткий сон делает следующий день тяжелее.',
@@ -66,7 +66,7 @@ export function InsightsPaywallScreen({
       back: 'Назад',
     },
     es: {
-      title: 'Luna empieza a entender tu ritmo.',
+      title: 'Luna29 empieza a entender tu ritmo.',
       subtitle: 'Desbloquea insights mas profundos sobre tu cuerpo, energia y patrones emocionales.',
       note1: 'Tu energia suele bajar dos dias antes de tu ciclo.',
       note2: 'Dormir poco tambien hace mas pesado el dia siguiente.',

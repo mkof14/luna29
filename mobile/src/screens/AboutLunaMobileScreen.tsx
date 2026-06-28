@@ -8,24 +8,24 @@ import { MobileLang, resolveLangBase } from '../i18n/mobileCopy';
 export function AboutLunaMobileScreen({ onBack, lang }: { onBack: () => void; lang: MobileLang }) {
   const copy = {
     en: {
-      title: 'About Luna',
+      title: 'About Luna29',
       subtitle: 'A calm daily companion for women.',
       body:
-        'Luna helps you understand your day through body rhythm, daily signals, and voice notes. The goal is a simple daily habit that feels personal and supportive.',
+        'Luna29 helps you understand your day through body rhythm, daily signals, and voice notes. The goal is a simple daily habit that feels personal and supportive.',
       pillars: ['Your Body', 'Your Senses', 'Your Words'],
     },
     ru: {
-      title: 'О Luna',
+      title: 'О Luna29',
       subtitle: 'Спокойный ежедневный companion для женщин.',
       body:
-        'Luna помогает понимать день через ритм тела, сигналы и голосовые заметки. Цель — простой ежедневный ритуал с персональной поддержкой.',
+        'Luna29 помогает понимать день через ритм тела, сигналы и голосовые заметки. Цель — простой ежедневный ритуал с персональной поддержкой.',
       pillars: ['Ваше тело', 'Ваши ощущения', 'Ваши слова'],
     },
     es: {
-      title: 'Acerca de Luna',
+      title: 'Acerca de Luna29',
       subtitle: 'Una companera diaria y calmada para mujeres.',
       body:
-        'Luna te ayuda a entender tu dia con ritmo corporal, senales diarias y notas de voz. El objetivo es un habito diario simple y personal.',
+        'Luna29 te ayuda a entender tu dia con ritmo corporal, senales diarias y notas de voz. El objetivo es un habito diario simple y personal.',
       pillars: ['Tu cuerpo', 'Tus sensaciones', 'Tus palabras'],
     },
   }[resolveLangBase(lang)];
@@ -39,7 +39,7 @@ export function AboutLunaMobileScreen({ onBack, lang }: { onBack: () => void; la
         <Text style={styles.text}>{copy.body}</Text>
       </SurfaceCard>
       <SurfaceCard style={styles.cardAlt}>
-        <Text style={styles.cardTitle}>Luna foundation</Text>
+        <Text style={styles.cardTitle}>Luna29 foundation</Text>
         <View style={styles.row}>
           {copy.pillars.map((pillar) => (
             <View key={pillar} style={styles.pill}>

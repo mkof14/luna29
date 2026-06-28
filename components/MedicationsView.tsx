@@ -3,30 +3,30 @@ import React, { useEffect, useState } from 'react';
 import { dataService } from '../services/dataService';
 import { Medication } from '../types';
 import { getMedicationValidationError, normalizeMedicationInput } from '../utils/medications';
-import { Language } from '../constants';
+import { Language, LangCopy, getLang } from '../constants';
 
 export const MedicationsView: React.FC<{ medications: Medication[]; lang: Language; onBack?: () => void }> = ({ medications, lang, onBack }) => {
-  const copyByLang: Record<Language, {
+  const copyByLang: LangCopy< {
     titleA: string; titleB: string; subtitle: string; close: string; addNew: string; addSuccess: string; removeSuccess: string;
     name: string; amount: string; save: string; empty: string; remove: string; standardDose: string; addedOn: string;
   }> = {
-    en: { titleA: 'My', titleB: 'Support.', subtitle: 'Keep track of what helps you feel better. Luna observes how your body responds to your care plan.', close: 'Close', addNew: 'Add something new', addSuccess: 'Support profile added.', removeSuccess: 'Support profile removed.', name: 'Name', amount: 'Amount', save: 'Save', empty: 'Nothing added yet.', remove: 'Remove', standardDose: 'Standard Dose', addedOn: 'Added on' },
-    ru: { titleA: 'Моя', titleB: 'Поддержка.', subtitle: 'Отмечайте, что помогает вам чувствовать себя лучше. Luna наблюдает, как тело реагирует на ваш план поддержки.', close: 'Закрыть', addNew: 'Добавить новое', addSuccess: 'Профиль поддержки добавлен.', removeSuccess: 'Профиль поддержки удален.', name: 'Название', amount: 'Дозировка', save: 'Сохранить', empty: 'Пока ничего не добавлено.', remove: 'Удалить', standardDose: 'Стандартная доза', addedOn: 'Добавлено' },
-    uk: { titleA: 'Моя', titleB: 'Підтримка.', subtitle: 'Відстежуйте, що допомагає вам почуватися краще. Luna спостерігає, як тіло реагує на ваш план підтримки.', close: 'Закрити', addNew: 'Додати нове', addSuccess: 'Профіль підтримки додано.', removeSuccess: 'Профіль підтримки видалено.', name: 'Назва', amount: 'Доза', save: 'Зберегти', empty: 'Поки нічого не додано.', remove: 'Видалити', standardDose: 'Стандартна доза', addedOn: 'Додано' },
-    es: { titleA: 'Mi', titleB: 'Soporte.', subtitle: 'Registra lo que te ayuda a sentirte mejor. Luna observa cómo responde tu cuerpo a tu plan de cuidado.', close: 'Cerrar', addNew: 'Añadir nuevo', addSuccess: 'Perfil de soporte añadido.', removeSuccess: 'Perfil de soporte eliminado.', name: 'Nombre', amount: 'Cantidad', save: 'Guardar', empty: 'Aún no hay elementos.', remove: 'Eliminar', standardDose: 'Dosis estándar', addedOn: 'Añadido el' },
-    fr: { titleA: 'Mon', titleB: 'Soutien.', subtitle: 'Suivez ce qui vous aide à vous sentir mieux. Luna observe la réponse de votre corps à votre plan.', close: 'Fermer', addNew: 'Ajouter un élément', addSuccess: 'Profil de soutien ajouté.', removeSuccess: 'Profil de soutien supprimé.', name: 'Nom', amount: 'Quantité', save: 'Enregistrer', empty: 'Rien pour le moment.', remove: 'Retirer', standardDose: 'Dose standard', addedOn: 'Ajouté le' },
-    de: { titleA: 'Meine', titleB: 'Unterstützung.', subtitle: 'Behalte im Blick, was dir hilft. Luna beobachtet, wie dein Körper auf deinen Plan reagiert.', close: 'Schließen', addNew: 'Neu hinzufügen', addSuccess: 'Unterstützungsprofil hinzugefügt.', removeSuccess: 'Unterstützungsprofil entfernt.', name: 'Name', amount: 'Menge', save: 'Speichern', empty: 'Noch nichts hinzugefügt.', remove: 'Entfernen', standardDose: 'Standarddosis', addedOn: 'Hinzugefügt am' },
-    zh: { titleA: '我的', titleB: '支持。', subtitle: '记录哪些方式能让你感觉更好。Luna 会观察你的身体对计划的反应。', close: '关闭', addNew: '添加新项', addSuccess: '支持档案已添加。', removeSuccess: '支持档案已删除。', name: '名称', amount: '剂量', save: '保存', empty: '尚未添加内容。', remove: '移除', standardDose: '标准剂量', addedOn: '添加于' },
-    ja: { titleA: '私の', titleB: 'サポート。', subtitle: '体調を整えるために役立つものを記録しましょう。Lunaが反応を観察します。', close: '閉じる', addNew: '新しく追加', addSuccess: 'サポート項目を追加しました。', removeSuccess: 'サポート項目を削除しました。', name: '名前', amount: '量', save: '保存', empty: 'まだ追加されていません。', remove: '削除', standardDose: '標準用量', addedOn: '追加日' },
-    pt: { titleA: 'Meu', titleB: 'Suporte.', subtitle: 'Acompanhe o que ajuda você a se sentir melhor. A Luna observa como seu corpo responde ao seu plano.', close: 'Fechar', addNew: 'Adicionar novo', addSuccess: 'Perfil de suporte adicionado.', removeSuccess: 'Perfil de suporte removido.', name: 'Nome', amount: 'Quantidade', save: 'Salvar', empty: 'Nada adicionado ainda.', remove: 'Remover', standardDose: 'Dose padrão', addedOn: 'Adicionado em' },
+    en: { titleA: 'My', titleB: 'Support.', subtitle: 'Keep track of what helps you feel better. Luna29 observes how your body responds to your care plan.', close: 'Close', addNew: 'Add something new', addSuccess: 'Support profile added.', removeSuccess: 'Support profile removed.', name: 'Name', amount: 'Amount', save: 'Save', empty: 'Nothing added yet.', remove: 'Remove', standardDose: 'Standard Dose', addedOn: 'Added on' },
+    ru: { titleA: 'Моя', titleB: 'Поддержка.', subtitle: 'Отмечайте, что помогает вам чувствовать себя лучше. Luna29 наблюдает, как тело реагирует на ваш план поддержки.', close: 'Закрыть', addNew: 'Добавить новое', addSuccess: 'Профиль поддержки добавлен.', removeSuccess: 'Профиль поддержки удален.', name: 'Название', amount: 'Дозировка', save: 'Сохранить', empty: 'Пока ничего не добавлено.', remove: 'Удалить', standardDose: 'Стандартная доза', addedOn: 'Добавлено' },
+    uk: { titleA: 'Моя', titleB: 'Підтримка.', subtitle: 'Відстежуйте, що допомагає вам почуватися краще. Luna29 спостерігає, як тіло реагує на ваш план підтримки.', close: 'Закрити', addNew: 'Додати нове', addSuccess: 'Профіль підтримки додано.', removeSuccess: 'Профіль підтримки видалено.', name: 'Назва', amount: 'Доза', save: 'Зберегти', empty: 'Поки нічого не додано.', remove: 'Видалити', standardDose: 'Стандартна доза', addedOn: 'Додано' },
+    es: { titleA: 'Mi', titleB: 'Soporte.', subtitle: 'Registra lo que te ayuda a sentirte mejor. Luna29 observa cómo responde tu cuerpo a tu plan de cuidado.', close: 'Cerrar', addNew: 'Añadir nuevo', addSuccess: 'Perfil de soporte añadido.', removeSuccess: 'Perfil de soporte eliminado.', name: 'Nombre', amount: 'Cantidad', save: 'Guardar', empty: 'Aún no hay elementos.', remove: 'Eliminar', standardDose: 'Dosis estándar', addedOn: 'Añadido el' },
+    fr: { titleA: 'Mon', titleB: 'Soutien.', subtitle: 'Suivez ce qui vous aide à vous sentir mieux. Luna29 observe la réponse de votre corps à votre plan.', close: 'Fermer', addNew: 'Ajouter un élément', addSuccess: 'Profil de soutien ajouté.', removeSuccess: 'Profil de soutien supprimé.', name: 'Nom', amount: 'Quantité', save: 'Enregistrer', empty: 'Rien pour le moment.', remove: 'Retirer', standardDose: 'Dose standard', addedOn: 'Ajouté le' },
+    de: { titleA: 'Meine', titleB: 'Unterstützung.', subtitle: 'Behalte im Blick, was dir hilft. Luna29 beobachtet, wie dein Körper auf deinen Plan reagiert.', close: 'Schließen', addNew: 'Neu hinzufügen', addSuccess: 'Unterstützungsprofil hinzugefügt.', removeSuccess: 'Unterstützungsprofil entfernt.', name: 'Name', amount: 'Menge', save: 'Speichern', empty: 'Noch nichts hinzugefügt.', remove: 'Entfernen', standardDose: 'Standarddosis', addedOn: 'Hinzugefügt am' },
+    zh: { titleA: '我的', titleB: '支持。', subtitle: '记录哪些方式能让你感觉更好。Luna29 会观察你的身体对计划的反应。', close: '关闭', addNew: '添加新项', addSuccess: '支持档案已添加。', removeSuccess: '支持档案已删除。', name: '名称', amount: '剂量', save: '保存', empty: '尚未添加内容。', remove: '移除', standardDose: '标准剂量', addedOn: '添加于' },
+    ja: { titleA: '私の', titleB: 'サポート。', subtitle: '体調を整えるために役立つものを記録しましょう。Luna29が反応を観察します。', close: '閉じる', addNew: '新しく追加', addSuccess: 'サポート項目を追加しました。', removeSuccess: 'サポート項目を削除しました。', name: '名前', amount: '量', save: '保存', empty: 'まだ追加されていません。', remove: '削除', standardDose: '標準用量', addedOn: '追加日' },
+    pt: { titleA: 'Meu', titleB: 'Suporte.', subtitle: 'Acompanhe o que ajuda você a se sentir melhor. A Luna29 observa como seu corpo responde ao seu plano.', close: 'Fechar', addNew: 'Adicionar novo', addSuccess: 'Perfil de suporte adicionado.', removeSuccess: 'Perfil de suporte removido.', name: 'Nome', amount: 'Quantidade', save: 'Salvar', empty: 'Nada adicionado ainda.', remove: 'Remover', standardDose: 'Dose padrão', addedOn: 'Adicionado em' },
   };
-  const copy = copyByLang[lang];
+  const copy = getLang(copyByLang, lang);
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState("");
   const [newDose, setNewDose] = useState("");
   const [localMedications, setLocalMedications] = useState<Medication[]>(medications);
   const [status, setStatus] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const errorMapByLang: Record<Language, Record<string, string>> = {
+  const errorMapByLang: LangCopy< Record<string, string>> = {
     en: { 'Name is required.': 'Name is required.', 'This support profile already exists.': 'This support profile already exists.' },
     ru: { 'Name is required.': 'Название обязательно.', 'This support profile already exists.': 'Такой профиль поддержки уже существует.' },
     uk: { 'Name is required.': "Назва обов'язкова.", 'This support profile already exists.': 'Такий профіль підтримки вже існує.' },
@@ -52,7 +52,7 @@ export const MedicationsView: React.FC<{ medications: Medication[]; lang: Langua
     const { name, dose } = normalizeMedicationInput(newName, newDose);
     const validationError = getMedicationValidationError(localMedications, name, dose);
     if (validationError) {
-      setStatus({ type: 'error', text: errorMapByLang[lang][validationError] || validationError });
+      setStatus({ type: 'error', text: getLang(errorMapByLang, lang)[validationError] || validationError });
       return;
     }
 

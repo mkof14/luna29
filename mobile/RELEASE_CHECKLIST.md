@@ -4,7 +4,7 @@ Updated: 2026-03-15
 
 ## 1) Local quality gate
 
-Run in `/Users/mk/Desktop/Luna/mobile`:
+Run in `mobile/`:
 
 ```bash
 npm run -s typecheck

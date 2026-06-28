@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Logo } from './Logo';
 import { Mic, MicOff, Moon, Sun, Volume2, VolumeX } from 'lucide-react';
-import { Language } from '../constants';
+import { Language, LangCopy, getLang } from '../constants';
 
 type ConnectionStatus = 'IDLE' | 'CONNECTING' | 'CONNECTED' | 'ERROR';
 type AssistantTheme = 'light' | 'dark';
@@ -79,7 +79,7 @@ const TypewriterText: React.FC<{ text: string; speed?: number }> = ({ text, spee
   return <span>{typed}</span>;
 };
 
-const copyByLang: Record<Language, {
+const copyByLang: LangCopy< {
   live: string;
   micOn: string;
   micOff: string;
@@ -205,8 +205,8 @@ const copyByLang: Record<Language, {
   },
 };
 
-const recognitionLangByUi: Record<Language, string> = {
-  en: 'en-US', ru: 'ru-RU', uk: 'uk-UA', es: 'es-ES', fr: 'fr-FR', de: 'de-DE', zh: 'zh-CN', ja: 'ja-JP', pt: 'pt-PT'
+const recognitionLangByUi: LangCopy<string> = {
+  en: 'en-US', ru: 'ru-RU', uk: 'uk-UA', es: 'es-ES', fr: 'fr-FR', de: 'de-DE', zh: 'zh-CN', ja: 'ja-JP', pt: 'pt-PT', ar: 'ar-SA', he: 'he-IL',
 };
 
 const buildLocalReply = (input: string, snapshot: string, lang: Language): string => {
@@ -220,7 +220,7 @@ const buildLocalReply = (input: string, snapshot: string, lang: Language): strin
     focus: /(focus|concentr|brain fog|fog|attention|концентр|фокус|туман|уваг|concentr|atencion|attention|fokus|集中|专注|集中力)/i,
   };
 
-  const toneByLang: Record<Language, {
+  const toneByLang: LangCopy< {
     clarify: string;
     crisis: string;
     section: { observe: string; step: string; next: string };
@@ -299,7 +299,7 @@ const buildLocalReply = (input: string, snapshot: string, lang: Language): strin
     pt: { clarify: 'Para uma resposta precisa, compartilhe 3 pontos: sinal corporal, emoção e contexto.', crisis: 'Se houver perigo imediato, contate o serviço de emergência local agora.', section: { observe: 'Observação', step: 'Passo imediato', next: 'Próximo check-in' }, stress: { observe: `A carga de estresse parece alta. Estado atual: "${snapshot}".`, step: 'Reduza decisões por 20 minutos: uma tarefa, um timer, sem multitarefa.', next: 'Revise pulso, tensão mandibular e ritmo da respiração.' }, sleep: { observe: `O sinal de recuperação está baixo. Estado atual: "${snapshot}".`, step: 'Inicie protocolo noturno: menos luz, hidratação e menos estímulos.', next: 'Defina janela fixa de sono e horário de despertar.' }, relationship: { observe: 'Com sobrecarga, o risco de conflito na conversa aumenta.', step: 'Use uma frase clara: “Estou sobrecarregada e preciso de 20 minutos para me regular”.', next: 'Volte com um pedido concreto e uma apreciação.' }, focus: { observe: 'A atenção está fragmentada.', step: 'Faça um bloco de 15 minutos de foco único, sem alertas.', next: 'Registre melhora em clareza, velocidade ou erros.' }, general: { observe: `Estou acompanhando seu estado: "${snapshot}".`, step: 'Escolha a menor ação útil para os próximos 10 minutos.', next: 'Reavalie mudanças no corpo, humor e clareza.' } },
   };
 
-  const c = toneByLang[lang] || toneByLang.en;
+  const c = getLang(toneByLang, lang) || toneByLang.en;
   if (/(suicid|self-harm|kill myself|убью себя|не хочу жить|опасно|emergency)/i.test(text)) {
     return c.crisis;
   }
@@ -336,7 +336,7 @@ export const LiveAssistant: React.FC<{ isOpen: boolean; onClose: () => void; sta
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animationIdRef = useRef<number | null>(null);
   const locale = recognitionLangByUi[lang] || recognitionLangByUi.en;
-  const copy = copyByLang[lang] || copyByLang.en;
+  const copy = getLang(copyByLang, lang) || copyByLang.en;
 
   const themeClasses = useMemo(
     () => ({

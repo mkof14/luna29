@@ -2,7 +2,7 @@ import React from 'react';
 import { Facebook, Instagram, Music2, Youtube } from 'lucide-react';
 import { Logo } from './Logo';
 import { TabType } from '../utils/navigation';
-import { Language, TranslationSchema } from '../constants';
+import { Language, TranslationSchema, LangCopy, getLang } from '../constants';
 
 interface AppFooterProps {
   ui: TranslationSchema;
@@ -14,9 +14,9 @@ interface AppFooterProps {
 export const AppFooter: React.FC<AppFooterProps> = ({ ui, lang, navigateTo, canAccessAdmin }) => {
   const footerLinkClass = 'text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-luna-purple transition-colors';
 
-  const footerCopyByLang: Record<Language, { sanctuary: string; terms: string; about: string; privacy: string; medical: string; cookies: string; dataRights: string; howItWorks: string; relationships: string; ritualPath: string; pricing: string; slogan: string; disclaimerLabel: string }> = {
+  const footerCopyByLang: LangCopy< { sanctuary: string; terms: string; about: string; privacy: string; medical: string; cookies: string; dataRights: string; howItWorks: string; faq: string; learning: string; relationships: string; ritualPath: string; pricing: string; slogan: string; disclaimerLabel: string }> = {
     en: {
-      sanctuary: 'A biological sanctuary. Luna uses a local-first model: core reflections stay on device, and account/security workflows may use protected backend services.',
+      sanctuary: 'A biological sanctuary. Luna29 uses a local-first model: core reflections stay on device, and account/security workflows may use protected backend services.',
       terms: 'Terms of Service',
       about: 'About',
       privacy: 'Privacy Notice',
@@ -24,14 +24,16 @@ export const AppFooter: React.FC<AppFooterProps> = ({ ui, lang, navigateTo, canA
       cookies: 'Cookies Notice',
       dataRights: 'Data Rights',
       howItWorks: 'How It Works',
+      faq: 'FAQ',
+      learning: 'Learning',
       relationships: 'Relationships',
       ritualPath: 'Ritual Path',
       pricing: 'Pricing',
-      slogan: 'Luna - The physiology of feeling.',
+      slogan: 'Luna29 - The physiology of feeling.',
       disclaimerLabel: 'Disclaimer',
     },
     ru: {
-      sanctuary: 'Биологическое пространство опоры. Luna работает в local-first режиме: основные записи остаются на устройстве, а аккаунт и безопасность могут использовать защищенный backend.',
+      sanctuary: 'Биологическое пространство опоры. Luna29 работает в local-first режиме: основные записи остаются на устройстве, а аккаунт и безопасность могут использовать защищенный backend.',
       terms: 'Условия Сервиса',
       about: 'О проекте',
       privacy: 'Уведомление о приватности',
@@ -39,14 +41,16 @@ export const AppFooter: React.FC<AppFooterProps> = ({ ui, lang, navigateTo, canA
       cookies: 'Уведомление о cookies',
       dataRights: 'Права на данные',
       howItWorks: 'Как это работает',
+      faq: 'FAQ',
+      learning: 'Обучение',
       relationships: 'Отношения',
       ritualPath: 'Ритуальный путь',
       pricing: 'Тарифы',
-      slogan: 'Luna - физиология чувств.',
+      slogan: 'Luna29 - физиология чувств.',
       disclaimerLabel: 'Дисклеймер',
     },
     uk: {
-      sanctuary: 'Біологічний простір опори. Luna працює у local-first режимі: основні записи лишаються на пристрої, а акаунт та безпека можуть використовувати захищений backend.',
+      sanctuary: 'Біологічний простір опори. Luna29 працює у local-first режимі: основні записи лишаються на пристрої, а акаунт та безпека можуть використовувати захищений backend.',
       terms: 'Умови Сервісу',
       about: 'Про проект',
       privacy: 'Повідомлення про приватність',
@@ -54,14 +58,16 @@ export const AppFooter: React.FC<AppFooterProps> = ({ ui, lang, navigateTo, canA
       cookies: 'Повідомлення про cookies',
       dataRights: 'Права на дані',
       howItWorks: 'Як це працює',
+      faq: 'FAQ',
+      learning: 'Навчання',
       relationships: 'Стосунки',
       ritualPath: 'Ритуальний шлях',
       pricing: 'Тарифи',
-      slogan: 'Luna - фізіологія відчуттів.',
+      slogan: 'Luna29 - фізіологія відчуттів.',
       disclaimerLabel: 'Дисклеймер',
     },
     es: {
-      sanctuary: 'Un santuario biologico. Luna usa modelo local-first: registros clave en tu dispositivo y flujos de cuenta/seguridad en backend protegido cuando es necesario.',
+      sanctuary: 'Un santuario biologico. Luna29 usa modelo local-first: registros clave en tu dispositivo y flujos de cuenta/seguridad en backend protegido cuando es necesario.',
       terms: 'Terminos Del Servicio',
       about: 'Acerca',
       privacy: 'Aviso De Privacidad',
@@ -69,14 +75,16 @@ export const AppFooter: React.FC<AppFooterProps> = ({ ui, lang, navigateTo, canA
       cookies: 'Aviso De Cookies',
       dataRights: 'Derechos De Datos',
       howItWorks: 'Cómo funciona',
+      faq: 'FAQ',
+      learning: 'Aprendizaje',
       relationships: 'Relaciones',
       ritualPath: 'Ruta ritual',
       pricing: 'Precios',
-      slogan: 'Luna - La fisiología del sentir.',
+      slogan: 'Luna29 - La fisiología del sentir.',
       disclaimerLabel: 'Descargo',
     },
     fr: {
-      sanctuary: 'Un sanctuaire biologique. Luna suit une approche local-first: donnees principales sur appareil, compte/securite via backend protege si necessaire.',
+      sanctuary: 'Un sanctuaire biologique. Luna29 suit une approche local-first: donnees principales sur appareil, compte/securite via backend protege si necessaire.',
       terms: 'Conditions Du Service',
       about: 'A Propos',
       privacy: 'Notice De Confidentialite',
@@ -84,14 +92,16 @@ export const AppFooter: React.FC<AppFooterProps> = ({ ui, lang, navigateTo, canA
       cookies: 'Notice Cookies',
       dataRights: 'Droits Sur Les Donnees',
       howItWorks: 'Comment ça marche',
+      faq: 'FAQ',
+      learning: 'Apprentissage',
       relationships: 'Relations',
       ritualPath: 'Chemin rituel',
       pricing: 'Tarifs',
-      slogan: 'Luna - La physiologie du ressenti.',
+      slogan: 'Luna29 - La physiologie du ressenti.',
       disclaimerLabel: 'Avertissement',
     },
     de: {
-      sanctuary: 'Ein biologischer Schutzraum. Luna nutzt local-first: Kerndaten lokal auf dem Geraet, Konto/Sicherheit bei Bedarf ueber geschuetztes Backend.',
+      sanctuary: 'Ein biologischer Schutzraum. Luna29 nutzt local-first: Kerndaten lokal auf dem Geraet, Konto/Sicherheit bei Bedarf ueber geschuetztes Backend.',
       terms: 'Nutzungsbedingungen',
       about: 'Uber',
       privacy: 'Datenschutzhinweis',
@@ -99,14 +109,16 @@ export const AppFooter: React.FC<AppFooterProps> = ({ ui, lang, navigateTo, canA
       cookies: 'Cookie-Hinweis',
       dataRights: 'Datenrechte',
       howItWorks: 'So funktioniert es',
+      faq: 'FAQ',
+      learning: 'Lernen',
       relationships: 'Beziehungen',
       ritualPath: 'Ritualpfad',
       pricing: 'Preise',
-      slogan: 'Luna - Die Physiologie des Fühlens.',
+      slogan: 'Luna29 - Die Physiologie des Fühlens.',
       disclaimerLabel: 'Hinweis',
     },
     zh: {
-      sanctuary: '生理数据庇护空间。Luna 采用 local-first：核心记录保存在设备本地，账号与安全流程在需要时使用受保护后端。',
+      sanctuary: '生理数据庇护空间。Luna29 采用 local-first：核心记录保存在设备本地，账号与安全流程在需要时使用受保护后端。',
       terms: '服务条款',
       about: '关于',
       privacy: '隐私声明',
@@ -114,14 +126,16 @@ export const AppFooter: React.FC<AppFooterProps> = ({ ui, lang, navigateTo, canA
       cookies: 'Cookie 声明',
       dataRights: '数据权利',
       howItWorks: '如何运作',
+      faq: '常见问题',
+      learning: '学习',
       relationships: '关系',
       ritualPath: '仪式路径',
       pricing: '价格',
-      slogan: 'Luna - 感受的生理学。',
+      slogan: 'Luna29 - 感受的生理学。',
       disclaimerLabel: '免责声明',
     },
     ja: {
-      sanctuary: '生体データのサンクチュアリ。Luna は local-first 方針で、主要データは端末保存、アカウント/セキュリティは必要時に保護バックエンドを利用します。',
+      sanctuary: '生体データのサンクチュアリ。Luna29 は local-first 方針で、主要データは端末保存、アカウント/セキュリティは必要時に保護バックエンドを利用します。',
       terms: '利用規約',
       about: '概要',
       privacy: 'プライバシー通知',
@@ -129,14 +143,16 @@ export const AppFooter: React.FC<AppFooterProps> = ({ ui, lang, navigateTo, canA
       cookies: 'Cookie 通知',
       dataRights: 'データ権利',
       howItWorks: '使い方',
+      faq: 'FAQ',
+      learning: '学習',
       relationships: '関係性',
       ritualPath: 'リチュアルパス',
       pricing: '料金',
-      slogan: 'Luna - 感覚の生理学。',
+      slogan: 'Luna29 - 感覚の生理学。',
       disclaimerLabel: '免責',
     },
     pt: {
-      sanctuary: 'Um santuario biologico. Luna usa modelo local-first: dados principais no dispositivo e fluxos de conta/seguranca em backend protegido quando necessario.',
+      sanctuary: 'Um santuario biologico. Luna29 usa modelo local-first: dados principais no dispositivo e fluxos de conta/seguranca em backend protegido quando necessario.',
       terms: 'Termos De Servico',
       about: 'Sobre',
       privacy: 'Aviso De Privacidade',
@@ -144,15 +160,51 @@ export const AppFooter: React.FC<AppFooterProps> = ({ ui, lang, navigateTo, canA
       cookies: 'Aviso De Cookies',
       dataRights: 'Direitos De Dados',
       howItWorks: 'Como funciona',
+      faq: 'FAQ',
+      learning: 'Aprendizagem',
       relationships: 'Relacionamentos',
       ritualPath: 'Caminho ritual',
       pricing: 'Preços',
-      slogan: 'Luna - A fisiologia de sentir.',
+      slogan: 'Luna29 - A fisiologia de sentir.',
       disclaimerLabel: 'Aviso',
+    },
+    ar: {
+      sanctuary: 'ملاذ بيولוגي آمن. Luna29 تعمل بنموذج local-first: البيانات الأساسية على جهازك، والحساب والأمان عبر خادم محمي عند الحاجة.',
+      terms: 'شروط الخدمة',
+      about: 'حول Luna29',
+      privacy: 'إشعار الخصوصية',
+      medical: 'إخلاء مسؤولية',
+      cookies: 'إشعار cookies',
+      dataRights: 'حقوق البيانات',
+      howItWorks: 'كيف يعمل',
+      faq: 'الأسئلة الشائعة',
+      learning: 'التعلّم',
+      relationships: 'العلاقات',
+      ritualPath: 'المسار الطقسي',
+      pricing: 'الأسعار',
+      slogan: 'Luna29 — فسيولوجيا الشعور.',
+      disclaimerLabel: 'إخلاء مسؤولية',
+    },
+    he: {
+      sanctuary: 'מרחב ביולוגי מוגן. Luna29 בגישת local-first: הנתונים העיקריים במכשיר, חשבון ואבטחה בשרת מוגן בעת הצורך.',
+      terms: 'תנאי שירות',
+      about: 'אודות Luna29',
+      privacy: 'הודעת פרטיות',
+      medical: 'הצהרת אחריות',
+      cookies: 'הודעת cookies',
+      dataRights: 'זכויות נתונים',
+      howItWorks: 'איך זה עובד',
+      faq: 'שאלות נפוצות',
+      learning: 'לימוד',
+      relationships: 'יחסים',
+      ritualPath: 'נתיב טקסי',
+      pricing: 'מחירים',
+      slogan: 'Luna29 — הפיזיולוגיה של תחושה.',
+      disclaimerLabel: 'הצהרת אחריות',
     },
   };
 
-  const footerCopy = footerCopyByLang[lang] || footerCopyByLang.en;
+  const footerCopy = getLang(footerCopyByLang, lang) || footerCopyByLang.en;
 
   const memberLinks: Array<{ id: TabType; label: string }> = [
     { id: 'dashboard', label: ui.navigation.home },
@@ -187,6 +239,9 @@ export const AppFooter: React.FC<AppFooterProps> = ({ ui, lang, navigateTo, canA
     { href: '/ritual-path', label: footerCopy.ritualPath },
     { href: '/the-bridge', label: ui.navigation.bridge || 'The Bridge' },
     { href: '/pricing', label: footerCopy.pricing },
+    { href: '/how-it-works', label: footerCopy.howItWorks },
+    { href: '/faq', label: footerCopy.faq },
+    { href: '/learning', label: footerCopy.learning },
   ];
 
   const socialLinks = [
@@ -196,7 +251,7 @@ export const AppFooter: React.FC<AppFooterProps> = ({ ui, lang, navigateTo, canA
     { href: 'https://tiktok.com', label: 'TikTok', icon: Music2, iconColor: 'text-[#111111] dark:text-white' },
   ];
 
-  const footerCategoriesByLang: Record<Language, { member: string; tools: string; support: string; legal: string; public: string; account: string }> = {
+  const footerCategoriesByLang: LangCopy< { member: string; tools: string; support: string; legal: string; public: string; account: string }> = {
     en: { member: 'Member Zone', tools: 'Tools', support: 'Support', legal: 'Legal', public: 'Public', account: 'Account' },
     ru: { member: 'Мембер Зона', tools: 'Инструменты', support: 'Поддержка', legal: 'Юридически', public: 'Публично', account: 'Аккаунт' },
     uk: { member: 'Мембер Зона', tools: 'Інструменти', support: 'Підтримка', legal: 'Юридично', public: 'Публічно', account: 'Акаунт' },
@@ -207,7 +262,7 @@ export const AppFooter: React.FC<AppFooterProps> = ({ ui, lang, navigateTo, canA
     ja: { member: 'メンバーゾーン', tools: 'ツール', support: 'サポート', legal: '法務', public: '公開', account: 'アカウント' },
     pt: { member: 'Member Zone', tools: 'Ferramentas', support: 'Suporte', legal: 'Legal', public: 'Público', account: 'Conta' },
   };
-  const category = footerCategoriesByLang[lang] || footerCategoriesByLang.en;
+  const category = getLang(footerCategoriesByLang, lang) || footerCategoriesByLang.en;
 
   const memberCategoryLinks: Array<{ title: string; items: Array<{ id: TabType; label: string; danger?: boolean }> }> = [
     {
@@ -335,7 +390,7 @@ export const AppFooter: React.FC<AppFooterProps> = ({ ui, lang, navigateTo, canA
         </div>
 
         <div className="pt-6 border-t border-slate-300 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">© 2026 LUNA BALANCE SYSTEMS</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">© 2026 LUNA29 BALANCE SYSTEMS</p>
           <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-700">v5.0.1</span>
         </div>
 

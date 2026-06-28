@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Luna Balance MVP Data Contracts",
+  "title": "Luna29 Balance MVP Data Contracts",
   "description": "Validation schemas for the Women's Health Understanding System event log and data exchange formats.",
   "definitions": {
     "BaseEvent": {

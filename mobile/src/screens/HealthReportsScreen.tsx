@@ -38,7 +38,7 @@ export function HealthReportsScreen({ onBack, lang }: { onBack: () => void; lang
       ocr: 'Read scan / text',
       ocrDone: 'Scan text was added to the note field.',
       no: 'No additional notes.',
-      disclaimer: 'LUNA IS NOT A DIAGNOSIS TOOL. IF NEEDED, CONTACT YOUR DOCTOR.',
+      disclaimer: 'LUNA29 IS NOT A DIAGNOSIS TOOL. IF NEEDED, CONTACT YOUR DOCTOR.',
       recommendationTitle: 'Gentle recommendation',
       recommendationBody: 'Keep tonight slower, hydrate, and prioritize earlier sleep.',
       reportId: 'Report ID',
@@ -75,7 +75,7 @@ export function HealthReportsScreen({ onBack, lang }: { onBack: () => void; lang
       ocr: 'Считать скан / текст',
       ocrDone: 'Текст из скана добавлен в поле заметки.',
       no: 'Дополнительных заметок нет.',
-      disclaimer: 'LUNA НЕ ЯВЛЯЕТСЯ ИНСТРУМЕНТОМ ДИАГНОЗА. ПРИ НЕОБХОДИМОСТИ ОБРАТИТЕСЬ К ВРАЧУ.',
+      disclaimer: 'LUNA29 НЕ ЯВЛЯЕТСЯ ИНСТРУМЕНТОМ ДИАГНОЗА. ПРИ НЕОБХОДИМОСТИ ОБРАТИТЕСЬ К ВРАЧУ.',
       recommendationTitle: 'Мягкая рекомендация',
       recommendationBody: 'Сделайте вечер спокойнее, добавьте воду и лягте спать раньше.',
       reportId: 'ID отчета',
@@ -112,7 +112,7 @@ export function HealthReportsScreen({ onBack, lang }: { onBack: () => void; lang
       ocr: 'Leer escaneo / texto',
       ocrDone: 'El texto escaneado se agrego al campo de nota.',
       no: 'Sin notas adicionales.',
-      disclaimer: 'LUNA NO ES UNA HERRAMIENTA DE DIAGNOSTICO. SI ES NECESARIO, CONSULTA A TU MEDICO.',
+      disclaimer: 'LUNA29 NO ES UNA HERRAMIENTA DE DIAGNOSTICO. SI ES NECESARIO, CONSULTA A TU MEDICO.',
       recommendationTitle: 'Sugerencia suave',
       recommendationBody: 'Haz la noche mas lenta, hidrata y duerme un poco antes.',
       reportId: 'ID del reporte',
@@ -155,9 +155,9 @@ export function HealthReportsScreen({ onBack, lang }: { onBack: () => void; lang
   }, []);
 
   function buildReportText() {
-    const reportId = `LUNA-${new Date().toISOString().slice(0, 10).replaceAll('-', '')}-${Math.floor(Math.random() * 900 + 100)}`;
+    const reportId = `LUNA29-${new Date().toISOString().slice(0, 10).replaceAll('-', '')}-${Math.floor(Math.random() * 900 + 100)}`;
     return [
-      'Luna Health Report',
+      'Luna29 Health Report',
       `${copy.reportId}: ${reportId}`,
       `Generated: ${new Date().toLocaleString()}`,
       `Cycle day: ${cycleDay}`,
@@ -288,8 +288,8 @@ export function HealthReportsScreen({ onBack, lang }: { onBack: () => void; lang
             <LunaButton
               variant="secondary"
               onPress={async () => {
-                const reportIdMatch = result.match(/(LUNA-[0-9]{8}-[0-9]{3})/);
-                const reportId = reportIdMatch ? reportIdMatch[1] : `LUNA-${Date.now()}`;
+                const reportIdMatch = result.match(/(LUNA29-[0-9]{8}-[0-9]{3})/);
+                const reportId = reportIdMatch ? reportIdMatch[1] : `LUNA29-${Date.now()}`;
                 try {
                   await saveReport({ id: reportId, generatedAt: new Date().toISOString(), text: result });
                 } catch {
@@ -307,8 +307,8 @@ export function HealthReportsScreen({ onBack, lang }: { onBack: () => void; lang
             <LunaButton
               variant="secondary"
               onPress={async () => {
-                const reportIdMatch = result.match(/(LUNA-[0-9]{8}-[0-9]{3})/);
-                const reportId = reportIdMatch ? reportIdMatch[1] : `LUNA-${Date.now()}`;
+                const reportIdMatch = result.match(/(LUNA29-[0-9]{8}-[0-9]{3})/);
+                const reportId = reportIdMatch ? reportIdMatch[1] : `LUNA29-${Date.now()}`;
                 try {
                   await preparePdf(reportId);
                 } catch {
@@ -322,7 +322,7 @@ export function HealthReportsScreen({ onBack, lang }: { onBack: () => void; lang
             <LunaButton
               variant="secondary"
               onPress={() => {
-                void Share.share({ message: result, title: 'Luna report' });
+                void Share.share({ message: result, title: 'Luna29 report' });
               }}
             >
               {copy.share}

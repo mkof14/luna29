@@ -71,7 +71,7 @@ const apiUrl = (path: string) => {
 
 const normalizeEmail = (email: string): string => email.trim().toLowerCase();
 
-const normalizeName = (email: string, fallback = 'Luna Member'): string => {
+const normalizeName = (email: string, fallback = 'Luna29 Member'): string => {
   const local = email.split('@')[0] || '';
   const cleaned = local.replace(/[._-]+/g, ' ').trim();
   if (!cleaned) return fallback;
@@ -126,7 +126,7 @@ const ensureLocalSuperAdmin = () => {
     {
       email: SUPER_ADMIN_EMAIL,
       password: SUPER_ADMIN_FALLBACK_PASSWORD,
-      name: 'Luna Super Admin',
+      name: 'Luna29 Super Admin',
       provider: 'password',
     },
     ...users,
@@ -335,7 +335,7 @@ const localAuth = {
     const nextUser: StoredUser = {
       email: normalizedEmail,
       password,
-      name: 'Luna Super Admin',
+      name: 'Luna29 Super Admin',
       provider: 'password',
     };
 
