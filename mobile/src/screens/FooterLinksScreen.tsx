@@ -5,24 +5,18 @@ import { LunaButton } from '../components/LunaButton';
 import { MobileScreenHeader } from '../components/MobileScreenHeader';
 import { SurfaceCard } from '../components/SurfaceCard';
 import { BaseMobileLang, MobileLang, resolveLangBase } from '../i18n/mobileCopy';
+import { PUBLIC_WEB_PATHS, publicWebLink, type PublicWebPathKey } from '../config/publicWeb';
 
-const links = [
-  { key: 'home', section: 'public', url: 'https://luna-eta-rust.vercel.app/' },
-  { key: 'ritual', section: 'public', url: 'https://luna-eta-rust.vercel.app/ritual-path' },
-  { key: 'body', section: 'public', url: 'https://luna-eta-rust.vercel.app/luna-balance' },
-  { key: 'bridge', section: 'public', url: 'https://luna-eta-rust.vercel.app/the-bridge' },
-  { key: 'pricing', section: 'public', url: 'https://luna-eta-rust.vercel.app/pricing' },
-  { key: 'faq', section: 'support', url: 'https://luna-eta-rust.vercel.app/faq' },
-  { key: 'contact', section: 'support', url: 'https://luna-eta-rust.vercel.app/contact' },
-  { key: 'partnerFaq', section: 'support', url: 'https://luna-eta-rust.vercel.app/partner-faq' },
-  { key: 'about', section: 'legal', url: 'https://luna-eta-rust.vercel.app/about' },
-  { key: 'how', section: 'legal', url: 'https://luna-eta-rust.vercel.app/how-it-works' },
-  { key: 'privacy', section: 'legal', url: 'https://luna-eta-rust.vercel.app/privacy' },
-  { key: 'terms', section: 'legal', url: 'https://luna-eta-rust.vercel.app/terms' },
-  { key: 'medical', section: 'legal', url: 'https://luna-eta-rust.vercel.app/disclaimer' },
-  { key: 'cookies', section: 'legal', url: 'https://luna-eta-rust.vercel.app/cookies' },
-  { key: 'dataRights', section: 'legal', url: 'https://luna-eta-rust.vercel.app/data-rights' },
-] as const;
+const links = (Object.keys(PUBLIC_WEB_PATHS) as PublicWebPathKey[]).map((key) => ({
+  key,
+  section:
+    key === 'home' || key === 'ritual' || key === 'body' || key === 'bridge' || key === 'pricing'
+      ? 'public'
+      : key === 'faq' || key === 'contact' || key === 'partnerFaq'
+        ? 'support'
+        : 'legal',
+  url: publicWebLink(key),
+}));
 
 const socialLinks = [
   { key: 'facebook', url: 'https://facebook.com', icon: 'f', color: '#1877F2' },
@@ -34,7 +28,7 @@ const socialLinks = [
 const copyByLang: Record<BaseMobileLang, Record<string, string>> = {
   en: {
     title: 'Footer links',
-    subtitle: 'All public, support, legal, and account links from Luna.',
+    subtitle: 'All public, support, legal, and account links from Luna29.',
     publicTitle: 'Public',
     supportTitle: 'Support',
     legalTitle: 'Legal',
@@ -47,7 +41,7 @@ const copyByLang: Record<BaseMobileLang, Record<string, string>> = {
     bridge: 'The Bridge',
     pricing: 'Pricing',
     faq: 'FAQ',
-    about: 'About Luna',
+    about: 'About Luna29',
     how: 'How It Works',
     contact: 'Contact',
     privacy: 'Privacy',
@@ -72,7 +66,7 @@ const copyByLang: Record<BaseMobileLang, Record<string, string>> = {
   },
   ru: {
     title: 'Ссылки футера',
-    subtitle: 'Все публичные, support, legal и account-ссылки Luna.',
+    subtitle: 'Все публичные, support, legal и account-ссылки Luna29.',
     publicTitle: 'Публично',
     supportTitle: 'Поддержка',
     legalTitle: 'Юридически',
@@ -85,7 +79,7 @@ const copyByLang: Record<BaseMobileLang, Record<string, string>> = {
     bridge: 'The Bridge',
     pricing: 'Pricing',
     faq: 'FAQ',
-    about: 'About Luna',
+    about: 'About Luna29',
     how: 'How It Works',
     contact: 'Contact',
     privacy: 'Privacy',
@@ -110,7 +104,7 @@ const copyByLang: Record<BaseMobileLang, Record<string, string>> = {
   },
   es: {
     title: 'Links del footer',
-    subtitle: 'Todos los links publicos, soporte, legales y de cuenta de Luna.',
+    subtitle: 'Todos los links publicos, soporte, legales y de cuenta de Luna29.',
     publicTitle: 'Publico',
     supportTitle: 'Soporte',
     legalTitle: 'Legal',
@@ -123,7 +117,7 @@ const copyByLang: Record<BaseMobileLang, Record<string, string>> = {
     bridge: 'The Bridge',
     pricing: 'Pricing',
     faq: 'FAQ',
-    about: 'About Luna',
+    about: 'About Luna29',
     how: 'How It Works',
     contact: 'Contact',
     privacy: 'Privacy',

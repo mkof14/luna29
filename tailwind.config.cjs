@@ -39,6 +39,7 @@ module.exports = {
         'oscilloscope-drift': 'oscilloscope-drift 8s linear infinite',
         'oscilloscope-glow': 'oscilloscope-glow 2.2s ease-in-out infinite',
         'color-shift-luna': 'color-shift-luna 12s ease-in-out infinite',
+        'color-shift-luna-suffix': 'color-shift-luna-suffix 20s ease-in-out infinite',
         'bg-flow': 'bg-flow 60s ease infinite',
         'blob-slow': 'blob-slow 10s ease-in-out infinite',
       },
@@ -71,6 +72,12 @@ module.exports = {
           '0%, 100%': { color: '#6d28d9' },
           '33%': { color: '#ff5a40' },
           '66%': { color: '#0e7490' },
+        },
+        'color-shift-luna-suffix': {
+          '0%, 100%': { color: '#f59e0b' },
+          '25%': { color: '#ec4899' },
+          '50%': { color: '#8b5cf6' },
+          '75%': { color: '#14b8a6' },
         },
         'bg-flow': {
           '0%, 100%': { backgroundPosition: '0% 50%' },

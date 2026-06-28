@@ -7,9 +7,9 @@ import { MobileLang, resolveLangBase } from '../i18n/mobileCopy';
 
 export function HowItWorksMobileScreen({ onBack, lang }: { onBack: () => void; lang: MobileLang }) {
   const copy = {
-    en: { title: 'How Luna works', subtitle: 'Open, reflect, receive, continue.', steps: ['Open Luna', 'Speak or quick check-in', 'Receive reflection', 'See rhythm context'] },
-    ru: { title: 'Как работает Luna', subtitle: 'Открыть, отразить, получить, продолжить.', steps: ['Открыть Luna', 'Голос или быстрый check-in', 'Получить отражение', 'Посмотреть ритм'] },
-    es: { title: 'Como funciona Luna', subtitle: 'Abrir, reflejar, recibir, continuar.', steps: ['Abrir Luna', 'Hablar o check-in rapido', 'Recibir reflexion', 'Ver contexto del ritmo'] },
+    en: { title: 'How Luna29 works', subtitle: 'Open, reflect, receive, continue.', steps: ['Open Luna29', 'Speak or quick check-in', 'Receive reflection', 'See rhythm context'] },
+    ru: { title: 'Как работает Luna29', subtitle: 'Открыть, отразить, получить, продолжить.', steps: ['Открыть Luna29', 'Голос или быстрый check-in', 'Получить отражение', 'Посмотреть ритм'] },
+    es: { title: 'Como funciona Luna29', subtitle: 'Abrir, reflejar, recibir, continuar.', steps: ['Abrir Luna29', 'Hablar o check-in rapido', 'Recibir reflexion', 'Ver contexto del ritmo'] },
   }[resolveLangBase(lang)];
 
   return (

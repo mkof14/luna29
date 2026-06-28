@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Language } from '../constants';
+import { Language, LangCopy, getLang } from '../constants';
 
 interface HormoneTestingGuideProps {
   lang: Language;
@@ -69,7 +69,7 @@ const baseRows: GuideCopy['rows'] = [
   },
 ];
 
-const copyByLang: Record<Language, GuideCopy> = {
+const copyByLang: LangCopy< GuideCopy> = {
   en: {
     title: 'Hormones + Required Tests',
     subtitle: 'Clear test map for more accurate women health analysis.',
@@ -281,7 +281,7 @@ const copyByLang: Record<Language, GuideCopy> = {
 
 export const HormoneTestingGuide: React.FC<HormoneTestingGuideProps> = ({ lang }) => {
   const [showFocus, setShowFocus] = useState(false);
-  const copy = copyByLang[lang] || copyByLang.en;
+  const copy = getLang(copyByLang, lang) || copyByLang.en;
 
   return (
     <section className="rounded-[2.2rem] border border-slate-200/80 dark:border-slate-700/70 bg-[radial-gradient(circle_at_12%_20%,rgba(255,255,255,0.45),transparent_42%),radial-gradient(circle_at_84%_78%,rgba(251,113,133,0.18),transparent_40%),linear-gradient(135deg,rgba(245,225,235,0.95),rgba(220,230,244,0.92))] dark:bg-[radial-gradient(circle_at_15%_20%,rgba(124,58,237,0.18),transparent_42%),radial-gradient(circle_at_82%_78%,rgba(20,184,166,0.16),transparent_42%),linear-gradient(135deg,rgba(8,22,47,0.94),rgba(12,36,70,0.92))] p-6 md:p-7 shadow-luna-rich space-y-4">

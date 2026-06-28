@@ -79,7 +79,7 @@ const requiredSecrets = [
   'GOOGLE_SERVICE_ACCOUNT_JSON',
 ];
 
-console.log('Luna mobile release preflight');
+console.log('Luna29 mobile release preflight');
 console.log('============================');
 console.log('Required GitHub secrets:');
 for (const secret of requiredSecrets) {

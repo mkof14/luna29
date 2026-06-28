@@ -15,7 +15,7 @@ export function MonthlyReflectionScreen({
 }) {
   const copyByLang: Record<BaseMobileLang, Record<string, string>> = {
     en: {
-      title: 'Your month with Luna',
+      title: 'Your month with Luna29',
       subtitle: 'A gentle monthly summary.',
       i1: 'Your energy tends to dip before your cycle.',
       i2: 'Sleep affects mood during work days.',
@@ -24,7 +24,7 @@ export function MonthlyReflectionScreen({
       back: 'Back to Today',
     },
     ru: {
-      title: 'Ваш месяц с Luna',
+      title: 'Ваш месяц с Luna29',
       subtitle: 'Мягкий ежемесячный обзор.',
       i1: 'Энергия обычно снижается перед циклом.',
       i2: 'Сон влияет на настроение в рабочие дни.',
@@ -33,7 +33,7 @@ export function MonthlyReflectionScreen({
       back: 'Назад в Today',
     },
     es: {
-      title: 'Tu mes con Luna',
+      title: 'Tu mes con Luna29',
       subtitle: 'Un resumen mensual suave.',
       i1: 'Tu energia tiende a bajar antes del ciclo.',
       i2: 'El sueno afecta el estado en dias laborales.',

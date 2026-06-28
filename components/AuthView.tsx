@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ArrowLeft } from 'lucide-react';
 import { Logo } from './Logo';
 import { AuthCopy } from '../types/uiCopy';
 import { AuthSession } from '../types';
@@ -9,6 +10,7 @@ interface AuthViewProps {
   onSuccess: (session: AuthSession) => void;
   initialMode?: 'signin' | 'signup';
   onClose?: () => void;
+  onBack?: () => void;
 }
 
 type GoogleCredentialResponse = { credential?: string };
@@ -19,7 +21,20 @@ type GoogleIdClient = {
     callback: (response: GoogleCredentialResponse) => void;
     auto_select?: boolean;
     context?: 'signin' | 'signup' | 'use';
+    cancel_on_tap_outside?: boolean;
+    itp_support?: boolean;
   }) => void;
+  renderButton: (
+    parent: HTMLElement,
+    options: {
+      type?: 'standard' | 'icon';
+      theme?: 'outline' | 'filled_blue' | 'filled_black';
+      size?: 'large' | 'medium' | 'small';
+      text?: 'signin_with' | 'signup_with' | 'continue_with' | 'signin';
+      shape?: 'rectangular' | 'pill' | 'circle' | 'square';
+      width?: number;
+    }
+  ) => void;
   prompt: (cb?: (notification: {
     isNotDisplayed: () => boolean;
     isSkippedMoment: () => boolean;
@@ -40,7 +55,7 @@ declare global {
 
 const GOOGLE_SCRIPT_ID = 'luna-google-identity-sdk';
 
-export const AuthView: React.FC<AuthViewProps> = ({ ui, onSuccess, initialMode = 'signin', onClose }) => {
+export const AuthView: React.FC<AuthViewProps> = ({ ui, onSuccess, initialMode = 'signin', onClose, onBack }) => {
   const [isLogin, setIsLogin] = useState(initialMode !== 'signup');
   const [showRecovery, setShowRecovery] = useState(false);
   const [email, setEmail] = useState('');
@@ -49,11 +64,30 @@ export const AuthView: React.FC<AuthViewProps> = ({ ui, onSuccess, initialMode =
   const [isLoading, setIsLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [googleReady, setGoogleReady] = useState(false);
+  const googleButtonRef = useRef<HTMLDivElement>(null);
+
+  const handleBack = onBack ?? onClose;
+  const backLabel = ui.auth.backToPublic ?? 'Back to public home';
 
   const googleClientId = useMemo(() => {
     const envValue = import.meta.env.VITE_GOOGLE_CLIENT_ID;
     return typeof envValue === 'string' ? envValue.trim() : '';
   }, []);
+
+  const onGoogleCredential = useCallback(async (response: GoogleCredentialResponse) => {
+    setAuthError(null);
+    setIsLoading(true);
+    try {
+      if (!response.credential) {
+        throw new Error('Google response does not contain a credential.');
+      }
+      const session = await authService.loginWithGoogleCredential(response.credential);
+      onSuccess(session);
+    } catch (error) {
+      setAuthError(error instanceof Error ? error.message : 'Google authorization failed.');
+      setIsLoading(false);
+    }
+  }, [onSuccess]);
 
   useEffect(() => {
     if (window.google?.accounts?.id) {
@@ -76,6 +110,32 @@ export const AuthView: React.FC<AuthViewProps> = ({ ui, onSuccess, initialMode =
     script.onerror = () => setAuthError('Google SDK failed to load. Check your connection and try again.');
     document.head.appendChild(script);
   }, []);
+
+  useEffect(() => {
+    if (!googleClientId || !googleReady || !window.google?.accounts?.id) return;
+    const mount = googleButtonRef.current;
+    if (!mount) return;
+
+    mount.innerHTML = '';
+    window.google.accounts.id.initialize({
+      client_id: googleClientId,
+      callback: onGoogleCredential,
+      context: isLogin ? 'signin' : 'signup',
+      auto_select: false,
+      cancel_on_tap_outside: true,
+      itp_support: true,
+    });
+
+    const width = Math.max(280, Math.min(mount.offsetWidth || 360, 420));
+    window.google.accounts.id.renderButton(mount, {
+      type: 'standard',
+      theme: 'outline',
+      size: 'large',
+      text: 'continue_with',
+      shape: 'pill',
+      width,
+    });
+  }, [googleClientId, googleReady, isLogin, onGoogleCredential]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,61 +160,22 @@ export const AuthView: React.FC<AuthViewProps> = ({ ui, onSuccess, initialMode =
     }
   };
 
-  const handleGoogleAuth = () => {
-    setAuthError(null);
-
-    if (!googleClientId) {
-      setAuthError('Google sign-in requires VITE_GOOGLE_CLIENT_ID in environment variables.');
-      return;
-    }
-
-    if (!googleReady || !window.google?.accounts?.id) {
-      setAuthError('Google sign-in is initializing. Try again in a moment.');
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      window.google.accounts.id.initialize({
-        client_id: googleClientId,
-        context: isLogin ? 'signin' : 'signup',
-        callback: async (response) => {
-          try {
-            if (!response.credential) {
-              throw new Error('Google response does not contain a credential.');
-            }
-            const session = await authService.loginWithGoogleCredential(response.credential);
-            onSuccess(session);
-          } catch (error) {
-            setAuthError(error instanceof Error ? error.message : 'Google authorization failed.');
-            setIsLoading(false);
-          }
-        },
-      });
-
-      window.google.accounts.id.prompt((notification) => {
-        if (notification.isNotDisplayed()) {
-          const reason = notification.getNotDisplayedReason?.() ?? 'unknown';
-          setAuthError(`Google sign-in is unavailable in this browser context (${reason}). Try Google button again or use email/password.`);
-          setIsLoading(false);
-          return;
-        }
-        if (notification.isSkippedMoment()) {
-          const reason = notification.getSkippedReason?.() ?? 'unknown';
-          setAuthError(`Google sign-in was skipped (${reason}). Try again.`);
-          setIsLoading(false);
-        }
-      });
-    } catch (error) {
-      setAuthError(error instanceof Error ? error.message : 'Google sign-in failed to start.');
-      setIsLoading(false);
-    }
-  };
+  const backButton = handleBack ? (
+    <button
+      type="button"
+      onClick={handleBack}
+      className="absolute top-6 left-6 z-[510] inline-flex items-center gap-2 px-3 py-2 rounded-full border border-slate-300/80 dark:border-slate-700/80 bg-white/80 dark:bg-slate-900/70 text-slate-600 dark:text-slate-300 hover:text-luna-purple hover:border-luna-purple/50 transition-colors shadow-sm"
+      aria-label={backLabel}
+    >
+      <ArrowLeft size={16} aria-hidden="true" />
+      <span className="text-[10px] font-black uppercase tracking-[0.14em] hidden sm:inline">{backLabel}</span>
+    </button>
+  ) : null;
 
   if (showRecovery) {
     return (
       <div className="fixed inset-0 z-[500] bg-gradient-to-br from-[#f6f3fa] via-[#f3eff8] to-[#eceef6] dark:from-[#080d1d] dark:via-[#0b1328] dark:to-[#111f3d] flex items-center justify-center p-6 animate-in fade-in duration-700 overflow-hidden">
+        {backButton}
         <div className="pointer-events-none absolute -top-20 -left-20 w-96 h-96 rounded-full bg-[#e5dbf4]/70 dark:bg-violet-500/20 blur-[120px]" />
         <div className="pointer-events-none absolute -bottom-24 -right-16 w-96 h-96 rounded-full bg-[#e3e6f7]/70 dark:bg-indigo-500/20 blur-[120px]" />
         <div className="max-w-md w-full p-8 md:p-10 rounded-[2.4rem] border border-slate-300/70 dark:border-slate-700/70 bg-white/88 dark:bg-[#0b1328]/88 backdrop-blur-xl shadow-[0_30px_70px_rgba(71,85,105,0.22)] dark:shadow-[0_30px_70px_rgba(2,6,23,0.65)] space-y-8 relative z-10">
@@ -201,6 +222,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ ui, onSuccess, initialMode =
 
   return (
     <div className="fixed inset-0 z-[500] bg-gradient-to-br from-[#f6f3fa] via-[#f3eff8] to-[#eceef6] dark:from-[#080d1d] dark:via-[#0b1328] dark:to-[#111f3d] flex items-center justify-center p-6 animate-in fade-in duration-700 overflow-hidden">
+      {backButton}
       <div className="pointer-events-none absolute -top-24 -left-24 w-[30rem] h-[30rem] bg-[#e7def6]/70 dark:bg-violet-500/24 rounded-full blur-[120px]" />
       <div className="pointer-events-none absolute bottom-0 -right-24 w-[28rem] h-[28rem] bg-[#e3e7f8]/75 dark:bg-indigo-500/22 rounded-full blur-[120px]" />
       <div className="pointer-events-none absolute top-1/3 left-1/2 -translate-x-1/2 w-[24rem] h-[24rem] bg-[#f0e8f6]/60 dark:bg-fuchsia-500/12 rounded-full blur-[110px]" />
@@ -209,7 +231,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ ui, onSuccess, initialMode =
         <aside className="hidden lg:block relative min-h-[680px] bg-gradient-to-br from-[#f4ecf8] via-[#efe7f5] to-[#e7eaf5] dark:from-[#0a1328] dark:via-[#0f1b38] dark:to-[#13264a]">
           <img
             src="/images/Luna%20logo3.png"
-            alt="Luna artwork"
+            alt="Luna29 artwork"
             className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-75 dark:opacity-60"
           />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[rgba(255,255,255,0.38)] to-[rgba(255,255,255,0.04)] dark:from-[rgba(9,14,30,0.18)] dark:to-[rgba(9,14,30,0.42)]" />
@@ -235,21 +257,21 @@ export const AuthView: React.FC<AuthViewProps> = ({ ui, onSuccess, initialMode =
           </header>
 
           <div className="space-y-4">
-            <button
-              data-testid="auth-google"
-              type="button"
-              onClick={handleGoogleAuth}
-              disabled={isLoading}
-              className="w-full py-4 bg-white/82 dark:bg-slate-900/60 border border-slate-300/70 dark:border-slate-700 rounded-full flex items-center justify-center gap-3 hover:bg-white dark:hover:bg-slate-800 transition-all group shadow-[0_10px_24px_rgba(71,85,105,0.12)] dark:shadow-[0_10px_24px_rgba(2,6,23,0.4)] cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              <svg width="20" height="20" viewBox="0 0 48 48">
-                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24s.92 7.54 2.56 10.78l7.97-6.19z"/>
-                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-              </svg>
-              <span className="text-[12px] font-black uppercase text-slate-600 dark:text-slate-300 tracking-widest">{ui.auth.google}</span>
-            </button>
+            {!googleClientId ? (
+              <p className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-900/40 p-4 text-xs font-semibold text-slate-600 dark:text-slate-300 text-center">
+                Google sign-in requires <code className="text-luna-purple">VITE_GOOGLE_CLIENT_ID</code> in environment variables.
+              </p>
+            ) : !googleReady ? (
+              <p className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-900/40 p-4 text-xs font-semibold text-slate-500 dark:text-slate-400 text-center">
+                Loading Google sign-in…
+              </p>
+            ) : (
+              <div
+                ref={googleButtonRef}
+                data-testid="auth-google"
+                className={`w-full flex justify-center min-h-[48px] ${isLoading ? 'opacity-60 pointer-events-none' : ''}`}
+              />
+            )}
 
             <div className="relative flex items-center gap-4 py-2">
               <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />

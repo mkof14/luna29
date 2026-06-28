@@ -1,5 +1,5 @@
 export const reminderMessages = [
-  'A quiet moment with Luna tonight.',
+  'A quiet moment with Luna29 tonight.',
   'How did today feel for you?',
   'Take a minute to reflect.',
 ];

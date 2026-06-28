@@ -25,7 +25,7 @@ export type LabsDraftSnapshot = {
   profile: PersonalHealthProfile;
 };
 
-const ALLOWED_LANGUAGES: Language[] = ['en', 'ru', 'uk', 'es', 'fr', 'de', 'zh', 'ja', 'pt'];
+const ALLOWED_LANGUAGES: Language[] = ['en', 'ru', 'uk', 'es', 'fr', 'de', 'zh', 'ja', 'pt', 'ar', 'he'];
 const PROFILE_KEYS: Array<keyof PersonalHealthProfile> = ['birthYear', 'cycleLength', 'cycleDay', 'medications', 'knownConditions', 'goals'];
 
 const clampScore = (value: unknown, fallback: number) => {

@@ -11,19 +11,19 @@ const topics = {
     { title: 'Cycle rhythm', body: 'Understand how phases can change energy and sensitivity.' },
     { title: 'Sleep and mood', body: 'Short sleep often makes the next day feel heavier.' },
     { title: 'Stress signals', body: 'Learn your personal early signs before overload.' },
-    { title: 'Voice notes', body: 'Your words help Luna understand what matters today.' },
+    { title: 'Voice notes', body: 'Your words help Luna29 understand what matters today.' },
   ],
   ru: [
     { title: 'Ритм цикла', body: 'Понимайте, как фазы влияют на энергию и чувствительность.' },
     { title: 'Сон и настроение', body: 'Короткий сон часто делает следующий день тяжелее.' },
     { title: 'Сигналы стресса', body: 'Замечайте ранние личные сигналы до перегруза.' },
-    { title: 'Голосовые заметки', body: 'Ваши слова помогают Luna понять, что важно сегодня.' },
+    { title: 'Голосовые заметки', body: 'Ваши слова помогают Luna29 понять, что важно сегодня.' },
   ],
   es: [
     { title: 'Ritmo del ciclo', body: 'Entiende como las fases cambian energia y sensibilidad.' },
     { title: 'Sueno y animo', body: 'Dormir poco suele hacer el siguiente dia mas pesado.' },
     { title: 'Senales de estres', body: 'Aprende tus signos tempranos antes de la sobrecarga.' },
-    { title: 'Notas de voz', body: 'Tus palabras ayudan a Luna a entender lo importante hoy.' },
+    { title: 'Notas de voz', body: 'Tus palabras ayudan a Luna29 a entender lo importante hoy.' },
   ],
 };
 

@@ -2,7 +2,7 @@ import React from 'react';
 
 export const SystemLogicView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const principles = [
-    { title: "Deterministic Core", text: "Luna uses established physiological rules to map subjective sensations (like energy levels and temperature) to probable hormonal states." },
+    { title: "Deterministic Core", text: "Luna29 uses established physiological rules to map subjective sensations (like energy levels and temperature) to probable hormonal states." },
     { title: "Temporal Synchronization", text: "Every data point is weighted by your current cycle day, ensuring your map reflects the natural seasonal shifts of your body." },
     { title: "Privacy First", text: "The system operates as a closed loop. All logic evaluation occur on your device, never in the cloud." },
   ];
@@ -30,7 +30,7 @@ export const SystemLogicView: React.FC<{ onBack: () => void }> = ({ onBack }) =>
 
       <footer className="p-12 bg-slate-900 text-white rounded-[4rem] text-center space-y-6 shadow-xl">
         <p className="text-[10px] font-black uppercase tracking-[0.4em] opacity-60">Professional Standard</p>
-        <p className="text-2xl font-bold leading-tight uppercase tracking-tighter">Luna is a synthesis of subjective observation and biological rhythm science.</p>
+        <p className="text-2xl font-bold leading-tight uppercase tracking-tighter">Luna29 is a synthesis of subjective observation and biological rhythm science.</p>
       </footer>
     </article>
   );

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Language } from '../constants';
+import { Language, LangCopy, getLang } from '../constants';
 
 type JourneyStep = 1 | 2 | 3;
 
@@ -8,10 +8,10 @@ interface JourneyProgressProps {
   currentStep: JourneyStep;
 }
 
-const copyByLang: Record<Language, { title: string; steps: [string, string, string] }> = {
+const copyByLang: LangCopy< { title: string; steps: [string, string, string] }> = {
   en: { title: 'Member Path', steps: ['Home', 'Cycle', 'Bridge'] },
-  ru: { title: 'Путь Внутри Luna', steps: ['Home', 'Cycle', 'Bridge'] },
-  uk: { title: 'Шлях Усередині Luna', steps: ['Home', 'Cycle', 'Bridge'] },
+  ru: { title: 'Путь Внутри Luna29', steps: ['Home', 'Cycle', 'Bridge'] },
+  uk: { title: 'Шлях Усередині Luna29', steps: ['Home', 'Cycle', 'Bridge'] },
   es: { title: 'Ruta De Miembro', steps: ['Home', 'Cycle', 'Bridge'] },
   fr: { title: 'Parcours Membre', steps: ['Home', 'Cycle', 'Bridge'] },
   de: { title: 'Mitgliederpfad', steps: ['Home', 'Cycle', 'Bridge'] },
@@ -21,7 +21,7 @@ const copyByLang: Record<Language, { title: string; steps: [string, string, stri
 };
 
 export const JourneyProgress: React.FC<JourneyProgressProps> = ({ lang, currentStep }) => {
-  const copy = copyByLang[lang] || copyByLang.en;
+  const copy = getLang(copyByLang, lang) || copyByLang.en;
 
   return (
     <section className="rounded-3xl border border-slate-200/80 dark:border-slate-800/80 bg-white/75 dark:bg-slate-900/55 p-4 md:p-5 shadow-luna-rich">

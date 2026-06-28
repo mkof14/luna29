@@ -215,6 +215,7 @@ const App: React.FC = () => {
               ui={ui}
               initialMode={authMode}
               onClose={() => setShowAuthModal(false)}
+              onBack={() => setShowAuthModal(false)}
               onSuccess={(nextSession) => {
                 setShowAuthModal(false);
                 setSession(nextSession);

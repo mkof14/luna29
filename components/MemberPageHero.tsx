@@ -1,5 +1,5 @@
 import React from 'react';
-import { Language, TranslationSchema } from '../constants';
+import { Language, TranslationSchema, LangCopy, getLang } from '../constants';
 import { TabType } from '../utils/navigation';
 
 type HeroConfig = {
@@ -37,7 +37,7 @@ type DescriptionKey =
   | 'cookies'
   | 'data_rights';
 
-const subtitleByLang: Record<Language, string> = {
+const subtitleByLang: LangCopy< string> = {
   en: 'Member Zone',
   ru: 'Member Зона',
   uk: 'Member Зона',
@@ -54,7 +54,7 @@ export const MemberPageHero: React.FC<{
   lang: Language;
   ui: TranslationSchema;
 }> = ({ activeTab, lang, ui }) => {
-  const legalTitleByLang: Record<Language, Record<'about' | 'how_it_works' | 'terms' | 'medical' | 'cookies' | 'data_rights', string>> = {
+  const legalTitleByLang: LangCopy< Record<'about' | 'how_it_works' | 'terms' | 'medical' | 'cookies' | 'data_rights', string>> = {
     en: { about: 'About', how_it_works: 'How It Works', terms: 'Terms', medical: 'Disclaimer', cookies: 'Cookies', data_rights: 'Data Rights' },
     ru: { about: 'О проекте', how_it_works: 'Как Это Работает', terms: 'Условия', medical: 'Дисклеймер', cookies: 'Cookies', data_rights: 'Права на данные' },
     uk: { about: 'Про проект', how_it_works: 'Як Це Працює', terms: 'Умови', medical: 'Дисклеймер', cookies: 'Cookies', data_rights: 'Права на дані' },
@@ -65,12 +65,12 @@ export const MemberPageHero: React.FC<{
     ja: { about: '概要', how_it_works: '使い方', terms: '利用規約', medical: '免責', cookies: 'Cookie 通知', data_rights: 'データ権利' },
     pt: { about: 'Sobre', how_it_works: 'Como Funciona', terms: 'Termos De Servico', medical: 'Aviso', cookies: 'Aviso De Cookies', data_rights: 'Direitos De Dados' },
   };
-  const legal = legalTitleByLang[lang] || legalTitleByLang.en;
-  const subtitle = subtitleByLang[lang] || subtitleByLang.en;
-  const descriptionByLang: Record<Language, Record<DescriptionKey, string>> = {
+  const legal = getLang(legalTitleByLang, lang) || legalTitleByLang.en;
+  const subtitle = getLang(subtitleByLang, lang) || subtitleByLang.en;
+  const descriptionByLang: LangCopy< Record<DescriptionKey, string>> = {
     en: {
       home: 'Your daily orientation layer with the most important signals, focus points, and next actions.',
-      about: 'Background of Luna and BioMath context with the purpose and boundaries of the system.',
+      about: 'Background of Luna29 and BioMath context with the purpose and boundaries of the system.',
       cycle: 'Visual map of physiological rhythms across energy, mood, focus, and recovery.',
       labs: 'Track metrics, trends, and practical interpretations of your health signals over time.',
       history: 'Review timeline, repeated patterns, and what changed across recent cycles and days.',
@@ -89,15 +89,15 @@ export const MemberPageHero: React.FC<{
       partner: 'Guidance for partners: how to support without pressure and communicate with clarity.',
       relationships: 'Relationship regulation tools aligned with capacity, timing, and emotional load.',
       admin: 'Private workspace for managing content, team access, and key account insights.',
-      how: 'Step-by-step flow of Luna usage from public orientation to private member tools.',
+      how: 'Step-by-step flow of Luna29 usage from public orientation to private member tools.',
       terms: 'Legal terms describing use conditions, account rules, and service limitations.',
-      disclaimer: 'Service boundary notice: Luna is informational support, not medical diagnosis or treatment.',
+      disclaimer: 'Service boundary notice: Luna29 is informational support, not medical diagnosis or treatment.',
       cookies: 'Cookie usage details and controls for session, preferences, and analytics.',
       data_rights: 'Your rights over access, export, correction, and deletion of personal data.',
     },
     ru: {
       home: 'Ежедневная ориентация: ключевые сигналы состояния, фокус и следующие шаги.',
-      about: 'Контекст Luna и BioMath: происхождение, назначение и границы системы.',
+      about: 'Контекст Luna29 и BioMath: происхождение, назначение и границы системы.',
       cycle: 'Визуальная карта физиологических ритмов: энергия, настроение, фокус и восстановление.',
       labs: 'Отслеживание метрик, трендов и прикладной интерпретации сигналов во времени.',
       history: 'Хронология повторяющихся паттернов и изменений по дням и циклам.',
@@ -116,15 +116,15 @@ export const MemberPageHero: React.FC<{
       partner: 'Раздел для партнера: как поддерживать без давления и общаться яснее.',
       relationships: 'Инструменты регулирования отношений с учетом ресурса и эмоциональной нагрузки.',
       admin: 'Приватное пространство для управления контентом, доступами команды и ключевыми показателями.',
-      how: 'Пошаговая логика использования Luna: от публичной части к member-инструментам.',
+      how: 'Пошаговая логика использования Luna29: от публичной части к member-инструментам.',
       terms: 'Юридические условия использования, правила аккаунта и ограничения сервиса.',
-      disclaimer: 'Границы сервиса: Luna — информационная поддержка, не диагностика и не лечение.',
+      disclaimer: 'Границы сервиса: Luna29 — информационная поддержка, не диагностика и не лечение.',
       cookies: 'Информация о cookie и управление настройками сессии и аналитики.',
       data_rights: 'Ваши права на доступ, экспорт, исправление и удаление персональных данных.',
     },
     uk: {
       home: 'Щоденна орієнтація: ключові сигнали стану, фокус і наступні кроки.',
-      about: 'Контекст Luna і BioMath: походження, призначення та межі системи.',
+      about: 'Контекст Luna29 і BioMath: походження, призначення та межі системи.',
       cycle: 'Візуальна карта фізіологічних ритмів: енергія, настрій, фокус, відновлення.',
       labs: 'Відстеження метрик, трендів і прикладного тлумачення сигналів у часі.',
       history: 'Хронологія патернів, що повторюються, та змін між днями і циклами.',
@@ -143,15 +143,15 @@ export const MemberPageHero: React.FC<{
       partner: 'Розділ для партнера: як підтримувати без тиску та говорити ясніше.',
       relationships: 'Інструменти регуляції стосунків з урахуванням ресурсу та емоційної напруги.',
       admin: 'Приватний простір для керування контентом, доступами команди та ключовими показниками.',
-      how: 'Покрокова логіка Luna: від публічної орієнтації до member-інструментів.',
+      how: 'Покрокова логіка Luna29: від публічної орієнтації до member-інструментів.',
       terms: 'Юридичні умови використання, правила акаунта й обмеження сервісу.',
-      disclaimer: 'Межі сервісу: Luna — інформаційна підтримка, не діагностика і не лікування.',
+      disclaimer: 'Межі сервісу: Luna29 — інформаційна підтримка, не діагностика і не лікування.',
       cookies: 'Інформація про cookie та керування налаштуваннями сесії й аналітики.',
       data_rights: 'Ваші права на доступ, експорт, виправлення та видалення даних.',
     },
     es: {
       home: 'Capa diaria de orientacion con señales clave, foco y siguientes acciones.',
-      about: 'Contexto de Luna y BioMath con el proposito y limites del sistema.',
+      about: 'Contexto de Luna29 y BioMath con el proposito y limites del sistema.',
       cycle: 'Mapa visual de ritmos fisiologicos: energia, estado de animo, foco y recuperacion.',
       labs: 'Seguimiento de metricas, tendencias e interpretacion practica de señales.',
       history: 'Revision de patrones repetidos y cambios por dias y ciclos.',
@@ -170,15 +170,15 @@ export const MemberPageHero: React.FC<{
       partner: 'Guia para pareja: como apoyar sin presion y con claridad.',
       relationships: 'Regulacion de relaciones segun capacidad y carga emocional.',
       admin: 'Espacio privado para gestionar contenido, accesos del equipo y métricas clave.',
-      how: 'Flujo paso a paso de uso de Luna.',
+      how: 'Flujo paso a paso de uso de Luna29.',
       terms: 'Terminos legales de uso, reglas de cuenta y limites del servicio.',
-      disclaimer: 'Luna es apoyo informativo, no diagnostico ni tratamiento medico.',
+      disclaimer: 'Luna29 es apoyo informativo, no diagnostico ni tratamiento medico.',
       cookies: 'Uso de cookies y control de preferencias de sesion y analitica.',
       data_rights: 'Derechos sobre acceso, exportacion, correccion y eliminacion de datos.',
     },
     fr: {
       home: 'Couche d orientation quotidienne avec signaux cles, focus et actions suivantes.',
-      about: 'Contexte Luna et BioMath: finalite, origine et limites du systeme.',
+      about: 'Contexte Luna29 et BioMath: finalite, origine et limites du systeme.',
       cycle: 'Carte visuelle des rythmes physiologiques: energie, humeur, concentration, recuperation.',
       labs: 'Suivi des metriques, tendances et interpretation pratique des signaux.',
       history: 'Chronologie des motifs repetitifs et des changements recents.',
@@ -197,15 +197,15 @@ export const MemberPageHero: React.FC<{
       partner: 'Guide partenaire: soutenir sans pression, communiquer avec clarte.',
       relationships: 'Regulation relationnelle selon la capacite et la charge emotionnelle.',
       admin: 'Espace prive pour gerer le contenu, les acces equipe et les indicateurs cles.',
-      how: 'Parcours pas a pas de Luna.',
+      how: 'Parcours pas a pas de Luna29.',
       terms: 'Conditions legales d utilisation et limites du service.',
-      disclaimer: 'Luna est un support informatif, pas un diagnostic ni un traitement.',
+      disclaimer: 'Luna29 est un support informatif, pas un diagnostic ni un traitement.',
       cookies: 'Utilisation des cookies et controle des preferences de session.',
       data_rights: 'Droits d acces, export, correction et suppression des donnees.',
     },
     de: {
       home: 'Tagliche Orientierung mit Schlusssignalen, Fokus und nachsten Schritten.',
-      about: 'Hintergrund zu Luna und BioMath sowie Zweck und Grenzen des Systems.',
+      about: 'Hintergrund zu Luna29 und BioMath sowie Zweck und Grenzen des Systems.',
       cycle: 'Visuelle Karte physiologischer Rhythmen: Energie, Stimmung, Fokus, Erholung.',
       labs: 'Verlauf von Metriken, Trends und praktischer Signalinterpretation.',
       history: 'Zeitleiste wiederkehrender Muster und Veranderungen im Verlauf.',
@@ -224,15 +224,15 @@ export const MemberPageHero: React.FC<{
       partner: 'Partnerleitfaden: unterstutzen ohne Druck, klar kommunizieren.',
       relationships: 'Beziehungsregulation nach Kapazitat, Timing und emotionaler Last.',
       admin: 'Privater Bereich fur Inhalte, Teamzugange und wichtige Kennzahlen.',
-      how: 'Schritt-fur-Schritt-Nutzung von Luna.',
+      how: 'Schritt-fur-Schritt-Nutzung von Luna29.',
       terms: 'Rechtliche Nutzungsbedingungen und Servicegrenzen.',
-      disclaimer: 'Luna ist informativ, keine medizinische Diagnose oder Behandlung.',
+      disclaimer: 'Luna29 ist informativ, keine medizinische Diagnose oder Behandlung.',
       cookies: 'Cookie-Nutzung und Steuerung von Sitzungs- und Analyseoptionen.',
       data_rights: 'Rechte auf Zugriff, Export, Berichtigung und Loschung von Daten.',
     },
     zh: {
       home: '每日导向层：查看关键状态信号、重点与下一步行动。',
-      about: '了解 Luna 与 BioMath 背景，以及系统目标与边界。',
+      about: '了解 Luna29 与 BioMath 背景，以及系统目标与边界。',
       cycle: '生理节律可视化地图：能量、情绪、专注与恢复。',
       labs: '跟踪指标与趋势，并获得可执行的信号解释。',
       history: '回顾时间线、重复模式与近期变化。',
@@ -251,15 +251,15 @@ export const MemberPageHero: React.FC<{
       partner: '伴侣指南：如何在不施压下提供支持与沟通。',
       relationships: '根据容量与情绪负荷进行关系调节。',
       admin: '私密工作区：管理内容、团队权限与关键洞察。',
-      how: 'Luna 使用路径与核心步骤说明。',
+      how: 'Luna29 使用路径与核心步骤说明。',
       terms: '服务条款：账户规则、使用条件与限制。',
-      disclaimer: 'Luna 为信息支持工具，不提供医疗诊断或治疗。',
+      disclaimer: 'Luna29 为信息支持工具，不提供医疗诊断或治疗。',
       cookies: 'Cookie 使用说明与会话/分析偏好控制。',
       data_rights: '你的数据权利：访问、导出、更正与删除。',
     },
     ja: {
       home: '日々の状態把握レイヤー。重要シグナル、優先点、次の一歩を確認。',
-      about: 'Luna と BioMath の背景、目的、システムの境界を説明。',
+      about: 'Luna29 と BioMath の背景、目的、システムの境界を説明。',
       cycle: '生理リズムの可視化マップ（エネルギー・気分・集中・回復）。',
       labs: '指標とトレンドを追跡し、実用的に解釈します。',
       history: '時系列での反復パターンと変化を振り返ります。',
@@ -278,15 +278,15 @@ export const MemberPageHero: React.FC<{
       partner: 'パートナー向け：圧をかけずに支えるための指針。',
       relationships: '容量と感情負荷に合わせた関係調整ツール。',
       admin: '非公開ワークスペース（コンテンツ管理、チーム権限、主要インサイト）。',
-      how: 'Luna の利用手順を段階的に説明します。',
+      how: 'Luna29 の利用手順を段階的に説明します。',
       terms: '利用規約、アカウントルール、サービス制限。',
-      disclaimer: 'Luna は情報支援であり、医療診断・治療ではありません。',
+      disclaimer: 'Luna29 は情報支援であり、医療診断・治療ではありません。',
       cookies: 'Cookie 利用とセッション/分析設定の管理。',
       data_rights: 'データ権利：アクセス、エクスポート、訂正、削除。',
     },
     pt: {
       home: 'Camada diaria de orientacao com sinais-chave, foco e proximas acoes.',
-      about: 'Contexto de Luna e BioMath com proposito e limites do sistema.',
+      about: 'Contexto de Luna29 e BioMath com proposito e limites do sistema.',
       cycle: 'Mapa visual dos ritmos fisiologicos: energia, humor, foco e recuperacao.',
       labs: 'Acompanhe metricas, tendencias e leitura pratica dos sinais.',
       history: 'Revise linha do tempo, padroes recorrentes e mudancas recentes.',
@@ -305,9 +305,9 @@ export const MemberPageHero: React.FC<{
       partner: 'Guia para parceiro: apoiar sem pressao e comunicar com clareza.',
       relationships: 'Regulacao de relacionamentos por capacidade e carga emocional.',
       admin: 'Espaco privado para gerir conteudo, acessos da equipe e indicadores-chave.',
-      how: 'Fluxo passo a passo de uso do Luna.',
+      how: 'Fluxo passo a passo de uso do Luna29.',
       terms: 'Termos legais de uso, regras de conta e limites do servico.',
-      disclaimer: 'Luna e suporte informativo, nao diagnostico ou tratamento medico.',
+      disclaimer: 'Luna29 e suporte informativo, nao diagnostico ou tratamento medico.',
       cookies: 'Uso de cookies e controle de preferencias de sessao e analise.',
       data_rights: 'Direitos sobre acesso, exportacao, correcao e exclusao de dados.',
     },
@@ -343,16 +343,16 @@ export const MemberPageHero: React.FC<{
     cookies: 'cookies',
     data_rights: 'data_rights',
   };
-  const descriptions = descriptionByLang[lang] || descriptionByLang.en;
+  const descriptions = getLang(descriptionByLang, lang) || descriptionByLang.en;
 
   const configs: Record<TabType, HeroConfig> = {
     dashboard: { image: '/images/luna_banner_1.jpg', title: ui.navigation.home || 'Home', subtitle, description: descriptions[descriptionKeyByTab.dashboard] },
     today_mirror: { image: '/images/luna_banner_1.jpg', title: 'Today', subtitle, description: descriptions[descriptionKeyByTab.today_mirror] },
-    my_day: { image: '/images/luna_banner_1.jpg', title: 'My Day with Luna', subtitle, description: descriptions[descriptionKeyByTab.my_day] },
-    monthly_reflection: { image: '/images/luna_banner_1.jpg', title: 'Your month with Luna', subtitle, description: descriptions[descriptionKeyByTab.monthly_reflection] },
+    my_day: { image: '/images/luna_banner_1.jpg', title: 'My Day with Luna29', subtitle, description: descriptions[descriptionKeyByTab.my_day] },
+    monthly_reflection: { image: '/images/luna_banner_1.jpg', title: 'Your month with Luna29', subtitle, description: descriptions[descriptionKeyByTab.monthly_reflection] },
     insights_paywall: { image: '/images/luna_banner_1.jpg', title: 'Unlock Insights', subtitle, description: descriptions[descriptionKeyByTab.insights_paywall] },
     about: { image: '/images/Luna L 44.png', title: legal.about, subtitle, description: descriptions[descriptionKeyByTab.about] },
-    cycle: { image: '/images/luna_banner_10.jpg', title: ui.navigation.cycle || 'Luna Balance', subtitle, description: descriptions[descriptionKeyByTab.cycle] },
+    cycle: { image: '/images/luna_banner_10.jpg', title: ui.navigation.cycle || 'Luna29 Balance', subtitle, description: descriptions[descriptionKeyByTab.cycle] },
     labs: { image: '/images/luna_banner_5.jpg', title: ui.navigation.labs || 'Labs', subtitle, description: descriptions[descriptionKeyByTab.labs] },
     history: { image: '/images/luna_banner_11.jpg', title: ui.navigation.history || 'History', subtitle, description: descriptions[descriptionKeyByTab.history] },
     creative: { image: '/images/crescent_moon_mist.webp', title: ui.navigation.creative || 'Create', subtitle, description: descriptions[descriptionKeyByTab.creative] },

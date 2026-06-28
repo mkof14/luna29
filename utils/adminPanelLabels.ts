@@ -1,10 +1,10 @@
-import { Language } from '../constants';
+import { Language, LangCopy, getLang } from '../constants';
 
 type Channel = 'Email' | 'Push' | 'Telegram' | 'Instagram';
 type CampaignStatus = 'Draft' | 'Approved' | 'Scheduled';
 type ServiceStatus = 'Healthy' | 'Degraded' | 'Down';
 
-const channelLabelByLang: Record<Language, Record<Channel, string>> = {
+const channelLabelByLang: LangCopy< Record<Channel, string>> = {
   en: { Email: 'Email', Push: 'Push', Telegram: 'Telegram', Instagram: 'Instagram' },
   ru: { Email: 'Email', Push: 'Push', Telegram: 'Telegram', Instagram: 'Instagram' },
   uk: { Email: 'Email', Push: 'Push', Telegram: 'Telegram', Instagram: 'Instagram' },
@@ -16,7 +16,7 @@ const channelLabelByLang: Record<Language, Record<Channel, string>> = {
   pt: { Email: 'Email', Push: 'Push', Telegram: 'Telegram', Instagram: 'Instagram' },
 };
 
-const campaignStatusByLang: Record<Language, Record<CampaignStatus, string>> = {
+const campaignStatusByLang: LangCopy< Record<CampaignStatus, string>> = {
   en: { Draft: 'Draft', Approved: 'Approved', Scheduled: 'Scheduled' },
   ru: { Draft: 'Черновик', Approved: 'Одобрено', Scheduled: 'Запланировано' },
   uk: { Draft: 'Чернетка', Approved: 'Схвалено', Scheduled: 'Заплановано' },
@@ -28,7 +28,7 @@ const campaignStatusByLang: Record<Language, Record<CampaignStatus, string>> = {
   pt: { Draft: 'Rascunho', Approved: 'Aprovado', Scheduled: 'Agendado' },
 };
 
-const statusLabelByLang: Record<Language, Record<ServiceStatus, string>> = {
+const statusLabelByLang: LangCopy< Record<ServiceStatus, string>> = {
   en: { Healthy: 'Healthy', Degraded: 'Degraded', Down: 'Down' },
   ru: { Healthy: 'Стабильно', Degraded: 'Снижение', Down: 'Недоступно' },
   uk: { Healthy: 'Стабільно', Degraded: 'Погіршено', Down: 'Недоступно' },
@@ -40,7 +40,7 @@ const statusLabelByLang: Record<Language, Record<ServiceStatus, string>> = {
   pt: { Healthy: 'Estavel', Degraded: 'Degradado', Down: 'Indisponivel' },
 };
 
-const copyByLang: Record<Language, {
+const copyByLang: LangCopy< {
   dashboard: string;
   logout: string;
   noSession: string;
@@ -177,9 +177,9 @@ export interface AdminPanelLabels {
 
 export function getAdminPanelLabels(lang: Language): AdminPanelLabels {
   return {
-    channelLabels: channelLabelByLang[lang] || channelLabelByLang.en,
-    campaignStatusLabels: campaignStatusByLang[lang] || campaignStatusByLang.en,
-    statusLabels: statusLabelByLang[lang] || statusLabelByLang.en,
-    copy: copyByLang[lang] || copyByLang.en,
+    channelLabels: getLang(channelLabelByLang, lang) || channelLabelByLang.en,
+    campaignStatusLabels: getLang(campaignStatusByLang, lang) || campaignStatusByLang.en,
+    statusLabels: getLang(statusLabelByLang, lang) || statusLabelByLang.en,
+    copy: getLang(copyByLang, lang) || copyByLang.en,
   };
 }

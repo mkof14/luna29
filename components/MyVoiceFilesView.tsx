@@ -287,7 +287,7 @@ export const MyVoiceFilesView: React.FC<{ lang: Language; onBack: () => void }> 
     const text = `${new Date(clip.createdAt).toLocaleString()} • ${clip.locale}\n\n${clip.transcript || ''}`.trim();
     try {
       if (navigator.share) {
-        await navigator.share({ title: 'Luna Voice File', text });
+        await navigator.share({ title: 'Luna29 Voice File', text });
       } else {
         await navigator.clipboard.writeText(text);
       }
@@ -303,9 +303,9 @@ export const MyVoiceFilesView: React.FC<{ lang: Language; onBack: () => void }> 
     if (!win) return;
     const body = `
       <html>
-        <head><title>Luna Voice File</title></head>
+        <head><title>Luna29 Voice File</title></head>
         <body style="font-family: Arial, sans-serif; padding: 24px; line-height:1.5;">
-          <h2>Luna Voice File</h2>
+          <h2>Luna29 Voice File</h2>
           <p><strong>Date:</strong> ${new Date(clip.createdAt).toLocaleString()}</p>
           <p><strong>Locale:</strong> ${clip.locale}</p>
           <h3>Transcript</h3>
@@ -333,10 +333,10 @@ export const MyVoiceFilesView: React.FC<{ lang: Language; onBack: () => void }> 
 
   const shareSummary = async () => {
     const locales = Array.from(new Set(filteredClips.map((clip) => clip.locale))).join(', ') || '-';
-    const text = `Luna Voice Files\nCount: ${filteredClips.length}\nLocales: ${locales}`;
+    const text = `Luna29 Voice Files\nCount: ${filteredClips.length}\nLocales: ${locales}`;
     try {
       if (navigator.share) {
-        await navigator.share({ title: 'Luna Voice Summary', text });
+        await navigator.share({ title: 'Luna29 Voice Summary', text });
       } else {
         await navigator.clipboard.writeText(text);
       }

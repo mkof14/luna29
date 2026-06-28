@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Mic, Share2 } from 'lucide-react';
-import { Language } from '../constants';
+import { Language, LangCopy, getLang } from '../constants';
 import { CyclePhase, HealthEvent, SystemState } from '../types';
 import { dataService } from '../services/dataService';
 import { shareTextSafely } from '../utils/share';
@@ -30,63 +30,61 @@ export const TodayMirrorView: React.FC<TodayMirrorViewProps> = ({
   const [writeText, setWriteText] = React.useState('');
   const [continuityStatus, setContinuityStatus] = React.useState('');
   const [partnerStatus, setPartnerStatus] = React.useState('');
-  const copyByLang: Record<
-    Language,
-    {
-      evening: string;
-      afternoon: string;
-      morning: string;
-      todayReflection: string;
-      title: string;
-      contextLower: string;
-      contextSteady: string;
-      slowerTonight: string;
-      cycle: string;
-      energy: string;
-      sleep: string;
-      lowerThanUsual: string;
-      steady: string;
-      storyTitle: string;
-      fallback: string;
-      speak: string;
-      quickCheckin: string;
-      lineIntro: (phase: string) => string;
-      lineSleep: (sleepText: string, phase: string) => string;
-      back: string;
-      openMyDay: string;
-      dayLabelToday: string;
-      dayLabelYesterday: string;
-      daysAgo: (days: number) => string;
-      dayWord: string;
-      phaseWord: string;
-      sleepUnset: string;
-      progressionTitle: string;
-      stageDaily: string;
-      stagePattern: string;
-      stageMonthly: string;
-      patternHintBase: string;
-      monthlyA: string;
-      monthlyB: string;
-      continuityTitle: string;
-      continuityQuestion: string;
-      speakShort: string;
-      writeShort: string;
-      skipShort: string;
-      writePlaceholder: string;
-      saveWrite: string;
-      skipped: string;
-      saved: string;
-      continuityFallback: string;
-      continuityYesterday: (line: string) => string;
-      continuityRecent: (line: string) => string;
-    }
-  > = {
+  type TodayMirrorCopy = {
+    evening: string;
+    afternoon: string;
+    morning: string;
+    todayReflection: string;
+    title: string;
+    contextLower: string;
+    contextSteady: string;
+    slowerTonight: string;
+    cycle: string;
+    energy: string;
+    sleep: string;
+    lowerThanUsual: string;
+    steady: string;
+    storyTitle: string;
+    fallback: string;
+    speak: string;
+    quickCheckin: string;
+    lineIntro: (phase: string) => string;
+    lineSleep: (sleepText: string, phase: string) => string;
+    back: string;
+    openMyDay: string;
+    dayLabelToday: string;
+    dayLabelYesterday: string;
+    daysAgo: (days: number) => string;
+    dayWord: string;
+    phaseWord: string;
+    sleepUnset: string;
+    progressionTitle: string;
+    stageDaily: string;
+    stagePattern: string;
+    stageMonthly: string;
+    patternHintBase: string;
+    monthlyA: string;
+    monthlyB: string;
+    continuityTitle: string;
+    continuityQuestion: string;
+    speakShort: string;
+    writeShort: string;
+    skipShort: string;
+    writePlaceholder: string;
+    saveWrite: string;
+    skipped: string;
+    saved: string;
+    continuityFallback: string;
+    continuityYesterday: (line: string) => string;
+    continuityRecent: (line: string) => string;
+  };
+  const copyByLang: LangCopy<TodayMirrorCopy> = {
     en: {
       evening: 'Good evening',
       afternoon: 'Good afternoon',
       morning: 'Good morning',
       todayReflection: "Today's note",
-      title: 'Today with Luna',
+      title: 'Today with Luna29',
       contextLower: 'Today may feel a little slower.',
       contextSteady: 'Today may feel more steady.',
       slowerTonight: 'It may help to keep tonight slower.',
@@ -95,14 +93,14 @@ export const TodayMirrorView: React.FC<TodayMirrorViewProps> = ({
       sleep: 'Sleep',
       lowerThanUsual: 'Lower than usual',
       steady: 'More steady',
-      storyTitle: 'Your story with Luna',
-      fallback: 'Your story with Luna is just beginning.',
-      speak: 'Speak to Luna',
+      storyTitle: 'Your story with Luna29',
+      fallback: 'Your story with Luna29 is just beginning.',
+      speak: 'Speak to Luna29',
       quickCheckin: 'Quick check-in',
       lineIntro: (phase) => `Your body is in the ${phase} phase.`,
       lineSleep: (sleepText, phase) => `Sleep was ${sleepText} last night, and your body is in the ${phase} phase.`,
       back: 'Back',
-      openMyDay: 'Open My Day with Luna',
+      openMyDay: 'Open My Day with Luna29',
       dayLabelToday: 'Today',
       dayLabelYesterday: 'Yesterday',
       daysAgo: (days) => `${days} days ago`,
@@ -125,7 +123,7 @@ export const TodayMirrorView: React.FC<TodayMirrorViewProps> = ({
       saveWrite: 'Save',
       skipped: 'Skipped for today.',
       saved: 'Saved.',
-      continuityFallback: 'Yesterday you took a quiet moment with Luna.',
+      continuityFallback: 'Yesterday you took a quiet moment with Luna29.',
       continuityYesterday: (line) => `Yesterday you said ${line}`,
       continuityRecent: (line) => `Recently you shared ${line}`,
     },
@@ -134,7 +132,7 @@ export const TodayMirrorView: React.FC<TodayMirrorViewProps> = ({
       afternoon: 'Добрый день',
       morning: 'Доброе утро',
       todayReflection: 'Сегодняшняя заметка',
-      title: 'Сегодня с Luna',
+      title: 'Сегодня с Luna29',
       contextLower: 'Сегодня энергия кажется немного ниже.',
       contextSteady: 'Сегодня энергия ощущается более ровной.',
       slowerTonight: 'Сегодня вечером может помочь более спокойный ритм.',
@@ -143,14 +141,14 @@ export const TodayMirrorView: React.FC<TodayMirrorViewProps> = ({
       sleep: 'Сон',
       lowerThanUsual: 'Ниже обычного',
       steady: 'Более ровно',
-      storyTitle: 'Ваша история с Luna',
-      fallback: 'Ваша история с Luna только начинается.',
-      speak: 'Поговорить с Luna',
+      storyTitle: 'Ваша история с Luna29',
+      fallback: 'Ваша история с Luna29 только начинается.',
+      speak: 'Поговорить с Luna29',
       quickCheckin: 'Быстрый check-in',
       lineIntro: (phase) => `Ваше тело сейчас в фазе ${phase}.`,
       lineSleep: (sleepText, phase) => `Сон был ${sleepText} прошлой ночью, и ваше тело сейчас в фазе ${phase}.`,
       back: 'Назад',
-      openMyDay: 'Открыть My Day with Luna',
+      openMyDay: 'Открыть My Day with Luna29',
       dayLabelToday: 'Сегодня',
       dayLabelYesterday: 'Вчера',
       daysAgo: (days) => `${days} дн. назад`,
@@ -173,7 +171,7 @@ export const TodayMirrorView: React.FC<TodayMirrorViewProps> = ({
       saveWrite: 'Сохранить',
       skipped: 'Пропущено на сегодня.',
       saved: 'Сохранено.',
-      continuityFallback: 'Вчера вы сделали тихую паузу с Luna.',
+      continuityFallback: 'Вчера вы сделали тихую паузу с Luna29.',
       continuityYesterday: (line) => `Вчера вы говорили, что ${line}`,
       continuityRecent: (line) => `Недавно вы поделились, что ${line}`,
     },
@@ -182,7 +180,7 @@ export const TodayMirrorView: React.FC<TodayMirrorViewProps> = ({
       afternoon: 'Добрий день',
       morning: 'Доброго ранку',
       todayReflection: 'Сьогоднішня нотатка',
-      title: 'Сьогодні з Luna',
+      title: 'Сьогодні з Luna29',
       contextLower: 'Сьогодні енергія здається трохи нижчою.',
       contextSteady: 'Сьогодні енергія відчувається більш рівною.',
       slowerTonight: 'Сьогодні ввечері може допомогти більш спокійний ритм.',
@@ -191,14 +189,14 @@ export const TodayMirrorView: React.FC<TodayMirrorViewProps> = ({
       sleep: 'Сон',
       lowerThanUsual: 'Нижче звичного',
       steady: 'Більш рівно',
-      storyTitle: 'Ваша історія з Luna',
-      fallback: 'Ваша історія з Luna тільки починається.',
-      speak: 'Поговорити з Luna',
+      storyTitle: 'Ваша історія з Luna29',
+      fallback: 'Ваша історія з Luna29 тільки починається.',
+      speak: 'Поговорити з Luna29',
       quickCheckin: 'Швидкий check-in',
       lineIntro: (phase) => `Ваше тіло зараз у фазі ${phase}.`,
       lineSleep: (sleepText, phase) => `Сон був ${sleepText} минулої ночі, і ваше тіло зараз у фазі ${phase}.`,
       back: 'Назад',
-      openMyDay: 'Відкрити My Day with Luna',
+      openMyDay: 'Відкрити My Day with Luna29',
       dayLabelToday: 'Сьогодні',
       dayLabelYesterday: 'Вчора',
       daysAgo: (days) => `${days} дн. тому`,
@@ -221,7 +219,7 @@ export const TodayMirrorView: React.FC<TodayMirrorViewProps> = ({
       saveWrite: 'Зберегти',
       skipped: 'Пропущено на сьогодні.',
       saved: 'Збережено.',
-      continuityFallback: 'Учора ви зробили тиху паузу з Luna.',
+      continuityFallback: 'Учора ви зробили тиху паузу з Luna29.',
       continuityYesterday: (line) => `Учора ви казали, що ${line}`,
       continuityRecent: (line) => `Нещодавно ви поділилися, що ${line}`,
     },
@@ -230,7 +228,7 @@ export const TodayMirrorView: React.FC<TodayMirrorViewProps> = ({
       afternoon: 'Good afternoon',
       morning: 'Good morning',
       todayReflection: "Today's note",
-      title: 'Today with Luna',
+      title: 'Today with Luna29',
       contextLower: 'Your energy seems a little lower today.',
       contextSteady: 'Your energy seems more steady today.',
       slowerTonight: 'It may help to keep tonight slower.',
@@ -239,14 +237,14 @@ export const TodayMirrorView: React.FC<TodayMirrorViewProps> = ({
       sleep: 'Sleep',
       lowerThanUsual: 'Lower than usual',
       steady: 'More steady',
-      storyTitle: 'Your story with Luna',
-      fallback: 'Your story with Luna is just beginning.',
-      speak: 'Speak to Luna',
+      storyTitle: 'Your story with Luna29',
+      fallback: 'Your story with Luna29 is just beginning.',
+      speak: 'Speak to Luna29',
       quickCheckin: 'Quick check-in',
       lineIntro: (phase) => `Your body is in the ${phase} phase.`,
       lineSleep: (sleepText, phase) => `Sleep was ${sleepText} last night, and your body is in the ${phase} phase.`,
       back: 'Back',
-      openMyDay: 'Open My Day with Luna',
+      openMyDay: 'Open My Day with Luna29',
       dayLabelToday: 'Today',
       dayLabelYesterday: 'Yesterday',
       daysAgo: (days) => `${days} days ago`,
@@ -269,7 +267,7 @@ export const TodayMirrorView: React.FC<TodayMirrorViewProps> = ({
       saveWrite: 'Save',
       skipped: 'Skipped for today.',
       saved: 'Saved.',
-      continuityFallback: 'Yesterday you took a quiet moment with Luna.',
+      continuityFallback: 'Yesterday you took a quiet moment with Luna29.',
       continuityYesterday: (line) => `Yesterday you said ${line}`,
       continuityRecent: (line) => `Recently you shared ${line}`,
     },
@@ -278,7 +276,7 @@ export const TodayMirrorView: React.FC<TodayMirrorViewProps> = ({
       afternoon: 'Good afternoon',
       morning: 'Good morning',
       todayReflection: "Today's note",
-      title: 'Today with Luna',
+      title: 'Today with Luna29',
       contextLower: 'Your energy seems a little lower today.',
       contextSteady: 'Your energy seems more steady today.',
       slowerTonight: 'It may help to keep tonight slower.',
@@ -287,14 +285,14 @@ export const TodayMirrorView: React.FC<TodayMirrorViewProps> = ({
       sleep: 'Sleep',
       lowerThanUsual: 'Lower than usual',
       steady: 'More steady',
-      storyTitle: 'Your story with Luna',
-      fallback: 'Your story with Luna is just beginning.',
-      speak: 'Speak to Luna',
+      storyTitle: 'Your story with Luna29',
+      fallback: 'Your story with Luna29 is just beginning.',
+      speak: 'Speak to Luna29',
       quickCheckin: 'Quick check-in',
       lineIntro: (phase) => `Your body is in the ${phase} phase.`,
       lineSleep: (sleepText, phase) => `Sleep was ${sleepText} last night, and your body is in the ${phase} phase.`,
       back: 'Back',
-      openMyDay: 'Open My Day with Luna',
+      openMyDay: 'Open My Day with Luna29',
       dayLabelToday: 'Today',
       dayLabelYesterday: 'Yesterday',
       daysAgo: (days) => `${days} days ago`,
@@ -317,7 +315,7 @@ export const TodayMirrorView: React.FC<TodayMirrorViewProps> = ({
       saveWrite: 'Save',
       skipped: 'Skipped for today.',
       saved: 'Saved.',
-      continuityFallback: 'Yesterday you took a quiet moment with Luna.',
+      continuityFallback: 'Yesterday you took a quiet moment with Luna29.',
       continuityYesterday: (line) => `Yesterday you said ${line}`,
       continuityRecent: (line) => `Recently you shared ${line}`,
     },
@@ -326,7 +324,7 @@ export const TodayMirrorView: React.FC<TodayMirrorViewProps> = ({
       afternoon: 'Good afternoon',
       morning: 'Good morning',
       todayReflection: "Today's note",
-      title: 'Today with Luna',
+      title: 'Today with Luna29',
       contextLower: 'Your energy seems a little lower today.',
       contextSteady: 'Your energy seems more steady today.',
       slowerTonight: 'It may help to keep tonight slower.',
@@ -335,14 +333,14 @@ export const TodayMirrorView: React.FC<TodayMirrorViewProps> = ({
       sleep: 'Sleep',
       lowerThanUsual: 'Lower than usual',
       steady: 'More steady',
-      storyTitle: 'Your story with Luna',
-      fallback: 'Your story with Luna is just beginning.',
-      speak: 'Speak to Luna',
+      storyTitle: 'Your story with Luna29',
+      fallback: 'Your story with Luna29 is just beginning.',
+      speak: 'Speak to Luna29',
       quickCheckin: 'Quick check-in',
       lineIntro: (phase) => `Your body is in the ${phase} phase.`,
       lineSleep: (sleepText, phase) => `Sleep was ${sleepText} last night, and your body is in the ${phase} phase.`,
       back: 'Back',
-      openMyDay: 'Open My Day with Luna',
+      openMyDay: 'Open My Day with Luna29',
       dayLabelToday: 'Today',
       dayLabelYesterday: 'Yesterday',
       daysAgo: (days) => `${days} days ago`,
@@ -365,7 +363,7 @@ export const TodayMirrorView: React.FC<TodayMirrorViewProps> = ({
       saveWrite: 'Save',
       skipped: 'Skipped for today.',
       saved: 'Saved.',
-      continuityFallback: 'Yesterday you took a quiet moment with Luna.',
+      continuityFallback: 'Yesterday you took a quiet moment with Luna29.',
       continuityYesterday: (line) => `Yesterday you said ${line}`,
       continuityRecent: (line) => `Recently you shared ${line}`,
     },
@@ -374,7 +372,7 @@ export const TodayMirrorView: React.FC<TodayMirrorViewProps> = ({
       afternoon: 'Good afternoon',
       morning: 'Good morning',
       todayReflection: "Today's note",
-      title: 'Today with Luna',
+      title: 'Today with Luna29',
       contextLower: 'Your energy seems a little lower today.',
       contextSteady: 'Your energy seems more steady today.',
       slowerTonight: 'It may help to keep tonight slower.',
@@ -383,14 +381,14 @@ export const TodayMirrorView: React.FC<TodayMirrorViewProps> = ({
       sleep: 'Sleep',
       lowerThanUsual: 'Lower than usual',
       steady: 'More steady',
-      storyTitle: 'Your story with Luna',
-      fallback: 'Your story with Luna is just beginning.',
-      speak: 'Speak to Luna',
+      storyTitle: 'Your story with Luna29',
+      fallback: 'Your story with Luna29 is just beginning.',
+      speak: 'Speak to Luna29',
       quickCheckin: 'Quick check-in',
       lineIntro: (phase) => `Your body is in the ${phase} phase.`,
       lineSleep: (sleepText, phase) => `Sleep was ${sleepText} last night, and your body is in the ${phase} phase.`,
       back: 'Back',
-      openMyDay: 'Open My Day with Luna',
+      openMyDay: 'Open My Day with Luna29',
       dayLabelToday: 'Today',
       dayLabelYesterday: 'Yesterday',
       daysAgo: (days) => `${days} days ago`,
@@ -413,7 +411,7 @@ export const TodayMirrorView: React.FC<TodayMirrorViewProps> = ({
       saveWrite: 'Save',
       skipped: 'Skipped for today.',
       saved: 'Saved.',
-      continuityFallback: 'Yesterday you took a quiet moment with Luna.',
+      continuityFallback: 'Yesterday you took a quiet moment with Luna29.',
       continuityYesterday: (line) => `Yesterday you said ${line}`,
       continuityRecent: (line) => `Recently you shared ${line}`,
     },
@@ -422,7 +420,7 @@ export const TodayMirrorView: React.FC<TodayMirrorViewProps> = ({
       afternoon: 'Good afternoon',
       morning: 'Good morning',
       todayReflection: "Today's note",
-      title: 'Today with Luna',
+      title: 'Today with Luna29',
       contextLower: 'Your energy seems a little lower today.',
       contextSteady: 'Your energy seems more steady today.',
       slowerTonight: 'It may help to keep tonight slower.',
@@ -431,14 +429,14 @@ export const TodayMirrorView: React.FC<TodayMirrorViewProps> = ({
       sleep: 'Sleep',
       lowerThanUsual: 'Lower than usual',
       steady: 'More steady',
-      storyTitle: 'Your story with Luna',
-      fallback: 'Your story with Luna is just beginning.',
-      speak: 'Speak to Luna',
+      storyTitle: 'Your story with Luna29',
+      fallback: 'Your story with Luna29 is just beginning.',
+      speak: 'Speak to Luna29',
       quickCheckin: 'Quick check-in',
       lineIntro: (phase) => `Your body is in the ${phase} phase.`,
       lineSleep: (sleepText, phase) => `Sleep was ${sleepText} last night, and your body is in the ${phase} phase.`,
       back: 'Back',
-      openMyDay: 'Open My Day with Luna',
+      openMyDay: 'Open My Day with Luna29',
       dayLabelToday: 'Today',
       dayLabelYesterday: 'Yesterday',
       daysAgo: (days) => `${days} days ago`,
@@ -461,7 +459,7 @@ export const TodayMirrorView: React.FC<TodayMirrorViewProps> = ({
       saveWrite: 'Save',
       skipped: 'Skipped for today.',
       saved: 'Saved.',
-      continuityFallback: 'Yesterday you took a quiet moment with Luna.',
+      continuityFallback: 'Yesterday you took a quiet moment with Luna29.',
       continuityYesterday: (line) => `Yesterday you said ${line}`,
       continuityRecent: (line) => `Recently you shared ${line}`,
     },
@@ -470,7 +468,7 @@ export const TodayMirrorView: React.FC<TodayMirrorViewProps> = ({
       afternoon: 'Good afternoon',
       morning: 'Good morning',
       todayReflection: "Today's note",
-      title: 'Today with Luna',
+      title: 'Today with Luna29',
       contextLower: 'Your energy seems a little lower today.',
       contextSteady: 'Your energy seems more steady today.',
       slowerTonight: 'It may help to keep tonight slower.',
@@ -479,14 +477,14 @@ export const TodayMirrorView: React.FC<TodayMirrorViewProps> = ({
       sleep: 'Sleep',
       lowerThanUsual: 'Lower than usual',
       steady: 'More steady',
-      storyTitle: 'Your story with Luna',
-      fallback: 'Your story with Luna is just beginning.',
-      speak: 'Speak to Luna',
+      storyTitle: 'Your story with Luna29',
+      fallback: 'Your story with Luna29 is just beginning.',
+      speak: 'Speak to Luna29',
       quickCheckin: 'Quick check-in',
       lineIntro: (phase) => `Your body is in the ${phase} phase.`,
       lineSleep: (sleepText, phase) => `Sleep was ${sleepText} last night, and your body is in the ${phase} phase.`,
       back: 'Back',
-      openMyDay: 'Open My Day with Luna',
+      openMyDay: 'Open My Day with Luna29',
       dayLabelToday: 'Today',
       dayLabelYesterday: 'Yesterday',
       daysAgo: (days) => `${days} days ago`,
@@ -509,12 +507,12 @@ export const TodayMirrorView: React.FC<TodayMirrorViewProps> = ({
       saveWrite: 'Save',
       skipped: 'Skipped for today.',
       saved: 'Saved.',
-      continuityFallback: 'Yesterday you took a quiet moment with Luna.',
+      continuityFallback: 'Yesterday you took a quiet moment with Luna29.',
       continuityYesterday: (line) => `Yesterday you said ${line}`,
       continuityRecent: (line) => `Recently you shared ${line}`,
     },
   };
-  const copy = copyByLang[lang] || copyByLang.en;
+  const copy = getLang(copyByLang, lang) || copyByLang.en;
 
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
@@ -632,7 +630,7 @@ export const TodayMirrorView: React.FC<TodayMirrorViewProps> = ({
     setWriteText('');
   };
 
-  const partnerCtaByLang: Record<Language, string> = {
+  const partnerCtaByLang: LangCopy< string> = {
     en: 'Explain today to my partner',
     ru: 'Объяснить мой день партнеру',
     uk: 'Пояснити мій день партнеру',
@@ -643,18 +641,18 @@ export const TodayMirrorView: React.FC<TodayMirrorViewProps> = ({
     ja: 'Explain today to my partner',
     pt: 'Explain today to my partner',
   };
-  const monthlyCtaByLang: Record<Language, string> = {
-    en: 'Your month with Luna',
-    ru: 'Ваш месяц с Luna',
-    uk: 'Ваш місяць з Luna',
-    es: 'Your month with Luna',
-    fr: 'Your month with Luna',
-    de: 'Your month with Luna',
-    zh: 'Your month with Luna',
-    ja: 'Your month with Luna',
-    pt: 'Your month with Luna',
+  const monthlyCtaByLang: LangCopy< string> = {
+    en: 'Your month with Luna29',
+    ru: 'Ваш месяц с Luna29',
+    uk: 'Ваш місяць з Luna29',
+    es: 'Your month with Luna29',
+    fr: 'Your month with Luna29',
+    de: 'Your month with Luna29',
+    zh: 'Your month with Luna29',
+    ja: 'Your month with Luna29',
+    pt: 'Your month with Luna29',
   };
-  const shareFeedbackByLang: Record<Language, { shared: string; copied: string; failed: string }> = {
+  const shareFeedbackByLang: LangCopy< { shared: string; copied: string; failed: string }> = {
     en: { shared: 'Shared.', copied: 'Copied.', failed: 'Could not share.' },
     ru: { shared: 'Отправлено.', copied: 'Скопировано.', failed: 'Не удалось поделиться.' },
     uk: { shared: 'Надіслано.', copied: 'Скопійовано.', failed: 'Не вдалося поділитися.' },
@@ -677,8 +675,8 @@ export const TodayMirrorView: React.FC<TodayMirrorViewProps> = ({
       cycleLine,
       sleepLine,
     ].join('\n');
-    const result = await shareTextSafely(message, 'Luna partner message');
-    const feedback = shareFeedbackByLang[lang] || shareFeedbackByLang.en;
+    const result = await shareTextSafely(message, 'Luna29 partner message');
+    const feedback = getLang(shareFeedbackByLang, lang) || shareFeedbackByLang.en;
     if (result === 'shared') setPartnerStatus(feedback.shared);
     else if (result === 'copied') setPartnerStatus(feedback.copied);
     else setPartnerStatus(feedback.failed);
@@ -740,7 +738,7 @@ export const TodayMirrorView: React.FC<TodayMirrorViewProps> = ({
             onClick={onOpenMonthly}
             className="inline-flex items-center gap-2 px-5 py-3 rounded-full border border-slate-300/60 dark:border-[#86a0cb]/40 bg-white/72 dark:bg-[#17365f]/82 text-slate-700 dark:text-[#d9e6ff] text-[11px] font-black uppercase tracking-[0.15em] hover:bg-white/88 dark:hover:bg-[#214675] transition-all"
           >
-            {monthlyCtaByLang[lang] || monthlyCtaByLang.en}
+            {getLang(monthlyCtaByLang, lang) || monthlyCtaByLang.en}
           </button>
         </div>
 
@@ -763,7 +761,7 @@ export const TodayMirrorView: React.FC<TodayMirrorViewProps> = ({
           onClick={handleSharePartnerMessage}
           className="inline-flex items-center gap-2 px-5 py-3 rounded-full border border-slate-300/60 dark:border-[#86a0cb]/40 bg-white/72 dark:bg-[#17365f]/82 text-slate-700 dark:text-[#d9e6ff] text-[11px] font-black uppercase tracking-[0.12em] hover:bg-white/88 dark:hover:bg-[#214675] transition-all"
         >
-          <Share2 size={14} /> {partnerCtaByLang[lang] || partnerCtaByLang.en}
+          <Share2 size={14} /> {getLang(partnerCtaByLang, lang) || partnerCtaByLang.en}
         </button>
         {partnerStatus && <p className="text-xs font-semibold text-slate-500 dark:text-slate-300">{partnerStatus}</p>}
       </article>

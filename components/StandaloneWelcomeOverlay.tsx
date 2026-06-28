@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Language } from '../constants';
+import { Language, LangCopy, getLang } from '../constants';
 import { Logo } from './Logo';
 
 interface StandaloneWelcomeOverlayProps {
@@ -11,19 +11,19 @@ const STORAGE_KEY = 'luna_standalone_welcome_seen_v1';
 export const StandaloneWelcomeOverlay: React.FC<StandaloneWelcomeOverlayProps> = ({ lang }) => {
   const [visible, setVisible] = useState(false);
 
-  const copyByLang: Record<Language, { title: string; subtitle: string; continue: string }> = {
-    en: { title: 'App Mode Active', subtitle: 'Luna is running full-screen like a native app.', continue: 'Continue' },
-    ru: { title: 'Режим App Активен', subtitle: 'Luna запущена в полноэкранном режиме, как приложение.', continue: 'Продолжить' },
-    uk: { title: 'Режим App Активний', subtitle: 'Luna запущено у повноекранному режимі, як застосунок.', continue: 'Продовжити' },
-    es: { title: 'Modo App Activo', subtitle: 'Luna funciona a pantalla completa como app nativa.', continue: 'Continuar' },
-    fr: { title: 'Mode App Actif', subtitle: 'Luna fonctionne en plein ecran comme une app native.', continue: 'Continuer' },
-    de: { title: 'App-Modus Aktiv', subtitle: 'Luna lauft im Vollbild wie eine native App.', continue: 'Weiter' },
-    zh: { title: 'App 模式已启用', subtitle: 'Luna 正在以全屏原生应用方式运行。', continue: '继续' },
-    ja: { title: 'アプリモード有効', subtitle: 'Luna はネイティブアプリのように全画面で動作中です。', continue: '続行' },
-    pt: { title: 'Modo App Ativo', subtitle: 'Luna esta em tela cheia como aplicativo nativo.', continue: 'Continuar' },
+  const copyByLang: LangCopy< { title: string; subtitle: string; continue: string }> = {
+    en: { title: 'App Mode Active', subtitle: 'Luna29 is running full-screen like a native app.', continue: 'Continue' },
+    ru: { title: 'Режим App Активен', subtitle: 'Luna29 запущена в полноэкранном режиме, как приложение.', continue: 'Продолжить' },
+    uk: { title: 'Режим App Активний', subtitle: 'Luna29 запущено у повноекранному режимі, як застосунок.', continue: 'Продовжити' },
+    es: { title: 'Modo App Activo', subtitle: 'Luna29 funciona a pantalla completa como app nativa.', continue: 'Continuar' },
+    fr: { title: 'Mode App Actif', subtitle: 'Luna29 fonctionne en plein ecran comme une app native.', continue: 'Continuer' },
+    de: { title: 'App-Modus Aktiv', subtitle: 'Luna29 lauft im Vollbild wie eine native App.', continue: 'Weiter' },
+    zh: { title: 'App 模式已启用', subtitle: 'Luna29 正在以全屏原生应用方式运行。', continue: '继续' },
+    ja: { title: 'アプリモード有効', subtitle: 'Luna29 はネイティブアプリのように全画面で動作中です。', continue: '続行' },
+    pt: { title: 'Modo App Ativo', subtitle: 'Luna29 esta em tela cheia como aplicativo nativo.', continue: 'Continuar' },
   };
 
-  const copy = copyByLang[lang] || copyByLang.en;
+  const copy = getLang(copyByLang, lang) || copyByLang.en;
 
   useEffect(() => {
     const standalone =

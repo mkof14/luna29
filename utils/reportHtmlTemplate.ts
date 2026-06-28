@@ -103,9 +103,9 @@ export const buildDetailedReportHtml = (p: DetailedReportTemplateInput): string 
     <div style="padding:26px;background:linear-gradient(120deg,#ede9fe,#ffe4e6,#ccfbf1);border-bottom:2px solid #cbd5e1;">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
         <div style="display:flex;align-items:center;gap:12px;">
-          <img src="${p.logoUrl}" alt="Luna logo" style="width:62px;height:62px;object-fit:contain;border-radius:12px;background:#fff;padding:7px;border:1px solid #e2e8f0;"/>
+          <img src="${p.logoUrl}" alt="Luna29 logo" style="width:62px;height:62px;object-fit:contain;border-radius:12px;background:#fff;padding:7px;border:1px solid #e2e8f0;"/>
           <div>
-            <p style="margin:0;font-size:42px;line-height:1;font-family:'Brush Script MT','Segoe Script',cursive;">Luna</p>
+            <p style="margin:0;font-size:42px;line-height:1;font-family:'Brush Script MT','Segoe Script',cursive;">Luna29</p>
             <p style="margin:4px 0 0;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;">${escapeHtml(p.detailedSubtitle)}</p>
           </div>
         </div>
@@ -257,7 +257,7 @@ export const buildDetailedReportHtml = (p: DetailedReportTemplateInput): string 
 
     <div style="padding:14px 24px;border-top:1px solid #e2e8f0;background:#f8fafc;display:flex;justify-content:space-between;align-items:center;gap:12px;">
       <p style="margin:0;font-size:11px;color:#475569;">${escapeHtml(p.reportCopyright)}</p>
-      <img src="${p.signatureLogoUrl}" alt="Luna mark" style="width:26px;height:26px;object-fit:contain;opacity:0.9;"/>
+      <img src="${p.signatureLogoUrl}" alt="Luna29 mark" style="width:26px;height:26px;object-fit:contain;opacity:0.9;"/>
     </div>
   </div>
 </body>

@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { ArrowLeft, Mic, Save, Share2 } from 'lucide-react';
-import { Language } from '../constants';
+import { Language, getLang } from '../constants';
 import { CyclePhase, HealthEvent, SystemState } from '../types';
 import { dataService } from '../services/dataService';
 import { shareTextSafely } from '../utils/share';
@@ -156,7 +156,7 @@ export const MyDayWithLunaView: React.FC<MyDayWithLunaViewProps> = ({
     }
   >> = {
     en: {
-      title: 'My Day with Luna',
+      title: 'My Day with Luna29',
       topLineSlow: 'Today feels a little slower.',
       topLineSteady: 'Today feels a little steadier.',
       sleepShort: (phase) => `Sleep was shorter last night, and your body is in the ${phase} phase.`,
@@ -173,7 +173,7 @@ export const MyDayWithLunaView: React.FC<MyDayWithLunaViewProps> = ({
       calmLine: 'Nothing is wrong with today. Your body just asks for a little more rest.',
       save: 'Save',
       share: 'Share',
-      speak: 'Speak to Luna',
+      speak: 'Speak to Luna29',
       saved: 'Saved.',
       copied: 'Copied.',
       exported: 'Card exported.',
@@ -191,7 +191,7 @@ export const MyDayWithLunaView: React.FC<MyDayWithLunaViewProps> = ({
       monthlyB: 'Sleep often affects mood during the week.',
     },
     ru: {
-      title: 'Мой день с Luna',
+      title: 'Мой день с Luna29',
       topLineSlow: 'Сегодня день ощущается немного медленнее.',
       topLineSteady: 'Сегодня день ощущается немного ровнее.',
       sleepShort: (phase) => `Сон был короче прошлой ночью, и ваше тело сейчас в фазе ${phase}.`,
@@ -208,7 +208,7 @@ export const MyDayWithLunaView: React.FC<MyDayWithLunaViewProps> = ({
       calmLine: 'С этим днем все в порядке. Ваше тело просто просит немного больше отдыха.',
       save: 'Сохранить',
       share: 'Поделиться',
-      speak: 'Поговорить с Luna',
+      speak: 'Поговорить с Luna29',
       saved: 'Сохранено.',
       copied: 'Скопировано.',
       exported: 'Карточка экспортирована.',
@@ -226,7 +226,7 @@ export const MyDayWithLunaView: React.FC<MyDayWithLunaViewProps> = ({
       monthlyB: 'Сон часто влияет на настроение в течение недели.',
     },
     uk: {
-      title: 'Мій день з Luna',
+      title: 'Мій день з Luna29',
       topLineSlow: 'Сьогодні день відчувається трохи повільнішим.',
       topLineSteady: 'Сьогодні день відчувається трохи рівнішим.',
       sleepShort: (phase) => `Сон був коротшим минулої ночі, а ваше тіло зараз у фазі ${phase}.`,
@@ -243,7 +243,7 @@ export const MyDayWithLunaView: React.FC<MyDayWithLunaViewProps> = ({
       calmLine: 'З цим днем все гаразд. Ваше тіло просто просить трохи більше відпочинку.',
       save: 'Зберегти',
       share: 'Поділитися',
-      speak: 'Поговорити з Luna',
+      speak: 'Поговорити з Luna29',
       saved: 'Збережено.',
       copied: 'Скопійовано.',
       exported: 'Картку експортовано.',
@@ -263,7 +263,7 @@ export const MyDayWithLunaView: React.FC<MyDayWithLunaViewProps> = ({
   };
 
   const defaultCopy = copyByLang.en!;
-  const copy = copyByLang[lang] || defaultCopy;
+  const copy = getLang(copyByLang, lang) || defaultCopy;
   const [feedback, setFeedback] = useState<string>('');
 
   const sleepScore = systemState.lastCheckin?.metrics?.sleep ?? 50;

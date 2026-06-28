@@ -102,8 +102,8 @@ const DEFAULT_ADMIN_STATE = {
   templates: [],
   templateHistory: {},
   admins: [
-    { id: 'adm-0', name: 'Luna Primary Admin', email: PRIMARY_SUPER_ADMIN_EMAIL, role: 'super_admin', active: true },
-    { id: 'adm-1', name: 'Luna Owner', email: 'owner@luna.app', role: 'super_admin', active: true },
+    { id: 'adm-0', name: 'Luna29 Primary Admin', email: PRIMARY_SUPER_ADMIN_EMAIL, role: 'super_admin', active: true },
+    { id: 'adm-1', name: 'Luna29 Owner', email: 'owner@luna.app', role: 'super_admin', active: true },
     { id: 'adm-2', name: 'Ops Control', email: 'ops@luna.app', role: 'operator', active: true },
     { id: 'adm-3', name: 'Growth Team', email: 'marketing@luna.app', role: 'content_manager', active: true },
     { id: 'adm-4', name: 'Finance Board', email: 'finance@luna.app', role: 'finance_manager', active: true },
@@ -134,7 +134,7 @@ const DEFAULT_ADMIN_STATE = {
 
 const normalizeEmail = (email) => String(email || '').trim().toLowerCase();
 
-const normalizeName = (email, fallback = 'Luna Member') => {
+const normalizeName = (email, fallback = 'Luna29 Member') => {
   const local = email.split('@')[0] || '';
   const cleaned = local.replace(/[._-]+/g, ' ').trim();
   if (!cleaned) return fallback;
@@ -200,13 +200,13 @@ const buildPatternByCount = (count) => {
   if (count >= 7) {
     return 'Your energy often drops a couple of days before your cycle.';
   }
-  return 'Luna is still learning about you. The more you reflect, the clearer your rhythm becomes.';
+  return 'Luna29 is still learning about you. The more you reflect, the clearer your rhythm becomes.';
 };
 
 const buildTodayExplanation = (count) => {
   if (count >= 30) return 'Today may feel slower before your cycle. A calm evening can help you reset.';
   if (count >= 7) return 'Today may feel a little slower. Sleep was shorter last night and your body is in the luteal phase.';
-  return 'Today may feel a little slower while Luna learns your rhythm day by day.';
+  return 'Today may feel a little slower while Luna29 learns your rhythm day by day.';
 };
 
 const buildReflectionSummary = (lastEntryText) => {
@@ -218,7 +218,7 @@ const buildReflectionSummary = (lastEntryText) => {
     ];
   }
   return [
-    'Luna heard your reflection today.',
+    'Luna29 heard your reflection today.',
     lastEntryText,
     'Your words suggest the day asked a lot from you.',
   ];
@@ -1064,7 +1064,7 @@ const start = async () => {
       account = {
         id: randomBytes(12).toString('hex'),
         email,
-        name: 'Luna Super Admin',
+        name: 'Luna29 Super Admin',
         passwordHash: SUPER_ADMIN_BOOTSTRAP_PASSWORD ? hashPassword(SUPER_ADMIN_BOOTSTRAP_PASSWORD) : null,
         createdAt: new Date().toISOString(),
         roleOverride: 'super_admin',
@@ -1151,7 +1151,7 @@ const start = async () => {
         const body = await readBody(req);
         const email = normalizeEmail(body.email);
         const password = String(body.password || '');
-        const name = typeof body.name === 'string' && body.name.trim() ? safeText(body.name, 120) : normalizeName(email, 'Luna Member');
+        const name = typeof body.name === 'string' && body.name.trim() ? safeText(body.name, 120) : normalizeName(email, 'Luna29 Member');
 
         if (!email || !email.includes('@')) {
           send(res, 400, { error: 'Provide a valid email.' }, headers);
@@ -1247,7 +1247,7 @@ const start = async () => {
         200,
         {
           userName: profile.name || 'Anna',
-          title: 'Today with Luna',
+          title: 'Today with Luna29',
           explanation: buildTodayExplanation(profile.entries.length),
           continuity: storyEntries[1]?.text ? `Yesterday you said: ${storyEntries[1].text}` : 'Yesterday you said work felt heavy.',
           context: {
@@ -1349,7 +1349,7 @@ const start = async () => {
       try {
         const body = await readBody(req);
         const now = new Date();
-        const id = `LUNA-${now.toISOString().slice(0, 10).replaceAll('-', '')}-${Math.floor(Math.random() * 900 + 100)}`;
+        const id = `LUNA29-${now.toISOString().slice(0, 10).replaceAll('-', '')}-${Math.floor(Math.random() * 900 + 100)}`;
         const cycleDay = safeText(body.cycleDay, 32) || '17';
         const sleep = safeText(body.sleep, 64) || '6h 20m';
         const energy = safeText(body.energy, 64) || 'Lower';
@@ -1360,7 +1360,7 @@ const start = async () => {
         const labs = body.labs && typeof body.labs === 'object' ? body.labs : {};
 
         const text = [
-          'Luna Health Report',
+          'Luna29 Health Report',
           `Report ID: ${id}`,
           `Generated: ${now.toLocaleString()}`,
           '',
@@ -1390,7 +1390,7 @@ const start = async () => {
           'Keep tonight slower, hydrate, and prioritize earlier sleep.',
           `Note: ${note}`,
           '',
-          'LUNA IS NOT A DIAGNOSIS TOOL. IF NEEDED, CONTACT YOUR DOCTOR.',
+          'LUNA29 IS NOT A DIAGNOSIS TOOL. IF NEEDED, CONTACT YOUR DOCTOR.',
         ].join('\n');
 
         send(res, 200, { id, generatedAt: now.toISOString(), text }, headers);
@@ -1663,7 +1663,7 @@ const start = async () => {
             superAdmin = {
               id: randomBytes(12).toString('hex'),
               email,
-              name: 'Luna Super Admin',
+              name: 'Luna29 Super Admin',
               passwordHash: hashPassword(SUPER_ADMIN_BOOTSTRAP_PASSWORD),
               createdAt: new Date().toISOString(),
               roleOverride: 'super_admin',
@@ -1744,7 +1744,7 @@ const start = async () => {
           user = {
             id: randomBytes(12).toString('hex'),
             email,
-            name: 'Luna Super Admin',
+            name: 'Luna29 Super Admin',
             passwordHash: hashPassword(newPassword),
             createdAt: new Date().toISOString(),
             roleOverride: 'super_admin',
@@ -1866,7 +1866,7 @@ const start = async () => {
           .filter((item) => item.userId === auth.current.user.id)
           .map((item) => ({ tokenTail: item.token.slice(-8), expiresAt: item.expiresAt })),
         notes: [
-          'Luna uses local-first architecture for core health data.',
+          'Luna29 uses local-first architecture for core health data.',
           'This server export includes account-level and support records only.',
         ],
       };

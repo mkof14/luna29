@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Language } from '../constants';
+import {Language, LangCopy } from '../constants';
 import {
   acceptAllPrivacyScopes,
   acceptEssentialOnly,
@@ -33,7 +33,7 @@ type Copy = {
   caution: string;
 };
 
-const COPY_BY_LANG: Record<Language, Copy> = {
+const COPY_BY_LANG: LangCopy< Copy> = {
   en: {
     bannerTitle: 'Privacy Controls',
     bannerBody: 'Health data stays on your device. Choose optional analytics and AI processing.',
@@ -80,7 +80,7 @@ const COPY_BY_LANG: Record<Language, Copy> = {
   },
   uk: {
     bannerTitle: 'Контроль Приватності',
-    bannerBody: 'Оберіть, як Luna обробляє локальні та додаткові дані.',
+    bannerBody: 'Оберіть, як Luna29 обробляє локальні та додаткові дані.',
     acceptAll: 'Дозволити Все',
     essentialOnly: 'Лише Базові',
     manage: 'Налаштувати',
@@ -102,7 +102,7 @@ const COPY_BY_LANG: Record<Language, Copy> = {
   },
   es: {
     bannerTitle: 'Controles de Privacidad',
-    bannerBody: 'Elige cómo Luna procesa datos locales y opcionales.',
+    bannerBody: 'Elige cómo Luna29 procesa datos locales y opcionales.',
     acceptAll: 'Aceptar Todo',
     essentialOnly: 'Solo Esencial',
     manage: 'Gestionar',
@@ -124,7 +124,7 @@ const COPY_BY_LANG: Record<Language, Copy> = {
   },
   fr: {
     bannerTitle: 'Contrôles de Confidentialité',
-    bannerBody: 'Choisissez comment Luna traite les données locales et optionnelles.',
+    bannerBody: 'Choisissez comment Luna29 traite les données locales et optionnelles.',
     acceptAll: 'Tout Accepter',
     essentialOnly: 'Essentiel Uniquement',
     manage: 'Gérer',
@@ -146,7 +146,7 @@ const COPY_BY_LANG: Record<Language, Copy> = {
   },
   de: {
     bannerTitle: 'Datenschutz-Steuerung',
-    bannerBody: 'Wählen Sie, wie Luna lokale und optionale Nutzungsdaten verarbeitet.',
+    bannerBody: 'Wählen Sie, wie Luna29 lokale und optionale Nutzungsdaten verarbeitet.',
     acceptAll: 'Alles Akzeptieren',
     essentialOnly: 'Nur Essenziell',
     manage: 'Verwalten',
@@ -168,7 +168,7 @@ const COPY_BY_LANG: Record<Language, Copy> = {
   },
   zh: {
     bannerTitle: '隐私控制',
-    bannerBody: '选择 Luna 如何处理本地与可选使用数据。',
+    bannerBody: '选择 Luna29 如何处理本地与可选使用数据。',
     acceptAll: '全部接受',
     essentialOnly: '仅必要项',
     manage: '管理',
@@ -190,7 +190,7 @@ const COPY_BY_LANG: Record<Language, Copy> = {
   },
   ja: {
     bannerTitle: 'プライバシー設定',
-    bannerBody: 'Lunaがローカルおよび任意データをどう処理するかを選択します。',
+    bannerBody: 'Luna29がローカルおよび任意データをどう処理するかを選択します。',
     acceptAll: 'すべて許可',
     essentialOnly: '必須のみ',
     manage: '管理',
@@ -212,7 +212,7 @@ const COPY_BY_LANG: Record<Language, Copy> = {
   },
   pt: {
     bannerTitle: 'Controles de Privacidade',
-    bannerBody: 'Escolha como a Luna processa dados locais e opcionais.',
+    bannerBody: 'Escolha como a Luna29 processa dados locais e opcionais.',
     acceptAll: 'Aceitar Tudo',
     essentialOnly: 'Somente Essencial',
     manage: 'Gerenciar',

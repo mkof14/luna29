@@ -124,7 +124,7 @@ export function BodyMapScreen({ onBack, lang }: { onBack: () => void; lang: Mobi
         <Text style={styles.text}>{copy.energy}: {summary}</Text>
         <View style={styles.stack}>
           <LunaButton variant="secondary" onPress={() => undefined}>{copy.action}</LunaButton>
-          <LunaButton variant="secondary" onPress={() => void Share.share({ message: dayCard, title: 'My Day with Luna' })}>
+          <LunaButton variant="secondary" onPress={() => void Share.share({ message: dayCard, title: 'My Day with Luna29' })}>
             {copy.share}
           </LunaButton>
         </View>

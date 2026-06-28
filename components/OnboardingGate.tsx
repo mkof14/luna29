@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { dataService } from '../services/dataService';
 import { Logo } from './Logo';
-import { Language } from '../constants';
+import { Language, getLang } from '../constants';
 import { Mic, PenLine, SkipForward } from 'lucide-react';
 
 interface OnboardingGateProps {
@@ -46,19 +46,19 @@ export const OnboardingGate: React.FC<OnboardingGateProps> = ({ lang, onComplete
     }
   >> = {
     en: {
-      welcome: 'Welcome to Luna',
+      welcome: 'Welcome to Luna29',
       welcomeBody: 'A quiet place to understand how your body and emotions move together.',
       begin: 'Begin',
-      broughtYou: 'What brought you to Luna?',
+      broughtYou: 'What brought you to Luna29?',
       reasons: ['Understand my emotions', 'Track my cycle', 'Reflect on my days', 'Understand my body'],
       next: 'Next',
       signalsTitle: 'Three gentle signals',
-      signalsBody: 'Luna helps you read your day through three simple lenses.',
+      signalsBody: 'Luna29 helps you read your day through three simple lenses.',
       body: 'Body',
       senses: 'Senses',
       words: 'Words',
       dailyTitle: 'A daily rhythm works best',
-      dailyBody: 'Luna works best with short daily reflections. A minute a day is enough to see your rhythm more clearly over time.',
+      dailyBody: 'Luna29 works best with short daily reflections. A minute a day is enough to see your rhythm more clearly over time.',
       reflectionTitle: 'First reflection',
       reflectionQuestion: 'How does today feel so far?',
       speak: 'Speak',
@@ -69,7 +69,7 @@ export const OnboardingGate: React.FC<OnboardingGateProps> = ({ lang, onComplete
       thankYou: 'Thank you for sharing.',
       moveToMain: 'Go to Today',
       checkinTitle: 'Quick check-in',
-      checkinBody: 'Two taps — enough for Luna to start reading your rhythm.',
+      checkinBody: 'Two taps — enough for Luna29 to start reading your rhythm.',
       energy: 'Energy',
       mood: 'Mood',
       insightTitle: 'First insight',
@@ -78,19 +78,19 @@ export const OnboardingGate: React.FC<OnboardingGateProps> = ({ lang, onComplete
       insightHigh: 'You have good momentum today. Notice what supports this state.',
     },
     ru: {
-      welcome: 'Добро пожаловать в Luna',
+      welcome: 'Добро пожаловать в Luna29',
       welcomeBody: 'Тихое пространство, чтобы понять, как тело и эмоции двигаются вместе.',
       begin: 'Начать',
-      broughtYou: 'Что привело вас в Luna?',
+      broughtYou: 'Что привело вас в Luna29?',
       reasons: ['Лучше понимать эмоции', 'Отслеживать цикл', 'Рефлексировать день', 'Понимать своё тело'],
       next: 'Далее',
       signalsTitle: 'Три мягких сигнала',
-      signalsBody: 'Luna помогает читать ваш день через три простых слоя.',
+      signalsBody: 'Luna29 помогает читать ваш день через три простых слоя.',
       body: 'Тело',
       senses: 'Ощущения',
       words: 'Слова',
       dailyTitle: 'Лучше всего работает ежедневный ритм',
-      dailyBody: 'Luna работает лучше с короткой ежедневной рефлексией. Одной минуты в день достаточно, чтобы яснее видеть свой ритм.',
+      dailyBody: 'Luna29 работает лучше с короткой ежедневной рефлексией. Одной минуты в день достаточно, чтобы яснее видеть свой ритм.',
       reflectionTitle: 'Первая рефлексия',
       reflectionQuestion: 'Как ощущается сегодняшний день?',
       speak: 'Сказать',
@@ -101,7 +101,7 @@ export const OnboardingGate: React.FC<OnboardingGateProps> = ({ lang, onComplete
       thankYou: 'Спасибо, что поделились.',
       moveToMain: 'Перейти в Today',
       checkinTitle: 'Быстрый check-in',
-      checkinBody: 'Два касания — достаточно, чтобы Luna начала читать ваш ритм.',
+      checkinBody: 'Два касания — достаточно, чтобы Luna29 начала читать ваш ритм.',
       energy: 'Энергия',
       mood: 'Настроение',
       insightTitle: 'Первый инсайт',
@@ -110,19 +110,19 @@ export const OnboardingGate: React.FC<OnboardingGateProps> = ({ lang, onComplete
       insightHigh: 'Сегодня хороший импульс. Заметьте, что поддерживает это состояние.',
     },
     uk: {
-      welcome: 'Ласкаво просимо до Luna',
+      welcome: 'Ласкаво просимо до Luna29',
       welcomeBody: 'Тихий простір, щоб зрозуміти, як тіло та емоції рухаються разом.',
       begin: 'Почати',
-      broughtYou: 'Що привело вас до Luna?',
+      broughtYou: 'Що привело вас до Luna29?',
       reasons: ['Краще розуміти емоції', 'Відстежувати цикл', 'Рефлексувати день', 'Розуміти своє тіло'],
       next: 'Далі',
       signalsTitle: 'Три м’які сигнали',
-      signalsBody: 'Luna допомагає читати ваш день через три прості шари.',
+      signalsBody: 'Luna29 допомагає читати ваш день через три прості шари.',
       body: 'Тіло',
       senses: 'Відчуття',
       words: 'Слова',
       dailyTitle: 'Найкраще працює щоденний ритм',
-      dailyBody: 'Luna працює найкраще з короткою щоденною рефлексією. Однієї хвилини на день достатньо, щоб краще бачити свій ритм.',
+      dailyBody: 'Luna29 працює найкраще з короткою щоденною рефлексією. Однієї хвилини на день достатньо, щоб краще бачити свій ритм.',
       reflectionTitle: 'Перша рефлексія',
       reflectionQuestion: 'Як відчувається цей день зараз?',
       speak: 'Сказати',
@@ -133,7 +133,7 @@ export const OnboardingGate: React.FC<OnboardingGateProps> = ({ lang, onComplete
       thankYou: 'Дякуємо, що поділилися.',
       moveToMain: 'Перейти в Today',
       checkinTitle: 'Швидкий check-in',
-      checkinBody: 'Два дотики — достатньо, щоб Luna почала читати ваш ритм.',
+      checkinBody: 'Два дотики — достатньо, щоб Luna29 почала читати ваш ритм.',
       energy: 'Енергія',
       mood: 'Настрій',
       insightTitle: 'Перший інсайт',
@@ -143,7 +143,7 @@ export const OnboardingGate: React.FC<OnboardingGateProps> = ({ lang, onComplete
     },
   };
   const defaultCopy = copyByLang.en!;
-  const copy = copyByLang[lang] || defaultCopy;
+  const copy = getLang(copyByLang, lang) || defaultCopy;
   const [step, setStep] = useState<number>(1);
   const [selectedReason, setSelectedReason] = useState<string>('');
   const [mode, setMode] = useState<'none' | 'speak' | 'write' | 'skip'>('none');

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Mic, Square, Save, Share2, X, Sparkles, RefreshCw } from 'lucide-react';
 import { dataService } from '../services/dataService';
 import { generatePsychologistResponse } from '../services/geminiService';
-import { Language } from '../constants';
+import { Language, LangCopy, getLang } from '../constants';
 
 type SpeechRecognitionAlternativeLike = {
   transcript: string;
@@ -82,9 +82,9 @@ type VoiceReflectionUiCopy = {
   compareToday: string;
 };
 
-const voiceUiByLang: Record<Language, VoiceReflectionUiCopy> = {
+const voiceUiByLang: LangCopy< VoiceReflectionUiCopy> = {
   en: {
-    listeningLine: 'Speak freely. Luna is listening.',
+    listeningLine: 'Speak freely. Luna29 is listening.',
     voiceTitle: 'Voice Note',
     voiceSupport: 'Record a short note about how you feel and what happened during your day.',
     tapToRecord: 'Tap to record',
@@ -113,7 +113,7 @@ const voiceUiByLang: Record<Language, VoiceReflectionUiCopy> = {
     compareToday: 'How does today feel compared to yesterday?',
   },
   ru: {
-    listeningLine: 'Говорите свободно. Luna слушает.',
+    listeningLine: 'Говорите свободно. Luna29 слушает.',
     voiceTitle: 'Голосовая заметка',
     voiceSupport: 'Запишите короткую заметку о том, как вы себя чувствуете и что произошло за день.',
     tapToRecord: 'Нажмите, чтобы записать',
@@ -142,7 +142,7 @@ const voiceUiByLang: Record<Language, VoiceReflectionUiCopy> = {
     compareToday: 'Как сегодняшний день ощущается по сравнению со вчерашним?',
   },
   uk: {
-    listeningLine: 'Говоріть вільно. Luna слухає.',
+    listeningLine: 'Говоріть вільно. Luna29 слухає.',
     voiceTitle: 'Голосова нотатка',
     voiceSupport: 'Запишіть коротку нотатку про те, як ви почуваєтесь і що сталося протягом дня.',
     tapToRecord: 'Натисніть, щоб записати',
@@ -171,7 +171,7 @@ const voiceUiByLang: Record<Language, VoiceReflectionUiCopy> = {
     compareToday: 'Як сьогоднішній день відчувається порівняно з учорашнім?',
   },
   es: {
-    listeningLine: 'Habla con libertad. Luna te está escuchando.',
+    listeningLine: 'Habla con libertad. Luna29 te está escuchando.',
     voiceTitle: 'Nota de voz',
     voiceSupport: 'Graba una breve nota sobre cómo te sientes y qué pasó durante tu día.',
     tapToRecord: 'Toca para grabar',
@@ -200,7 +200,7 @@ const voiceUiByLang: Record<Language, VoiceReflectionUiCopy> = {
     compareToday: 'How does today feel compared to yesterday?',
   },
   fr: {
-    listeningLine: 'Parlez librement. Luna vous écoute.',
+    listeningLine: 'Parlez librement. Luna29 vous écoute.',
     voiceTitle: 'Note vocale',
     voiceSupport: 'Enregistrez une courte note sur ce que vous ressentez et ce qui s’est passé aujourd’hui.',
     tapToRecord: 'Touchez pour enregistrer',
@@ -229,7 +229,7 @@ const voiceUiByLang: Record<Language, VoiceReflectionUiCopy> = {
     compareToday: 'How does today feel compared to yesterday?',
   },
   de: {
-    listeningLine: 'Sprich frei. Luna hört dir zu.',
+    listeningLine: 'Sprich frei. Luna29 hört dir zu.',
     voiceTitle: 'Sprachnotiz',
     voiceSupport: 'Nimm eine kurze Notiz darüber auf, wie du dich fühlst und was heute passiert ist.',
     tapToRecord: 'Tippen zum Aufnehmen',
@@ -258,7 +258,7 @@ const voiceUiByLang: Record<Language, VoiceReflectionUiCopy> = {
     compareToday: 'How does today feel compared to yesterday?',
   },
   zh: {
-    listeningLine: '请自然表达，Luna 正在倾听。',
+    listeningLine: '请自然表达，Luna29 正在倾听。',
     voiceTitle: '语音笔记',
     voiceSupport: '录一段简短笔记，说说你的感受和今天发生的事。',
     tapToRecord: '点击开始录音',
@@ -287,7 +287,7 @@ const voiceUiByLang: Record<Language, VoiceReflectionUiCopy> = {
     compareToday: 'How does today feel compared to yesterday?',
   },
   ja: {
-    listeningLine: '自由に話してください。Luna はあなたの声を聴いています。',
+    listeningLine: '自由に話してください。Luna29 はあなたの声を聴いています。',
     voiceTitle: 'ボイスノート',
     voiceSupport: '今日の気持ちや出来事について、短いメモを録音しましょう。',
     tapToRecord: 'タップして録音',
@@ -316,7 +316,7 @@ const voiceUiByLang: Record<Language, VoiceReflectionUiCopy> = {
     compareToday: 'How does today feel compared to yesterday?',
   },
   pt: {
-    listeningLine: 'Fale com liberdade. Luna está ouvindo você.',
+    listeningLine: 'Fale com liberdade. Luna29 está ouvindo você.',
     voiceTitle: 'Nota de voz',
     voiceSupport: 'Grave uma nota curta sobre como você se sente e o que aconteceu no seu dia.',
     tapToRecord: 'Toque para gravar',
@@ -376,23 +376,23 @@ export const AudioReflection: React.FC<{ onBack: () => void, lang?: Language }> 
     errorPrefix: 'Error',
     micAccess: 'Could not access microphone.',
     noSpeech: "I didn't catch that. Please try again.",
-    unavailable: 'Luna is temporarily unavailable. Please try again.',
+    unavailable: 'Luna29 is temporarily unavailable. Please try again.',
     back: 'Back to Journal',
     reflectionLabel: 'Live Note',
-    subtitle: 'Speak your state. Luna is here to listen, understand, and respond.',
+    subtitle: 'Speak your state. Luna29 is here to listen, understand, and respond.',
     holdToSpeak: 'Tap to speak',
     stopListening: 'Stop Listening',
-    lunaReflecting: 'Luna is reflecting...',
+    lunaReflecting: 'Luna29 is reflecting...',
     yourReflection: 'Your Note',
-    lunaResponse: "Luna's Response",
+    lunaResponse: "Luna29's Response",
     reflecting: 'Reflecting...',
     listenAgain: 'Listen Again',
     save: 'Save to Journal',
     redo: 'Redo',
     recording: 'Recording...',
   };
-  const ui = voiceUiByLang[lang] || voiceUiByLang.en;
-  const recognitionLangByUi: Record<Language, string> = { en: 'en-US', ru: 'ru-RU', uk: 'uk-UA', es: 'es-ES', fr: 'fr-FR', de: 'de-DE', zh: 'zh-CN', ja: 'ja-JP', pt: 'pt-PT' };
+  const ui = getLang(voiceUiByLang, lang) || voiceUiByLang.en;
+  const recognitionLangByUi: LangCopy< string> = { en: 'en-US', ru: 'ru-RU', uk: 'uk-UA', es: 'es-ES', fr: 'fr-FR', de: 'de-DE', zh: 'zh-CN', ja: 'ja-JP', pt: 'pt-PT' };
   const recognitionLocales: Array<{ value: string; label: string }> = [
     { value: 'en-US', label: 'English (US)' },
     { value: 'ru-RU', label: 'Russian' },
@@ -1049,10 +1049,10 @@ export const AudioReflection: React.FC<{ onBack: () => void, lang?: Language }> 
   const shareReflection = async () => {
     const payload = aiResponse || displayedAiResponse || transcription;
     if (!payload) return;
-    const text = `Luna note:\n${payload}`;
+    const text = `Luna29 note:\n${payload}`;
     try {
       if (navigator.share) {
-        await navigator.share({ title: 'Luna Note', text });
+        await navigator.share({ title: 'Luna29 Note', text });
         return;
       }
       await navigator.clipboard.writeText(text);
@@ -1146,7 +1146,7 @@ export const AudioReflection: React.FC<{ onBack: () => void, lang?: Language }> 
     } catch {
       // Keep learning state fallback.
     }
-    return 'Luna is still learning about you. The more you reflect, the clearer your rhythm becomes.';
+    return 'Luna29 is still learning about you. The more you reflect, the clearer your rhythm becomes.';
   }, [transcription, aiResponse]);
 
   const previousDayLine = useMemo(() => {
@@ -1410,7 +1410,7 @@ export const AudioReflection: React.FC<{ onBack: () => void, lang?: Language }> 
                 </div>
               ) : (
                 <article className="max-w-3xl mx-auto rounded-[1.8rem] border border-slate-200/70 dark:border-slate-800/75 bg-white/78 dark:bg-slate-900/45 p-6 text-left">
-                  <p className="text-[10px] font-black uppercase tracking-[0.16em] text-luna-purple mb-3">What Luna heard</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.16em] text-luna-purple mb-3">What Luna29 heard</p>
                   <div className="space-y-3 text-base leading-relaxed text-slate-700 dark:text-slate-200">
                     {heardLines.map((line, idx) => (
                       <p key={`${line.slice(0, 18)}-${idx}`} className="font-medium">
@@ -1465,7 +1465,7 @@ export const AudioReflection: React.FC<{ onBack: () => void, lang?: Language }> 
                   </article>
 
                   <article className="max-w-3xl mx-auto rounded-[1.6rem] border border-slate-200/70 dark:border-slate-800/75 bg-white/70 dark:bg-slate-900/45 p-5 text-left">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-luna-purple">Something Luna is starting to notice</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-luna-purple">Something Luna29 is starting to notice</p>
                     <p className="mt-2 text-base font-medium text-slate-700 dark:text-slate-200">{patternLine}</p>
                   </article>
 
@@ -1482,7 +1482,7 @@ export const AudioReflection: React.FC<{ onBack: () => void, lang?: Language }> 
                       </div>
                     ) : (
                       <p className="mt-2 text-sm font-medium text-slate-700 dark:text-slate-200">
-                        Your story with Luna is just beginning.
+                        Your story with Luna29 is just beginning.
                       </p>
                     )}
                   </article>

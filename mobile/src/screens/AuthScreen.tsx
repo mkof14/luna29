@@ -10,7 +10,7 @@ import { fetchMobileAuthProviders } from '../services/production';
 const copyByLang: Record<BaseMobileLang, Record<string, string>> = {
   en: {
     back: 'Back',
-    eyebrow: 'Luna Access',
+    eyebrow: 'Luna29 Access',
     title: 'Welcome back',
     subtitle: 'Sign in to keep your daily story and insights across devices.',
     signIn: 'Sign in',
@@ -33,7 +33,7 @@ const copyByLang: Record<BaseMobileLang, Record<string, string>> = {
   },
   ru: {
     back: 'Назад',
-    eyebrow: 'Доступ Luna',
+    eyebrow: 'Доступ Luna29',
     title: 'С возвращением',
     subtitle: 'Войдите, чтобы сохранить ваш ежедневный путь и инсайты на всех устройствах.',
     signIn: 'Войти',
@@ -56,7 +56,7 @@ const copyByLang: Record<BaseMobileLang, Record<string, string>> = {
   },
   es: {
     back: 'Atras',
-    eyebrow: 'Acceso Luna',
+    eyebrow: 'Acceso Luna29',
     title: 'Bienvenida de nuevo',
     subtitle: 'Inicia sesion para mantener tu historia diaria e insights en todos tus dispositivos.',
     signIn: 'Entrar',

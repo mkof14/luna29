@@ -97,7 +97,7 @@ export function BridgeMobileScreen({
           onPress={() => {
             void Share.share({
               message: partnerMessage,
-              title: 'Luna partner message',
+              title: 'Luna29 partner message',
             });
           }}
         >

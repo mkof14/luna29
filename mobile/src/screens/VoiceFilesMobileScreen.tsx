@@ -52,7 +52,7 @@ export function VoiceFilesMobileScreen({ onBack, lang }: { onBack: () => void; l
                 <LunaButton variant={activeId === item.id ? 'primary' : 'secondary'} onPress={() => setActiveId(item.id)}>
                   {activeId === item.id ? 'Playing' : 'Play'}
                 </LunaButton>
-                <LunaButton variant="secondary" onPress={() => void Share.share({ message: `${item.label}: ${item.text}`, title: 'Luna voice note' })}>
+                <LunaButton variant="secondary" onPress={() => void Share.share({ message: `${item.label}: ${item.text}`, title: 'Luna29 voice note' })}>
                   Share
                 </LunaButton>
               </View>

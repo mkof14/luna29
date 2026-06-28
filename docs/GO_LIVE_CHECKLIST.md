@@ -15,7 +15,7 @@ Single source checklist for commercial production launch.
 4. Production domain and SSL active.
 
 Reference:
-- `/Users/mk/Desktop/Luna/docs/VERCEL_STRIPE_PRODUCTION_CHECKLIST.md`
+- `docs/VERCEL_STRIPE_PRODUCTION_CHECKLIST.md`
 
 ## 2. Environment Variables (Production)
 1. Frontend vars configured:
@@ -64,7 +64,7 @@ Reference:
 5. Incident escalation channel and on-call owner confirmed.
 
 Reference:
-- `/Users/mk/Desktop/Luna/docs/COMMERCIAL_READINESS_ROADMAP.md`
+- `docs/COMMERCIAL_READINESS_ROADMAP.md`
 
 ## 5. CI and Local Quality Gate
 Run on release candidate commit:
@@ -97,7 +97,7 @@ SMOKE_BASE_URL=https://<your-domain> npm run smoke:deploy
    - Privacy/Data Rights requests
 
 Reference:
-- `/Users/mk/Desktop/Luna/docs/COMMERCIAL_SMOKE_RUNBOOK.md`
+- `docs/COMMERCIAL_SMOKE_RUNBOOK.md`
 
 ## 7. Go/No-Go Rules
 - Go only if all sections 1-6 pass.

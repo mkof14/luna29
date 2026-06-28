@@ -8,19 +8,19 @@ import { BaseMobileLang, MobileLang, resolveLangBase } from '../i18n/mobileCopy'
 
 const copyByLang: Record<BaseMobileLang, Record<string, string>> = {
   en: {
-    title: 'Your story with Luna',
+    title: 'Your story with Luna29',
     subtitle: 'A short thread from your latest reflections.',
-    empty: 'Your story with Luna is just beginning.',
+    empty: 'Your story with Luna29 is just beginning.',
   },
   ru: {
-    title: 'Ваша история с Luna',
+    title: 'Ваша история с Luna29',
     subtitle: 'Короткая нить ваших последних заметок.',
-    empty: 'Ваша история с Luna только начинается.',
+    empty: 'Ваша история с Luna29 только начинается.',
   },
   es: {
-    title: 'Tu historia con Luna',
+    title: 'Tu historia con Luna29',
     subtitle: 'Un hilo corto de tus reflexiones recientes.',
-    empty: 'Tu historia con Luna recien comienza.',
+    empty: 'Tu historia con Luna29 recien comienza.',
   },
 };
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { CyclePhase } from '../types';
-import { Language } from '../constants';
+import { Language, LangCopy, getLang } from '../constants';
 
 type CapacityLevel = 'low' | 'medium' | 'high';
 type RiskLevel = 'low' | 'moderate' | 'high';
@@ -58,7 +58,7 @@ const rituals: Ritual[] = [
 ];
 
 export const FamilyView: React.FC<{ phase: CyclePhase; lang: Language; onBack: () => void }> = ({ phase, lang, onBack }) => {
-  const copyByLang: Record<Language, {
+  const copyByLang: LangCopy< {
     back: string;
     season: string;
     title: string;
@@ -368,7 +368,7 @@ export const FamilyView: React.FC<{ phase: CyclePhase; lang: Language; onBack: (
     },
   };
 
-  const copy = copyByLang[lang] || copyByLang.en;
+  const copy = getLang(copyByLang, lang) || copyByLang.en;
 
   const initialStored = useMemo(() => {
     const saved = readStoredState();
@@ -412,11 +412,11 @@ export const FamilyView: React.FC<{ phase: CyclePhase; lang: Language; onBack: (
   }, [capacityLevel, copy.taskBank]);
 
   const partnerCheckin = useMemo(() => {
-    return `Luna Home Seasons: ${copy.forecast} ${riskScore}/100 (${riskLevel}). ${copy.season}: ${phase}. ${copy.available}: ${availableCapacity}/100. I need a calmer communication pace and one clear priority for the next hour.`;
+    return `Luna29 Home Seasons: ${copy.forecast} ${riskScore}/100 (${riskLevel}). ${copy.season}: ${phase}. ${copy.available}: ${availableCapacity}/100. I need a calmer communication pace and one clear priority for the next hour.`;
   }, [copy.forecast, copy.season, copy.available, riskScore, riskLevel, phase, availableCapacity]);
 
   const familyCheckin = useMemo(() => {
-    return `Luna Home Seasons update: ${copy.season} ${phase}. ${copy.available}: ${availableCapacity}/100. Today we keep home rhythm simple: lower noise, shorter requests, and one shared essential task.`;
+    return `Luna29 Home Seasons update: ${copy.season} ${phase}. ${copy.available}: ${availableCapacity}/100. Today we keep home rhythm simple: lower noise, shorter requests, and one shared essential task.`;
   }, [copy.season, phase, copy.available, availableCapacity]);
 
   useEffect(() => {

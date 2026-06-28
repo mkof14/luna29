@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Language } from '../constants';
+import { Language, LangCopy, getLang } from '../constants';
 
 interface AboutLunaViewProps {
   lang: Language;
@@ -8,7 +8,7 @@ interface AboutLunaViewProps {
 }
 
 export const AboutLunaView: React.FC<AboutLunaViewProps> = ({ lang, mode = 'public', onBack }) => {
-  const loadingByLang: Record<Language, string> = {
+  const loadingByLang: LangCopy< string> = {
     en: 'Loading...',
     ru: 'Загрузка...',
     uk: 'Завантаження...',
@@ -51,7 +51,7 @@ export const AboutLunaView: React.FC<AboutLunaViewProps> = ({ lang, mode = 'publ
   if (!content) {
     return (
       <section className={`${mode === 'public' ? 'luna-page-shell luna-page-knowledge p-6 md:p-8' : 'max-w-6xl mx-auto pb-24'} animate-in fade-in duration-500`}>
-        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">{loadingByLang[lang] || loadingByLang.en}</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">{getLang(loadingByLang, lang) || loadingByLang.en}</p>
       </section>
     );
   }
@@ -76,14 +76,14 @@ export const AboutLunaView: React.FC<AboutLunaViewProps> = ({ lang, mode = 'publ
           <div className="relative rounded-[2rem] overflow-hidden mx-auto w-full max-w-[360px]">
             <img
               src="/images/Luna%20L%2044.png"
-              alt="Luna L 44"
+              alt="Luna29 L 44"
               className="w-full h-auto object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/28 via-transparent to-white/8 dark:from-slate-950/35 dark:to-transparent" />
           </div>
           <div className="mt-4 rounded-2xl border border-slate-300/80 dark:border-slate-800/90 bg-slate-100/90 dark:bg-[#0a1328]/85 backdrop-blur-md px-4 py-3 shadow-[0_8px_22px_rgba(71,85,105,0.22)] dark:shadow-[0_10px_26px_rgba(2,6,23,0.65)]">
-            <p className="text-[9px] font-black uppercase tracking-[0.35em] text-luna-purple">Luna</p>
-            <p className="mt-1 text-sm font-semibold text-slate-700 dark:text-slate-200">Luna — The physiology of feeling.</p>
+            <p className="text-[9px] font-black uppercase tracking-[0.35em] text-luna-purple">Luna29</p>
+            <p className="mt-1 text-sm font-semibold text-slate-700 dark:text-slate-200">Luna29 — The physiology of feeling.</p>
           </div>
         </article>
       </div>
@@ -128,7 +128,7 @@ export const AboutLunaView: React.FC<AboutLunaViewProps> = ({ lang, mode = 'publ
             <div className="relative z-10 h-64 md:h-[22rem] rounded-[2.2rem] overflow-hidden border border-transparent bg-transparent">
               <img
                 src="/images/window_reflection_portrait.webp"
-                alt="Luna Reflection Portrait"
+                alt="Luna29 Reflection Portrait"
                 className="absolute -top-8 inset-x-0 h-[calc(100%+2rem)] w-full object-cover"
                 style={{ objectPosition: '50% 28%' }}
               />

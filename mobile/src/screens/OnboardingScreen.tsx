@@ -19,7 +19,7 @@ export function OnboardingScreen({
   const baseLang = resolveLangBase(lang);
   const copy = getMobileCopy(lang).onboarding;
   const localized = {
-    reasonTitle: baseLang === 'ru' ? 'Что привело вас в Luna?' : baseLang === 'es' ? 'Que te trajo a Luna?' : 'What brought you to Luna?',
+    reasonTitle: baseLang === 'ru' ? 'Что привело вас в Luna29?' : baseLang === 'es' ? 'Que te trajo a Luna29?' : 'What brought you to Luna29?',
     reasons:
       baseLang === 'ru'
         ? ['Понять эмоции', 'Отслеживать цикл', 'Отражать свой день', 'Понять тело']
@@ -28,10 +28,10 @@ export function OnboardingScreen({
           : ['Understand my emotions', 'Track my cycle', 'Reflect on my days', 'Understand my body'],
     signalsTitle:
       baseLang === 'ru'
-        ? 'Luna работает через три простых сигнала'
+        ? 'Luna29 работает через три простых сигнала'
         : baseLang === 'es'
-          ? 'Luna funciona a traves de tres senales simples'
-          : 'Luna works through three simple signals',
+          ? 'Luna29 funciona a traves de tres senales simples'
+          : 'Luna29 works through three simple signals',
     body: baseLang === 'ru' ? 'Тело' : baseLang === 'es' ? 'Cuerpo' : 'Body',
     bodyText:
       baseLang === 'ru'
@@ -55,10 +55,10 @@ export function OnboardingScreen({
           : 'Voice notes and short reflections.',
     helpfulTitle:
       baseLang === 'ru'
-        ? 'Luna становится полезнее, когда вы отражаете день регулярно.'
+        ? 'Luna29 становится полезнее, когда вы отражаете день регулярно.'
         : baseLang === 'es'
-          ? 'Luna se vuelve mas util cuanto mas reflexionas.'
-          : 'Luna becomes more helpful the more you reflect.',
+          ? 'Luna29 se vuelve mas util cuanto mas reflexionas.'
+          : 'Luna29 becomes more helpful the more you reflect.',
     helpfulText:
       baseLang === 'ru'
         ? 'Достаточно 30–60 секунд в день.'

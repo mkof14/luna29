@@ -63,7 +63,7 @@ async function requestReports<T>(path: string, init?: RequestInit): Promise<T> {
 
 function localReportText(input: ReportInput, reportId: string) {
   return [
-    'Luna Health Report',
+    'Luna29 Health Report',
     `Report ID: ${reportId}`,
     `Generated: ${new Date().toLocaleString()}`,
     '',
@@ -93,13 +93,13 @@ function localReportText(input: ReportInput, reportId: string) {
     'Keep tonight slower, hydrate, and prioritize earlier sleep.',
     `Note: ${input.note || 'No additional notes.'}`,
     '',
-    'LUNA IS NOT A DIAGNOSIS TOOL. IF NEEDED, CONTACT YOUR DOCTOR.',
+    'LUNA29 IS NOT A DIAGNOSIS TOOL. IF NEEDED, CONTACT YOUR DOCTOR.',
   ].join('\n');
 }
 
 export async function generateReport(input: ReportInput): Promise<ReportPayload> {
   if (!hasApiBaseUrl) {
-    const id = `LUNA-${new Date().toISOString().slice(0, 10).replaceAll('-', '')}-${Math.floor(Math.random() * 900 + 100)}`;
+    const id = `LUNA29-${new Date().toISOString().slice(0, 10).replaceAll('-', '')}-${Math.floor(Math.random() * 900 + 100)}`;
     return {
       id,
       generatedAt: new Date().toISOString(),

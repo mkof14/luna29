@@ -7,9 +7,9 @@ import { colors } from '../theme/tokens';
 export function MedicalDisclaimerMobileScreen({ onBack }: { onBack: () => void }) {
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <MobileScreenHeader title="Medical Disclaimer" subtitle="Luna is awareness support, not diagnosis." onBack={onBack} />
+      <MobileScreenHeader title="Medical Disclaimer" subtitle="Luna29 is awareness support, not diagnosis." onBack={onBack} />
       <SurfaceCard>
-        <Text style={styles.text}>Luna does not replace medical care. Consult a licensed physician for diagnosis, treatment, and urgent health concerns.</Text>
+        <Text style={styles.text}>Luna29 does not replace medical care. Consult a licensed physician for diagnosis, treatment, and urgent health concerns.</Text>
       </SurfaceCard>
     </ScrollView>
   );

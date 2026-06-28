@@ -1,13 +1,13 @@
 
 import React, { useState } from 'react';
-import { TRANSLATIONS, Language } from '../constants';
+import { TRANSLATIONS, Language, LangCopy, getLang } from '../constants';
 import { motion, AnimatePresence } from 'motion/react';
 
 export const PartnerFAQView: React.FC<{ lang: Language; onBack: () => void }> = ({ lang, onBack }) => {
   const ui = TRANSLATIONS[lang];
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   type PartnerFaqItem = (typeof ui.bridge.partnerFAQ.items)[number];
-  const copyByLang: Record<Language, {
+  const copyByLang: LangCopy< {
     back: string;
     philosophy: string;
     quote: string;
@@ -17,7 +17,7 @@ export const PartnerFAQView: React.FC<{ lang: Language; onBack: () => void }> = 
   }> = {
     en: {
       back: 'Back',
-      philosophy: 'Luna Philosophy',
+      philosophy: 'Luna29 Philosophy',
       quote: '"We believe that understanding biological context is the shortest path to empathy in relationships."',
       reportsTitle: 'How Partners Use My Health Reports',
       reportsLead: 'Reports help couples discuss health with less conflict: what changed, why it may happen, and what support is useful now.',
@@ -25,7 +25,7 @@ export const PartnerFAQView: React.FC<{ lang: Language; onBack: () => void }> = 
     },
     ru: {
       back: 'Назад',
-      philosophy: 'Философия Luna',
+      philosophy: 'Философия Luna29',
       quote: '«Мы верим, что понимание биологического контекста - это самый короткий путь к эмпатии в отношениях».',
       reportsTitle: 'Как Партнеру Использовать My Health Reports',
       reportsLead: 'Отчеты помогают обсуждать здоровье без конфликтов: что изменилось, почему это могло случиться и какая поддержка нужна сейчас.',
@@ -33,7 +33,7 @@ export const PartnerFAQView: React.FC<{ lang: Language; onBack: () => void }> = 
     },
     uk: {
       back: 'Назад',
-      philosophy: 'Філософія Luna',
+      philosophy: 'Філософія Luna29',
       quote: '«Ми віримо, що розуміння біологічного контексту - найкоротший шлях до емпатії у стосунках».',
       reportsTitle: 'Як Партнеру Користуватись My Health Reports',
       reportsLead: 'Звіти допомагають обговорювати здоровʼя без конфлікту: що змінилось, чому це могло статися і яка підтримка потрібна зараз.',
@@ -41,7 +41,7 @@ export const PartnerFAQView: React.FC<{ lang: Language; onBack: () => void }> = 
     },
     es: {
       back: 'Atrás',
-      philosophy: 'Filosofía Luna',
+      philosophy: 'Filosofía Luna29',
       quote: '"Creemos que comprender el contexto biológico es el camino más corto hacia la empatía en las relaciones."',
       reportsTitle: 'Cómo La Pareja Usa My Health Reports',
       reportsLead: 'El reporte facilita conversaciones sin fricción: qué cambió, por qué pudo pasar y qué apoyo conviene ahora.',
@@ -49,7 +49,7 @@ export const PartnerFAQView: React.FC<{ lang: Language; onBack: () => void }> = 
     },
     fr: {
       back: 'Retour',
-      philosophy: 'Philosophie Luna',
+      philosophy: 'Philosophie Luna29',
       quote: '"Nous croyons que comprendre le contexte biologique est le chemin le plus court vers l’empathie dans les relations."',
       reportsTitle: 'Comment Le Couple Utilise My Health Reports',
       reportsLead: 'Le rapport aide à parler de santé sans tension: ce qui a changé, pourquoi et quel soutien est utile maintenant.',
@@ -57,7 +57,7 @@ export const PartnerFAQView: React.FC<{ lang: Language; onBack: () => void }> = 
     },
     de: {
       back: 'Zurück',
-      philosophy: 'Luna Philosophie',
+      philosophy: 'Luna29 Philosophie',
       quote: '"Wir glauben, dass das Verständnis des biologischen Kontexts der kürzeste Weg zu Empathie in Beziehungen ist."',
       reportsTitle: 'Wie Partner My Health Reports Nutzen',
       reportsLead: 'Berichte helfen bei ruhigen Gesprächen: was sich geändert hat, warum es so sein kann und welche Unterstützung jetzt passt.',
@@ -65,7 +65,7 @@ export const PartnerFAQView: React.FC<{ lang: Language; onBack: () => void }> = 
     },
     zh: {
       back: '返回',
-      philosophy: 'Luna 理念',
+      philosophy: 'Luna29 理念',
       quote: '“我们相信，理解生理背景是通往关系共情的最短路径。”',
       reportsTitle: '伴侣如何使用 My Health Reports',
       reportsLead: '报告让沟通更平稳：发生了什么变化、可能原因、当下需要怎样的支持。',
@@ -73,7 +73,7 @@ export const PartnerFAQView: React.FC<{ lang: Language; onBack: () => void }> = 
     },
     ja: {
       back: '戻る',
-      philosophy: 'Lunaの哲学',
+      philosophy: 'Luna29の哲学',
       quote: '「生物学的な文脈を理解することが、関係性における共感への最短ルートだと私たちは考えています。」',
       reportsTitle: 'パートナー向け My Health Reports 活用',
       reportsLead: 'レポートにより、何が変化し、なぜ起こり得るか、今どんな支援が有効かを落ち着いて話せます。',
@@ -81,14 +81,14 @@ export const PartnerFAQView: React.FC<{ lang: Language; onBack: () => void }> = 
     },
     pt: {
       back: 'Voltar',
-      philosophy: 'Filosofia Luna',
+      philosophy: 'Filosofia Luna29',
       quote: '"Acreditamos que compreender o contexto biológico é o caminho mais curto para a empatia nos relacionamentos."',
       reportsTitle: 'Como O Parceiro Usa My Health Reports',
       reportsLead: 'O relatório facilita conversas sem conflito: o que mudou, por que pode ter ocorrido e qual apoio faz sentido agora.',
       reportsPoints: ['Use a linguagem do relatório para conversar sem culpa.', 'Levem o relatório à consulta e definam próximos exames juntos.', 'Compartilhe só ID/sem nome quando precisar de privacidade.'],
     }
   };
-  const copy = copyByLang[lang];
+  const copy = getLang(copyByLang, lang);
 
   const toggle = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);

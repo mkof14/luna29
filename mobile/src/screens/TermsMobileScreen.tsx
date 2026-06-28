@@ -9,7 +9,7 @@ export function TermsMobileScreen({ onBack }: { onBack: () => void }) {
     <ScrollView contentContainerStyle={styles.container}>
       <MobileScreenHeader title="Terms of Use" subtitle="Service terms and user responsibilities." onBack={onBack} />
       <SurfaceCard>
-        <Text style={styles.text}>Use Luna respectfully, protect account credentials, and follow local laws when sharing content.</Text>
+        <Text style={styles.text}>Use Luna29 respectfully, protect account credentials, and follow local laws when sharing content.</Text>
       </SurfaceCard>
     </ScrollView>
   );

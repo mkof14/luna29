@@ -1,7 +1,8 @@
 import React, { Suspense, lazy } from 'react';
 import { dataService } from '../services/dataService';
 import { AdminRole, AuthSession, CyclePhase, HealthEvent, HormoneData, RuleOutput, SystemState } from '../types';
-import { Language, TranslationSchema } from '../constants';
+import { Language, TranslationSchema, LangCopy, getLang } from '../constants';
+import { langMap } from '../utils/languages';
 import { TabType } from '../utils/navigation';
 import CycleTimeline from './CycleTimeline';
 import { DashboardView } from './DashboardView';
@@ -38,8 +39,7 @@ const LoadingFallback: React.FC<{ lang: Language }> = ({ lang }) => (
   <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4 animate-pulse">
     <div className="w-12 h-12 border-4 border-luna-purple border-t-transparent rounded-full animate-spin"></div>
     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-      {{
-        en: 'Syncing Architecture...',
+      {langMap('Syncing Architecture...', {
         ru: 'Синхронизация...',
         uk: 'Синхронізація...',
         es: 'Sincronizando arquitectura...',
@@ -47,8 +47,10 @@ const LoadingFallback: React.FC<{ lang: Language }> = ({ lang }) => (
         de: 'Synchronisierung...',
         zh: '正在同步...',
         ja: '同期中...',
-        pt: 'Sincronizando...'
-      }[lang]}
+        pt: 'Sincronizando...',
+        ar: 'جاري المزامنة...',
+        he: 'מסנכרן...',
+      })[lang]}
     </p>
   </div>
 );
@@ -108,7 +110,7 @@ class MemberContentErrorBoundary extends React.Component<
   render() {
     if (!this.state.hasError) return this.props.children;
 
-    const copyByLang: Record<Language, { title: string; body: string; home: string; reload: string }> = {
+    const copyByLang: LangCopy< { title: string; body: string; home: string; reload: string }> = {
       en: { title: 'Section Failed To Render', body: 'This section crashed while loading. You can go back home or reload.', home: 'Back To Home', reload: 'Reload' },
       ru: { title: 'Раздел Не Загрузился', body: 'Этот раздел упал при загрузке. Вернитесь на главную или перезагрузите страницу.', home: 'На Главную', reload: 'Перезагрузить' },
       uk: { title: 'Розділ Не Завантажився', body: 'Цей розділ впав під час завантаження. Поверніться на головну або перезавантажте сторінку.', home: 'На Головну', reload: 'Перезавантажити' },
@@ -185,63 +187,63 @@ export const MainContentRouter: React.FC<MainContentRouterProps> = ({
   onLogout,
 }) => {
   const canAccessAdmin = authService.hasPermission(session, 'manage_services') || authService.hasPermission(session, 'manage_admin_roles');
-  const copyByLang: Record<Language, { accessRestricted: string; permissionRequired: string; permissionBody: string; backHome: string }> = {
+  const copyByLang: LangCopy< { accessRestricted: string; permissionRequired: string; permissionBody: string; backHome: string }> = {
     en: {
       accessRestricted: 'Access Restricted',
       permissionRequired: 'Admin Permission Required',
-      permissionBody: 'Your account currently does not have admin access. Contact the Luna owner to request access.',
+      permissionBody: 'Your account currently does not have admin access. Contact the Luna29 owner to request access.',
       backHome: 'Back to Home'
     },
     ru: {
       accessRestricted: 'Доступ ограничен',
       permissionRequired: 'Требуются права администратора',
-      permissionBody: 'У вашего аккаунта пока нет доступа к админ-пространству. Обратитесь к владельцу Luna для выдачи прав.',
+      permissionBody: 'У вашего аккаунта пока нет доступа к админ-пространству. Обратитесь к владельцу Luna29 для выдачи прав.',
       backHome: 'На главную'
     },
     uk: {
       accessRestricted: 'Доступ обмежено',
       permissionRequired: 'Потрібні права адміністратора',
-      permissionBody: 'Ваш акаунт поки не має доступу до адмін-простору. Зверніться до власника Luna для надання прав.',
+      permissionBody: 'Ваш акаунт поки не має доступу до адмін-простору. Зверніться до власника Luna29 для надання прав.',
       backHome: 'На головну'
     },
     es: {
       accessRestricted: 'Acceso restringido',
       permissionRequired: 'Se requieren permisos de administrador',
-      permissionBody: 'Tu cuenta no tiene acceso al espacio admin. Contacta al propietario de Luna para solicitar permisos.',
+      permissionBody: 'Tu cuenta no tiene acceso al espacio admin. Contacta al propietario de Luna29 para solicitar permisos.',
       backHome: 'Volver al inicio'
     },
     fr: {
       accessRestricted: 'Accès restreint',
       permissionRequired: "Permission administrateur requise",
-      permissionBody: "Votre compte n'a pas encore accès à l'espace admin. Contactez le propriétaire de Luna pour obtenir les droits.",
+      permissionBody: "Votre compte n'a pas encore accès à l'espace admin. Contactez le propriétaire de Luna29 pour obtenir les droits.",
       backHome: "Retour à l'accueil"
     },
     de: {
       accessRestricted: 'Zugriff eingeschränkt',
       permissionRequired: 'Admin-Rechte erforderlich',
-      permissionBody: 'Dein Konto hat derzeit keinen Admin-Zugang. Kontaktiere die Luna-Inhaberin für die Freigabe.',
+      permissionBody: 'Dein Konto hat derzeit keinen Admin-Zugang. Kontaktiere die Luna29-Inhaberin für die Freigabe.',
       backHome: 'Zur Startseite'
     },
     zh: {
       accessRestricted: '访问受限',
       permissionRequired: '需要管理员权限',
-      permissionBody: '你的账户目前没有管理员访问权限。请联系 Luna 管理员开通权限。',
+      permissionBody: '你的账户目前没有管理员访问权限。请联系 Luna29 管理员开通权限。',
       backHome: '返回主页'
     },
     ja: {
       accessRestricted: 'アクセス制限',
       permissionRequired: '管理者権限が必要です',
-      permissionBody: '現在のアカウントには管理者アクセスがありません。Luna管理者に権限付与を依頼してください。',
+      permissionBody: '現在のアカウントには管理者アクセスがありません。Luna29管理者に権限付与を依頼してください。',
       backHome: 'ホームへ戻る'
     },
     pt: {
       accessRestricted: 'Acesso restrito',
       permissionRequired: 'Permissão de admin necessária',
-      permissionBody: 'Sua conta ainda não possui acesso admin. Contate o responsável do Luna para liberação.',
+      permissionBody: 'Sua conta ainda não possui acesso admin. Contate o responsável do Luna29 para liberação.',
       backHome: 'Voltar ao início'
     }
   };
-  const copy = copyByLang[lang];
+  const copy = getLang(copyByLang, lang);
 
   return (
     <main data-testid={`member-tab-${activeTab}`} className="flex-grow max-w-7xl mx-auto w-full px-6 pt-12 pb-40 relative z-10">

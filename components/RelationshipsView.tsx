@@ -8,7 +8,7 @@ import {
   PartnerNoteInput, 
   PartnerNoteOutput
 } from '../types';
-import { INITIAL_HORMONES, TRANSLATIONS, Language } from '../constants';
+import { INITIAL_HORMONES, TRANSLATIONS, Language, LangCopy, getLang } from '../constants';
 import { generatePartnerNote } from '../services/geminiService';
 import { dataService } from '../services/dataService';
 import { normalizePartnerNoteInput } from '../utils/bridge';
@@ -20,7 +20,7 @@ export const RelationshipsView: React.FC<{ phase: CyclePhase; lang: Language; on
   const ui = useMemo(() => TRANSLATIONS[lang], [lang]);
   const socialHormone = INITIAL_HORMONES.find(h => h.id === 'estrogen');
   const socialLevel = socialHormone?.level || 50;
-  const copyByLang: Record<Language, { begin: string; retry: string; shared: string; selectRefinement: string; editableHint: string; back: string; readiness: string; battery: string; quote: string; generateError: string; shareError: string; copyError: string }> = {
+  const copyByLang: LangCopy< { begin: string; retry: string; shared: string; selectRefinement: string; editableHint: string; back: string; readiness: string; battery: string; quote: string; generateError: string; shareError: string; copyError: string }> = {
     en: {
       begin: 'Begin', retry: 'Try Again', shared: '✓ Shared', selectRefinement: 'Select refinement option', editableHint: 'You can edit every word before sharing.', back: 'Back', readiness: 'Current Social Readiness', battery: 'Battery', quote: 'Connection is a shared rhythm. By understanding your own tempo, you can invite others to dance at a pace that feels safe for both.', generateError: 'Could not generate a note right now. Please retry.', shareError: 'Could not share this note right now.', copyError: 'Could not copy this note right now.'
     },
@@ -49,7 +49,7 @@ export const RelationshipsView: React.FC<{ phase: CyclePhase; lang: Language; on
       begin: 'Começar', retry: 'Tentar novamente', shared: '✓ Compartilhado', selectRefinement: 'Selecione uma opção', editableHint: 'Você pode editar cada palavra antes de compartilhar.', back: 'Voltar', readiness: 'Prontidão social atual', battery: 'Carga', quote: 'Conexão é um ritmo compartilhado. Ao entender seu próprio tempo, você convida os outros a dançar em um ritmo seguro.', generateError: 'Não foi possível gerar a nota agora. Tente novamente.', shareError: 'Não foi possível compartilhar a nota agora.', copyError: 'Não foi possível copiar a nota agora.'
     }
   };
-  const basedOnEstrogenByLang: Record<Language, string> = {
+  const basedOnEstrogenByLang: LangCopy< string> = {
     en: `Based on your ${socialHormone?.name} level`,
     ru: 'На основе уровня Эстрогена',
     uk: 'На основі рівня Естрогену',
@@ -60,7 +60,7 @@ export const RelationshipsView: React.FC<{ phase: CyclePhase; lang: Language; on
     ja: 'エストロゲンレベルに基づく',
     pt: 'Com base no seu nível de estrogênio'
   };
-  const copy = { ...copyByLang[lang], basedOnEstrogen: basedOnEstrogenByLang[lang] };
+  const copy = { ...getLang(copyByLang, lang), basedOnEstrogen: getLang(basedOnEstrogenByLang, lang) };
   
   const [input, setInput] = useState<Partial<PartnerNoteInput>>({
     intent: PartnerNoteIntent.UNDERSTANDING,
@@ -145,7 +145,7 @@ export const RelationshipsView: React.FC<{ phase: CyclePhase; lang: Language; on
   };
 
   const handleShare = async (content: string, id: string) => {
-    const result = await shareTextSafely(content, 'Luna Partner Note');
+    const result = await shareTextSafely(content, 'Luna29 Partner Note');
     if (result === 'shared' || result === 'copied') {
       setCopyFeedback(id);
       setTimeout(() => setCopyFeedback(null), 2000);

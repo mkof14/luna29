@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { ArrowLeft, Share2 } from 'lucide-react';
-import { Language } from '../constants';
+import { Language, getLang } from '../constants';
 import { CyclePhase, HealthEvent, SystemState } from '../types';
 import { shareTextSafely } from '../utils/share';
 
@@ -40,8 +40,8 @@ export const MonthlyReflectionView: React.FC<MonthlyReflectionViewProps> = ({
   >> = {
     en: {
       back: 'Back',
-      title: 'Your month with Luna',
-      subtitle: 'A gentle look at what Luna is starting to notice.',
+      title: 'Your month with Luna29',
+      subtitle: 'A gentle look at what Luna29 is starting to notice.',
       share: 'Share this note',
       shared: 'Shared.',
       copied: 'Copied.',
@@ -54,8 +54,8 @@ export const MonthlyReflectionView: React.FC<MonthlyReflectionViewProps> = ({
     },
     ru: {
       back: 'Назад',
-      title: 'Ваш месяц с Luna',
-      subtitle: 'Бережный взгляд на то, что Luna начинает замечать.',
+      title: 'Ваш месяц с Luna29',
+      subtitle: 'Бережный взгляд на то, что Luna29 начинает замечать.',
       share: 'Поделиться этой заметкой',
       shared: 'Отправлено.',
       copied: 'Скопировано.',
@@ -68,8 +68,8 @@ export const MonthlyReflectionView: React.FC<MonthlyReflectionViewProps> = ({
     },
     uk: {
       back: 'Назад',
-      title: 'Ваш місяць з Luna',
-      subtitle: 'Бережний погляд на те, що Luna починає помічати.',
+      title: 'Ваш місяць з Luna29',
+      subtitle: 'Бережний погляд на те, що Luna29 починає помічати.',
       share: 'Поділитися цією нотаткою',
       shared: 'Надіслано.',
       copied: 'Скопійовано.',
@@ -82,7 +82,7 @@ export const MonthlyReflectionView: React.FC<MonthlyReflectionViewProps> = ({
     },
   };
   const defaultCopy = copyByLang.en!;
-  const copy = copyByLang[lang] || defaultCopy;
+  const copy = getLang(copyByLang, lang) || defaultCopy;
 
   const insights = useMemo(() => {
     const checkins = events.filter((event) => event.type === 'DAILY_CHECKIN');

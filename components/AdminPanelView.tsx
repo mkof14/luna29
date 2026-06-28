@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Language } from '../constants';
+import { Language, LangCopy, getLang } from '../constants';
 import { AdminRole, AuthSession } from '../types';
 import { LocalizedText, localizeFields, localizeText, resolveLocalizedText, seedLocalizedText } from '../utils/contentLocalization';
 import { copyTextSafely, shareTextSafely } from '../utils/share';
@@ -139,32 +139,7 @@ const DEFAULT_TECHNICAL = {
   queueLag: 12,
 };
 
-const ADMIN_UI_COPY: Record<
-  Language,
-  {
-    inviteTitle: string;
-    inviteHint: string;
-    inviteEmailPlaceholder: string;
-    inviteButton: string;
-    invitePending: string;
-    inviteSent: string;
-    inviteAccepted: string;
-    usersTitle: string;
-    usersTotal: string;
-    usersActive: string;
-    usersNew7d: string;
-    siteStatsTitle: string;
-    dau: string;
-    wau: string;
-    mau: string;
-    conversion: string;
-    growth: string;
-    storageTitle: string;
-    addFolder: string;
-    previewHint: string;
-    noPreview: string;
-  }
-> = {
+const ADMIN_UI_COPY = {
   en: {
     inviteTitle: 'Invitations & Role Access',
     inviteHint: 'Send invite links and assign the starting admin role before first login.',
@@ -406,38 +381,7 @@ const DEFAULT_EMAIL_INTEGRATION: EmailIntegration = {
   openRate: 46.2,
 };
 
-const CHANNELS_COPY: Record<
-  Language,
-  {
-    title: string;
-    socialTitle: string;
-    socialHint: string;
-    emailTitle: string;
-    emailHint: string;
-    connect: string;
-    disconnect: string;
-    syncNow: string;
-    addChannel: string;
-    channelName: string;
-    handle: string;
-    followers: string;
-    engagement: string;
-    statusConnected: string;
-    statusDisconnected: string;
-    provider: string;
-    fromEmail: string;
-    domain: string;
-    queue: string;
-    sentToday: string;
-    bounced: string;
-    openRate: string;
-    testConnection: string;
-    spf: string;
-    dkim: string;
-    connectedNow: string;
-    disconnectedNow: string;
-  }
-> = {
+const CHANNELS_COPY = {
   en: { title: 'Channels & Integrations', socialTitle: 'Social Media Administration', socialHint: 'Connect accounts, monitor sync status, and keep channel performance in one place.', emailTitle: 'Email System Connection', emailHint: 'Control provider status, delivery quality, and queue health for system emails.', connect: 'Connect', disconnect: 'Disconnect', syncNow: 'Sync now', addChannel: 'Add channel', channelName: 'Channel name', handle: 'Handle', followers: 'Followers', engagement: 'Engagement', statusConnected: 'Connected', statusDisconnected: 'Disconnected', provider: 'Provider', fromEmail: 'From email', domain: 'Domain', queue: 'Queue', sentToday: 'Sent today', bounced: 'Bounced', openRate: 'Open rate', testConnection: 'Test connection', spf: 'SPF', dkim: 'DKIM', connectedNow: 'Channel connected.', disconnectedNow: 'Channel disconnected.' },
   ru: { title: 'Каналы и интеграции', socialTitle: 'Администрирование соцсетей', socialHint: 'Подключайте аккаунты, следите за синхронизацией и метриками каналов в одном месте.', emailTitle: 'Подключение Email-системы', emailHint: 'Управляйте провайдером, качеством доставки и очередями системных писем.', connect: 'Подключить', disconnect: 'Отключить', syncNow: 'Синхронизировать', addChannel: 'Добавить канал', channelName: 'Название канала', handle: 'Аккаунт', followers: 'Подписчики', engagement: 'Вовлеченность', statusConnected: 'Подключен', statusDisconnected: 'Отключен', provider: 'Провайдер', fromEmail: 'Email отправителя', domain: 'Домен', queue: 'Очередь', sentToday: 'Отправлено сегодня', bounced: 'Отказы', openRate: 'Открываемость', testConnection: 'Проверить подключение', spf: 'SPF', dkim: 'DKIM', connectedNow: 'Канал подключен.', disconnectedNow: 'Канал отключен.' },
   uk: { title: 'Канали та інтеграції', socialTitle: 'Адміністрування соцмереж', socialHint: 'Підключайте акаунти, відстежуйте синхронізацію та метрики каналів в одному місці.', emailTitle: 'Підключення Email-системи', emailHint: 'Керуйте провайдером, якістю доставки та чергами системних листів.', connect: 'Підключити', disconnect: 'Відключити', syncNow: 'Синхронізувати', addChannel: 'Додати канал', channelName: 'Назва каналу', handle: 'Акаунт', followers: 'Підписники', engagement: 'Залученість', statusConnected: 'Підключено', statusDisconnected: 'Відключено', provider: 'Провайдер', fromEmail: 'Email відправника', domain: 'Домен', queue: 'Черга', sentToday: 'Надіслано сьогодні', bounced: 'Відмови', openRate: 'Відкриття', testConnection: 'Перевірити з’єднання', spf: 'SPF', dkim: 'DKIM', connectedNow: 'Канал підключено.', disconnectedNow: 'Канал відключено.' },
@@ -449,8 +393,8 @@ const CHANNELS_COPY: Record<
   pt: { title: 'Canais e integrações', socialTitle: 'Administração de redes sociais', socialHint: 'Conecte contas, acompanhe sincronização e desempenho dos canais em um painel.', emailTitle: 'Conexão do sistema de email', emailHint: 'Gerencie provedor, qualidade de entrega e saúde da fila de emails.', connect: 'Conectar', disconnect: 'Desconectar', syncNow: 'Sincronizar agora', addChannel: 'Adicionar canal', channelName: 'Nome do canal', handle: 'Conta', followers: 'Seguidores', engagement: 'Engajamento', statusConnected: 'Conectado', statusDisconnected: 'Desconectado', provider: 'Provedor', fromEmail: 'Email remetente', domain: 'Domínio', queue: 'Fila', sentToday: 'Enviados hoje', bounced: 'Rejeitados', openRate: 'Taxa de abertura', testConnection: 'Testar conexão', spf: 'SPF', dkim: 'DKIM', connectedNow: 'Canal conectado.', disconnectedNow: 'Canal desconectado.' },
 };
 
-const defaultMarketingBody = 'A calm Luna update for your rhythm. Gentle reminder with clear next action.';
-const defaultTemplateBody = 'You are in a safe Luna space. Observe your rhythm softly and stay connected with your body.';
+const defaultMarketingBody = 'A calm Luna29 update for your rhythm. Gentle reminder with clear next action.';
+const defaultTemplateBody = 'You are in a safe Luna29 space. Observe your rhythm softly and stay connected with your body.';
 const defaultTemplateVariables = ['{{first_name}}', '{{support_link}}', '{{app_link}}'];
 
 const variablePresets: Array<{ key: string; match: RegExp; variables: string[] }> = [
@@ -485,7 +429,7 @@ const normalizeLocalized = (value: unknown, fallback: string): LocalizedText => 
   if (typeof value === 'string') return seedLocalizedText(value, 'en');
   if (!value || typeof value !== 'object') return seedLocalizedText(fallback, 'en');
 
-  const record = value as Partial<Record<Language, string>>;
+  const record = value as Partial<LangCopy< string>>;
   return {
     en: record.en || fallback,
     ru: record.ru || record.en || fallback,
@@ -503,7 +447,7 @@ const DEFAULT_CONTENT: ContentItem[] = [
   {
     id: 'cnt-001',
     title: seedLocalizedText('March Retention Sequence', 'en'),
-    body: seedLocalizedText('Luna check-in reminder. Pause for one breath and mark your current state.', 'en'),
+    body: seedLocalizedText('Luna29 check-in reminder. Pause for one breath and mark your current state.', 'en'),
     channel: 'Email',
     status: 'Scheduled',
     scheduledAt: seedLocalizedText('2026-03-05 09:00', 'en'),
@@ -531,9 +475,9 @@ const DEFAULT_TEMPLATES: EmailTemplate[] = [
     id: 'tpl-welcome',
     title: seedLocalizedText('Welcome + Onboarding', 'en'),
     trigger: seedLocalizedText('New signup', 'en'),
-    subject: seedLocalizedText('Welcome to Luna', 'en'),
+    subject: seedLocalizedText('Welcome to Luna29', 'en'),
     preheader: seedLocalizedText('Your rhythm starts here.', 'en'),
-    body: seedLocalizedText('Welcome to Luna. Your private rhythm map is ready. Start with one gentle check-in today.', 'en'),
+    body: seedLocalizedText('Welcome to Luna29. Your private rhythm map is ready. Start with one gentle check-in today.', 'en'),
     updatedBy: 'Growth Ops',
     updatedAt: '2026-03-01',
   },
@@ -541,9 +485,9 @@ const DEFAULT_TEMPLATES: EmailTemplate[] = [
     id: 'tpl-reset',
     title: seedLocalizedText('Password Recovery', 'en'),
     trigger: seedLocalizedText('Forgot password', 'en'),
-    subject: seedLocalizedText('Reset your Luna password', 'en'),
+    subject: seedLocalizedText('Reset your Luna29 password', 'en'),
     preheader: seedLocalizedText('Secure recovery route prepared.', 'en'),
-    body: seedLocalizedText('Use the secure button below to set a new password and continue your Luna journey.', 'en'),
+    body: seedLocalizedText('Use the secure button below to set a new password and continue your Luna29 journey.', 'en'),
     updatedBy: 'Security',
     updatedAt: '2026-02-27',
   },
@@ -551,9 +495,9 @@ const DEFAULT_TEMPLATES: EmailTemplate[] = [
     id: 'tpl-renewal',
     title: seedLocalizedText('Subscription Renewal', 'en'),
     trigger: seedLocalizedText('7 days before renewal', 'en'),
-    subject: seedLocalizedText('Your Luna renewal is coming up', 'en'),
+    subject: seedLocalizedText('Your Luna29 renewal is coming up', 'en'),
     preheader: seedLocalizedText('Keep your rhythm continuity active.', 'en'),
-    body: seedLocalizedText('Your Luna membership renews in 7 days. Review your plan and continue tracking with no interruption.', 'en'),
+    body: seedLocalizedText('Your Luna29 membership renews in 7 days. Review your plan and continue tracking with no interruption.', 'en'),
     updatedBy: 'Finance Team',
     updatedAt: '2026-02-25',
   },
@@ -561,7 +505,7 @@ const DEFAULT_TEMPLATES: EmailTemplate[] = [
     id: 'tpl-churn-save',
     title: seedLocalizedText('Cancellation Save Offer', 'en'),
     trigger: seedLocalizedText('Cancel intent', 'en'),
-    subject: seedLocalizedText('Stay with Luna for one more cycle', 'en'),
+    subject: seedLocalizedText('Stay with Luna29 for one more cycle', 'en'),
     preheader: seedLocalizedText('A softer plan can help.', 'en'),
     body: seedLocalizedText('Before you leave, we prepared a gentle continuity option with reduced pricing for one cycle.', 'en'),
     updatedBy: 'Retention Team',
@@ -571,9 +515,9 @@ const DEFAULT_TEMPLATES: EmailTemplate[] = [
     id: 'tpl-verify-email',
     title: seedLocalizedText('Email Verification', 'en'),
     trigger: seedLocalizedText('Account created, email not verified', 'en'),
-    subject: seedLocalizedText('Verify your Luna email', 'en'),
+    subject: seedLocalizedText('Verify your Luna29 email', 'en'),
     preheader: seedLocalizedText('One secure step to activate your account.', 'en'),
-    body: seedLocalizedText('Confirm your email to secure your Luna account and unlock member features.', 'en'),
+    body: seedLocalizedText('Confirm your email to secure your Luna29 account and unlock member features.', 'en'),
     updatedBy: 'Security',
     updatedAt: '2026-03-02',
   },
@@ -581,9 +525,9 @@ const DEFAULT_TEMPLATES: EmailTemplate[] = [
     id: 'tpl-magic-link',
     title: seedLocalizedText('Magic Link Login', 'en'),
     trigger: seedLocalizedText('Passwordless login requested', 'en'),
-    subject: seedLocalizedText('Your Luna sign-in link', 'en'),
+    subject: seedLocalizedText('Your Luna29 sign-in link', 'en'),
     preheader: seedLocalizedText('This link expires shortly for your safety.', 'en'),
-    body: seedLocalizedText('Use this secure sign-in link to access Luna. If you did not request it, ignore this email.', 'en'),
+    body: seedLocalizedText('Use this secure sign-in link to access Luna29. If you did not request it, ignore this email.', 'en'),
     updatedBy: 'Security',
     updatedAt: '2026-03-02',
   },
@@ -591,7 +535,7 @@ const DEFAULT_TEMPLATES: EmailTemplate[] = [
     id: 'tpl-new-device-alert',
     title: seedLocalizedText('New Device Alert', 'en'),
     trigger: seedLocalizedText('Login from unknown device', 'en'),
-    subject: seedLocalizedText('New sign-in detected on your Luna account', 'en'),
+    subject: seedLocalizedText('New sign-in detected on your Luna29 account', 'en'),
     preheader: seedLocalizedText('Review activity and secure your account if needed.', 'en'),
     body: seedLocalizedText('We noticed a sign-in from a new device. If this was not you, reset your password immediately.', 'en'),
     updatedBy: 'Security',
@@ -601,9 +545,9 @@ const DEFAULT_TEMPLATES: EmailTemplate[] = [
     id: 'tpl-trial-start',
     title: seedLocalizedText('Trial Started', 'en'),
     trigger: seedLocalizedText('Trial activated', 'en'),
-    subject: seedLocalizedText('Your Luna trial has started', 'en'),
+    subject: seedLocalizedText('Your Luna29 trial has started', 'en'),
     preheader: seedLocalizedText('Make the most of your first rhythm week.', 'en'),
-    body: seedLocalizedText('Welcome to your Luna trial. Start with daily check-ins and watch patterns become clear.', 'en'),
+    body: seedLocalizedText('Welcome to your Luna29 trial. Start with daily check-ins and watch patterns become clear.', 'en'),
     updatedBy: 'Growth Ops',
     updatedAt: '2026-03-02',
   },
@@ -611,7 +555,7 @@ const DEFAULT_TEMPLATES: EmailTemplate[] = [
     id: 'tpl-trial-ending',
     title: seedLocalizedText('Trial Ending Reminder', 'en'),
     trigger: seedLocalizedText('3 days before trial ends', 'en'),
-    subject: seedLocalizedText('Your Luna trial ends soon', 'en'),
+    subject: seedLocalizedText('Your Luna29 trial ends soon', 'en'),
     preheader: seedLocalizedText('Keep your progress and continue your map.', 'en'),
     body: seedLocalizedText('Your trial ends in 3 days. Upgrade now to keep your entries, insights, and continuity.', 'en'),
     updatedBy: 'Growth Ops',
@@ -621,7 +565,7 @@ const DEFAULT_TEMPLATES: EmailTemplate[] = [
     id: 'tpl-payment-failed',
     title: seedLocalizedText('Payment Failed', 'en'),
     trigger: seedLocalizedText('Billing charge failed', 'en'),
-    subject: seedLocalizedText('We could not process your Luna payment', 'en'),
+    subject: seedLocalizedText('We could not process your Luna29 payment', 'en'),
     preheader: seedLocalizedText('Update your billing method to avoid interruption.', 'en'),
     body: seedLocalizedText('Your last payment attempt failed. Please update your payment method to keep full access.', 'en'),
     updatedBy: 'Finance Team',
@@ -631,9 +575,9 @@ const DEFAULT_TEMPLATES: EmailTemplate[] = [
     id: 'tpl-payment-recovered',
     title: seedLocalizedText('Payment Recovered', 'en'),
     trigger: seedLocalizedText('Billing method updated after failure', 'en'),
-    subject: seedLocalizedText('Your Luna billing is active again', 'en'),
+    subject: seedLocalizedText('Your Luna29 billing is active again', 'en'),
     preheader: seedLocalizedText('Thank you, your membership continues normally.', 'en'),
-    body: seedLocalizedText('We successfully processed your payment. Your Luna access continues with no interruption.', 'en'),
+    body: seedLocalizedText('We successfully processed your payment. Your Luna29 access continues with no interruption.', 'en'),
     updatedBy: 'Finance Team',
     updatedAt: '2026-03-02',
   },
@@ -641,7 +585,7 @@ const DEFAULT_TEMPLATES: EmailTemplate[] = [
     id: 'tpl-invoice',
     title: seedLocalizedText('Invoice Receipt', 'en'),
     trigger: seedLocalizedText('Successful monthly or yearly payment', 'en'),
-    subject: seedLocalizedText('Your Luna invoice and receipt', 'en'),
+    subject: seedLocalizedText('Your Luna29 invoice and receipt', 'en'),
     preheader: seedLocalizedText('Payment confirmation for your records.', 'en'),
     body: seedLocalizedText('Thank you for your payment. Your invoice is attached and your membership remains active.', 'en'),
     updatedBy: 'Finance Team',
@@ -651,7 +595,7 @@ const DEFAULT_TEMPLATES: EmailTemplate[] = [
     id: 'tpl-winback',
     title: seedLocalizedText('Win-back Reactivation', 'en'),
     trigger: seedLocalizedText('Inactive for 30 days', 'en'),
-    subject: seedLocalizedText('Your Luna space is still here for you', 'en'),
+    subject: seedLocalizedText('Your Luna29 space is still here for you', 'en'),
     preheader: seedLocalizedText('Return with a gentle restart plan.', 'en'),
     body: seedLocalizedText('Come back when you are ready. We prepared a simple re-entry flow to restart in under 2 minutes.', 'en'),
     updatedBy: 'Retention Team',
@@ -661,7 +605,7 @@ const DEFAULT_TEMPLATES: EmailTemplate[] = [
     id: 'tpl-weekly-digest',
     title: seedLocalizedText('Weekly Rhythm Digest', 'en'),
     trigger: seedLocalizedText('Weekly summary schedule', 'en'),
-    subject: seedLocalizedText('Your weekly Luna rhythm summary', 'en'),
+    subject: seedLocalizedText('Your weekly Luna29 rhythm summary', 'en'),
     preheader: seedLocalizedText('Patterns, shifts, and one practical focus.', 'en'),
     body: seedLocalizedText('Here is your weekly rhythm digest: key shifts, strongest pattern, and one gentle next step.', 'en'),
     updatedBy: 'Product Team',
@@ -671,9 +615,9 @@ const DEFAULT_TEMPLATES: EmailTemplate[] = [
     id: 'tpl-feature-release',
     title: seedLocalizedText('New Feature Release', 'en'),
     trigger: seedLocalizedText('Feature flag rollout', 'en'),
-    subject: seedLocalizedText('New in Luna: your latest tools', 'en'),
+    subject: seedLocalizedText('New in Luna29: your latest tools', 'en'),
     preheader: seedLocalizedText('Explore new capabilities in your member space.', 'en'),
-    body: seedLocalizedText('We shipped a new Luna feature to help you track and reflect with less effort and more clarity.', 'en'),
+    body: seedLocalizedText('We shipped a new Luna29 feature to help you track and reflect with less effort and more clarity.', 'en'),
     updatedBy: 'Product Team',
     updatedAt: '2026-03-02',
   },
@@ -681,7 +625,7 @@ const DEFAULT_TEMPLATES: EmailTemplate[] = [
     id: 'tpl-support-followup',
     title: seedLocalizedText('Support Follow-up', 'en'),
     trigger: seedLocalizedText('Support ticket resolved', 'en'),
-    subject: seedLocalizedText('Your Luna support request was resolved', 'en'),
+    subject: seedLocalizedText('Your Luna29 support request was resolved', 'en'),
     preheader: seedLocalizedText('Please confirm everything works as expected.', 'en'),
     body: seedLocalizedText('We marked your support request as resolved. Reply directly if anything still needs attention.', 'en'),
     updatedBy: 'Support Team',
@@ -691,7 +635,7 @@ const DEFAULT_TEMPLATES: EmailTemplate[] = [
     id: 'tpl-privacy-update',
     title: seedLocalizedText('Privacy Policy Update', 'en'),
     trigger: seedLocalizedText('Privacy terms updated', 'en'),
-    subject: seedLocalizedText('Important update to Luna privacy terms', 'en'),
+    subject: seedLocalizedText('Important update to Luna29 privacy terms', 'en'),
     preheader: seedLocalizedText('Review what changed and why.', 'en'),
     body: seedLocalizedText('We updated our privacy policy to improve clarity and compliance. Review the summary of changes.', 'en'),
     updatedBy: 'Legal Team',
@@ -701,7 +645,7 @@ const DEFAULT_TEMPLATES: EmailTemplate[] = [
     id: 'tpl-account-deletion',
     title: seedLocalizedText('Account Deletion Confirmation', 'en'),
     trigger: seedLocalizedText('Deletion request completed', 'en'),
-    subject: seedLocalizedText('Your Luna account was deleted', 'en'),
+    subject: seedLocalizedText('Your Luna29 account was deleted', 'en'),
     preheader: seedLocalizedText('Confirmation of data deletion request.', 'en'),
     body: seedLocalizedText('Your account deletion request has been completed according to our policy. This action is now final.', 'en'),
     updatedBy: 'Legal Team',
@@ -711,9 +655,9 @@ const DEFAULT_TEMPLATES: EmailTemplate[] = [
     id: 'tpl-evening-reflection-reminder',
     title: seedLocalizedText('Evening Reflection Reminder', 'en'),
     trigger: seedLocalizedText('20:30 local time (if no reflection today)', 'en'),
-    subject: seedLocalizedText('A quiet minute with Luna tonight', 'en'),
+    subject: seedLocalizedText('A quiet minute with Luna29 tonight', 'en'),
     preheader: seedLocalizedText('One short note can make tomorrow clearer.', 'en'),
-    body: seedLocalizedText('Take one gentle minute with Luna tonight. A few honest words are enough.', 'en'),
+    body: seedLocalizedText('Take one gentle minute with Luna29 tonight. A few honest words are enough.', 'en'),
     updatedBy: 'Product Team',
     updatedAt: '2026-03-12',
   },
@@ -731,7 +675,7 @@ const DEFAULT_TEMPLATES: EmailTemplate[] = [
     id: 'tpl-weekly-continuity',
     title: seedLocalizedText('Weekly Continuity Note', 'en'),
     trigger: seedLocalizedText('Every Sunday evening', 'en'),
-    subject: seedLocalizedText('Your week with Luna', 'en'),
+    subject: seedLocalizedText('Your week with Luna29', 'en'),
     preheader: seedLocalizedText('A small view of your rhythm continuity.', 'en'),
     body: seedLocalizedText('You kept showing up this week. Here is a simple continuity view of your days.', 'en'),
     updatedBy: 'Insights Team',
@@ -746,7 +690,7 @@ const TEMPLATE_PACK_ADVANCED: EmailTemplate[] = [
     trigger: seedLocalizedText('2 missed evening voice notes', 'en'),
     subject: seedLocalizedText('Come back for one calm minute', 'en'),
     preheader: seedLocalizedText('No pressure. Just one small check-in.', 'en'),
-    body: seedLocalizedText('You can return with a single minute tonight. Luna will continue from where you left.', 'en'),
+    body: seedLocalizedText('You can return with a single minute tonight. Luna29 will continue from where you left.', 'en'),
     updatedBy: 'Retention Team',
     updatedAt: '2026-03-12',
   },
@@ -754,7 +698,7 @@ const TEMPLATE_PACK_ADVANCED: EmailTemplate[] = [
     id: 'tpl-monthly-insight-release',
     title: seedLocalizedText('Monthly Insight Published', 'en'),
     trigger: seedLocalizedText('Monthly summary generated', 'en'),
-    subject: seedLocalizedText('Your month with Luna is ready', 'en'),
+    subject: seedLocalizedText('Your month with Luna29 is ready', 'en'),
     preheader: seedLocalizedText('See what became clearer this month.', 'en'),
     body: seedLocalizedText('Your monthly rhythm summary is ready. Open it to review your strongest insight signals.', 'en'),
     updatedBy: 'Insights Team',
@@ -764,7 +708,7 @@ const TEMPLATE_PACK_ADVANCED: EmailTemplate[] = [
     id: 'tpl-soft-reactivation',
     title: seedLocalizedText('Soft Reactivation Journey', 'en'),
     trigger: seedLocalizedText('Inactive for 10 days', 'en'),
-    subject: seedLocalizedText('Your Luna space is still open', 'en'),
+    subject: seedLocalizedText('Your Luna29 space is still open', 'en'),
     preheader: seedLocalizedText('Resume gently, one evening at a time.', 'en'),
     body: seedLocalizedText('Return gently with one short evening note. Your continuity timeline is waiting for you.', 'en'),
     updatedBy: 'Lifecycle Team',
@@ -801,8 +745,8 @@ const parseTemplates = (value: unknown): EmailTemplate[] => {
       id: item.id || `tpl-fallback-${index}`,
       title,
       trigger,
-      subject: normalizeLocalized(item.subject, 'Luna update'),
-      preheader: normalizeLocalized(item.preheader, 'Luna email'),
+      subject: normalizeLocalized(item.subject, 'Luna29 update'),
+      preheader: normalizeLocalized(item.preheader, 'Luna29 email'),
       body: normalizeLocalized(item.body, defaultTemplateBody),
       variables: providedVariables.length > 0 ? providedVariables : inferred,
       updatedBy: item.updatedBy || 'Admin',
@@ -949,8 +893,8 @@ const openPrintPreview = (title: string, htmlBody: string): boolean => {
 export const AdminPanelView: React.FC<AdminPanelViewProps> = ({ session, lang, onBack, onLogout, onRoleChange }) => {
   const labels = getAdminPanelLabels(lang);
   const { copy, channelLabels, campaignStatusLabels, statusLabels } = labels;
-  const adminUi = ADMIN_UI_COPY[lang] || ADMIN_UI_COPY.en;
-  const channelsCopy = CHANNELS_COPY[lang] || CHANNELS_COPY.en;
+  const adminUi = getLang(ADMIN_UI_COPY as LangCopy<(typeof ADMIN_UI_COPY)['en']>, lang);
+  const channelsCopy = getLang(CHANNELS_COPY as LangCopy<(typeof CHANNELS_COPY)['en']>, lang);
   const templateBodyRef = useRef<HTMLTextAreaElement | null>(null);
 
   const [services, setServices] = useState<ServiceItem[]>([
@@ -965,7 +909,7 @@ export const AdminPanelView: React.FC<AdminPanelViewProps> = ({ session, lang, o
   const [templateHistory, setTemplateHistory] = useState<Record<string, TemplateVersion[]>>({});
 
   const [admins, setAdmins] = useState<AdminMember[]>([
-    { id: 'adm-1', name: 'Luna Owner', email: 'owner@luna.app', role: 'super_admin', active: true },
+    { id: 'adm-1', name: 'Luna29 Owner', email: 'owner@luna.app', role: 'super_admin', active: true },
     { id: 'adm-2', name: 'Ops Control', email: 'ops@luna.app', role: 'operator', active: true },
     { id: 'adm-3', name: 'Growth Team', email: 'marketing@luna.app', role: 'content_manager', active: true },
     { id: 'adm-4', name: 'Finance Board', email: 'finance@luna.app', role: 'finance_manager', active: true },
@@ -998,9 +942,9 @@ export const AdminPanelView: React.FC<AdminPanelViewProps> = ({ session, lang, o
 
   const [newTemplateTitle, setNewTemplateTitle] = useState('');
   const [newTemplateTrigger, setNewTemplateTrigger] = useState('Manual dispatch');
-  const [newTemplateSubject, setNewTemplateSubject] = useState('A calm Luna update');
+  const [newTemplateSubject, setNewTemplateSubject] = useState('A calm Luna29 update');
   const [newTemplatePreheader, setNewTemplatePreheader] = useState('Gentle insight for your rhythm.');
-  const [newTemplateBody, setNewTemplateBody] = useState('Luna note: take one breath, open your map, and choose one small caring step for today.');
+  const [newTemplateBody, setNewTemplateBody] = useState('Luna29 note: take one breath, open your map, and choose one small caring step for today.');
   const [newTemplateVariables, setNewTemplateVariables] = useState('{{first_name}}, {{app_link}}, {{support_link}}');
   const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
 
@@ -1245,7 +1189,7 @@ export const AdminPanelView: React.FC<AdminPanelViewProps> = ({ session, lang, o
   }, [services]);
 
   const roleOptions: AdminRole[] = ['viewer', 'operator', 'content_manager', 'finance_manager', 'super_admin'];
-  const roleLabelByLang: Record<Language, Record<AdminRole, string>> = {
+  const roleLabelByLang: LangCopy< Record<AdminRole, string>> = {
     en: { viewer: 'Observer', operator: 'Coordinator', content_manager: 'Content Lead', finance_manager: 'Finance Lead', super_admin: 'Super Admin' },
     ru: { viewer: 'Наблюдатель', operator: 'Координатор', content_manager: 'Контент-лид', finance_manager: 'Финансовый лид', super_admin: 'Супер админ' },
     uk: { viewer: 'Спостерігач', operator: 'Координатор', content_manager: 'Контент-лід', finance_manager: 'Фінансовий лід', super_admin: 'Супер адмін' },
@@ -1256,7 +1200,7 @@ export const AdminPanelView: React.FC<AdminPanelViewProps> = ({ session, lang, o
     ja: { viewer: 'オブザーバー', operator: 'コーディネーター', content_manager: 'コンテンツ担当', finance_manager: '財務担当', super_admin: 'スーパー管理者' },
     pt: { viewer: 'Observador', operator: 'Coordenador', content_manager: 'Lider de conteudo', finance_manager: 'Lider financeiro', super_admin: 'Super Admin' },
   };
-  const roleLabel = (role: AdminRole) => (roleLabelByLang[lang] || roleLabelByLang.en)[role];
+  const roleLabel = (role: AdminRole) => (getLang(roleLabelByLang, lang) || roleLabelByLang.en)[role];
 
   const runTechChecks = async () => {
     try {
@@ -1319,7 +1263,7 @@ export const AdminPanelView: React.FC<AdminPanelViewProps> = ({ session, lang, o
     const title = resolveLocalizedText(item.title, lang);
     const body = resolveLocalizedText(item.body, lang);
     return [
-      `Luna Marketing`,
+      `Luna29 Marketing`,
       `Title: ${title}`,
       `Channel: ${channelLabels[item.channel]}`,
       `Status: ${campaignStatusLabels[item.status]}`,
@@ -1332,7 +1276,7 @@ export const AdminPanelView: React.FC<AdminPanelViewProps> = ({ session, lang, o
   const buildCampaignHtml = (item: ContentItem) => {
     const title = resolveLocalizedText(item.title, lang);
     const body = resolveLocalizedText(item.body, lang);
-    return `<section style="border:1px solid #e2e8f0;border-radius:20px;padding:24px;background:#ffffff;max-width:760px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><strong style="font-size:24px;letter-spacing:-0.01em;color:#0f172a">Luna Marketing</strong><span style="font-size:12px;color:#7c3aed;font-weight:700">${escapeHtml(channelLabels[item.channel])}</span></div><h1 style="margin:0 0 8px;font-size:28px;color:#0f172a">${escapeHtml(title)}</h1><p style="margin:0 0 12px;color:#64748b">${escapeHtml(campaignStatusLabels[item.status])} • ${escapeHtml(resolveLocalizedText(item.scheduledAt, lang))}</p><p style="margin:0;font-size:16px;line-height:1.7;color:#1e293b">${escapeHtml(body)}</p></section>`;
+    return `<section style="border:1px solid #e2e8f0;border-radius:20px;padding:24px;background:#ffffff;max-width:760px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><strong style="font-size:24px;letter-spacing:-0.01em;color:#0f172a">Luna29 Marketing</strong><span style="font-size:12px;color:#7c3aed;font-weight:700">${escapeHtml(channelLabels[item.channel])}</span></div><h1 style="margin:0 0 8px;font-size:28px;color:#0f172a">${escapeHtml(title)}</h1><p style="margin:0 0 12px;color:#64748b">${escapeHtml(campaignStatusLabels[item.status])} • ${escapeHtml(resolveLocalizedText(item.scheduledAt, lang))}</p><p style="margin:0;font-size:16px;line-height:1.7;color:#1e293b">${escapeHtml(body)}</p></section>`;
   };
 
   const buildEmailHtml = (template: EmailTemplate) => {
@@ -1347,7 +1291,7 @@ export const AdminPanelView: React.FC<AdminPanelViewProps> = ({ session, lang, o
       .map((token) => `<span style="display:inline-block;padding:6px 10px;margin:4px 6px 0 0;border-radius:999px;background:#ede9fe;color:#6d28d9;font-size:11px;font-weight:700">${escapeHtml(token)}</span>`)
       .join('');
 
-    return `<!doctype html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>${escapeHtml(subject)}</title></head><body style="margin:0;padding:0;background:#f8fafc;font-family:Arial,sans-serif;color:#0f172a"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:32px 16px"><tr><td align="center"><table role="presentation" width="640" cellspacing="0" cellpadding="0" style="max-width:640px;background:#ffffff;border-radius:28px;border:1px solid #e2e8f0;overflow:hidden"><tr><td style="padding:28px;background:linear-gradient(135deg,#f0f9ff,#f5f3ff)"><div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:34px;font-weight:800;letter-spacing:-0.02em;color:#7c3aed">Luna</div><div style="font-size:26px">🌙</div></div><p style="margin:6px 0 0;font-size:12px;letter-spacing:0.24em;text-transform:uppercase;color:#64748b">Luna System Email</p></td></tr><tr><td style="padding:28px"><p style="margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:0.2em;color:#64748b">${escapeHtml(preheader)}</p><h1 style="margin:0 0 12px;font-size:30px;line-height:1.2;color:#0f172a">${escapeHtml(title)}</h1><h2 style="margin:0 0 16px;font-size:18px;color:#7c3aed">${escapeHtml(subject)}</h2><p style="margin:0 0 20px;font-size:16px;line-height:1.75;color:#1e293b">${escapeHtml(body)}</p><div style="margin:0 0 20px"><p style="margin:0 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:0.18em;color:#64748b">Variables</p>${variableBadges}</div><a href="#" style="display:inline-block;padding:12px 20px;background:#7c3aed;color:#ffffff;text-decoration:none;border-radius:999px;font-weight:700;font-size:12px;letter-spacing:0.08em;text-transform:uppercase">Open Luna</a></td></tr><tr><td style="padding:20px 28px;background:#0f172a;color:#cbd5e1"><p style="margin:0;font-size:12px;line-height:1.6">Luna — private reflective space for rhythm awareness.</p></td></tr></table></td></tr></table></body></html>`;
+    return `<!doctype html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>${escapeHtml(subject)}</title></head><body style="margin:0;padding:0;background:#f8fafc;font-family:Arial,sans-serif;color:#0f172a"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:32px 16px"><tr><td align="center"><table role="presentation" width="640" cellspacing="0" cellpadding="0" style="max-width:640px;background:#ffffff;border-radius:28px;border:1px solid #e2e8f0;overflow:hidden"><tr><td style="padding:28px;background:linear-gradient(135deg,#f0f9ff,#f5f3ff)"><div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:34px;font-weight:800;letter-spacing:-0.02em;color:#7c3aed">Luna29</div><div style="font-size:26px">🌙</div></div><p style="margin:6px 0 0;font-size:12px;letter-spacing:0.24em;text-transform:uppercase;color:#64748b">Luna29 System Email</p></td></tr><tr><td style="padding:28px"><p style="margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:0.2em;color:#64748b">${escapeHtml(preheader)}</p><h1 style="margin:0 0 12px;font-size:30px;line-height:1.2;color:#0f172a">${escapeHtml(title)}</h1><h2 style="margin:0 0 16px;font-size:18px;color:#7c3aed">${escapeHtml(subject)}</h2><p style="margin:0 0 20px;font-size:16px;line-height:1.75;color:#1e293b">${escapeHtml(body)}</p><div style="margin:0 0 20px"><p style="margin:0 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:0.18em;color:#64748b">Variables</p>${variableBadges}</div><a href="#" style="display:inline-block;padding:12px 20px;background:#7c3aed;color:#ffffff;text-decoration:none;border-radius:999px;font-weight:700;font-size:12px;letter-spacing:0.08em;text-transform:uppercase">Open Luna29</a></td></tr><tr><td style="padding:20px 28px;background:#0f172a;color:#cbd5e1"><p style="margin:0;font-size:12px;line-height:1.6">Luna29 — private reflective space for rhythm awareness.</p></td></tr></table></td></tr></table></body></html>`;
   };
 
   const buildTemplateText = (template: EmailTemplate) => {
@@ -1361,7 +1305,7 @@ export const AdminPanelView: React.FC<AdminPanelViewProps> = ({ session, lang, o
       : inferVariables(title, trigger);
 
     return [
-      'Luna Email Template',
+      'Luna29 Email Template',
       `Title: ${title}`,
       `Trigger: ${trigger}`,
       `Subject: ${subject}`,
@@ -1488,9 +1432,9 @@ export const AdminPanelView: React.FC<AdminPanelViewProps> = ({ session, lang, o
     setEditingTemplateId(null);
     setNewTemplateTitle('');
     setNewTemplateTrigger('Manual dispatch');
-    setNewTemplateSubject('A calm Luna update');
+    setNewTemplateSubject('A calm Luna29 update');
     setNewTemplatePreheader('Gentle insight for your rhythm.');
-    setNewTemplateBody('Luna note: take one breath, open your map, and choose one small caring step for today.');
+    setNewTemplateBody('Luna29 note: take one breath, open your map, and choose one small caring step for today.');
     setNewTemplateVariables('{{first_name}}, {{app_link}}, {{support_link}}');
   };
 
@@ -1568,8 +1512,8 @@ export const AdminPanelView: React.FC<AdminPanelViewProps> = ({ session, lang, o
         {
           title,
           trigger: triggerValue,
-          subject: newTemplateSubject.trim() || 'Luna update',
-          preheader: newTemplatePreheader.trim() || 'Luna email',
+          subject: newTemplateSubject.trim() || 'Luna29 update',
+          preheader: newTemplatePreheader.trim() || 'Luna29 email',
           body: newTemplateBody.trim() || defaultTemplateBody,
         },
         lang
@@ -1622,8 +1566,8 @@ export const AdminPanelView: React.FC<AdminPanelViewProps> = ({ session, lang, o
             ...template,
             title: seedLocalizedText(title, lang),
             trigger: seedLocalizedText(triggerValue, lang),
-            subject: seedLocalizedText(newTemplateSubject.trim() || 'Luna update', lang),
-            preheader: seedLocalizedText(newTemplatePreheader.trim() || 'Luna email', lang),
+            subject: seedLocalizedText(newTemplateSubject.trim() || 'Luna29 update', lang),
+            preheader: seedLocalizedText(newTemplatePreheader.trim() || 'Luna29 email', lang),
             body: seedLocalizedText(newTemplateBody.trim() || defaultTemplateBody, lang),
             variables,
             updatedBy: session?.name || 'Admin',
@@ -1639,8 +1583,8 @@ export const AdminPanelView: React.FC<AdminPanelViewProps> = ({ session, lang, o
           id: `tpl-${Date.now()}`,
           title: seedLocalizedText(title, lang),
           trigger: seedLocalizedText(triggerValue, lang),
-          subject: seedLocalizedText(newTemplateSubject.trim() || 'Luna update', lang),
-          preheader: seedLocalizedText(newTemplatePreheader.trim() || 'Luna email', lang),
+          subject: seedLocalizedText(newTemplateSubject.trim() || 'Luna29 update', lang),
+          preheader: seedLocalizedText(newTemplatePreheader.trim() || 'Luna29 email', lang),
           body: seedLocalizedText(newTemplateBody.trim() || defaultTemplateBody, lang),
           variables,
           updatedBy: session?.name || 'Admin',
@@ -1848,7 +1792,7 @@ export const AdminPanelView: React.FC<AdminPanelViewProps> = ({ session, lang, o
           <button onClick={onLogout} className="px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-luna-purple transition-colors">{copy.logout}</button>
         </div>
         <div className="space-y-3">
-          <h1 className="text-4xl md:text-6xl font-black tracking-tight uppercase text-slate-900 dark:text-slate-100">Luna Care Studio</h1>
+          <h1 className="text-4xl md:text-6xl font-black tracking-tight uppercase text-slate-900 dark:text-slate-100">Luna29 Care Studio</h1>
           <p className="text-slate-600 dark:text-slate-300 font-semibold">Private space for team flow, content quality, account stability, and service wellbeing.</p>
         </div>
         <div className="flex flex-wrap gap-3 items-center">

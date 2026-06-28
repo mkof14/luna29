@@ -61,7 +61,7 @@ export function CreativeStudioMobileScreen({ onBack, lang }: { onBack: () => voi
             variant="secondary"
             onPress={() => {
               if (!draft.trim()) return;
-              void Share.share({ message: draft.trim(), title: 'Luna mood card' });
+              void Share.share({ message: draft.trim(), title: 'Luna29 mood card' });
             }}
           >
             Share card

@@ -1,7 +1,7 @@
-import { Language } from '../constants';
+import { Language, LangCopy, getLang } from '../constants';
 import { HormoneData } from '../types';
 
-const nameMap: Record<Language, Record<string, string>> = {
+const nameMap: LangCopy< Record<string, string>> = {
   en: {},
   ru: {},
   uk: {
@@ -153,7 +153,7 @@ const nameMap: Record<Language, Record<string, string>> = {
   }
 };
 
-const templateByLang: Record<Language, {
+const templateByLang: LangCopy< {
   description: (name: string) => string;
   daily: (name: string) => string;
   imbalance: (name: string) => string;
@@ -248,8 +248,8 @@ const templateByLang: Record<Language, {
 export const getLocalizedHormone = (hormone: HormoneData, lang: Language): HormoneData => {
   if (lang === 'en' || lang === 'ru') return hormone;
 
-  const localizedNameBase = nameMap[lang][hormone.id] || hormone.name;
-  const template = templateByLang[lang];
+  const localizedNameBase = (nameMap[lang] ?? nameMap.en)[hormone.id] || hormone.name;
+  const template = getLang(templateByLang, lang) ?? templateByLang.en;
 
   return {
     ...hormone,
