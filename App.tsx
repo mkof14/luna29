@@ -98,6 +98,10 @@ const App: React.FC = () => {
 
   useEffect(() => {
     let isMounted = true;
+    const safetyTimer = window.setTimeout(() => {
+      setIsAuthLoading(false);
+    }, 10000);
+
     authService
       .getSession()
       .then((nextSession) => {
@@ -108,10 +112,13 @@ const App: React.FC = () => {
         if (isMounted) setSession(null);
       })
       .finally(() => {
-        if (isMounted) setIsAuthLoading(false);
+        window.clearTimeout(safetyTimer);
+        setIsAuthLoading(false);
       });
+
     return () => {
       isMounted = false;
+      window.clearTimeout(safetyTimer);
     };
   }, []);
   const {

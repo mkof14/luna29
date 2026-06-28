@@ -48,10 +48,20 @@ type StoredUser = {
 
 let sessionCache: AuthSession | null = null;
 
+const isLocalApiBase = (value: string): boolean => {
+  try {
+    const url = new URL(value.startsWith('http') ? value : `http://${value}`);
+    return url.hostname === 'localhost' || url.hostname === '127.0.0.1' || url.hostname === '[::1]';
+  } catch {
+    return false;
+  }
+};
+
 const getApiBase = (): string => {
   const fromStorage = localStorage.getItem(API_BASE_STORAGE_KEY)?.trim();
-  if (fromStorage) return fromStorage.replace(/\/$/, '');
-  return '';
+  if (!fromStorage) return '';
+  if (!isLocalHostRuntime && isLocalApiBase(fromStorage)) return '';
+  return fromStorage.replace(/\/$/, '');
 };
 
 const apiUrl = (path: string) => {
@@ -157,9 +167,12 @@ const decodeGoogleJwt = (credential: string): { email?: string; name?: string; p
 
 const isNetworkError = (error: unknown): boolean => {
   if (!(error instanceof Error)) return false;
+  if (error.name === 'AbortError') return true;
   const msg = error.message.toLowerCase();
   return msg.includes('failed to fetch') || msg.includes('networkerror') || msg.includes('load failed');
 };
+
+const REQUEST_TIMEOUT_MS = 8000;
 
 const localFallbackOverrideEnabled = (): boolean => {
   if (!isLocalHostRuntime) return false;
@@ -172,23 +185,31 @@ const localFallbackOverrideEnabled = (): boolean => {
 const canUseLocalFallback = (): boolean => isLocalHostRuntime || localFallbackOverrideEnabled();
 
 const requestJson = async <T>(path: string, init?: RequestInit): Promise<T> => {
-  const response = await fetch(apiUrl(path), {
-    ...init,
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(init?.headers || {}),
-    },
-  });
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
-  const raw = await response.text();
-  const data = raw ? (JSON.parse(raw) as T & { error?: string }) : ({} as T & { error?: string });
+  try {
+    const response = await fetch(apiUrl(path), {
+      ...init,
+      signal: init?.signal ?? controller.signal,
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(init?.headers || {}),
+      },
+    });
 
-  if (!response.ok) {
-    throw new Error(data.error || `Request failed with status ${response.status}`);
+    const raw = await response.text();
+    const data = raw ? (JSON.parse(raw) as T & { error?: string }) : ({} as T & { error?: string });
+
+    if (!response.ok) {
+      throw new Error(data.error || `Request failed with status ${response.status}`);
+    }
+
+    return data as T;
+  } finally {
+    window.clearTimeout(timeoutId);
   }
-
-  return data as T;
 };
 
 const normalizeSession = (session: AuthSession): AuthSession => {
