@@ -258,18 +258,14 @@ export const AuthView: React.FC<AuthViewProps> = ({ ui, onSuccess, initialMode =
 
           <div className="space-y-4">
             {!googleClientId ? (
-              <p className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-900/40 p-4 text-xs font-semibold text-slate-600 dark:text-slate-300 text-center">
-                Google sign-in requires <code className="text-luna-purple">VITE_GOOGLE_CLIENT_ID</code> in environment variables.
-              </p>
-            ) : !googleReady ? (
-              <p className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-900/40 p-4 text-xs font-semibold text-slate-500 dark:text-slate-400 text-center">
-                Loading Google sign-in…
+              <p className="text-sm font-medium text-slate-500 dark:text-slate-400 text-center leading-relaxed">
+                Google sign-in requires VITE_GOOGLE_CLIENT_ID in environment variables.
               </p>
             ) : (
               <div
                 ref={googleButtonRef}
                 data-testid="auth-google"
-                className={`w-full flex justify-center min-h-[48px] ${isLoading ? 'opacity-60 pointer-events-none' : ''}`}
+                className={`w-full flex justify-center min-h-[48px] ${!googleReady || isLoading ? 'opacity-60 pointer-events-none' : ''}`}
               />
             )}
 
