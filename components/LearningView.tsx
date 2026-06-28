@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { Language, LangCopy, getLang } from '../constants';
 import { KnowledgePageShell } from './KnowledgePageShell';
 import { AccordionSections } from './AccordionSections';
-import type { TrainingViewCopy } from '../utils/trainingViewContent';
+import type { LearningViewCopy } from '../utils/learningViewContent';
 import type { AccordionCategory } from './AccordionSections';
 
-interface TrainingViewProps {
+interface LearningViewProps {
   lang: Language;
   onBack?: () => void;
 }
@@ -79,7 +79,7 @@ const STATS_BY_LANG: LangCopy<Array<{ label: string; value: string }>> = {
   ],
 };
 
-export const TrainingView: React.FC<TrainingViewProps> = ({ lang, onBack }) => {
+export const LearningView: React.FC<LearningViewProps> = ({ lang, onBack }) => {
   const loadingByLang: LangCopy<string> = {
     en: 'Loading...',
     ru: 'Загрузка...',
@@ -94,13 +94,13 @@ export const TrainingView: React.FC<TrainingViewProps> = ({ lang, onBack }) => {
     he: 'טוען...',
   };
 
-  const [content, setContent] = useState<{ copy: TrainingViewCopy; categories: AccordionCategory[] } | null>(null);
+  const [content, setContent] = useState<{ copy: LearningViewCopy; categories: AccordionCategory[] } | null>(null);
 
   useEffect(() => {
     let alive = true;
-    import('../utils/trainingViewContent').then((module) => {
+    import('../utils/learningViewContent').then((module) => {
       if (!alive) return;
-      setContent(module.getTrainingViewContent(lang));
+      setContent(module.getLearningViewContent(lang));
     });
     return () => {
       alive = false;

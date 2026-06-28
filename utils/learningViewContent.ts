@@ -2,7 +2,7 @@ import { Language, LangCopy, getLang } from '../constants';
 import type { AccordionCategory } from '../components/AccordionSections';
 import { LEARNING_COPY_I18N, LEARNING_DATA_I18N } from './learningContentI18n';
 
-export type TrainingViewCopy = {
+export type LearningViewCopy = {
   back: string;
   eyebrow: string;
   titleA: string;
@@ -12,7 +12,7 @@ export type TrainingViewCopy = {
   promiseQuote: string;
 };
 
-const COPY: LangCopy<TrainingViewCopy> = {
+const COPY: LangCopy<LearningViewCopy> = {
   en: {
     back: 'Back to public home',
     eyebrow: 'Luna29 Learning',
@@ -42,7 +42,7 @@ const COPY: LangCopy<TrainingViewCopy> = {
   },
 };
 
-const TRAINING_DATA: LangCopy<AccordionCategory[]> = {
+const LEARNING_DATA: LangCopy<AccordionCategory[]> = {
   en: [
     {
       title: 'Core Terminology',
@@ -337,8 +337,8 @@ const TRAINING_DATA: LangCopy<AccordionCategory[]> = {
   ],
 };
 
-export function getTrainingViewContent(lang: Language): { copy: TrainingViewCopy; categories: AccordionCategory[] } {
+export function getLearningViewContent(lang: Language): { copy: LearningViewCopy; categories: AccordionCategory[] } {
   const copy = getLang(COPY, lang) || LEARNING_COPY_I18N[lang] || COPY.en;
-  const categories = getLang(TRAINING_DATA, lang) || LEARNING_DATA_I18N[lang] || TRAINING_DATA.en;
+  const categories = getLang(LEARNING_DATA, lang) || LEARNING_DATA_I18N[lang] || LEARNING_DATA.en;
   return { copy, categories };
 }

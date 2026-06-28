@@ -8,7 +8,7 @@ import { PUBLIC_BTN_PRIMARY, PUBLIC_BTN_PRIMARY_GLOW, PUBLIC_BTN_SECONDARY } fro
 
 const HowItWorksView = lazy(() => import('./HowItWorksView').then((m) => ({ default: m.HowItWorksView })));
 const FAQView = lazy(() => import('./FAQView').then((m) => ({ default: m.FAQView })));
-const TrainingView = lazy(() => import('./TrainingView').then((m) => ({ default: m.TrainingView })));
+const LearningView = lazy(() => import('./LearningView').then((m) => ({ default: m.LearningView })));
 const LegalDocumentView = lazy(() => import('./LegalDocumentView').then((m) => ({ default: m.LegalDocumentView })));
 const AboutLunaView = lazy(() => import('./AboutLunaView').then((m) => ({ default: m.AboutLunaView })));
 const PublicMapSection = lazy(() => import('./public/PublicMapSection').then((m) => ({ default: m.PublicMapSection })));
@@ -2401,7 +2401,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
           {activePage === 'about' && <AboutLunaView lang={lang} mode="public" />}
           {activePage === 'how_it_works' && <HowItWorksView lang={lang} onBack={() => setActivePage('home')} />}
           {activePage === 'faq' && <FAQView lang={lang} mode="public" onBack={() => setActivePage('home')} />}
-          {activePage === 'learning' && <TrainingView lang={lang} onBack={() => setActivePage('home')} />}
+          {activePage === 'learning' && <LearningView lang={lang} onBack={() => setActivePage('home')} />}
           {activePage === 'terms' && <LegalDocumentView lang={lang} doc="terms" mode="public" onBack={() => setActivePage('home')} />}
           {activePage === 'medical' && <LegalDocumentView lang={lang} doc="medical" mode="public" onBack={() => setActivePage('home')} />}
           {activePage === 'cookies' && <LegalDocumentView lang={lang} doc="cookies" mode="public" onBack={() => setActivePage('home')} />}
