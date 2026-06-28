@@ -75,6 +75,60 @@ export const FAQView: React.FC<{ lang?: Language; onBack?: () => void; mode?: 'p
       { label: 'Фокус', value: 'Wellness' },
       { label: 'Клиника', value: 'Нет' },
     ],
+    uk: [
+      { label: 'Теми', value: `${categories.length}` },
+      { label: 'Відповіді', value: `${categories.reduce((n, c) => n + c.items.length, 0)}+` },
+      { label: 'Фокус', value: 'Wellness' },
+      { label: 'Клініка', value: 'Ні' },
+    ],
+    es: [
+      { label: 'Temas', value: `${categories.length}` },
+      { label: 'Respuestas', value: `${categories.reduce((n, c) => n + c.items.length, 0)}+` },
+      { label: 'Enfoque', value: 'Wellness' },
+      { label: 'Clínico', value: 'No' },
+    ],
+    fr: [
+      { label: 'Thèmes', value: `${categories.length}` },
+      { label: 'Réponses', value: `${categories.reduce((n, c) => n + c.items.length, 0)}+` },
+      { label: 'Focus', value: 'Wellness' },
+      { label: 'Clinique', value: 'Non' },
+    ],
+    de: [
+      { label: 'Themen', value: `${categories.length}` },
+      { label: 'Antworten', value: `${categories.reduce((n, c) => n + c.items.length, 0)}+` },
+      { label: 'Fokus', value: 'Wellness' },
+      { label: 'Klinisch', value: 'Nein' },
+    ],
+    zh: [
+      { label: '主题', value: `${categories.length}` },
+      { label: '回答', value: `${categories.reduce((n, c) => n + c.items.length, 0)}+` },
+      { label: '范围', value: 'Wellness' },
+      { label: '临床', value: '否' },
+    ],
+    ja: [
+      { label: 'トピック', value: `${categories.length}` },
+      { label: '回答', value: `${categories.reduce((n, c) => n + c.items.length, 0)}+` },
+      { label: '焦点', value: 'Wellness' },
+      { label: '臨床', value: 'いいえ' },
+    ],
+    pt: [
+      { label: 'Temas', value: `${categories.length}` },
+      { label: 'Respostas', value: `${categories.reduce((n, c) => n + c.items.length, 0)}+` },
+      { label: 'Foco', value: 'Wellness' },
+      { label: 'Clínico', value: 'Não' },
+    ],
+    ar: [
+      { label: 'مواضيع', value: `${categories.length}` },
+      { label: 'إجابات', value: `${categories.reduce((n, c) => n + c.items.length, 0)}+` },
+      { label: 'النطاق', value: 'Wellness' },
+      { label: 'سريري', value: 'لا' },
+    ],
+    he: [
+      { label: 'נושאים', value: `${categories.length}` },
+      { label: 'תשובות', value: `${categories.reduce((n, c) => n + c.items.length, 0)}+` },
+      { label: 'היקף', value: 'Wellness' },
+      { label: 'קליני', value: 'לא' },
+    ],
   };
   const stats = getLang(statsByLang, lang) || statsByLang.en;
 
