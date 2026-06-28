@@ -49,7 +49,15 @@ const STRIPE_PRICE_YEARLY_ID = String(process.env.STRIPE_PRICE_YEARLY_ID || '').
 const STRIPE_SUCCESS_URL = String(process.env.STRIPE_SUCCESS_URL || '').trim();
 const STRIPE_CANCEL_URL = String(process.env.STRIPE_CANCEL_URL || '').trim();
 const STRIPE_PORTAL_RETURN_URL = String(process.env.STRIPE_PORTAL_RETURN_URL || '').trim();
+const STRIPE_TRIAL_DAYS = Math.max(0, Number(process.env.STRIPE_TRIAL_DAYS || '7') || 0);
 const ADMIN_EMERGENCY_RESET_KEY = String(process.env.ADMIN_EMERGENCY_RESET_KEY || '').trim();
+
+const buildStripeCheckoutFields = (fields) => {
+  if (STRIPE_TRIAL_DAYS > 0) {
+    fields.push(['subscription_data[trial_period_days]', String(STRIPE_TRIAL_DAYS)]);
+  }
+  return fields;
+};
 
 const ROLE_PERMISSIONS = {
   viewer: ['view_financials', 'view_technical_metrics'],
@@ -1776,7 +1784,18 @@ const start = async () => {
       ].slice(0, 2000);
       await savePrivacyRequests();
 
-      send(res, 200, { requestId, export: exportRows }, headers);
+      send(res, 200, {
+        requestId,
+        exportVersion: 2,
+        exportedAt: exportRows.generatedAt,
+        export: exportRows,
+        audit: {
+          requestId,
+          type: 'export',
+          status: 'completed',
+          completedAt: new Date().toISOString(),
+        },
+      }, headers);
       return;
     }
 
@@ -1917,7 +1936,7 @@ const start = async () => {
         const body = await readBody(req);
         const period = safeText(body.period || 'month', 12) === 'year' ? 'year' : 'month';
         const price = period === 'year' ? STRIPE_PRICE_YEARLY_ID : STRIPE_PRICE_MONTHLY_ID;
-        const form = stripeFormBody([
+        const form = stripeFormBody(buildStripeCheckoutFields([
           ['mode', 'subscription'],
           ['success_url', STRIPE_SUCCESS_URL],
           ['cancel_url', STRIPE_CANCEL_URL],
@@ -1928,7 +1947,7 @@ const start = async () => {
           ['metadata[luna_user_id]', auth.current.user.id],
           ['metadata[luna_email]', auth.current.user.email],
           ['metadata[luna_period]', period],
-        ]);
+        ]));
 
         const response = await fetch('https://api.stripe.com/v1/checkout/sessions', {
           method: 'POST',

@@ -1,14 +1,15 @@
 export const freeFeatures = [
-  'Daily reflection',
+  'Daily check-in and Today view',
   'Voice reflection',
-  'Today with Luna',
-  'Basic rhythm',
+  'Basic rhythm map',
   'Short story timeline',
+  '2 Bridge reflections per week',
 ];
 
 export const paidFeatures = [
   'Deeper pattern discovery',
-  'Monthly reflection',
-  'Deeper voice insight',
-  'Longer history',
+  'Monthly reflection archive',
+  'Unlimited Bridge reflections',
+  'Full reflection history',
+  'Health reports and doctor prep',
 ];

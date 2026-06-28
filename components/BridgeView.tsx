@@ -8,10 +8,13 @@ import { normalizeBridgeReflectionInput } from '../utils/bridge';
 import { shareTextSafely } from '../utils/share';
 import { Language } from '../constants';
 import { JourneyProgress } from './JourneyProgress';
+import { useSubscriptionAccess } from '../hooks/useSubscriptionAccess';
+import { canUseBridgeReflection } from '../utils/subscriptionAccess';
 
 type BridgeStep = 'entry' | 'reflection' | 'result';
 
 export const BridgeView: React.FC<{ lang: Language; onBack: () => void }> = ({ lang, onBack }) => {
+  const { premiumActive } = useSubscriptionAccess();
   const copyByLang: Record<Language, {
     q1: string; q2: string; q3: string; weeklyLimit: string; generateError: string; shareTitle: string;
     shared: string; copied: string; shareError: string; entryQuote: string; continue: string; question: string; of3: string;
@@ -225,7 +228,7 @@ export const BridgeView: React.FC<{ lang: Language; onBack: () => void }> = ({ l
 
   const handleContinue = () => {
     setError(null);
-    if (usageCount >= 2) {
+    if (!canUseBridgeReflection(usageCount, premiumActive)) {
       setError(copy.weeklyLimit);
       return;
     }

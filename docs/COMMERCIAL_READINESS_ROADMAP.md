@@ -9,6 +9,7 @@
   - Accept all
   - Granular toggles (analytics, AI processing, personalization)
 - User can reopen privacy controls at any time.
+- **Analytics consent gate:** GA4 loads only after analytics consent (`services/analyticsService.ts`).
 
 ### Data Rights Self-Service
 - Data Rights page now includes working actions:
@@ -25,6 +26,7 @@
   - `GET /api/privacy/requests`
 - Requests are persisted in server storage (`privacy-requests.json`) with request IDs and status.
 - Export returns server-side account/support artifacts (local-first note included).
+- **Export v2:** response includes `exportVersion`, `audit`, stable `requestId` for downloads.
 
 ### Contact Path for Legal/Privacy
 - Contact subject list includes `privacy` route (`privacy_legal`) for rights requests.
@@ -39,6 +41,20 @@
   - `POST /api/billing/webhook`
 - Added environment configuration contract for Stripe in `.env.example`.
 - Billing is feature-flagged via `STRIPE_BILLING_ENABLED=true`.
+- **Stripe trial:** checkout supports `STRIPE_TRIAL_DAYS` (default 7).
+
+### Freemium Product Model
+- Centralized access rules in `utils/subscriptionAccess.ts`.
+- Free tier: daily check-in, voice, basic rhythm, 2 Bridge/week.
+- Paid/trial: patterns, reports, unlimited Bridge, full history.
+- Public pricing page shows free vs paid matrix.
+
+### Onboarding v2
+- Guided first check-in (energy + mood) during onboarding.
+- First insight teaser before entering Today.
+
+### Messaging Alignment
+- Pricing and context copy updated: health data local-first, server only for account/billing/optional AI.
 
 ---
 
@@ -46,14 +62,14 @@
 
 ## P0 (Must Have Before Paid Launch)
 - Complete Stripe production wiring (real prices, success/cancel routes, customer portal).
-- Add signed downloadable export file flow + immutable audit trail for DSAR.
+- ~~Add signed downloadable export file flow + immutable audit trail for DSAR.~~ **Partial:** export v2 audit metadata done; counsel review + signed file delivery pending.
 - Add privacy request verification workflow (identity verification + SLA).
 - Incident response runbook ownership and escalation contacts.
 - Final legal review of Terms/Privacy/Disclaimer/Cookies/Data Rights by counsel.
 
 ## P1 (Should Have In Launch Window)
-- Consent event logging server-side for auditability.
-- Cookie consent enforcement for analytics scripts (block until consent).
+- ~~Consent event logging server-side for auditability.~~ **Partial:** client consent store done; server audit log pending.
+- ~~Cookie consent enforcement for analytics scripts (block until consent).~~ **Done:** GA4 gated by privacy consent.
 - Data retention policy engine (TTL + scheduled deletion jobs).
 - Role-based admin hardening (mandatory 2FA for admin accounts).
 - Uptime and error alert routing to on-call channel.

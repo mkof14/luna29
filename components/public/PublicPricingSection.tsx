@@ -1,6 +1,7 @@
 import React from 'react';
 import { PUBLIC_BTN_PRIMARY, PUBLIC_BTN_PRIMARY_GLOW, PUBLIC_BTN_SECONDARY } from './publicButtonStyles';
 import { Language } from '../../constants';
+import { FREE_FEATURES, PAID_FEATURES } from '../../utils/subscriptionAccess';
 
 interface PublicPricingSectionProps {
   lang: Language;
@@ -38,6 +39,8 @@ interface PublicPricingSectionProps {
     featureAdmin: string;
     continueTrial: string;
     startTrial: string;
+    freeTier?: string;
+    paidTier?: string;
   };
   trialState: { status: 'active' | 'expired' } | null;
   trialDaysLeft: number;
@@ -58,6 +61,8 @@ export const PublicPricingSection: React.FC<PublicPricingSectionProps> = ({
   onStartTrial,
   trialFeedback,
 }) => {
+  const freeTierLabel = pricingUi.freeTier || 'Free';
+  const paidTierLabel = pricingUi.paidTier || 'Insights (Paid)';
   return (
     <section className="luna-page-shell luna-page-pricing luna-page-focus luna-focus-pricing animate-in fade-in duration-500 p-6 md:p-8">
       <div className="rounded-[3rem] border border-slate-200/70 dark:border-slate-800 luna-vivid-surface p-8 md:p-10 relative overflow-hidden">
@@ -155,6 +160,20 @@ export const PublicPricingSection: React.FC<PublicPricingSectionProps> = ({
             <div className="rounded-2xl bg-slate-100/80 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/70 p-4">
               <p className="text-sm md:text-base font-black uppercase tracking-[0.14em] text-luna-purple mb-1">{pricingUi.includes}</p>
               <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">{pricingUi.includesText}</p>
+            </div>
+            <div className="rounded-2xl border border-slate-200/70 dark:border-slate-700/70 p-4 space-y-3">
+              <p className="text-sm font-black uppercase tracking-[0.14em] text-slate-500">{freeTierLabel}</p>
+              <ul className="space-y-2">
+                {FREE_FEATURES.map((item) => (
+                  <li key={item} className="text-xs font-semibold text-slate-600 dark:text-slate-300">• {item}</li>
+                ))}
+              </ul>
+              <p className="text-sm font-black uppercase tracking-[0.14em] text-luna-purple pt-2">{paidTierLabel}</p>
+              <ul className="space-y-2">
+                {PAID_FEATURES.map((item) => (
+                  <li key={item} className="text-xs font-semibold text-slate-600 dark:text-slate-300">• {item}</li>
+                ))}
+              </ul>
             </div>
           </aside>
         </div>

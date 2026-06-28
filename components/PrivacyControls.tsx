@@ -8,6 +8,7 @@ import {
   readPrivacyConsent,
   savePrivacyConsent,
 } from '../utils/privacyCompliance';
+import { refreshAnalyticsConsent } from '../services/analyticsService';
 
 type Copy = {
   bannerTitle: string;
@@ -35,7 +36,7 @@ type Copy = {
 const COPY_BY_LANG: Record<Language, Copy> = {
   en: {
     bannerTitle: 'Privacy Controls',
-    bannerBody: 'Choose how Luna processes local and optional usage data.',
+    bannerBody: 'Health data stays on your device. Choose optional analytics and AI processing.',
     acceptAll: 'Accept All',
     essentialOnly: 'Essential Only',
     manage: 'Manage',
@@ -57,7 +58,7 @@ const COPY_BY_LANG: Record<Language, Copy> = {
   },
   ru: {
     bannerTitle: 'Контроль Приватности',
-    bannerBody: 'Выберите, как Luna обрабатывает локальные и опциональные данные.',
+    bannerBody: 'Данные здоровья остаются на устройстве. Выберите опциональную аналитику и AI-обработку.',
     acceptAll: 'Разрешить Все',
     essentialOnly: 'Только Базовые',
     manage: 'Настроить',
@@ -256,6 +257,7 @@ export const PrivacyControls: React.FC<{ lang: Language; isAuthenticated: boolea
     setPersonalization(next.scopes.personalization);
     setShowBanner(false);
     setFeedback(copy.done);
+    refreshAnalyticsConsent().catch(() => undefined);
   };
 
   const onEssentialOnly = () => {
@@ -265,12 +267,14 @@ export const PrivacyControls: React.FC<{ lang: Language; isAuthenticated: boolea
     setPersonalization(next.scopes.personalization);
     setShowBanner(false);
     setFeedback(copy.done);
+    refreshAnalyticsConsent().catch(() => undefined);
   };
 
   const onSave = () => {
     savePrivacyConsent({ analytics, ai_processing: aiProcessing, personalization });
     setShowBanner(false);
     setFeedback(copy.done);
+    refreshAnalyticsConsent().catch(() => undefined);
   };
 
   const handleExport = () => {

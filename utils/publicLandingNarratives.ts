@@ -315,7 +315,7 @@ export type HomeStory = {
   const pricingCopyByLang: Record<Language, { title: string; subtitle: string; month: string; year: string; monthNote: string; yearNote: string; saveBadge: string; cta: string; recommended: string }> = {
     en: {
       title: 'Simple, Transparent Pricing',
-      subtitle: 'One plan. Full Luna member zone. Choose monthly or yearly billing.',
+      subtitle: 'Start free. Upgrade when you want deeper patterns, reports, and unlimited Bridge.',
       month: '$12.99',
       year: '$89',
       monthNote: 'per month',
@@ -326,7 +326,7 @@ export type HomeStory = {
     },
     ru: {
       title: 'Прозрачная И Простая Цена',
-      subtitle: 'Один план. Полный доступ к зоне участника Luna. Выберите оплату помесячно или за год.',
+      subtitle: 'Начните бесплатно. Платный план — для глубоких паттернов, отчётов и безлимитного Bridge.',
       month: '$12.99',
       year: '$89',
       monthNote: 'в месяц',

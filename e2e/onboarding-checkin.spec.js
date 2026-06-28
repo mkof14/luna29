@@ -14,7 +14,8 @@ test('onboarding and first check-in flow works', async ({ page }) => {
   await page.getByRole('button', { name: /^next$/i }).click();
   await page.getByRole('button', { name: /^next$/i }).click();
   await page.getByRole('button', { name: /^skip$/i }).click();
-  await page.getByRole('button', { name: /go to today/i }).click();
+  await page.getByTestId('onboarding-checkin-save').click();
+  await page.getByTestId('onboarding-finish').click();
 
   await expect(page.getByTestId('dashboard-checkin-start')).toBeVisible();
   const checkinSave = page.getByTestId('checkin-save');

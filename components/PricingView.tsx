@@ -10,9 +10,9 @@ interface PricingViewProps {
 
 export const PricingView: React.FC<PricingViewProps> = ({ ui, onSelect }) => {
   const pillars = [
-    { icon: '🔒', title: 'Absolute Privacy', desc: 'No cloud. No sharing. No tracking.' },
-    { icon: '🧬', title: 'Clinical Grade', desc: 'Deterministic logic + Gemini 3 Pro.' },
-    { icon: '🎨', title: 'Artistic Focus', desc: 'Wellness as a creative experience.' }
+    { icon: '🔒', title: 'Privacy by Design', desc: 'Health data stays on your device. You control what leaves it.' },
+    { icon: '🧬', title: 'Clear Logic', desc: 'Deterministic rhythm mapping with optional AI context.' },
+    { icon: '🎨', title: 'Calm Experience', desc: 'Wellness as observation, not overload.' }
   ];
 
   return (
@@ -103,11 +103,11 @@ export const PricingView: React.FC<PricingViewProps> = ({ ui, onSelect }) => {
         </div>
 
         <footer className="text-center space-y-6 pt-10">
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-[0.4em]">100% On-Device Storage • Zero Data Monetization</p>
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-[0.4em]">Local-First Health Data • No Data Selling • Account Billing Only on Server</p>
           <div className="flex justify-center gap-8 opacity-40">
-            <span className="text-[10px] font-black uppercase tracking-widest">End-to-End Private</span>
-            <span className="text-[10px] font-black uppercase tracking-widest">Clinical Precision</span>
-            <span className="text-[10px] font-black uppercase tracking-widest">Local-Only Sync</span>
+            <span className="text-[10px] font-black uppercase tracking-widest">You Control Export</span>
+            <span className="text-[10px] font-black uppercase tracking-widest">Non-Medical Clarity</span>
+            <span className="text-[10px] font-black uppercase tracking-widest">7-Day Trial</span>
           </div>
         </footer>
       </div>

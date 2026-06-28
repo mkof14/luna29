@@ -23,6 +23,7 @@ Reference:
    - `VITE_SENTRY_DSN`
    - `VITE_SENTRY_ENV`
    - `VITE_APP_RELEASE`
+   - `VITE_GA4_MEASUREMENT_ID`
 2. Auth vars configured:
    - `SUPER_ADMIN_EMAILS`
    - `SUPER_ADMIN_BOOTSTRAP_PASSWORD`
@@ -38,6 +39,7 @@ Reference:
    - `STRIPE_SUCCESS_URL`
    - `STRIPE_CANCEL_URL`
    - `STRIPE_PORTAL_RETURN_URL`
+   - `STRIPE_TRIAL_DAYS=7`
 
 ## 3. Stripe Readiness
 1. Products/prices exist in Stripe.

@@ -13,6 +13,7 @@ import { PrivacyControls } from './components/PrivacyControls';
 import { useHealthModel } from './hooks/useHealthModel';
 import { authService } from './services/authService';
 import { captureAppError, initMonitoring } from './services/monitoringService';
+import { initAnalytics, trackPageView } from './services/analyticsService';
 import { InstallAppPrompt } from './components/InstallAppPrompt';
 import { StandaloneWelcomeOverlay } from './components/StandaloneWelcomeOverlay';
 import { StandaloneLaunchSplash } from './components/StandaloneLaunchSplash';
@@ -73,7 +74,12 @@ const App: React.FC = () => {
 
   useEffect(() => {
     initMonitoring().catch(() => undefined);
+    initAnalytics().catch(() => undefined);
   }, []);
+
+  useEffect(() => {
+    trackPageView(window.location.pathname);
+  }, [activeTab]);
 
   useEffect(() => {
     const onError = (event: ErrorEvent) => {

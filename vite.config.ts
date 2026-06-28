@@ -7,6 +7,7 @@ export default defineConfig({
     __LUNA_SENTRY_DSN__: JSON.stringify(process.env.VITE_SENTRY_DSN || ''),
     __LUNA_SENTRY_ENV__: JSON.stringify(process.env.VITE_SENTRY_ENV || ''),
     __LUNA_APP_RELEASE__: JSON.stringify(process.env.VITE_APP_RELEASE || ''),
+    __LUNA_GA4_ID__: JSON.stringify(process.env.VITE_GA4_MEASUREMENT_ID || ''),
   },
   plugins: [react()],
   build: {

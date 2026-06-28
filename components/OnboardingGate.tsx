@@ -35,6 +35,14 @@ export const OnboardingGate: React.FC<OnboardingGateProps> = ({ lang, onComplete
       continue: string;
       thankYou: string;
       moveToMain: string;
+      checkinTitle: string;
+      checkinBody: string;
+      energy: string;
+      mood: string;
+      insightTitle: string;
+      insightLow: string;
+      insightMid: string;
+      insightHigh: string;
     }
   >> = {
     en: {
@@ -60,6 +68,14 @@ export const OnboardingGate: React.FC<OnboardingGateProps> = ({ lang, onComplete
       continue: 'Continue',
       thankYou: 'Thank you for sharing.',
       moveToMain: 'Go to Today',
+      checkinTitle: 'Quick check-in',
+      checkinBody: 'Two taps — enough for Luna to start reading your rhythm.',
+      energy: 'Energy',
+      mood: 'Mood',
+      insightTitle: 'First insight',
+      insightLow: 'Your system may be asking for rest and gentler pacing today.',
+      insightMid: 'You are in a steady middle zone — a good day to observe without pressure.',
+      insightHigh: 'You have good momentum today. Notice what supports this state.',
     },
     ru: {
       welcome: 'Добро пожаловать в Luna',
@@ -84,6 +100,14 @@ export const OnboardingGate: React.FC<OnboardingGateProps> = ({ lang, onComplete
       continue: 'Продолжить',
       thankYou: 'Спасибо, что поделились.',
       moveToMain: 'Перейти в Today',
+      checkinTitle: 'Быстрый check-in',
+      checkinBody: 'Два касания — достаточно, чтобы Luna начала читать ваш ритм.',
+      energy: 'Энергия',
+      mood: 'Настроение',
+      insightTitle: 'Первый инсайт',
+      insightLow: 'Вашему телу сегодня может быть нужен более мягкий темп и отдых.',
+      insightMid: 'Вы в устойчивой средней зоне — хороший день наблюдать без давления.',
+      insightHigh: 'Сегодня хороший импульс. Заметьте, что поддерживает это состояние.',
     },
     uk: {
       welcome: 'Ласкаво просимо до Luna',
@@ -108,6 +132,14 @@ export const OnboardingGate: React.FC<OnboardingGateProps> = ({ lang, onComplete
       continue: 'Продовжити',
       thankYou: 'Дякуємо, що поділилися.',
       moveToMain: 'Перейти в Today',
+      checkinTitle: 'Швидкий check-in',
+      checkinBody: 'Два дотики — достатньо, щоб Luna почала читати ваш ритм.',
+      energy: 'Енергія',
+      mood: 'Настрій',
+      insightTitle: 'Перший інсайт',
+      insightLow: 'Вашій системі сьогодні може знадобитися м’якший темп і відпочинок.',
+      insightMid: 'Ви в стабільній середній зоні — добрий день спостерігати без тиску.',
+      insightHigh: 'Сьогодні хороший імпульс. Помітьте, що підтримує цей стан.',
     },
   };
   const defaultCopy = copyByLang.en!;
@@ -116,8 +148,17 @@ export const OnboardingGate: React.FC<OnboardingGateProps> = ({ lang, onComplete
   const [selectedReason, setSelectedReason] = useState<string>('');
   const [mode, setMode] = useState<'none' | 'speak' | 'write' | 'skip'>('none');
   const [writeText, setWriteText] = useState<string>('');
+  const [energy, setEnergy] = useState(3);
+  const [mood, setMood] = useState(3);
 
   const canGoNextStep2 = useMemo(() => selectedReason.length > 0, [selectedReason]);
+
+  const insightLine = useMemo(() => {
+    const avg = (energy + mood) / 2;
+    if (avg <= 2.5) return copy.insightLow;
+    if (avg >= 4) return copy.insightHigh;
+    return copy.insightMid;
+  }, [energy, mood, copy.insightLow, copy.insightMid, copy.insightHigh]);
 
   const finishOnboarding = () => {
     dataService.logEvent('ONBOARDING_COMPLETE', {});
@@ -151,12 +192,22 @@ export const OnboardingGate: React.FC<OnboardingGateProps> = ({ lang, onComplete
     setStep(6);
   };
 
+  const saveCheckin = () => {
+    dataService.logEvent('DAILY_CHECKIN', {
+      metrics: { energy, mood, sleep: 3, libido: 3, irritability: 3, stress: 3 },
+      symptoms: [],
+      isPeriod: false,
+      source: 'onboarding',
+    });
+    setStep(7);
+  };
+
   return (
     <div className="fixed inset-0 bg-slate-950/55 backdrop-blur-sm flex items-center justify-center p-8 z-[200]">
       <article className="max-w-2xl w-full p-8 md:p-10 bg-white/95 dark:bg-slate-900/95 shadow-luna-deep rounded-[3rem] border border-slate-200/80 dark:border-slate-700/80">
         <header className="mb-8 flex items-center justify-between gap-4">
           <Logo size="md" />
-          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-luna-purple">Step {step}/6</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-luna-purple">Step {step}/7</p>
         </header>
 
         {step === 1 && (
@@ -260,9 +311,35 @@ export const OnboardingGate: React.FC<OnboardingGateProps> = ({ lang, onComplete
         )}
 
         {step === 6 && (
+          <div className="space-y-6">
+            <h2 className="text-3xl font-black tracking-tight text-slate-950 dark:text-slate-100">{copy.checkinTitle}</h2>
+            <p className="text-base font-medium text-slate-600 dark:text-slate-300">{copy.checkinBody}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <label className="rounded-2xl border border-slate-200/80 dark:border-slate-700/80 p-4 space-y-3">
+                <span className="text-sm font-black uppercase tracking-[0.12em] text-slate-700 dark:text-slate-200">{copy.energy}</span>
+                <input type="range" min={1} max={5} value={energy} onChange={(e) => setEnergy(Number(e.target.value))} className="w-full accent-luna-purple" />
+                <span className="text-2xl font-black text-luna-purple">{energy}/5</span>
+              </label>
+              <label className="rounded-2xl border border-slate-200/80 dark:border-slate-700/80 p-4 space-y-3">
+                <span className="text-sm font-black uppercase tracking-[0.12em] text-slate-700 dark:text-slate-200">{copy.mood}</span>
+                <input type="range" min={1} max={5} value={mood} onChange={(e) => setMood(Number(e.target.value))} className="w-full accent-luna-purple" />
+                <span className="text-2xl font-black text-luna-purple">{mood}/5</span>
+              </label>
+            </div>
+            <button data-testid="onboarding-checkin-save" onClick={saveCheckin} className="px-8 py-3 rounded-full bg-luna-purple text-white font-black text-sm uppercase tracking-[0.14em]">
+              {copy.continue}
+            </button>
+          </div>
+        )}
+
+        {step === 7 && (
           <div className="space-y-7">
             <h2 className="text-3xl font-black tracking-tight text-slate-950 dark:text-slate-100">{copy.thankYou}</h2>
-            <button onClick={finishOnboarding} className="px-8 py-3 rounded-full bg-luna-purple text-white font-black text-sm uppercase tracking-[0.14em]">
+            <div className="rounded-2xl border border-luna-purple/30 bg-luna-purple/10 p-5 space-y-2">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-luna-purple">{copy.insightTitle}</p>
+              <p className="text-base font-semibold text-slate-800 dark:text-slate-100">{insightLine}</p>
+            </div>
+            <button data-testid="onboarding-finish" onClick={finishOnboarding} className="px-8 py-3 rounded-full bg-luna-purple text-white font-black text-sm uppercase tracking-[0.14em]">
               {copy.moveToMain}
             </button>
           </div>

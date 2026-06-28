@@ -355,7 +355,7 @@ export const LegalDocumentView: React.FC<LegalDocumentViewProps> = ({ lang, doc,
       });
       if (response.ok) {
         const payload = await response.json();
-        downloadJson(`luna-server-export-${Date.now()}.json`, payload);
+        downloadJson(`luna-server-export-${payload.requestId || Date.now()}.json`, payload);
         setActionFeedback(ui.feedbackServerExport);
         return;
       }
