@@ -310,6 +310,68 @@ export type HomeStory = {
       finalBody: 'Um espaço calmo para pausar, entender seu estado e voltar à clareza.',
       finalCta: 'Experimentar Luna29',
     },
+    ar: {
+      heroTitle: 'Luna29',
+      heroLead: 'Luna29 — فسيولوجيا الشعور.',
+      heroBody: 'نظام شخصي يربط إيقاعات الجسم والملاحظات الحية ولغة هادئة لحالتك الداخلية.',
+      heroCta: 'جرّبي Luna29',
+      heroSub: 'خصوصي. هادئ. شخصي.',
+      explainTitle: 'شرح مختصر',
+      explainParagraphs: [
+        'في الحياة اليومية، كثير من الحالات يصعب قراءتها بسرعة: التعب، الضغط، الإرهاق، المشاعر غير الواضحة.',
+        'Luna29 تساعدك على رؤية هذه الحالات بوضوح أكبر — عبر البيانات والملاحظات والتأملات القصيرة.',
+        'هذا ليس متتبّع عادات ولا تطبيقاً للتحليل الذاتي. إنه نظام هادئ لفهم حالتك عبر الزمن.',
+      ],
+      flowTitle: 'كيف تعمل Luna29',
+      flowItems: [
+        { title: 'جسمك', text: 'الإيقاعات الفسيولوجية والمؤشرات' },
+        { title: 'إحساسك', text: 'الملاحظات والملاحظات الصوتية' },
+        { title: 'كلماتك', text: 'صياغة هادئة وواضحة للأفكار' },
+      ],
+      sections: [
+        { title: 'Luna29 Balance', body: 'Luna29 Balance خريطة بصرية لإيقاعاتك الفسيولوجية. تُظهر كيف تتفاعل المؤشرات الهرمونية والبيولوجية وتنعكس على الطاقة والتركيز والمزاج مع الزمن.' },
+        { title: 'Voice Journal', body: 'لا حاجة لكتابة يوميات طويلة. سجّلي ملاحظة صوتية قصيرة عما تشعرين به وما حدث في يومك. Luna29 تحوّل الصوت إلى تأمل منظّم.' },
+        { title: 'The Bridge', body: 'أحياناً يصعب شرح الحالة. The Bridge يستخدم أسئلة قصيرة لتحويل عدم اليقين الداخلي إلى رسالة واضحة لنفسك أو للتواصل مع المقربين.' },
+        { title: 'Reset Room', body: 'أحياناً أفضل خطوة هي التوقّف. Reset Room مساحة هادئة لتخفيف الضغط الداخلي واستعادة الاستقرار لبضع دقائق — بلا ضغط ولا مهام.' },
+      ],
+      differenceTitle: 'لماذا Luna29 مختلفة',
+      differenceList: ['يعدّون الخطوات', 'يتتبّعون العادات', 'يحلّلون السلوك'],
+      differenceBody: 'Luna29 تفعل شيئاً آخر. تساعدك على رؤية روابط بين الجسم والحالة والأفكار — ثم تحويل هذا الفهم إلى كلمات واضحة.',
+      finalTitle: 'Luna29 نظامك الشخصي للوضوح الفسيولوجي.',
+      finalBody: 'مساحة هادئة للتوقّف وفهم حالتك والعودة إلى الوضوح.',
+      finalCta: 'جرّبي Luna29',
+    },
+    he: {
+      heroTitle: 'Luna29',
+      heroLead: 'Luna29 — הפיזיולוגיה של ההרגשה.',
+      heroBody: 'מערכת אישית שמחברת ריתמי גוף, תצפיות חיות ושפה שקטה למצב הפנימי שלך.',
+      heroCta: 'נסי את Luna29',
+      heroSub: 'פרטי. שקט. אישי.',
+      explainTitle: 'הסבר קצר',
+      explainParagraphs: [
+        'בחיי היומיום, הרבה מצבים קשים לקרוא במהירות: עייפות, לחץ, עומס יתר, רגשות לא ברורים.',
+        'Luna29 עוזרת להפוך את המצבים האלה לברורים יותר — דרך נתונים, תצפיות ורפלקציות קצרות.',
+        'זה לא מעקב הרגלים ולא אפליקציית ניתוח עצמי. זו מערכת שקטה להבנת המצב שלך לאורך זמן.',
+      ],
+      flowTitle: 'איך Luna29 עובדת',
+      flowItems: [
+        { title: 'הגוף שלך', text: 'ריתמים פיזיולוגיים וסמנים' },
+        { title: 'התחושות שלך', text: 'תצפיות והערות קוליות' },
+        { title: 'המילים שלך', text: 'ניסוח ברור ושקט של מחשבות' },
+      ],
+      sections: [
+        { title: 'Luna29 Balance', body: 'Luna29 Balance היא מפת ריתמים פיזיולוגיים חזותית. היא מראה איך סמנים הורמונליים וביולוגיים משפיעים זה על זה ומשתקפים באנרגיה, מיקוד ומצב רוח לאורך זמן.' },
+        { title: 'Voice Journal', body: 'אין צורך ביומן ארוך. הקליטי הערת קול קצרה על מה שאת מרגישה ומה קרה ביום. Luna29 הופכת את הקול לרפלקציה מובנית.' },
+        { title: 'The Bridge', body: 'לפעמים קשה להסביר מצב. The Bridge משתמש בשאלות קצרות כדי להפוך אי-ודאות פנימית להודעה ברורה — לעצמך או לתקשורת עם קרובים.' },
+        { title: 'Reset Room', body: 'לפעמים הצעד הטוב ביותר הוא לעצור. Reset Room הוא מרחב שקט להפחתת לחץ פנימי ולהחזרת יציבות לכמה דקות — בלי לחץ ובלי משימות.' },
+      ],
+      differenceTitle: 'למה Luna29 שונה',
+      differenceList: ['סופרים צעדים', 'עוקבים אחרי הרגלים', 'מנתחים התנהגות'],
+      differenceBody: 'Luna29 עושה משהו אחר. היא עוזרת לראות קשרים בין גוף, מצב ומחשבות — ולהפוך את ההבנה הזו למילים ברורות.',
+      finalTitle: 'Luna29 היא המערכת האישית שלך לבהירות פיזיולוגית.',
+      finalBody: 'מרחב שקט לעצור, להבין את המצב שלך ולחזור לבהירות.',
+      finalCta: 'נסי את Luna29',
+    },
   };
 
   const pricingCopyByLang: LangCopy< { title: string; subtitle: string; month: string; year: string; monthNote: string; yearNote: string; saveBadge: string; cta: string; recommended: string }> = {
@@ -353,26 +415,26 @@ export type HomeStory = {
     ja: { title: 'わかりやすい料金', subtitle: '1プランで会員機能をすべて利用。月額/年額を選択。', month: '$12.99', year: '$89', monthNote: '月額', yearNote: '年額', saveBadge: '年額で25%オフ', cta: 'Luna29を購入', recommended: '推奨価格: $12.99/月。' },
     pt: { title: 'Preco Simples E Claro', subtitle: 'Um plano com acesso completo. Mensal ou anual.', month: '$12.99', year: '$89', monthNote: 'por mes', yearNote: 'por ano', saveBadge: 'Economize 25% no anual', cta: 'Comprar Luna29', recommended: 'Recomendado: $12.99/mes.' },
   ar: {
-      title: 'Simple, Transparent Pricing',
-      subtitle: 'Start free. Upgrade when you want deeper patterns, reports, and unlimited Bridge.',
+      title: 'أسعار بسيطة وشفافة',
+      subtitle: 'ابدئي مجاناً. ترقّي عندما تريدين أنماطاً أعمق وتقارير وBridge غير محدود.',
       month: '$12.99',
       year: '$89',
-      monthNote: 'per month',
-      yearNote: 'per year',
-      saveBadge: 'Save 25% yearly',
-      cta: 'Buy Luna29 Access',
-      recommended: 'Recommended: $12.99/month for early growth stage.',
+      monthNote: 'شهرياً',
+      yearNote: 'سنوياً',
+      saveBadge: 'وفّري 25% سنوياً',
+      cta: 'شراء وصول Luna29',
+      recommended: 'موصى به: $12.99/شهر لمرحلة النمو المبكرة.',
     },
   he: {
-      title: 'Simple, Transparent Pricing',
-      subtitle: 'Start free. Upgrade when you want deeper patterns, reports, and unlimited Bridge.',
+      title: 'תמחור פשוט ושקוף',
+      subtitle: 'התחילי בחינם. שדרגי כשאת רוצה דפוסים עמוקים יותר, דוחות ו-Bridge ללא הגבלה.',
       month: '$12.99',
       year: '$89',
-      monthNote: 'per month',
-      yearNote: 'per year',
-      saveBadge: 'Save 25% yearly',
-      cta: 'Buy Luna29 Access',
-      recommended: 'Recommended: $12.99/month for early growth stage.',
+      monthNote: 'לחודש',
+      yearNote: 'לשנה',
+      saveBadge: 'חיסכון של 25% בתשלום שנתי',
+      cta: 'רכישת גישה ל-Luna29',
+      recommended: 'מומלץ: $12.99/חודש לשלב הצמיחה המוקדם.',
     },};
 
   const homeToggleByLang: LangCopy< { more: string; less: string }> = {
@@ -385,8 +447,8 @@ export type HomeStory = {
     zh: { more: '显示完整内容', less: '收起详情' },
     ja: { more: '全文を表示', less: '表示を減らす' },
     pt: { more: 'Mostrar Historia Completa', less: 'Mostrar Menos' },
-  ar: { more: 'Show Full Story', less: 'Show Less' },
-  he: { more: 'Show Full Story', less: 'Show Less' },};
+  ar: { more: 'عرض القصة كاملة', less: 'عرض أقل' },
+  he: { more: 'הצגת הסיפור המלא', less: 'הצג פחות' },};
 
   const hormoneFocusByLang: Partial<LangCopy< { title: string; subtitle: string; cards: Array<{ hormone: string; why: string }> }>> = {
     en: {
@@ -479,6 +541,26 @@ export type HomeStory = {
         { hormone: 'Insulina / Glicose', why: 'Estabilidade de energia, compulsões e pressão inflamatória.' },
       ],
     },
+    ar: {
+      title: 'الهرمونات مهمة',
+      subtitle: 'مؤشراتك ليست أرقاماً عشوائية. إنها إشارات تشكّل الطاقة والمزاج والتركيز والتعافي.',
+      cards: [
+        { hormone: 'Estrogen / Progesterone', why: 'إيقاع الدورة، الاستقرار العاطفي وجودة النوم.' },
+        { hormone: 'Cortisol', why: 'عبء التوتر، سرعة التعافي وحساسية الجهاز العصبي.' },
+        { hormone: 'Thyroid Axis (TSH/T3/T4)', why: 'وتيرة الأيض، تحمّل البرودة، التركيز والإرهاق.' },
+        { hormone: 'Insulin / Glucose', why: 'استقرار الطاقة، الرغبة في الأكل وضغط الالتهاب.' },
+      ],
+    },
+    he: {
+      title: 'הורמונים חשובים',
+      subtitle: 'הסמנים שלך אינם מספרים אקראיים. הם אותות שמעצבים אנרגיה, מצב רוח, מיקוד והתאוששות.',
+      cards: [
+        { hormone: 'אסטרוגן / פרוגסטרון', why: 'קצב מחזורי, יציבות רגשית ואיכות שינה.' },
+        { hormone: 'קורטיזול', why: 'עומס לחץ, מהירות התאוששות ורגישות מערכת העצבים.' },
+        { hormone: 'ציר בלוטת התריס (TSH/T3/T4)', why: 'קצב חילוף חומרים, סבילות לקור, ריכוז ועייפות.' },
+        { hormone: 'אינסולין / גлюקозה', why: 'יציבות אנרגיה, תשוקות ולחץ דלקתי.' },
+      ],
+    },
   };
 
   const reportsOverviewByLang: LangCopy< { title: string; subtitle: string; points: [string, string, string, string] }> = {
@@ -529,13 +611,13 @@ export type HomeStory = {
     },
   ar: {
       title: 'My Health Reports',
-      subtitle: 'A clear, doctor-ready page that turns labs and symptoms into one structured report.',
-      points: ['Upload scan/photo or paste text', 'Track lab markers by categories', 'Generate branded report with ID and date', 'Copy, Print, Share, Download, PDF in selected language'],
+      subtitle: 'صفحة واضحة جاهزة للطبيب: تحوّل التحاليل والأعراض إلى تقرير منظّم واحد.',
+      points: ['رفع مسح/صورة أو لصق نص', 'تتبّع مؤشرات المختبر حسب الفئات', 'إنشاء تقرير بعلامة تجارية مع المعرّف والتاريخ', 'Copy وPrint وShare وDownload وPDF باللغة المختارة'],
     },
   he: {
       title: 'My Health Reports',
-      subtitle: 'A clear, doctor-ready page that turns labs and symptoms into one structured report.',
-      points: ['Upload scan/photo or paste text', 'Track lab markers by categories', 'Generate branded report with ID and date', 'Copy, Print, Share, Download, PDF in selected language'],
+      subtitle: 'עמוד ברור מוכן לרופא: הופך בדיקות ותסמינים לדוח מובנה אחד.',
+      points: ['העלאת סריקה/תמונה או הדבקת טקסט', 'מעקב אחר סמני מעבדה לפי קטגוריות', 'יצירת דוח ממותג עם מזהה ותאריך', 'Copy, Print, Share, Download, PDF בשפה שנבחרה'],
     },};
 
 export interface LandingNarratives {

@@ -1012,6 +1012,20 @@ const ar: TranslationSchema = {
     login: 'دخول',
     signup: 'إنشاء حساب',
   },
+  dashboard: {
+    ...en.dashboard,
+    quickCheckin: 'تسجيل',
+    startCheckin: 'بدء التسجيل',
+    talkToLuna: 'تحدثي مع Luna29',
+    dailyTip: 'نصيحة اليوم',
+    bodyMap: 'خريطة الجسم',
+  },
+  checkinOverlay: {
+    headline: 'تسجيل يومي',
+    subheadline: 'سجّلي حالتك الحالية.',
+    save: 'حفظ',
+    saveAndBridge: '+ الجسر',
+  },
 };
 
 const he: TranslationSchema = {
@@ -1046,6 +1060,20 @@ const he: TranslationSchema = {
     subheadline: 'גישה פרטית לסביבת העבודה ולמערכות הניהול.',
     login: 'כניסה',
     signup: 'יצירת חשבון',
+  },
+  dashboard: {
+    ...en.dashboard,
+    quickCheckin: 'צ׳ק-אין',
+    startCheckin: 'התחלת צ׳ק-אין',
+    talkToLuna: 'דברי עם Luna29',
+    dailyTip: 'טיפ יומי',
+    bodyMap: 'מפת גוף',
+  },
+  checkinOverlay: {
+    headline: 'צ׳ק-אין יומי',
+    subheadline: 'תעדי את המצב הנוכחי שלך.',
+    save: 'שמירה',
+    saveAndBridge: '+ הגשר',
   },
 };
 

@@ -1,4 +1,5 @@
-import { Language, TranslationSchema } from '../constants';
+import { Language } from '../constants';
+import { getMemberNavCopy } from './memberNavLabels';
 
 export type TabType =
   | 'dashboard'
@@ -43,106 +44,91 @@ type NavGroup = {
   items: NavItem[];
 };
 
-type NavigationLabels = Partial<TranslationSchema['navigation']> & {
-  home: string;
-  cycle: string;
-  reflections: string;
-  voiceFiles?: string;
-  labs: string;
-  meds: string;
-  bridge: string;
-  library: string;
-  history: string;
-  creative: string;
-  family: string;
-  profile: string;
-  faq: string;
-  contact: string;
-  crisis: string;
-  admin?: string;
-  partner?: string;
-  partner_faq?: string;
-  healthHub?: string;
-};
-
 type NavigationUi = {
-  navigation: NavigationLabels;
+  navigation: Partial<{ admin?: string }> & Record<string, string>;
 };
 
-export const buildSidebarGroups = (_ui: NavigationUi, includeAdmin = false): NavGroup[] => {
+export const buildSidebarGroups = (ui: NavigationUi, includeAdmin = false, lang: Language = 'en'): NavGroup[] => {
+  const nav = getMemberNavCopy(lang);
   const groups: NavGroup[] = [
     {
-      title: 'Main',
+      title: nav.groupMain,
       items: [
-        { id: 'today_mirror', label: 'Today', icon: '☀️' },
-        { id: 'history', label: 'Your Story', icon: '📜' },
-        { id: 'cycle', label: 'Rhythm', icon: '🌊' },
-        { id: 'library', label: 'Knowledge', icon: '📚' },
-        { id: 'profile', label: 'You', icon: '👤' },
+        { id: 'today_mirror', label: nav.today, icon: '☀️' },
+        { id: 'history', label: nav.yourStory, icon: '📜' },
+        { id: 'cycle', label: nav.rhythm, icon: '🌊' },
+        { id: 'library', label: nav.knowledge, icon: '📚' },
+        { id: 'profile', label: nav.you, icon: '👤' },
       ],
     },
     {
-      title: 'Daily',
+      title: nav.groupDaily,
       items: [
-        { id: 'my_day', label: 'My Day with Luna29', icon: '🪞' },
-        { id: 'reflections', label: 'Voice Reflection', icon: '🎙️' },
-        { id: 'voice_files', label: 'My Voice Files', icon: '🗂️' },
+        { id: 'my_day', label: nav.myDay, icon: '🪞' },
+        { id: 'reflections', label: nav.voiceReflection, icon: '🎙️' },
+        { id: 'voice_files', label: nav.voiceFiles, icon: '🗂️' },
       ],
     },
     {
-      title: 'Insights',
+      title: nav.groupInsights,
       items: [
-        { id: 'dashboard', label: 'Member Home', icon: '🏠' },
-        { id: 'labs', label: 'Health Reports', icon: '📄' },
-        { id: 'monthly_reflection', label: 'Your month with Luna29', icon: '🗓️' },
-        { id: 'rhythm_calendar', label: 'Rhythm Calendar', icon: '📅' },
-        { id: 'insights_paywall', label: 'Unlock Insights', icon: '🔐' },
+        { id: 'dashboard', label: nav.memberHome, icon: '🏠' },
+        { id: 'labs', label: nav.healthReports, icon: '📄' },
+        { id: 'monthly_reflection', label: nav.yourMonth, icon: '🗓️' },
+        { id: 'rhythm_calendar', label: nav.rhythmCalendar, icon: '📅' },
+        { id: 'insights_paywall', label: nav.unlockInsights, icon: '🔐' },
       ],
     },
     {
-      title: 'Practice',
+      title: nav.groupPractice,
       items: [
-        { id: 'bridge', label: 'The Bridge', icon: '🕊️' },
-        { id: 'relationships', label: 'Relationships', icon: '💞' },
-        { id: 'family', label: 'Family', icon: '🏡' },
-        { id: 'creative', label: 'Creative Studio', icon: '🎨' },
-        { id: 'meds', label: 'Medication Notes', icon: '💊' },
-        { id: 'crisis', label: 'Reset Room', icon: '🛟' },
+        { id: 'bridge', label: nav.bridge, icon: '🕊️' },
+        { id: 'relationships', label: nav.relationships, icon: '💞' },
+        { id: 'family', label: nav.family, icon: '🏡' },
+        { id: 'creative', label: nav.creativeStudio, icon: '🎨' },
+        { id: 'meds', label: nav.medicationNotes, icon: '💊' },
+        { id: 'crisis', label: nav.resetRoom, icon: '🛟' },
       ],
     },
     {
-      title: 'Help',
+      title: nav.groupHelp,
       items: [
-        { id: 'faq', label: 'FAQ', icon: '❓' },
-        { id: 'partner_faq', label: 'Partner FAQ', icon: '🤝' },
+        { id: 'faq', label: nav.faq, icon: '❓' },
+        { id: 'partner_faq', label: nav.partnerFaq, icon: '🤝' },
       ],
     },
   ];
 
   if (includeAdmin) {
     groups.push({
-      title: 'Administration',
-      items: [{ id: 'admin', label: _ui.navigation.admin || 'Admin Console', icon: '🛠️' }],
+      title: nav.groupAdmin,
+      items: [{ id: 'admin', label: ui.navigation.admin || nav.adminConsole, icon: '🛠️' }],
     });
   }
 
   return groups;
 };
 
-export const buildBottomNavItems = (_ui: NavigationUi): NavItem[] => [
-  { id: 'today_mirror', label: 'Today', icon: '☀️' },
-  { id: 'history', label: 'Your Story', icon: '📜' },
-  { id: 'cycle', label: 'Rhythm', icon: '🌊' },
-  { id: 'library', label: 'Knowledge', icon: '📚' },
-  { id: 'profile', label: 'You', icon: '👤' },
-];
+export const buildBottomNavItems = (_ui: NavigationUi, lang: Language = 'en'): NavItem[] => {
+  const nav = getMemberNavCopy(lang);
+  return [
+    { id: 'today_mirror', label: nav.today, icon: '☀️' },
+    { id: 'history', label: nav.yourStory, icon: '📜' },
+    { id: 'cycle', label: nav.rhythm, icon: '🌊' },
+    { id: 'library', label: nav.knowledge, icon: '📚' },
+    { id: 'profile', label: nav.you, icon: '👤' },
+  ];
+};
 
-export const buildTopNavItems = (_ui: NavigationUi): NavItem[] => [
-  { id: 'today_mirror', label: 'Today', icon: '☀️' },
-  { id: 'history', label: 'Your Story', icon: '📜' },
-  { id: 'cycle', label: 'Rhythm', icon: '🌊' },
-  { id: 'library', label: 'Knowledge', icon: '📚' },
-  { id: 'profile', label: 'You', icon: '👤' },
-];
+export const buildTopNavItems = (_ui: NavigationUi, lang: Language = 'en'): NavItem[] => {
+  const nav = getMemberNavCopy(lang);
+  return [
+    { id: 'today_mirror', label: nav.today, icon: '☀️' },
+    { id: 'history', label: nav.yourStory, icon: '📜' },
+    { id: 'cycle', label: nav.rhythm, icon: '🌊' },
+    { id: 'library', label: nav.knowledge, icon: '📚' },
+    { id: 'profile', label: nav.you, icon: '👤' },
+  ];
+};
 
-export const getCheckinCta = (lang: Language) => (lang === 'ru' ? 'Отметиться' : 'Check-in');
+export const getCheckinCta = (lang: Language) => getMemberNavCopy(lang).checkinCta;

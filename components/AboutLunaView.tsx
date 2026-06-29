@@ -18,8 +18,8 @@ export const AboutLunaView: React.FC<AboutLunaViewProps> = ({ lang, mode = 'publ
     zh: '加载中...',
     ja: '読み込み中...',
     pt: 'Carregando...',
-  ar: 'Loading...',
-  he: 'Loading...',};
+    ar: 'جارٍ التحميل...',
+    he: 'טוען...',};
   const [content, setContent] = useState<{
     about: {
       eyebrow: string;

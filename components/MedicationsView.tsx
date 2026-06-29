@@ -19,8 +19,8 @@ export const MedicationsView: React.FC<{ medications: Medication[]; lang: Langua
     zh: { titleA: '我的', titleB: '支持。', subtitle: '记录哪些方式能让你感觉更好。Luna29 会观察你的身体对计划的反应。', close: '关闭', addNew: '添加新项', addSuccess: '支持档案已添加。', removeSuccess: '支持档案已删除。', name: '名称', amount: '剂量', save: '保存', empty: '尚未添加内容。', remove: '移除', standardDose: '标准剂量', addedOn: '添加于' },
     ja: { titleA: '私の', titleB: 'サポート。', subtitle: '体調を整えるために役立つものを記録しましょう。Luna29が反応を観察します。', close: '閉じる', addNew: '新しく追加', addSuccess: 'サポート項目を追加しました。', removeSuccess: 'サポート項目を削除しました。', name: '名前', amount: '量', save: '保存', empty: 'まだ追加されていません。', remove: '削除', standardDose: '標準用量', addedOn: '追加日' },
     pt: { titleA: 'Meu', titleB: 'Suporte.', subtitle: 'Acompanhe o que ajuda você a se sentir melhor. A Luna29 observa como seu corpo responde ao seu plano.', close: 'Fechar', addNew: 'Adicionar novo', addSuccess: 'Perfil de suporte adicionado.', removeSuccess: 'Perfil de suporte removido.', name: 'Nome', amount: 'Quantidade', save: 'Salvar', empty: 'Nada adicionado ainda.', remove: 'Remover', standardDose: 'Dose padrão', addedOn: 'Adicionado em' },
-  ar: { titleA: 'My', titleB: 'Support.', subtitle: 'Keep track of what helps you feel better. Luna29 observes how your body responds to your care plan.', close: 'Close', addNew: 'Add something new', addSuccess: 'Support profile added.', removeSuccess: 'Support profile removed.', name: 'Name', amount: 'Amount', save: 'Save', empty: 'Nothing added yet.', remove: 'Remove', standardDose: 'Standard Dose', addedOn: 'Added on' },
-  he: { titleA: 'My', titleB: 'Support.', subtitle: 'Keep track of what helps you feel better. Luna29 observes how your body responds to your care plan.', close: 'Close', addNew: 'Add something new', addSuccess: 'Support profile added.', removeSuccess: 'Support profile removed.', name: 'Name', amount: 'Amount', save: 'Save', empty: 'Nothing added yet.', remove: 'Remove', standardDose: 'Standard Dose', addedOn: 'Added on' },};
+  ar: { titleA: 'دعمي', titleB: '.', subtitle: 'تابعي ما يساعدك على الشعور بتحسّن. Luna29 تراقب كيف يستجيب جسمك لخطة رعايتك.', close: 'إغلاق', addNew: 'إضافة عنصر جديد', addSuccess: 'تمت إضافة ملف الدعم.', removeSuccess: 'تمت إزالة ملف الدعم.', name: 'الاسم', amount: 'الكمية', save: 'حفظ', empty: 'لم تُضف عناصر بعد.', remove: 'إزالة', standardDose: 'الجرعة المعتادة', addedOn: 'أُضيف في' },
+  he: { titleA: 'התמיכה', titleB: 'שלי.', subtitle: 'עקבי אחרי מה שעוזר לך להרגיש טוב יותר. Luna29 צופה איך הגוף שלך מגיב לתוכנית הטיפול.', close: 'סגירה', addNew: 'הוספת פריט חדש', addSuccess: 'פרופיל התמיכה נוסף.', removeSuccess: 'פרופיל התמיכה הוסר.', name: 'שם', amount: 'כמות', save: 'שמירה', empty: 'עדיין לא נוסף כלום.', remove: 'הסרה', standardDose: 'מינון סטנדרטי', addedOn: 'נוסף ב' },};
   const copy = getLang(copyByLang, lang);
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState("");
@@ -37,8 +37,8 @@ export const MedicationsView: React.FC<{ medications: Medication[]; lang: Langua
     zh: { 'Name is required.': '名称为必填项。', 'This support profile already exists.': '该支持档案已存在。' },
     ja: { 'Name is required.': '名前は必須です。', 'This support profile already exists.': 'このサポート項目は既に存在します。' },
     pt: { 'Name is required.': 'Nome é obrigatório.', 'This support profile already exists.': 'Este perfil de suporte já existe.' },
-  ar: { 'Name is required.': 'Name is required.', 'This support profile already exists.': 'This support profile already exists.' },
-  he: { 'Name is required.': 'Name is required.', 'This support profile already exists.': 'This support profile already exists.' },};
+  ar: { 'Name is required.': 'الاسم مطلوب.', 'This support profile already exists.': 'ملف الدعم هذا موجود بالفعل.' },
+  he: { 'Name is required.': 'שם הוא שדה חובה.', 'This support profile already exists.': 'פרופיל התמיכה הזה כבר קיים.' },};
 
   useEffect(() => {
     setLocalMedications(medications);

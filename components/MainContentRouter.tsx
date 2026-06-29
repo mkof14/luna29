@@ -121,8 +121,8 @@ class MemberContentErrorBoundary extends React.Component<
       zh: { title: '页面加载失败', body: '该模块加载时发生错误。可返回首页或刷新页面。', home: '返回首页', reload: '刷新页面' },
       ja: { title: 'セクションの表示に失敗しました', body: 'このセクションの読み込み中にエラーが発生しました。ホームへ戻るか再読み込みしてください。', home: 'ホームへ戻る', reload: '再読み込み' },
       pt: { title: 'Falha Ao Carregar Seção', body: 'Esta seção falhou ao carregar. Volte ao início ou recarregue.', home: 'Voltar Ao Início', reload: 'Recarregar' },
-  ar: { title: 'Section Failed To Render', body: 'This section crashed while loading. You can go back home or reload.', home: 'Back To Home', reload: 'Reload' },
-  he: { title: 'Section Failed To Render', body: 'This section crashed while loading. You can go back home or reload.', home: 'Back To Home', reload: 'Reload' },};
+      ar: { title: 'تعذّر عرض القسم', body: 'تعطّل هذا القسم أثناء التحميل. يمكنكِ العودة إلى الرئيسية أو إعادة التحميل.', home: 'العودة للرئيسية', reload: 'إعادة التحميل' },
+      he: { title: 'הסעיף לא נטען', body: 'סעיף זה קרס בעת הטעינה. אפשר לחזור לדף הבית או לטעון מחדש.', home: 'חזרה לדף הבית', reload: 'טעינה מחדש' },};
     const copy = copyByLang[this.props.lang] || copyByLang.en;
 
     return (
@@ -244,17 +244,17 @@ export const MainContentRouter: React.FC<MainContentRouterProps> = ({
       permissionBody: 'Sua conta ainda não possui acesso admin. Contate o responsável do Luna29 para liberação.',
       backHome: 'Voltar ao início'
     },
-  ar: {
-      accessRestricted: 'Access Restricted',
-      permissionRequired: 'Admin Permission Required',
-      permissionBody: 'Your account currently does not have admin access. Contact the Luna29 owner to request access.',
-      backHome: 'Back to Home'
+    ar: {
+      accessRestricted: 'الوصول مقيّد',
+      permissionRequired: 'مطلوبة صلاحية إدارية',
+      permissionBody: 'حسابكِ لا يملك وصولاً إدارياً حالياً. تواصلِي مع مالكة Luna29 لطلب الصلاحية.',
+      backHome: 'العودة للرئيسية'
     },
-  he: {
-      accessRestricted: 'Access Restricted',
-      permissionRequired: 'Admin Permission Required',
-      permissionBody: 'Your account currently does not have admin access. Contact the Luna29 owner to request access.',
-      backHome: 'Back to Home'
+    he: {
+      accessRestricted: 'הגישה מוגבלת',
+      permissionRequired: 'נדרשת הרשאת מנהלת',
+      permissionBody: 'לחשבון שלך אין עדיין גישה למרחב הניהול. פני לבעלות Luna29 לקבלת הרשאה.',
+      backHome: 'חזרה לדף הבית'
     },};
   const copy = getLang(copyByLang, lang);
 

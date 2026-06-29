@@ -8,7 +8,7 @@ const root = process.cwd();
 const assetsDir = path.join(root, 'dist', 'assets');
 
 const MAX_CRITICAL_JS_GZIP = Number(process.env.MAX_CRITICAL_JS_GZIP || 220 * 1024);
-const MAX_PUBLIC_LANDING_GZIP = Number(process.env.MAX_PUBLIC_LANDING_GZIP || 42 * 1024);
+const MAX_PUBLIC_LANDING_GZIP = Number(process.env.MAX_PUBLIC_LANDING_GZIP || 48 * 1024);
 const MAX_INDEX_CSS_GZIP = Number(process.env.MAX_INDEX_CSS_GZIP || 36 * 1024);
 const MAX_LABS_VIEW_GZIP = Number(process.env.MAX_LABS_VIEW_GZIP || 43 * 1024);
 

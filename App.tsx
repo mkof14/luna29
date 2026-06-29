@@ -161,9 +161,9 @@ const App: React.FC = () => {
 
   const canAccessAdmin = useMemo(() => authService.hasPermission(session, 'manage_services') || authService.hasPermission(session, 'manage_admin_roles'), [session]);
 
-  const sidebarGroups = useMemo(() => buildSidebarGroups(ui, canAccessAdmin), [ui, canAccessAdmin]);
-  const topNavItems = useMemo(() => buildTopNavItems(ui), [ui]);
-  const bottomNavItems = useMemo(() => buildBottomNavItems(ui), [ui]);
+  const sidebarGroups = useMemo(() => buildSidebarGroups(ui, canAccessAdmin, lang), [ui, canAccessAdmin, lang]);
+  const topNavItems = useMemo(() => buildTopNavItems(ui, lang), [ui, lang]);
+  const bottomNavItems = useMemo(() => buildBottomNavItems(ui, lang), [ui, lang]);
   const handleRoleChange = useCallback((role: AdminRole) => {
     if (!session) return;
     authService

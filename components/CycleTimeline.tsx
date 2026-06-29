@@ -6,6 +6,14 @@ import { PHASE_INFO, LangCopy, getLang } from '../constants';
 import { Language } from '../constants';
 import PhaseIndicator from './PhaseIndicator';
 import { JourneyProgress } from './JourneyProgress';
+import {
+  CYCLE_PHASE_NAMES,
+  CYCLE_UI_COPY,
+  CYCLE_LUNA_BALANCE_COPY,
+  CYCLE_INNER_WEATHER_COPY,
+  CYCLE_PHASE_SEASON_COPY,
+  CYCLE_SENSITIVITY_LABELS,
+} from '../utils/memberCoreI18n';
 
 interface CycleTimelineProps {
   currentDay: number;
@@ -22,109 +30,15 @@ const CycleTimeline: React.FC<CycleTimelineProps> = ({ currentDay, onDayChange, 
   
   const info = PHASE_INFO[currentPhase];
   const scrubberPos = `${((currentDay - 1) / 27) * 100}%`;
-  const phaseNamesByLang: LangCopy< Record<CyclePhase, string>> = {
-    en: { Menstrual: 'Menstrual', Follicular: 'Follicular', Ovulatory: 'Ovulatory', Luteal: 'Luteal' },
-    ru: { Menstrual: 'Менструальная', Follicular: 'Фолликулярная', Ovulatory: 'Овуляторная', Luteal: 'Лютеиновая' },
-    uk: { Menstrual: 'Менструальна', Follicular: 'Фолікулярна', Ovulatory: 'Овуляторна', Luteal: 'Лютеїнова' },
-    es: { Menstrual: 'Menstrual', Follicular: 'Folicular', Ovulatory: 'Ovulatoria', Luteal: 'Lútea' },
-    fr: { Menstrual: 'Menstruelle', Follicular: 'Folliculaire', Ovulatory: 'Ovulatoire', Luteal: 'Lutéale' },
-    de: { Menstrual: 'Menstruell', Follicular: 'Follikulär', Ovulatory: 'Ovulatorisch', Luteal: 'Luteal' },
-    zh: { Menstrual: '经期', Follicular: '卵泡期', Ovulatory: '排卵期', Luteal: '黄体期' },
-    ja: { Menstrual: '月経期', Follicular: '卵胞期', Ovulatory: '排卵期', Luteal: '黄体期' },
-    pt: { Menstrual: 'Menstrual', Follicular: 'Folicular', Ovulatory: 'Ovulatória', Luteal: 'Lútea' },
-  ar: { Menstrual: 'Menstrual', Follicular: 'Follicular', Ovulatory: 'Ovulatory', Luteal: 'Luteal' },
-  he: { Menstrual: 'Menstrual', Follicular: 'Follicular', Ovulatory: 'Ovulatory', Luteal: 'Luteal' },};
-  const uiByLang: LangCopy< { back: string; internalSeason: string; cycleRegulator: string; day: string; slideToAdjust: string; min: string; peak: string; mode: string; peakCapacity: string; conserveEnergy: string; steadyState: string }> = {
-    en: { back: 'Back', internalSeason: 'Internal Season', cycleRegulator: 'Cycle Regulator', day: 'Day', slideToAdjust: 'Slide to adjust', min: 'Min', peak: 'Peak', mode: 'mode', peakCapacity: 'Peak Capacity', conserveEnergy: 'Conserve Energy', steadyState: 'Steady State' },
-    ru: { back: 'Назад', internalSeason: 'Внутренний сезон', cycleRegulator: 'Регулятор цикла', day: 'День', slideToAdjust: 'Сдвиньте для настройки', min: 'Мин', peak: 'Пик', mode: 'режим', peakCapacity: 'Пиковый ресурс', conserveEnergy: 'Сохранять энергию', steadyState: 'Стабильный режим' },
-    uk: { back: 'Назад', internalSeason: 'Внутрішній сезон', cycleRegulator: 'Регулятор циклу', day: 'День', slideToAdjust: 'Потягніть для налаштування', min: 'Мін', peak: 'Пік', mode: 'режим', peakCapacity: 'Піковий ресурс', conserveEnergy: 'Зберігати енергію', steadyState: 'Стабільний стан' },
-    es: { back: 'Atrás', internalSeason: 'Temporada interna', cycleRegulator: 'Regulador de ciclo', day: 'Día', slideToAdjust: 'Desliza para ajustar', min: 'Mín', peak: 'Pico', mode: 'modo', peakCapacity: 'Capacidad máxima', conserveEnergy: 'Conservar energía', steadyState: 'Estado estable' },
-    fr: { back: 'Retour', internalSeason: 'Saison interne', cycleRegulator: 'Régulateur du cycle', day: 'Jour', slideToAdjust: 'Glissez pour ajuster', min: 'Min', peak: 'Pic', mode: 'mode', peakCapacity: 'Capacité maximale', conserveEnergy: "Préserver l'énergie", steadyState: 'État stable' },
-    de: { back: 'Zurück', internalSeason: 'Innere Saison', cycleRegulator: 'Zyklusregler', day: 'Tag', slideToAdjust: 'Zum Anpassen schieben', min: 'Min', peak: 'Peak', mode: 'Modus', peakCapacity: 'Spitzenkapazität', conserveEnergy: 'Energie sparen', steadyState: 'Stabiler Zustand' },
-    zh: { back: '返回', internalSeason: '内在季节', cycleRegulator: '周期调节器', day: '第', slideToAdjust: '滑动调整', min: '低', peak: '峰值', mode: '模式', peakCapacity: '峰值容量', conserveEnergy: '节省能量', steadyState: '稳定状态' },
-    ja: { back: '戻る', internalSeason: '内なる季節', cycleRegulator: 'サイクル調整', day: '日', slideToAdjust: 'スライドで調整', min: '最小', peak: '最大', mode: 'モード', peakCapacity: '最大容量', conserveEnergy: '省エネ', steadyState: '安定状態' },
-    pt: { back: 'Voltar', internalSeason: 'Estação interna', cycleRegulator: 'Regulador do ciclo', day: 'Dia', slideToAdjust: 'Deslize para ajustar', min: 'Mín', peak: 'Pico', mode: 'modo', peakCapacity: 'Capacidade máxima', conserveEnergy: 'Conservar energia', steadyState: 'Estado estável' },
-  ar: { back: 'Back', internalSeason: 'Internal Season', cycleRegulator: 'Cycle Regulator', day: 'Day', slideToAdjust: 'Slide to adjust', min: 'Min', peak: 'Peak', mode: 'mode', peakCapacity: 'Peak Capacity', conserveEnergy: 'Conserve Energy', steadyState: 'Steady State' },
-  he: { back: 'Back', internalSeason: 'Internal Season', cycleRegulator: 'Cycle Regulator', day: 'Day', slideToAdjust: 'Slide to adjust', min: 'Min', peak: 'Peak', mode: 'mode', peakCapacity: 'Peak Capacity', conserveEnergy: 'Conserve Energy', steadyState: 'Steady State' },};
+  const phaseNamesByLang = CYCLE_PHASE_NAMES;
+  const uiByLang = CYCLE_UI_COPY;
+  const lunaBalanceByLang = CYCLE_LUNA_BALANCE_COPY;
+  const innerWeatherByLang = CYCLE_INNER_WEATHER_COPY;
+  const phaseSeasonByLang = CYCLE_PHASE_SEASON_COPY;
+  const sensitivityByLang = CYCLE_SENSITIVITY_LABELS;
   const ui = getLang(uiByLang, lang);
-  const lunaBalanceByLang: LangCopy< { title: string; subtitle: string; points: [string, string, string, string]; appliedTitle: string; appliedBody: string; summary: string }> = {
-    en: {
-      title: 'Luna29 Balance',
-      subtitle: 'A visual map of physiological rhythms. See how hormonal and biological markers interact and affect your daily state.',
-      points: ['Energy', 'Mood', 'Focus', 'Recovery'],
-      appliedTitle: 'Applied In Member Mode',
-      appliedBody: 'Use cycle day, phase state, and sensitivity cards to turn patterns into practical decisions for work, communication, and restoration.',
-      summary: 'Instead of isolated numbers, this view shows your inner dynamics as one connected system.',
-    },
-    ru: {
-      title: 'Luna29 Balance',
-      subtitle: 'Визуальная карта физиологических ритмов. Показывает, как гормональные и биологические маркеры взаимодействуют и влияют на состояние каждый день.',
-      points: ['Энергия', 'Настроение', 'Концентрация', 'Восстановление'],
-      appliedTitle: 'Прикладная Часть В Мембер Режиме',
-      appliedBody: 'Используйте день цикла, фазу и карточки чувствительности, чтобы переводить паттерны в практичные решения для работы, общения и восстановления.',
-      summary: 'Вместо отдельных чисел вы видите связанную картину внутренней динамики.',
-    },
-    uk: { title: 'Luna29 Balance', subtitle: 'A visual map of physiological rhythms. See how hormonal and biological markers interact and affect your daily state.', points: ['Energy', 'Mood', 'Focus', 'Recovery'], appliedTitle: 'Applied In Member Mode', appliedBody: 'Use cycle day, phase state, and sensitivity cards to turn patterns into practical decisions for work, communication, and restoration.', summary: 'Instead of isolated numbers, this view shows your inner dynamics as one connected system.' },
-    es: { title: 'Luna29 Balance', subtitle: 'A visual map of physiological rhythms. See how hormonal and biological markers interact and affect your daily state.', points: ['Energy', 'Mood', 'Focus', 'Recovery'], appliedTitle: 'Applied In Member Mode', appliedBody: 'Use cycle day, phase state, and sensitivity cards to turn patterns into practical decisions for work, communication, and restoration.', summary: 'Instead of isolated numbers, this view shows your inner dynamics as one connected system.' },
-    fr: { title: 'Luna29 Balance', subtitle: 'A visual map of physiological rhythms. See how hormonal and biological markers interact and affect your daily state.', points: ['Energy', 'Mood', 'Focus', 'Recovery'], appliedTitle: 'Applied In Member Mode', appliedBody: 'Use cycle day, phase state, and sensitivity cards to turn patterns into practical decisions for work, communication, and restoration.', summary: 'Instead of isolated numbers, this view shows your inner dynamics as one connected system.' },
-    de: { title: 'Luna29 Balance', subtitle: 'A visual map of physiological rhythms. See how hormonal and biological markers interact and affect your daily state.', points: ['Energy', 'Mood', 'Focus', 'Recovery'], appliedTitle: 'Applied In Member Mode', appliedBody: 'Use cycle day, phase state, and sensitivity cards to turn patterns into practical decisions for work, communication, and restoration.', summary: 'Instead of isolated numbers, this view shows your inner dynamics as one connected system.' },
-    zh: { title: 'Luna29 Balance', subtitle: 'A visual map of physiological rhythms. See how hormonal and biological markers interact and affect your daily state.', points: ['Energy', 'Mood', 'Focus', 'Recovery'], appliedTitle: 'Applied In Member Mode', appliedBody: 'Use cycle day, phase state, and sensitivity cards to turn patterns into practical decisions for work, communication, and restoration.', summary: 'Instead of isolated numbers, this view shows your inner dynamics as one connected system.' },
-    ja: { title: 'Luna29 Balance', subtitle: 'A visual map of physiological rhythms. See how hormonal and biological markers interact and affect your daily state.', points: ['Energy', 'Mood', 'Focus', 'Recovery'], appliedTitle: 'Applied In Member Mode', appliedBody: 'Use cycle day, phase state, and sensitivity cards to turn patterns into practical decisions for work, communication, and restoration.', summary: 'Instead of isolated numbers, this view shows your inner dynamics as one connected system.' },
-    pt: { title: 'Luna29 Balance', subtitle: 'A visual map of physiological rhythms. See how hormonal and biological markers interact and affect your daily state.', points: ['Energy', 'Mood', 'Focus', 'Recovery'], appliedTitle: 'Applied In Member Mode', appliedBody: 'Use cycle day, phase state, and sensitivity cards to turn patterns into practical decisions for work, communication, and restoration.', summary: 'Instead of isolated numbers, this view shows your inner dynamics as one connected system.' },
-  ar: {
-      title: 'Luna29 Balance',
-      subtitle: 'A visual map of physiological rhythms. See how hormonal and biological markers interact and affect your daily state.',
-      points: ['Energy', 'Mood', 'Focus', 'Recovery'],
-      appliedTitle: 'Applied In Member Mode',
-      appliedBody: 'Use cycle day, phase state, and sensitivity cards to turn patterns into practical decisions for work, communication, and restoration.',
-      summary: 'Instead of isolated numbers, this view shows your inner dynamics as one connected system.',
-    },
-  he: {
-      title: 'Luna29 Balance',
-      subtitle: 'A visual map of physiological rhythms. See how hormonal and biological markers interact and affect your daily state.',
-      points: ['Energy', 'Mood', 'Focus', 'Recovery'],
-      appliedTitle: 'Applied In Member Mode',
-      appliedBody: 'Use cycle day, phase state, and sensitivity cards to turn patterns into practical decisions for work, communication, and restoration.',
-      summary: 'Instead of isolated numbers, this view shows your inner dynamics as one connected system.',
-    },};
   const lunaBalance = getLang(lunaBalanceByLang, lang) || lunaBalanceByLang.en;
-  const innerWeatherByLang: LangCopy< { title: string; intro: string; points: [string, string, string]; line1: string; line2: string; line3: string }> = {
-    en: { title: 'INNER WEATHER', intro: 'Short explanation:', points: ['energy changes', 'mood changes', 'focus changes'], line1: 'But these changes are rarely random.', line2: 'More often, they are rhythms of physiology.', line3: 'Luna29 helps you see this dynamic as a map of inner weather.' },
-    ru: { title: 'ВНУТРЕННЯЯ ПОГОДА', intro: 'Короткое объяснение:', points: ['энергия меняется', 'настроение меняется', 'концентрация меняется'], line1: 'Но эти изменения редко случайны.', line2: 'Чаще это ритмы физиологии.', line3: 'Luna29 помогает видеть эту динамику как карту внутренней погоды.' },
-    uk: { title: 'ВНУТРІШНЯ ПОГОДА', intro: 'Коротке пояснення:', points: ['енергія змінюється', 'настрій змінюється', 'концентрація змінюється'], line1: 'Але ці зміни рідко випадкові.', line2: 'Найчастіше це ритми фізіології.', line3: 'Luna29 допомагає бачити цю динаміку як карту внутрішньої погоди.' },
-    es: { title: 'CLIMA INTERIOR', intro: 'Explicación breve:', points: ['la energía cambia', 'el estado de ánimo cambia', 'la concentración cambia'], line1: 'Pero estos cambios rara vez son aleatorios.', line2: 'Con más frecuencia, son ritmos de la fisiología.', line3: 'Luna29 te ayuda a ver esta dinámica como un mapa del clima interior.' },
-    fr: { title: 'MÉTÉO INTÉRIEURE', intro: 'Explication courte :', points: ["l'énergie change", "l'humeur change", 'la concentration change'], line1: 'Mais ces changements sont rarement aléatoires.', line2: 'Le plus souvent, ce sont des rythmes physiologiques.', line3: 'Luna29 vous aide à voir cette dynamique comme une carte de la météo intérieure.' },
-    de: { title: 'INNERES WETTER', intro: 'Kurze Erklärung:', points: ['Energie verändert sich', 'Stimmung verändert sich', 'Konzentration verändert sich'], line1: 'Diese Veränderungen sind jedoch selten zufällig.', line2: 'Meist sind es Rhythmen der Physiologie.', line3: 'Luna29 hilft, diese Dynamik als Karte des inneren Wetters zu sehen.' },
-    zh: { title: '内在天气', intro: '简短说明：', points: ['能量会变化', '情绪会变化', '专注会变化'], line1: '但这些变化很少是随机的。', line2: '更常见的是生理节律在起作用。', line3: 'Luna29 帮助你把这种动态看作一张内在天气地图。' },
-    ja: { title: 'インナーウェザー', intro: '短い説明：', points: ['エネルギーは変わる', '気分は変わる', '集中は変わる'], line1: 'しかし、これらの変化は偶然ではありません。', line2: '多くは生理的リズムです。', line3: 'Luna29 はこの動きを「内なる天気図」として見える化します。' },
-    pt: { title: 'CLIMA INTERNO', intro: 'Explicação curta:', points: ['a energia muda', 'o humor muda', 'a concentração muda'], line1: 'Mas essas mudanças raramente são aleatórias.', line2: 'Na maioria das vezes, são ritmos da fisiologia.', line3: 'A Luna29 ajuda você a ver essa dinâmica como um mapa do clima interno.' },
-  ar: { title: 'INNER WEATHER', intro: 'Short explanation:', points: ['energy changes', 'mood changes', 'focus changes'], line1: 'But these changes are rarely random.', line2: 'More often, they are rhythms of physiology.', line3: 'Luna29 helps you see this dynamic as a map of inner weather.' },
-  he: { title: 'INNER WEATHER', intro: 'Short explanation:', points: ['energy changes', 'mood changes', 'focus changes'], line1: 'But these changes are rarely random.', line2: 'More often, they are rhythms of physiology.', line3: 'Luna29 helps you see this dynamic as a map of inner weather.' },};
   const innerWeather = getLang(innerWeatherByLang, lang) || innerWeatherByLang.en;
-  const phaseSeasonByLang: LangCopy< Record<CyclePhase, string>> = {
-    en: { Menstrual: 'Restoration Season', Follicular: 'Building Season', Ovulatory: 'Vibrancy Season', Luteal: 'Nesting Season' },
-    ru: { Menstrual: 'Сезон восстановления', Follicular: 'Сезон набора ресурса', Ovulatory: 'Сезон яркости', Luteal: 'Сезон уюта' },
-    uk: { Menstrual: 'Сезон відновлення', Follicular: 'Сезон нарощування ресурсу', Ovulatory: 'Сезон яскравості', Luteal: 'Сезон гніздування' },
-    es: { Menstrual: 'Temporada de restauración', Follicular: 'Temporada de crecimiento', Ovulatory: 'Temporada de vitalidad', Luteal: 'Temporada de refugio' },
-    fr: { Menstrual: 'Saison de restauration', Follicular: 'Saison de construction', Ovulatory: 'Saison de vitalité', Luteal: 'Saison de recentrage' },
-    de: { Menstrual: 'Erholungsphase', Follicular: 'Aufbauphase', Ovulatory: 'Vibranzphase', Luteal: 'Rückzugsphase' },
-    zh: { Menstrual: '修复季', Follicular: '构建季', Ovulatory: '活力季', Luteal: '内收季' },
-    ja: { Menstrual: '回復シーズン', Follicular: '構築シーズン', Ovulatory: '活性シーズン', Luteal: '内向シーズン' },
-    pt: { Menstrual: 'Estação de restauração', Follicular: 'Estação de construção', Ovulatory: 'Estação de vitalidade', Luteal: 'Estação de recolhimento' },
-  ar: { Menstrual: 'Restoration Season', Follicular: 'Building Season', Ovulatory: 'Vibrancy Season', Luteal: 'Nesting Season' },
-  he: { Menstrual: 'Restoration Season', Follicular: 'Building Season', Ovulatory: 'Vibrancy Season', Luteal: 'Nesting Season' },};
-  const sensitivityByLang: LangCopy< Record<string, string>> = {
-    en: {},
-    ru: { Quiet: 'Тихо', Soft: 'Мягко', Selective: 'Избирательно', Bright: 'Ясно', Rising: 'Растет', Open: 'Открыто', Radiant: 'Сияние', Full: 'Полно', Outgoing: 'Общительно', Reflective: 'Рефлексивно', Grounding: 'Заземление', Guarded: 'Бережно' },
-    uk: { Quiet: 'Тихо', Soft: 'М’яко', Selective: 'Вибірково', Bright: 'Ясно', Rising: 'Зростає', Open: 'Відкрито', Radiant: 'Сяйво', Full: 'Повно', Outgoing: 'Соціально', Reflective: 'Рефлексивно', Grounding: 'Заземлення', Guarded: 'Обережно' },
-    es: { Quiet: 'Calma', Soft: 'Suave', Selective: 'Selectivo', Bright: 'Brillante', Rising: 'En ascenso', Open: 'Abierto', Radiant: 'Radiante', Full: 'Lleno', Outgoing: 'Extrovertido', Reflective: 'Reflexivo', Grounding: 'Aterrizado', Guarded: 'Reservado' },
-    fr: { Quiet: 'Calme', Soft: 'Doux', Selective: 'Sélectif', Bright: 'Clair', Rising: 'En hausse', Open: 'Ouvert', Radiant: 'Rayonnant', Full: 'Plein', Outgoing: 'Sociable', Reflective: 'Réflexif', Grounding: 'Ancré', Guarded: 'Réservé' },
-    de: { Quiet: 'Ruhig', Soft: 'Sanft', Selective: 'Selektiv', Bright: 'Hell', Rising: 'Ansteigend', Open: 'Offen', Radiant: 'Strahlend', Full: 'Voll', Outgoing: 'Kontaktfreudig', Reflective: 'Reflektierend', Grounding: 'Geerdet', Guarded: 'Zurückhaltend' },
-    zh: { Quiet: '安静', Soft: '柔和', Selective: '选择性', Bright: '明亮', Rising: '上升', Open: '开放', Radiant: '充盈', Full: '满格', Outgoing: '外向', Reflective: '内省', Grounding: '稳定', Guarded: '防护' },
-    ja: { Quiet: '静穏', Soft: 'やわらかい', Selective: '選択的', Bright: '明るい', Rising: '上昇中', Open: 'オープン', Radiant: '輝き', Full: '満ちる', Outgoing: '社交的', Reflective: '内省的', Grounding: '安定', Guarded: '防御的' },
-    pt: { Quiet: 'Calmo', Soft: 'Suave', Selective: 'Seletivo', Bright: 'Brilhante', Rising: 'Em alta', Open: 'Aberto', Radiant: 'Radiante', Full: 'Cheio', Outgoing: 'Expansivo', Reflective: 'Reflexivo', Grounding: 'Aterrado', Guarded: 'Reservado' },
-  ar: {},
-  he: {},};
 
   return (
     <div className="w-full luna-page-shell luna-page-ritual animate-in fade-in duration-1000 space-y-8 p-8 md:p-10 relative overflow-hidden">

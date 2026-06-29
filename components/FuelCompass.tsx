@@ -23,8 +23,8 @@ export const FuelCompass: React.FC<FuelCompassProps> = ({ phase, lang }) => {
     zh: { Menstrual: '经期', Follicular: '卵泡期', Ovulatory: '排卵期', Luteal: '黄体期' },
     ja: { Menstrual: '月経期', Follicular: '卵胞期', Ovulatory: '排卵期', Luteal: '黄体期' },
     pt: { Menstrual: 'Menstrual', Follicular: 'Folicular', Ovulatory: 'Ovulatória', Luteal: 'Lútea' },
-  ar: { Menstrual: 'Menstrual', Follicular: 'Follicular', Ovulatory: 'Ovulatory', Luteal: 'Luteal' },
-  he: { Menstrual: 'Menstrual', Follicular: 'Follicular', Ovulatory: 'Ovulatory', Luteal: 'Luteal' },};
+  ar: { Menstrual: 'الحيض', Follicular: 'الجُريبية', Ovulatory: 'الإباضة', Luteal: 'الأصفرية' },
+  he: { Menstrual: 'וסת', Follicular: 'פוליקולרי', Ovulatory: 'ביוץ', Luteal: 'לוטאי' },};
   const phaseLabel = getLang(phaseByLang, lang)[phase] || phase;
   const reasonByLang: LangCopy< Record<CyclePhase, string>> = {
     en: {
@@ -82,16 +82,16 @@ export const FuelCompass: React.FC<FuelCompassProps> = ({ phase, lang }) => {
       Luteal: 'Seu corpo desacelera. Foque em energia estável e minerais calmantes.'
     },
   ar: {
-      Menstrual: 'Your body is renewing itself. Focus on warmth and minerals.',
-      Follicular: 'Energy is rising. Support your body with fiber and fresh foods.',
-      Ovulatory: 'Your energy is at its peak. Stay hydrated and eat healthy fats.',
-      Luteal: 'Your body is slowing down. Focus on steady energy and calming minerals.'
+      Menstrual: 'جسمكِ يتجدّد. ركّزي على الدفء والمعادن.',
+      Follicular: 'طاقتكِ ترتفع. ادعمي جسمكِ بالألياف والأطعمة الطازجة.',
+      Ovulatory: 'طاقتكِ في ذروتها. حافظي على الترطيب وتناولي الدهون الصحية.',
+      Luteal: 'جسمكِ يبطئ. ركّزي على طاقة ثابتة ومعادن مهدّئة.'
     },
   he: {
-      Menstrual: 'Your body is renewing itself. Focus on warmth and minerals.',
-      Follicular: 'Energy is rising. Support your body with fiber and fresh foods.',
-      Ovulatory: 'Your energy is at its peak. Stay hydrated and eat healthy fats.',
-      Luteal: 'Your body is slowing down. Focus on steady energy and calming minerals.'
+      Menstrual: 'הגוף שלך מתחדש. התמקדי בחום ומינרלים.',
+      Follicular: 'האנרגיה עולה. תמכי בגוף עם סיבים ומזון טרי.',
+      Ovulatory: 'האנרגיה בשיא. שמרי על הידרציה ואכלי שומנים בריאים.',
+      Luteal: 'הגוף מאט. התמקדי באנרגיה יציבה ומינרלים מרגיעים.'
     },};
   const tokenMapByLang: LangCopy< Record<string, string>> = {
     en: {},
@@ -116,8 +116,8 @@ export const FuelCompass: React.FC<FuelCompassProps> = ({ phase, lang }) => {
     zh: { Warm: '温热', Soups: '汤', Vitamin: '维生素', Fresh: '新鲜', Veggies: '蔬菜', Healthy: '健康', Fats: '脂肪', Foods: '食物', Hydration: '补水', Stress: '压力', Sleep: '睡眠', Energy: '能量', Tea: '茶', Water: '水', Seeds: '种子', Fish: '鱼', Nuts: '坚果', Fiber: '纤维', Magnesium: '镁', Calcium: '钙', Protein: '蛋白质', Sugar: '糖', Salt: '盐' },
     ja: { Warm: '温かい', Soups: 'スープ', Vitamin: 'ビタミン', Fresh: '新鮮な', Veggies: '野菜', Healthy: '良質な', Fats: '脂質', Foods: '食品', Hydration: '水分補給', Stress: 'ストレス', Sleep: '睡眠', Energy: 'エネルギー', Tea: 'お茶', Water: '水', Seeds: '種子', Fish: '魚', Nuts: 'ナッツ', Fiber: '食物繊維', Magnesium: 'マグネシウム', Calcium: 'カルシウム', Protein: 'たんぱく質', Sugar: '糖', Salt: '塩' },
     pt: { Warm: 'Quentes', Soups: 'sopas', Vitamin: 'Vitamina', Fresh: 'Frescos', Veggies: 'vegetais', Healthy: 'Saudáveis', Fats: 'gorduras', Foods: 'alimentos', Hydration: 'Hidratação', Stress: 'Estresse', Sleep: 'Sono', Energy: 'Energia', Tea: 'chá', Water: 'água', Seeds: 'sementes', Fish: 'peixe', Nuts: 'nozes', Fiber: 'Fibra', Magnesium: 'Magnésio', Calcium: 'Cálcio', Protein: 'Proteína', Sugar: 'Açúcar', Salt: 'Sal' },
-  ar: {},
-  he: {},};
+  ar: { Warm: 'دافئة', Soups: 'حساء', Vitamin: 'فيتامين', Fresh: 'طازجة', Veggies: 'خضار', Healthy: 'صحية', Fats: 'دهون', Foods: 'أطعمة', Hydration: 'ترطيب', Stress: 'توتر', Sleep: 'نوم', Energy: 'طاقة', Tea: 'شاي', Water: 'ماء', Seeds: 'بذور', Fish: 'سمك', Nuts: 'مكسرات', Fiber: 'ألياف', Magnesium: 'مغنيسيوم', Calcium: 'كالسيوم', Protein: 'بروتين', Sugar: 'سكر', Salt: 'ملح' },
+  he: { Warm: 'חמות', Soups: 'מרקים', Vitamin: 'ויטמין', Fresh: 'טריים', Veggies: 'ירקות', Healthy: 'בריאים', Fats: 'שומנים', Foods: 'מזונות', Hydration: 'הידרציה', Stress: 'לחץ', Sleep: 'שינה', Energy: 'אנרגיה', Tea: 'תה', Water: 'מים', Seeds: 'זרעים', Fish: 'דג', Nuts: 'אגוזים', Fiber: 'סיבים', Magnesium: 'מגנזיום', Calcium: 'סידן', Protein: 'חלבון', Sugar: 'סוכר', Salt: 'מלח' },};
   const tItem = (item: string) => {
     if (tokenMap[item]) return tokenMap[item];
     if (lang === 'en' || lang === 'ru') return item;
@@ -136,8 +136,8 @@ export const FuelCompass: React.FC<FuelCompassProps> = ({ phase, lang }) => {
     zh: { done: '完成', mealIdea: '餐食建议', mealHint: `获取适合${phaseLabel}的餐食建议。`, thinking: '思考中...', generate: '生成食谱', suggestion: 'Luna29 建议', reset: '重置' },
     ja: { done: '完了', mealIdea: '食事アイデア', mealHint: `${phaseLabel}に合う食事アイデアを取得します。`, thinking: '考え中...', generate: 'レシピ生成', suggestion: 'Luna29の提案', reset: 'リセット' },
     pt: { done: 'Concluído', mealIdea: 'Ideia de refeição', mealHint: `Receba uma ideia de refeição para a fase ${phaseLabel}.`, thinking: 'Pensando...', generate: 'Gerar receita', suggestion: 'Sugestão da Luna29', reset: 'Redefinir' },
-  ar: { done: 'Done', mealIdea: 'Meal Idea', mealHint: `Get a meal idea that fits your ${phaseLabel} phase.`, thinking: 'Thinking...', generate: 'Generate Recipe', suggestion: "Luna29's Suggestion", reset: 'Reset' },
-  he: { done: 'Done', mealIdea: 'Meal Idea', mealHint: `Get a meal idea that fits your ${phaseLabel} phase.`, thinking: 'Thinking...', generate: 'Generate Recipe', suggestion: "Luna29's Suggestion", reset: 'Reset' },};
+  ar: { done: 'تم', mealIdea: 'فكرة وجبة', mealHint: `احصلي على فكرة وجبة تناسب مرحلة ${phaseLabel}.`, thinking: 'أفكّر...', generate: 'إنشاء وصفة', suggestion: 'اقتراح Luna29', reset: 'إعادة ضبط' },
+  he: { done: 'בוצע', mealIdea: 'רעיון לארוחה', mealHint: `קבלי רעיון לארוחה שמתאים לשלב ${phaseLabel}.`, thinking: 'חושבת...', generate: 'יצירת מתכון', suggestion: 'הצעה של Luna29', reset: 'איפוס' },};
   const copy = getLang(copyByLang, lang);
   type FuelCategoryKey = keyof typeof ui.fuel.categories;
   

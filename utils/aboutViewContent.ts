@@ -56,16 +56,16 @@ const REPORT_EXPLAINER_BY_LANG: LangCopy< { title: string; body1: string; body2:
     bullets: ['Lógica de padrões, não números soltos.', 'Categorias, riscos e recomendações claras.', 'Fluxo de copy, print, share, download e PDF.'],
   },
   ar: {
-    title: 'Why My Health Reports Matter',
-    body1: 'My Health Reports convert raw lab values into a structured women-focused explanation: cycle context, thyroid/metabolic links, libido-related signals, and actionable next steps.',
-    body2: 'You can include only ID or keep identity private, pick report language, and export in doctor-ready format for discussion.',
-    bullets: ['Pattern logic, not isolated numbers.', 'Clear categories, risks, and recommendations.', 'Copy, print, share, download, and PDF workflow.'],
+    title: 'لماذا My Health Reports مهمة',
+    body1: 'My Health Reports تحوّل قيم المختبر الخام إلى شرح منظّم موجّه للنساء: سياق الدورة، روابط الغدة الدرقية/الأيض، إشارات مرتبطة بالرغبة، وخطوات تالية واضحة.',
+    body2: 'يمكنكِ إظهار المعرّف فقط أو الحفاظ على الخصوصية، واختيار لغة التقرير، وتصديره بصيغة جاهزة للنقاش مع الطبيب.',
+    bullets: ['منطق الأنماط، لا أرقام معزولة.', 'فئات واضحة ومخاطر وتوصيات.', 'سير عمل Copy وPrint وShare وDownload وPDF.'],
   },
   he: {
-    title: 'Why My Health Reports Matter',
-    body1: 'My Health Reports convert raw lab values into a structured women-focused explanation: cycle context, thyroid/metabolic links, libido-related signals, and actionable next steps.',
-    body2: 'You can include only ID or keep identity private, pick report language, and export in doctor-ready format for discussion.',
-    bullets: ['Pattern logic, not isolated numbers.', 'Clear categories, risks, and recommendations.', 'Copy, print, share, download, and PDF workflow.'],
+    title: 'למה My Health Reports חשוב',
+    body1: 'My Health Reports ממיר ערכי מעבדה גולמיים להסבר מובנה ממוקד נשים: הקשר מחזורי, קשרים בבלוטת התריס/חילוף חומרים, אותות הקשורים ל-libido וצעדים מעשיים הבאים.',
+    body2: 'אפשר להציג רק מזהה או לשמור על פרטיות, לבחור שפת דוח ולייצא בפורמט מוכן לרופא.',
+    bullets: ['לוגיקת דפוסים, לא מספרים בודדים.', 'קטגוריות, סיכונים והמלצות ברורים.', 'תהליך Copy, print, share, download ו-PDF.'],
   },};
 
 

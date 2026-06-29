@@ -49,10 +49,10 @@ export const RelationshipsView: React.FC<{ phase: CyclePhase; lang: Language; on
       begin: 'Começar', retry: 'Tentar novamente', shared: '✓ Compartilhado', selectRefinement: 'Selecione uma opção', editableHint: 'Você pode editar cada palavra antes de compartilhar.', back: 'Voltar', readiness: 'Prontidão social atual', battery: 'Carga', quote: 'Conexão é um ritmo compartilhado. Ao entender seu próprio tempo, você convida os outros a dançar em um ritmo seguro.', generateError: 'Não foi possível gerar a nota agora. Tente novamente.', shareError: 'Não foi possível compartilhar a nota agora.', copyError: 'Não foi possível copiar a nota agora.'
     },
   ar: {
-      begin: 'Begin', retry: 'Try Again', shared: '✓ Shared', selectRefinement: 'Select refinement option', editableHint: 'You can edit every word before sharing.', back: 'Back', readiness: 'Current Social Readiness', battery: 'Battery', quote: 'Connection is a shared rhythm. By understanding your own tempo, you can invite others to dance at a pace that feels safe for both.', generateError: 'Could not generate a note right now. Please retry.', shareError: 'Could not share this note right now.', copyError: 'Could not copy this note right now.'
+      begin: 'ابدئي', retry: 'حاولي مجدداً', shared: '✓ تمت المشاركة', selectRefinement: 'اختاري خيار التحسين', editableHint: 'يمكنك تعديل كل كلمة قبل المشاركة.', back: 'رجوع', readiness: 'الاستعداد الاجتماعي الحالي', battery: 'الطاقة', quote: 'التواصل إيقاع مشترك. بفهم إيقاعك الخاص، يمكنكِ دعوة الآخرين للمشاركة بخطوة آمنة للطرفين.', generateError: 'تعذّر إنشاء الملاحظة الآن. يرجى المحاولة مجدداً.', shareError: 'تعذّرت مشاركة هذه الملاحظة الآن.', copyError: 'تعذّر نسخ هذه الملاحظة الآن.'
     },
   he: {
-      begin: 'Begin', retry: 'Try Again', shared: '✓ Shared', selectRefinement: 'Select refinement option', editableHint: 'You can edit every word before sharing.', back: 'Back', readiness: 'Current Social Readiness', battery: 'Battery', quote: 'Connection is a shared rhythm. By understanding your own tempo, you can invite others to dance at a pace that feels safe for both.', generateError: 'Could not generate a note right now. Please retry.', shareError: 'Could not share this note right now.', copyError: 'Could not copy this note right now.'
+      begin: 'התחילי', retry: 'נסי שוב', shared: '✓ שותף', selectRefinement: 'בחרי אפשרות לשיפור', editableHint: 'אפשר לערוך כל מילה לפני השיתוף.', back: 'חזרה', readiness: 'מוכנות חברתית נוכחית', battery: 'אנרגיה', quote: 'חיבור הוא קצב משותף. כשאת מבינה את הקצב שלך, אפשר להזמין אחרים לרקוד בקצב שמרגיש בטוח לשניכם.', generateError: 'לא ניתן ליצור הערה כרגע. נסי שוב.', shareError: 'לא ניתן לשתף את ההערה כרגע.', copyError: 'לא ניתן להעתיק את ההערה כרגע.'
     },};
   const basedOnEstrogenByLang: LangCopy< string> = {
     en: `Based on your ${socialHormone?.name} level`,
@@ -64,8 +64,8 @@ export const RelationshipsView: React.FC<{ phase: CyclePhase; lang: Language; on
     zh: '基于你的雌激素水平',
     ja: 'エストロゲンレベルに基づく',
     pt: 'Com base no seu nível de estrogênio',
-  ar: `Based on your ${socialHormone?.name} level`,
-  he: `Based on your ${socialHormone?.name} level`,};
+  ar: `بناءً على مستوى ${socialHormone?.name}`,
+  he: `לפי רמת ${socialHormone?.name}`,};
   const copy = { ...getLang(copyByLang, lang), basedOnEstrogen: getLang(basedOnEstrogenByLang, lang) };
   
   const [input, setInput] = useState<Partial<PartnerNoteInput>>({

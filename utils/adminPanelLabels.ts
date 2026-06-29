@@ -27,8 +27,8 @@ const campaignStatusByLang: LangCopy< Record<CampaignStatus, string>> = {
   zh: { Draft: '草稿', Approved: '已批准', Scheduled: '已排期' },
   ja: { Draft: '下書き', Approved: '承認済み', Scheduled: '予定済み' },
   pt: { Draft: 'Rascunho', Approved: 'Aprovado', Scheduled: 'Agendado' },
-  ar: { Draft: 'Draft', Approved: 'Approved', Scheduled: 'Scheduled' },
-  he: { Draft: 'Draft', Approved: 'Approved', Scheduled: 'Scheduled' },};
+  ar: { Draft: 'مسودة', Approved: 'معتمد', Scheduled: 'مجدول' },
+  he: { Draft: 'טיוטה', Approved: 'מאושר', Scheduled: 'מתוזמן' },};
 
 const statusLabelByLang: LangCopy< Record<ServiceStatus, string>> = {
   en: { Healthy: 'Healthy', Degraded: 'Degraded', Down: 'Down' },
@@ -40,8 +40,8 @@ const statusLabelByLang: LangCopy< Record<ServiceStatus, string>> = {
   zh: { Healthy: '正常', Degraded: '降级', Down: '中断' },
   ja: { Healthy: '正常', Degraded: '低下', Down: '停止' },
   pt: { Healthy: 'Estavel', Degraded: 'Degradado', Down: 'Indisponivel' },
-  ar: { Healthy: 'Healthy', Degraded: 'Degraded', Down: 'Down' },
-  he: { Healthy: 'Healthy', Degraded: 'Degraded', Down: 'Down' },};
+  ar: { Healthy: 'مستقر', Degraded: 'متدهور', Down: 'غير متاح' },
+  he: { Healthy: 'יציב', Degraded: 'מופחת', Down: 'לא זמין' },};
 
 const copyByLang: LangCopy< {
   dashboard: string;
@@ -169,24 +169,24 @@ const copyByLang: LangCopy< {
     closePreview: 'Fechar', channel: 'Canal', status: 'Status', subject: 'Assunto', preheader: 'Preheader'
   },
   ar: {
-    dashboard: 'Home', logout: 'Logout', noSession: 'No session', role: 'Role',
-    campaignPlaceholder: 'New campaign name', campaignBodyPlaceholder: 'Campaign message/body',
-    templatePlaceholder: 'Template title', templateBodyPlaceholder: 'Template body',
-    triggerPlaceholder: 'Trigger (e.g. New signup)', subjectPlaceholder: 'Email subject', preheaderPlaceholder: 'Email preheader',
-    add: 'Add', create: 'Create', autoTranslating: 'Auto-translating...', trigger: 'Trigger', updatedBy: 'Updated by', onDate: 'on',
-    preview: 'Preview', copyAction: 'Copy', shareAction: 'Share', pdfAction: 'PDF', downloadAction: 'Download', printAction: 'Print',
-    feedbackCopied: 'Copied to clipboard.', feedbackShared: 'Shared successfully.', feedbackDownloaded: 'File downloaded.', feedbackPrint: 'Print window opened.', feedbackError: 'Action failed on this browser.',
-    closePreview: 'Close', channel: 'Channel', status: 'Status', subject: 'Subject', preheader: 'Preheader'
+    dashboard: 'الرئيسية', logout: 'تسجيل الخروج', noSession: 'لا توجد جلسة', role: 'الدور',
+    campaignPlaceholder: 'اسم الحملة الجديدة', campaignBodyPlaceholder: 'نص/محتوى الحملة',
+    templatePlaceholder: 'عنوان القالب', templateBodyPlaceholder: 'نص القالب',
+    triggerPlaceholder: 'المُحفّز (مثلاً: تسجيل جديد)', subjectPlaceholder: 'موضوع البريد', preheaderPlaceholder: 'النص التمهيدي للبريد',
+    add: 'إضافة', create: 'إنشاء', autoTranslating: 'ترجمة تلقائية...', trigger: 'المُحفّز', updatedBy: 'حدّثه', onDate: 'في',
+    preview: 'معاينة', copyAction: 'Copy', shareAction: 'Share', pdfAction: 'PDF', downloadAction: 'Download', printAction: 'Print',
+    feedbackCopied: 'تم النسخ.', feedbackShared: 'تمت المشاركة.', feedbackDownloaded: 'تم تنزيل الملف.', feedbackPrint: 'فُتحت نافذة الطباعة.', feedbackError: 'الإجراء غير متاح في هذا المتصفح.',
+    closePreview: 'إغلاق', channel: 'القناة', status: 'الحالة', subject: 'الموضوع', preheader: 'النص التمهيدي'
   },
   he: {
-    dashboard: 'Home', logout: 'Logout', noSession: 'No session', role: 'Role',
-    campaignPlaceholder: 'New campaign name', campaignBodyPlaceholder: 'Campaign message/body',
-    templatePlaceholder: 'Template title', templateBodyPlaceholder: 'Template body',
-    triggerPlaceholder: 'Trigger (e.g. New signup)', subjectPlaceholder: 'Email subject', preheaderPlaceholder: 'Email preheader',
-    add: 'Add', create: 'Create', autoTranslating: 'Auto-translating...', trigger: 'Trigger', updatedBy: 'Updated by', onDate: 'on',
-    preview: 'Preview', copyAction: 'Copy', shareAction: 'Share', pdfAction: 'PDF', downloadAction: 'Download', printAction: 'Print',
-    feedbackCopied: 'Copied to clipboard.', feedbackShared: 'Shared successfully.', feedbackDownloaded: 'File downloaded.', feedbackPrint: 'Print window opened.', feedbackError: 'Action failed on this browser.',
-    closePreview: 'Close', channel: 'Channel', status: 'Status', subject: 'Subject', preheader: 'Preheader'
+    dashboard: 'בית', logout: 'יציאה', noSession: 'אין סשן', role: 'תפקיד',
+    campaignPlaceholder: 'שם קמפיין חדש', campaignBodyPlaceholder: 'טקסט/גוף הקמפיין',
+    templatePlaceholder: 'כותרת תבנית', templateBodyPlaceholder: 'גוף התבנית',
+    triggerPlaceholder: 'טריגר (למשל הרשמה חדשה)', subjectPlaceholder: 'נושא המייל', preheaderPlaceholder: 'Preheader למייל',
+    add: 'הוספה', create: 'יצירה', autoTranslating: 'תרגום אוטומטי...', trigger: 'טריגר', updatedBy: 'עודכן על ידי', onDate: 'ב',
+    preview: 'תצוגה מקדימה', copyAction: 'Copy', shareAction: 'Share', pdfAction: 'PDF', downloadAction: 'Download', printAction: 'Print',
+    feedbackCopied: 'הועתק.', feedbackShared: 'שותף.', feedbackDownloaded: 'הקובץ הורד.', feedbackPrint: 'חלון ההדפסה נפתח.', feedbackError: 'הפעולה לא זמינה בדפדפן זה.',
+    closePreview: 'סגירה', channel: 'ערוץ', status: 'סטטוס', subject: 'נושא', preheader: 'Preheader'
   },};
 
 

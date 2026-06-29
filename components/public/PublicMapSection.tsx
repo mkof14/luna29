@@ -34,8 +34,8 @@ export const PublicMapSection: React.FC<PublicMapSectionProps> = ({
     zh: { title: 'Luna29 Balance', subtitle: 'Luna29 Balance 是一张生理节律可视化地图，展示激素与生物指标如何相互作用并影响你的状态。', points: ['能量', '情绪', '专注', '恢复'], ending: 'Luna29 不只给你零散数字，而是给出随时间变化的内在动态全景。' },
     ja: { title: 'Luna29 Balance', subtitle: 'Luna29 Balance は生理リズムを可視化するマップです。ホルモンや生体指標の相互作用を示し、今の状態を読み解きます。', points: ['エネルギー', '気分', '集中', '回復'], ending: '単発の数値ではなく、時間軸での内的ダイナミクスを明確に可視化します。' },
     pt: { title: 'Luna29 Balance', subtitle: 'Luna29 Balance e um mapa visual de ritmos fisiologicos. Mostra como marcadores hormonais e biologicos interagem e influenciam seu estado.', points: ['Energia', 'Humor', 'Foco', 'Recuperacao'], ending: 'Em vez de numeros isolados, a Luna29 constrói uma imagem clara da dinamica interna ao longo do tempo.' },
-  ar: { title: 'Luna29 Balance', subtitle: 'Luna29 Balance is a visual map of physiological rhythms. It shows how hormonal and biological markers interact and influence your state.', points: ['Energy', 'Mood', 'Focus', 'Recovery'], ending: 'Instead of isolated numbers, Luna29 builds a clear picture of inner dynamics over time.' },
-  he: { title: 'Luna29 Balance', subtitle: 'Luna29 Balance is a visual map of physiological rhythms. It shows how hormonal and biological markers interact and influence your state.', points: ['Energy', 'Mood', 'Focus', 'Recovery'], ending: 'Instead of isolated numbers, Luna29 builds a clear picture of inner dynamics over time.' },};
+    ar: { title: 'Luna29 Balance', subtitle: 'Luna29 Balance خريطة بصرية للإيقاعات الفسيولوجية. تُظهر كيف تتفاعل المؤشرات الهرمونية والبيولوجية وتؤثر على حالتكِ.', points: ['الطاقة', 'المزاج', 'التركيز', 'التعافي'], ending: 'بدلاً من أرقام معزولة، تبني Luna29 صورة واضحة للديناميكية الداخلية عبر الزمن.' },
+    he: { title: 'Luna29 Balance', subtitle: 'Luna29 Balance היא מפת קצבים פיזיולוגיים. היא מראה איך סמנים הורמונליים וביולוגיים משפיעים על המצב שלך.', points: ['אנרגיה', 'מצב רוח', 'ריכוז', 'התאוששות'], ending: 'במקום מספרים בודדים, Luna29 בונה תמונה ברורה של הדינמיקה הפנימית לאורך זמן.' },};
   const innerWeatherByLang: LangCopy< { title: string; intro: string; points: [string, string, string]; line1: string; line2: string; line3: string }> = {
     en: { title: 'INNER WEATHER', intro: 'Short explanation:', points: ['energy shifts', 'mood shifts', 'focus shifts'], line1: 'But these changes are rarely random.', line2: 'Most often they are rhythms of physiology.', line3: 'Luna29 helps you see this movement as a map of inner weather.' },
     ru: { title: 'ВНУТРЕННЯЯ ПОГОДА', intro: 'Короткое объяснение:', points: ['энергия меняется', 'настроение меняется', 'концентрация меняется'], line1: 'Но эти изменения редко случайны.', line2: 'Чаще это ритмы физиологии.', line3: 'Luna29 помогает увидеть эту динамику как карту внутренней погоды.' },
@@ -46,8 +46,8 @@ export const PublicMapSection: React.FC<PublicMapSectionProps> = ({
     zh: { title: '内在天气', intro: '简短说明：', points: ['能量会变化', '情绪会变化', '专注会变化'], line1: '但这些变化很少是随机的。', line2: '更常见的是生理节律在起作用。', line3: 'Luna29 帮助你把这种动态看作一张内在天气地图。' },
     ja: { title: 'インナーウェザー', intro: '短い説明：', points: ['エネルギーは変わる', '気分は変わる', '集中は変わる'], line1: 'しかし、これらの変化は偶然ではありません。', line2: '多くは生理的リズムです。', line3: 'Luna29 はこの動きを「内なる天気図」として見える化します。' },
     pt: { title: 'CLIMA INTERNO', intro: 'Explicação curta:', points: ['a energia muda', 'o humor muda', 'a concentração muda'], line1: 'Mas essas mudanças raramente são aleatórias.', line2: 'Na maioria das vezes, são ritmos da fisiologia.', line3: 'A Luna29 ajuda você a ver essa dinâmica como um mapa do clima interno.' },
-  ar: { title: 'INNER WEATHER', intro: 'Short explanation:', points: ['energy shifts', 'mood shifts', 'focus shifts'], line1: 'But these changes are rarely random.', line2: 'Most often they are rhythms of physiology.', line3: 'Luna29 helps you see this movement as a map of inner weather.' },
-  he: { title: 'INNER WEATHER', intro: 'Short explanation:', points: ['energy shifts', 'mood shifts', 'focus shifts'], line1: 'But these changes are rarely random.', line2: 'Most often they are rhythms of physiology.', line3: 'Luna29 helps you see this movement as a map of inner weather.' },};
+    ar: { title: 'الطقس الداخلي', intro: 'شرح مختصر:', points: ['تغيّرات الطاقة', 'تغيّرات المزاج', 'تغيّرات التركيز'], line1: 'لكن هذه التغييرات نادراً ما تكون عشوائية.', line2: 'في أغلب الأحيان هي إيقاعات الفسيولوجيا.', line3: 'Luna29 تساعدكِ على رؤية هذا الحراك كخريطة للطقس الداخلي.' },
+    he: { title: 'מזג פנים פנימי', intro: 'הסבר קצר:', points: ['שינויי אנרגיה', 'שינויי מצב רוח', 'שינויי ריכוז'], line1: 'אבל השינויים האלה לעיתים רחוקות אקראיים.', line2: 'לרוב מדובר בקצבי פיזיולוגיה.', line3: 'Luna29 עוזרת לראות את התנועה הזו כמפת מזג פנים פנימי.' },};
   const mapCoreLabelByLang: LangCopy< string> = {
     en: 'Luna29 Balance Core',
     ru: 'Ядро Luna29 Balance',
@@ -58,8 +58,8 @@ export const PublicMapSection: React.FC<PublicMapSectionProps> = ({
     zh: 'Luna29 Balance 核心',
     ja: 'Luna29 Balance コア',
     pt: 'Nucleo Luna29 Balance',
-  ar: 'Luna29 Balance Core',
-  he: 'Luna29 Balance Core',};
+    ar: 'نواة Luna29 Balance',
+    he: 'ליבת Luna29 Balance',};
   const lunaBalanceVision = getLang(lunaBalanceVisionByLang, lang) || lunaBalanceVisionByLang.en;
   const innerWeather = getLang(innerWeatherByLang, lang) || innerWeatherByLang.en;
   const coreLabel = getLang(mapCoreLabelByLang, lang) || mapCoreLabelByLang.en;

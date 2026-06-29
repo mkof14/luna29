@@ -21,8 +21,8 @@ export const StandaloneWelcomeOverlay: React.FC<StandaloneWelcomeOverlayProps> =
     zh: { title: 'App 模式已启用', subtitle: 'Luna29 正在以全屏原生应用方式运行。', continue: '继续' },
     ja: { title: 'アプリモード有効', subtitle: 'Luna29 はネイティブアプリのように全画面で動作中です。', continue: '続行' },
     pt: { title: 'Modo App Ativo', subtitle: 'Luna29 esta em tela cheia como aplicativo nativo.', continue: 'Continuar' },
-  ar: { title: 'App Mode Active', subtitle: 'Luna29 is running full-screen like a native app.', continue: 'Continue' },
-  he: { title: 'App Mode Active', subtitle: 'Luna29 is running full-screen like a native app.', continue: 'Continue' },};
+    ar: { title: 'وضع التطبيق مفعّل', subtitle: 'Luna29 تعمل بملء الشاشة مثل تطبيق أصلي.', continue: 'متابعة' },
+    he: { title: 'מצב אפליקציה פעיל', subtitle: 'Luna29 פועלת במסך מלא כמו אפליקציה מקורית.', continue: 'המשך' },};
 
   const copy = getLang(copyByLang, lang) || copyByLang.en;
 

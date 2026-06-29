@@ -34,16 +34,16 @@ const copyByLang: LangCopy<{
   ja: { title: 'AI音声処理を有効化', body: 'Luna29は音声テキストを安全なサーバーに送信します。プライバシー設定で変更できます。', enable: 'AI処理を許可', decline: '後で' },
   pt: { title: 'Ativar processamento de voz com IA', body: 'A Luna29 envia a transcrição ao servidor seguro. Alterável em Privacidade.', enable: 'Permitir IA', decline: 'Agora não' },
   ar: {
-    title: 'Enable AI voice processing',
-    body: 'Luna29 sends your voice transcript to our secure server for understanding and reflection. You can change this anytime in Privacy settings.',
-    enable: 'Allow AI processing',
-    decline: 'Not now',
+    title: 'تفعيل معالجة الصوت بالذكاء الاصطناعي',
+    body: 'Luna29 ترسل نصّ صوتكِ إلى خادمنا الآمن للفهم والتأمل. يمكنكِ تغيير ذلك في أي وقت من إعدادات الخصوصية.',
+    enable: 'السماح بمعالجة AI',
+    decline: 'ليس الآن',
   },
   he: {
-    title: 'Enable AI voice processing',
-    body: 'Luna29 sends your voice transcript to our secure server for understanding and reflection. You can change this anytime in Privacy settings.',
-    enable: 'Allow AI processing',
-    decline: 'Not now',
+    title: 'הפעלת עיבוד קול AI',
+    body: 'Luna29 שולחת את תמליל הקול שלך לשרת מאובטח להבנה ורפлексיה. אפשר לשנות זאת בכל עת בהגדרות הפרטיות.',
+    enable: 'לאפשר עיבוד AI',
+    decline: 'לא עכשיו',
   },
 };
 

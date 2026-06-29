@@ -16,8 +16,8 @@ export const PrivacyPolicyView: React.FC<{ lang: Language; onBack: () => void }>
     zh: { back: '返回', manifest: '安全声明', title: '隐私架构', subtitle: '系统建立在一个前提上：你的生理数据只属于你。', compliance: '合规等级：高信任', quote: 'Luna29 被设计为数字保险库。我们优先保护你的生理自主性。' },
     ja: { back: '戻る', manifest: 'セキュリティ宣言', title: 'プライバシー設計', subtitle: 'あなたの生体情報はあなた自身のもの、という前提で設計されています。', compliance: 'コンプライアンス: 高信頼', quote: 'Luna29はデジタル保管庫として設計されています。生理的な自律性の保護を優先します。' },
     pt: { back: 'Voltar', manifest: 'Manifesto de segurança', title: 'Arquitetura de privacidade', subtitle: 'Um sistema construído na premissa de que sua biologia pertence somente a você.', compliance: 'Nível de conformidade: alto', quote: 'A Luna29 foi projetada como um cofre digital. Priorizamos sua autonomia fisiológica.' },
-  ar: { back: 'Back', manifest: 'Security Manifest', title: 'Privacy Architecture', subtitle: 'A system built on the premise that your biology belongs only to you.', compliance: 'Compliance Level: High-Trust', quote: 'Luna29 is designed to be a digital vault. We prioritize the preservation of your physiological autonomy over data convenience.' },
-  he: { back: 'Back', manifest: 'Security Manifest', title: 'Privacy Architecture', subtitle: 'A system built on the premise that your biology belongs only to you.', compliance: 'Compliance Level: High-Trust', quote: 'Luna29 is designed to be a digital vault. We prioritize the preservation of your physiological autonomy over data convenience.' },};
+    ar: { back: 'رجوع', manifest: 'بيان الأمان', title: 'هندسة الخصوصية', subtitle: 'نظام مبني على مبدأ أن بيولوجيتكِ ملككِ وحدكِ.', compliance: 'مستوى الامتثال: ثقة عالية', quote: 'صُمّمت Luna29 كخزنة رقمية. نُقدّم حفظ استقلاليتكِ الفسيولوجية على راحة البيانات.' },
+    he: { back: 'חזרה', manifest: 'הצהרת אבטחה', title: 'ארכיטקטורת פרטיות', subtitle: 'מערכת שנבנתה על ההנחה שהביולוגיה שלך שייכת רק לך.', compliance: 'רמת ציות: אמון גבוה', quote: 'Luna29 תוכננה ככספת דיגיטלית. אנחנו מעדיפות את שמירת האוטונומיה הפיזיולוגית שלך על פני נוחות הנתונים.' },};
   const copy = getLang(copyByLang, lang);
   const sectionsByLang: LangCopy< Array<{ title: string; text: string }>> = {
     en: [
@@ -74,17 +74,17 @@ export const PrivacyPolicyView: React.FC<{ lang: Language; onBack: () => void }>
       { title: 'Serviços de terceiros', text: 'Usamos chamadas externas ao Google Gemini API apenas para síntese de alto nível, com minimização de identificadores.' },
       { title: 'Sem venda de identidade', text: 'Nosso modelo é por assinatura. Não vendemos padrões comportamentais ou fisiológicos.' }
     ],
-  ar: [
-      { title: 'Your Private Data', text: "Luna29 Balance follows our 'Privacy Promise'. Core reflections and wellness records are local-first on your device, while account/session and selected support flows may use secure backend storage to keep access stable." },
-      { title: 'Encryption & Exports', text: 'When you export your data, it is generated locally. We recommend keeping these files in a secure, encrypted location. Luna29 does not have a back-door to recover lost local data.' },
-      { title: 'Third-Party Foundations', text: 'We only use external calls to the Google Gemini API for high-level synthesis and image generation. These calls are alignment-stripped to maintain the highest possible level of anonymity.' },
-      { title: 'No Selling of Identity', text: 'Our business model is subscription-based. We do not, and will never, sell your behavioral or physiological patterns to advertisers or pharmaceutical entities.' }
+    ar: [
+      { title: 'بياناتكِ الخاصة', text: 'Luna29 Balance تتبع «وعد الخصوصية». التأملات الأساسية وسجلات العافية local-first على جهازكِ، بينما قد تستخدم الحساب/الجلسة وبعض تدفقات الدعم تخزين backend آمناً لاستقرار الوصول.' },
+      { title: 'التشفير والتصدير', text: 'عند تصدير بياناتكِ، يُنشَأ الملف محلياً. ننصحكِ بالاحتفاظ به في مكان آمن ومشفّر. Luna29 لا تملك باباً خلفياً لاستعادة البيانات المحلية المفقودة.' },
+      { title: 'أساسيات الجهات الخارجية', text: 'نستخدم استدعاءات خارجية لـ Google Gemini API فقط للتوليف عالي المستوى وإنشاء الصور. تُقلَّل هذه الاستدعاءات من المعرفات للحفاظ على أعلى مستوى ممكن من الخصوصية.' },
+      { title: 'لا بيع للهوية', text: 'نموذجنا يعتمد على الاشتراك. لا نبيع — ولن نبيع — أنماطكِ السلوكية أو الفسيولوجية للمعلنين أو الجهات الدوائية.' }
     ],
-  he: [
-      { title: 'Your Private Data', text: "Luna29 Balance follows our 'Privacy Promise'. Core reflections and wellness records are local-first on your device, while account/session and selected support flows may use secure backend storage to keep access stable." },
-      { title: 'Encryption & Exports', text: 'When you export your data, it is generated locally. We recommend keeping these files in a secure, encrypted location. Luna29 does not have a back-door to recover lost local data.' },
-      { title: 'Third-Party Foundations', text: 'We only use external calls to the Google Gemini API for high-level synthesis and image generation. These calls are alignment-stripped to maintain the highest possible level of anonymity.' },
-      { title: 'No Selling of Identity', text: 'Our business model is subscription-based. We do not, and will never, sell your behavioral or physiological patterns to advertisers or pharmaceutical entities.' }
+    he: [
+      { title: 'הנתונים הפרטיים שלך', text: 'Luna29 Balance פועלת לפי «הבטחת הפרטיות». רפлексיות ורשומות wellness מרכזיות הן local-first במכשיר שלך, בעוד שחשבון/סשן וזרמי תמיכה נבחרים עשויים להשתמש באחסון backend מאובטח.' },
+      { title: 'הצפנה וייצוא', text: 'כשאת מייצאת נתונים, הם נוצרים מקומית. מומלץ לשמור את הקבצים במקום מאובטח ומוצפן. ל-Luna29 אין דלת אחורית לשחזור נתונים מקומיים שאבדו.' },
+      { title: 'תשתיות צד שלישי', text: 'אנחנו משתמשות בקריאות חיצוניות ל-Google Gemini API רק לסינתזה ברמה גבוהה ויצירת תמונות. הקריאות מצומצמות לזיהוי כדי לשמור על אנונימיות מקסימלית.' },
+      { title: 'ללא מכירת זהות', text: 'המודל שלנו מבוסס מנוי. אנחנו לא מוכרות — ולא נמכור — את הדפוסים ההתנהגותיים או הפיזיולוגיים שלך למפרסמים או לגופים pharma.' }
     ],};
   const sections = getLang(sectionsByLang, lang);
 
