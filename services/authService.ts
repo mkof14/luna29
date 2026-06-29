@@ -5,7 +5,13 @@ const LOCAL_SESSION_KEY = 'luna_auth_session_v2';
 const LOCAL_USERS_KEY = 'luna_auth_users_v2';
 
 const SUPER_ADMIN_EMAIL = 'dnainform@gmail.com';
+const DEV_SUPER_ADMIN_PASSWORD = (
+  (import.meta.env.VITE_DEV_SUPER_ADMIN_PASSWORD as string | undefined)?.trim()
+  || (import.meta.env.VITE_SUPER_ADMIN_BOOTSTRAP_PASSWORD as string | undefined)?.trim()
+  || ''
+);
 const resolveSuperAdminFallbackPassword = (): string => {
+  if (DEV_SUPER_ADMIN_PASSWORD) return DEV_SUPER_ADMIN_PASSWORD;
   if (typeof window === 'undefined') return '';
   const runtime = (window as Window & { __LUNA_SUPER_ADMIN_FALLBACK_PASSWORD?: string }).__LUNA_SUPER_ADMIN_FALLBACK_PASSWORD;
   if (typeof runtime === 'string' && runtime.trim().length > 0) return runtime.trim();
@@ -58,12 +64,12 @@ const isLocalApiBase = (value: string): boolean => {
 };
 
 const getApiBase = (): string => {
+  // On localhost always use same-origin /api proxy — ignore stored production URLs.
+  if (isLocalHostRuntime) return '';
   const fromEnv = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim() ?? '';
   const fromStorage = localStorage.getItem(API_BASE_STORAGE_KEY)?.trim() ?? '';
   const raw = fromEnv || fromStorage;
   if (!raw) return '';
-  // When the API target is localhost, always use the Vite dev-server proxy (/api → port 8787)
-  // so session cookies are same-origin and not subject to cross-port restrictions.
   if (isLocalApiBase(raw)) return '';
   return raw.replace(/\/$/, '');
 };
@@ -124,17 +130,20 @@ const saveLocalUsers = (users: StoredUser[]) => {
 const ensureLocalSuperAdmin = () => {
   if (!isLocalHostRuntime || !SUPER_ADMIN_FALLBACK_PASSWORD) return;
   const users = getLocalUsers();
-  const exists = users.some((item) => normalizeEmail(item.email) === SUPER_ADMIN_EMAIL);
-  if (exists) return;
-  saveLocalUsers([
-    {
-      email: SUPER_ADMIN_EMAIL,
-      password: SUPER_ADMIN_FALLBACK_PASSWORD,
-      name: 'Luna29 Super Admin',
-      provider: 'password',
-    },
-    ...users,
-  ]);
+  const existingIndex = users.findIndex((item) => normalizeEmail(item.email) === SUPER_ADMIN_EMAIL);
+  const superAdminUser: StoredUser = {
+    email: SUPER_ADMIN_EMAIL,
+    password: SUPER_ADMIN_FALLBACK_PASSWORD,
+    name: 'Luna29 Super Admin',
+    provider: 'password',
+  };
+  if (existingIndex >= 0) {
+    if (users[existingIndex].password === SUPER_ADMIN_FALLBACK_PASSWORD) return;
+    users[existingIndex] = { ...users[existingIndex], ...superAdminUser };
+    saveLocalUsers(users);
+    return;
+  }
+  saveLocalUsers([superAdminUser, ...users]);
 };
 
 const buildSession = (params: { email: string; name?: string; provider: 'password' | 'google'; avatarUrl?: string }): AuthSession => {
@@ -378,10 +387,12 @@ export const authService = {
     try {
       const payload = await requestJson<{ session: AuthSession | null }>('/api/auth/session', { method: 'GET' });
       if (!payload.session) {
-        const superAdminLocalSession = localAuth.getSession();
-        if (superAdminLocalSession && normalizeEmail(superAdminLocalSession.email) === SUPER_ADMIN_EMAIL) {
-          sessionCache = superAdminLocalSession;
-          return superAdminLocalSession;
+        if (isLocalHostRuntime) {
+          const localSession = localAuth.getSession();
+          if (localSession) {
+            sessionCache = localSession;
+            return localSession;
+          }
         }
         if (!canUseLocalFallback()) return null;
         const fallback = localAuth.getSession();
@@ -389,12 +400,15 @@ export const authService = {
         return fallback;
       }
       sessionCache = normalizeSession(payload.session);
+      saveLocalSession(sessionCache);
       return sessionCache;
     } catch (error) {
-      const superAdminLocalSession = localAuth.getSession();
-      if (superAdminLocalSession && normalizeEmail(superAdminLocalSession.email) === SUPER_ADMIN_EMAIL) {
-        sessionCache = superAdminLocalSession;
-        return superAdminLocalSession;
+      if (isLocalHostRuntime) {
+        const localSession = localAuth.getSession();
+        if (localSession) {
+          sessionCache = localSession;
+          return localSession;
+        }
       }
       if (isNetworkError(error) && canUseLocalFallback()) {
         return localAuth.getSession();
@@ -404,19 +418,33 @@ export const authService = {
   },
 
   async loginWithPassword(email: string, password: string): Promise<AuthSession> {
+    const normalizedEmail = normalizeEmail(email);
+    if (password.length < 8) {
+      throw new Error('Password must contain at least 8 characters.');
+    }
+
     try {
       const payload = await requestJson<{ session: AuthSession }>('/api/auth/signin', {
         method: 'POST',
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: normalizedEmail, password }),
       });
       sessionCache = normalizeSession(payload.session);
+      saveLocalSession(sessionCache);
       return sessionCache;
     } catch (error) {
-      const normalizedEmail = normalizeEmail(email);
       const message = error instanceof Error ? error.message : '';
       const is5xx = /status 5\d\d/.test(message);
-      if (normalizedEmail === SUPER_ADMIN_EMAIL && password.length >= 8 && (isNetworkError(error) || is5xx)) {
-        return localAuth.upsertSuperAdminPassword(normalizedEmail, password);
+      const is401 = /status 401|incorrect email or password/i.test(message);
+      const canLocalSuperAdmin =
+        isLocalHostRuntime
+        && normalizedEmail === SUPER_ADMIN_EMAIL
+        && password === SUPER_ADMIN_FALLBACK_PASSWORD;
+
+      if (canLocalSuperAdmin || (isLocalHostRuntime && normalizedEmail === SUPER_ADMIN_EMAIL && (isNetworkError(error) || is5xx || is401))) {
+        ensureLocalSuperAdmin();
+        if (canLocalSuperAdmin || password === SUPER_ADMIN_FALLBACK_PASSWORD) {
+          return localAuth.upsertSuperAdminPassword(normalizedEmail, password);
+        }
       }
       if (isNetworkError(error) && canUseLocalFallback()) {
         return localAuth.loginWithPassword(email, password);
@@ -432,6 +460,7 @@ export const authService = {
         body: JSON.stringify({ email, password }),
       });
       sessionCache = normalizeSession(payload.session);
+      saveLocalSession(sessionCache);
       return sessionCache;
     } catch (error) {
       if (isNetworkError(error) && canUseLocalFallback()) {
@@ -448,8 +477,12 @@ export const authService = {
         body: JSON.stringify({ credential }),
       });
       sessionCache = normalizeSession(payload.session);
+      saveLocalSession(sessionCache);
       return sessionCache;
     } catch (error) {
+      if (isLocalHostRuntime) {
+        return localAuth.loginWithGoogleCredential(credential);
+      }
       if (isNetworkError(error) && canUseLocalFallback()) {
         return localAuth.loginWithGoogleCredential(credential);
       }
@@ -476,13 +509,13 @@ export const authService = {
   async logout(): Promise<void> {
     try {
       await requestJson<{ ok: boolean }>('/api/auth/logout', { method: 'POST', body: JSON.stringify({}) });
-      sessionCache = null;
     } catch (error) {
-      if (isNetworkError(error) && canUseLocalFallback()) {
-        localAuth.logout();
-        return;
+      if (!isNetworkError(error) && !canUseLocalFallback()) {
+        throw error;
       }
-      throw error;
+    } finally {
+      localAuth.logout();
+      sessionCache = null;
     }
   },
 

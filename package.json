@@ -18,7 +18,8 @@
     "perf:bundle": "node scripts/perf-budget.mjs",
     "qa:beta": "node scripts/qa-beta.mjs",
     "qa:beta:strict": "node scripts/qa-beta.mjs --strict",
-    "release:ready": "node scripts/release-ready.mjs"
+    "release:ready": "node scripts/release-ready.mjs",
+    "auth:check": "node scripts/check-auth-setup.mjs"
   },
   "dependencies": {
     "@google/genai": "^1.40.0",

@@ -84,7 +84,8 @@ const ADMIN_EMAIL_RULES = [
 ];
 
 const ALLOWED_ORIGINS = new Set(
-  (process.env.AUTH_ALLOWED_ORIGINS || 'http://localhost:3000,http://127.0.0.1:3000,http://localhost:4173,http://127.0.0.1:4173')
+  (process.env.AUTH_ALLOWED_ORIGINS
+    || 'http://localhost:3000,http://127.0.0.1:3000,http://localhost:4173,http://127.0.0.1:4173,https://luna29.vercel.app')
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean)
@@ -1047,10 +1048,12 @@ const start = async () => {
       didBootstrapSuperAdmin = true;
     }
 
-    if (!account.passwordHash && SUPER_ADMIN_BOOTSTRAP_PASSWORD) {
-      account.passwordHash = hashPassword(SUPER_ADMIN_BOOTSTRAP_PASSWORD);
-      account.lastProvider = 'password';
-      didBootstrapSuperAdmin = true;
+    if (SUPER_ADMIN_BOOTSTRAP_PASSWORD) {
+      if (!account.passwordHash || !verifyPassword(SUPER_ADMIN_BOOTSTRAP_PASSWORD, account.passwordHash)) {
+        account.passwordHash = hashPassword(SUPER_ADMIN_BOOTSTRAP_PASSWORD);
+        account.lastProvider = 'password';
+        didBootstrapSuperAdmin = true;
+      }
     }
   }
   if (didBootstrapSuperAdmin) {
@@ -1564,6 +1567,16 @@ const start = async () => {
       } catch (error) {
         send(res, 500, { error: error instanceof Error ? error.message : 'Voice conversation failed.' }, headers);
       }
+      return;
+    }
+
+    if (method === 'GET' && url.pathname === '/api/auth/config') {
+      send(res, 200, {
+        googleEnabled: GOOGLE_CLIENT_IDS.size > 0,
+        googleUnverifiedAllowed: AUTH_ALLOW_UNVERIFIED_GOOGLE,
+        superAdminBootstrapConfigured: SUPER_ADMIN_BOOTSTRAP_PASSWORD_CONFIGURED,
+        emailEnabled: true,
+      }, headers);
       return;
     }
 
