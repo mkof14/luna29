@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:full": "node server/index.mjs & vite",
-    "api": "node server/index.mjs",
+    "dev:full": "node --env-file-if-exists=.env.local server/index.mjs & vite",
+    "api": "node --env-file-if-exists=.env.local server/index.mjs",
     "build": "node scripts/generate-seo-assets.mjs && tsc && vite build",
     "preview": "vite preview",
     "lint": "tsc --noEmit",
