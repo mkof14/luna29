@@ -19,7 +19,8 @@
     "qa:beta": "node scripts/qa-beta.mjs",
     "qa:beta:strict": "node scripts/qa-beta.mjs --strict",
     "release:ready": "node scripts/release-ready.mjs",
-    "auth:check": "node scripts/check-auth-setup.mjs"
+    "auth:check": "node scripts/check-auth-setup.mjs",
+    "vercel:env": "node scripts/sync-vercel-env.mjs"
   },
   "dependencies": {
     "@google/genai": "^1.40.0",
@@ -38,6 +39,7 @@
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.16",
     "typescript": "^5.7.2",
+    "vercel": "^54.18.3",
     "vite": "^6.0.0"
   }
 }
