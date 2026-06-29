@@ -308,10 +308,10 @@ const testCoreUtils = () => {
   const bottom = buildBottomNavItems(ui);
 
   assert.equal(sidebar.length, 5, 'sidebar should have five groups');
-  assert.equal(top.length, 4, 'top nav should include four main items');
-  assert.equal(bottom.length, 4, 'bottom nav should include four main items');
+  assert.equal(top.length, 5, 'top nav should include five main items');
+  assert.equal(bottom.length, 5, 'bottom nav should include five main items');
   assert.equal(sidebar[0].items[0].id, 'today_mirror', 'first sidebar item should be today_mirror');
-  assert.equal(top[2].id, 'history', 'top nav third item should be history');
+  assert.equal(top[2].id, 'cycle', 'top nav third item should be cycle');
   assert.equal(bottom[0].id, 'today_mirror', 'first bottom item should be today_mirror');
   assert.ok(
     sidebar[2].items.some((item) => item.id === 'rhythm_calendar'),

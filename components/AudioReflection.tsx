@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Mic, Square, Save, Share2, X, Sparkles, RefreshCw } from 'lucide-react';
 import { dataService } from '../services/dataService';
 import { generatePsychologistResponse } from '../services/geminiService';
+import { isVoiceAiEnabled, requestLunaVoiceResponse } from '../services/voiceConversationService';
+import { isAiProcessingAllowed } from '../utils/aiConsent';
 import { Language, LangCopy, getLang } from '../constants';
 
 type SpeechRecognitionAlternativeLike = {
@@ -888,7 +890,25 @@ export const AudioReflection: React.FC<{ onBack: () => void, lang?: Language }> 
   const handleTranscription = async (text: string) => {
     setIsAnalyzing(true);
     try {
-      const result = await generatePsychologistResponse(text, mapLocaleToLanguage(recognitionLang));
+      const langCode = mapLocaleToLanguage(recognitionLang);
+      if (isVoiceAiEnabled() && isAiProcessingAllowed()) {
+        const result = await requestLunaVoiceResponse({
+          transcript: text,
+          lang: langCode,
+          mode: 'reflection',
+          personaId: 'luna',
+        });
+        setAiResponse(result.text);
+        if (result.audio) {
+          setAudioBase64(result.audio);
+          playAudio(result.audio);
+        } else {
+          speakText(result.text);
+        }
+        return;
+      }
+
+      const result = await generatePsychologistResponse(text, langCode);
       setAiResponse(result.text);
       if (result.audio) {
         setAudioBase64(result.audio);

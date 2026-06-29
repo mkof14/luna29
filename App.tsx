@@ -105,7 +105,7 @@ const App: React.FC = () => {
     let isMounted = true;
     const safetyTimer = window.setTimeout(() => {
       setIsAuthLoading(false);
-    }, 10000);
+    }, 5000);
 
     authService
       .getSession()
@@ -189,7 +189,15 @@ const App: React.FC = () => {
     return <StandaloneLaunchSplash lang={lang} />;
   }
 
-  if (isAuthLoading) {
+  const awaitingSessionRestore = isAuthLoading && !session && (() => {
+    try {
+      return Boolean(localStorage.getItem('luna_auth_session_v2'));
+    } catch {
+      return false;
+    }
+  })();
+
+  if (awaitingSessionRestore) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-950 text-slate-500 dark:text-slate-400">
         <div className="text-[10px] font-black uppercase tracking-[0.3em]">Loading Session...</div>

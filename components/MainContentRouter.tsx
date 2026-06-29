@@ -34,6 +34,7 @@ const TodayMirrorView = lazy(() => import('./TodayMirrorView').then((m) => ({ de
 const MyDayWithLunaView = lazy(() => import('./MyDayWithLunaView').then((m) => ({ default: m.MyDayWithLunaView })));
 const MonthlyReflectionView = lazy(() => import('./MonthlyReflectionView').then((m) => ({ default: m.MonthlyReflectionView })));
 const InsightsPaywallView = lazy(() => import('./InsightsPaywallView').then((m) => ({ default: m.InsightsPaywallView })));
+const LunaRhythmCalendarView = lazy(() => import('./LunaRhythmCalendarView').then((m) => ({ default: m.LunaRhythmCalendarView })));
 
 const LoadingFallback: React.FC<{ lang: Language }> = ({ lang }) => (
   <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4 animate-pulse">
@@ -311,6 +312,15 @@ export const MainContentRouter: React.FC<MainContentRouterProps> = ({
           />
         )}
         {activeTab === 'insights_paywall' && <InsightsPaywallView lang={lang} onBack={() => navigateTo('today_mirror')} />}
+        {activeTab === 'rhythm_calendar' && (
+          <LunaRhythmCalendarView
+            lang={lang}
+            log={log}
+            currentCycleDay={systemState.currentDay}
+            cycleLength={systemState.cycleLength}
+            onBack={() => navigateTo('today_mirror')}
+          />
+        )}
         {activeTab === 'about' && <AboutLunaView lang={lang} mode="member" onBack={() => navigateTo('today_mirror')} />}
         {activeTab === 'cycle' && (
           <CycleTimeline

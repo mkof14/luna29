@@ -787,11 +787,6 @@ input[type='range'] {
   text-align: right;
 }
 
-[dir='rtl'] .flex-row,
-[dir='rtl'] .inline-flex {
-  flex-direction: row-reverse;
-}
-
 [dir='rtl'] .text-left {
   text-align: right;
 }
