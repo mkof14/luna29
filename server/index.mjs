@@ -1031,10 +1031,10 @@ const start = async () => {
         id: randomBytes(12).toString('hex'),
         email,
         name: 'Luna29 Super Admin',
-        passwordHash: hashPassword(SUPER_ADMIN_BOOTSTRAP_PASSWORD),
+        passwordHash: SUPER_ADMIN_BOOTSTRAP_PASSWORD ? hashPassword(SUPER_ADMIN_BOOTSTRAP_PASSWORD) : null,
         createdAt: new Date().toISOString(),
         roleOverride: 'super_admin',
-        lastProvider: 'password',
+        lastProvider: SUPER_ADMIN_BOOTSTRAP_PASSWORD ? 'password' : 'google',
         avatarUrl: undefined,
       };
       users = [account, ...users];
@@ -1047,7 +1047,7 @@ const start = async () => {
       didBootstrapSuperAdmin = true;
     }
 
-    if (!account.passwordHash) {
+    if (!account.passwordHash && SUPER_ADMIN_BOOTSTRAP_PASSWORD) {
       account.passwordHash = hashPassword(SUPER_ADMIN_BOOTSTRAP_PASSWORD);
       account.lastProvider = 'password';
       didBootstrapSuperAdmin = true;

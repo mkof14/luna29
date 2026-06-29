@@ -58,10 +58,14 @@ const isLocalApiBase = (value: string): boolean => {
 };
 
 const getApiBase = (): string => {
-  const fromStorage = localStorage.getItem(API_BASE_STORAGE_KEY)?.trim();
-  if (!fromStorage) return '';
-  if (!isLocalHostRuntime && isLocalApiBase(fromStorage)) return '';
-  return fromStorage.replace(/\/$/, '');
+  const fromEnv = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim() ?? '';
+  const fromStorage = localStorage.getItem(API_BASE_STORAGE_KEY)?.trim() ?? '';
+  const raw = fromEnv || fromStorage;
+  if (!raw) return '';
+  // When the API target is localhost, always use the Vite dev-server proxy (/api → port 8787)
+  // so session cookies are same-origin and not subject to cross-port restrictions.
+  if (isLocalApiBase(raw)) return '';
+  return raw.replace(/\/$/, '');
 };
 
 const apiUrl = (path: string) => {
