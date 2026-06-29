@@ -1,7 +1,18 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Logo } from './Logo';
 import { Mic, MicOff, Moon, Sun, Volume2, VolumeX } from 'lucide-react';
 import { Language, LangCopy, getLang } from '../constants';
+import {
+  DEFAULT_LUNA_PERSONA_ID,
+  type LunaVoicePersonaId,
+  personaIntroByLang,
+} from '../utils/lunaVoicePersonas';
+import {
+  fetchVoiceServiceConfig,
+  isVoiceAiEnabled,
+  requestLunaVoiceResponse,
+  type VoiceServiceConfig,
+} from '../services/voiceConversationService';
 
 type ConnectionStatus = 'IDLE' | 'CONNECTING' | 'CONNECTED' | 'ERROR';
 type AssistantTheme = 'light' | 'dark';
@@ -94,30 +105,33 @@ const copyByLang: LangCopy< {
   syncInterrupted: string;
   initFailed: string;
   restart: string;
+  thinking?: string;
 }> = {
   en: {
     live: 'Live', micOn: 'On', micOff: 'Off', speakerLive: 'Live', speakerMuted: 'Muted',
     placeholder: 'Share your reflection...',
-    localMode: '[Local mode active: AI uses local responses in dev]',
-    intro: 'I am available in voice + text mode. Share what feels most important right now.',
+    localMode: '',
+    intro: 'I am here with you — voice or text. Share what feels most alive right now.',
     unsupported: 'Voice recognition is not supported in this browser.',
     micDenied: 'Microphone access denied. Check browser settings.',
     noSpeech: "I could not catch speech. Please try again.",
     syncInterrupted: 'Sync Interrupted',
-    initFailed: 'The local assistant failed to initialize.',
+    initFailed: 'The assistant failed to initialize.',
     restart: 'Restart',
+    thinking: 'Luna is listening…',
   },
   ru: {
     live: 'Live', micOn: 'Вкл', micOff: 'Выкл', speakerLive: 'Звук', speakerMuted: 'Тихо',
     placeholder: 'Поделитесь вашим состоянием...',
-    localMode: '[Локальный режим: ответы ИИ в dev работают локально]',
-    intro: 'Я доступна в голосовом и текстовом режиме. Расскажите, что сейчас важнее всего.',
+    localMode: '',
+    intro: 'Я рядом — голосом или текстом. Расскажи, что сейчас чувствуется сильнее всего.',
     unsupported: 'Распознавание речи не поддерживается в этом браузере.',
     micDenied: 'Доступ к микрофону запрещен. Проверьте настройки браузера.',
     noSpeech: 'Не удалось распознать речь. Попробуйте еще раз.',
     syncInterrupted: 'Связь прервана',
-    initFailed: 'Локальный ассистент не смог инициализироваться.',
+    initFailed: 'Ассистент не смог инициализироваться.',
     restart: 'Перезапустить',
+    thinking: 'Luna слушает…',
   },
   uk: {
     live: 'Live', micOn: 'Увiмк', micOff: 'Вимк', speakerLive: 'Звук', speakerMuted: 'Тихо',
@@ -328,6 +342,9 @@ export const LiveAssistant: React.FC<{ isOpen: boolean; onClose: () => void; sta
   const [isMicMuted, setIsMicMuted] = useState(false);
   const [isSpeakerMuted, setIsSpeakerMuted] = useState(false);
   const [assistantTheme, setAssistantTheme] = useState<AssistantTheme>('dark');
+  const [personaId, setPersonaId] = useState<LunaVoicePersonaId>(DEFAULT_LUNA_PERSONA_ID);
+  const [voiceConfig, setVoiceConfig] = useState<VoiceServiceConfig | null>(null);
+  const [isThinking, setIsThinking] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const recognitionActiveRef = useRef(false);
@@ -335,6 +352,9 @@ export const LiveAssistant: React.FC<{ isOpen: boolean; onClose: () => void; sta
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animationIdRef = useRef<number | null>(null);
+  const replyAudioRef = useRef<HTMLAudioElement | null>(null);
+  const voiceSendTimerRef = useRef<number | null>(null);
+  const pendingVoiceTextRef = useRef('');
   const locale = recognitionLangByUi[lang] || recognitionLangByUi.en;
   const copy = getLang(copyByLang, lang) || copyByLang.en;
 
@@ -444,6 +464,76 @@ export const LiveAssistant: React.FC<{ isOpen: boolean; onClose: () => void; sta
     window.speechSynthesis.speak(utterance);
   };
 
+  const stopReplyAudio = () => {
+    if (replyAudioRef.current) {
+      replyAudioRef.current.pause();
+      replyAudioRef.current = null;
+    }
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+    setIsSpeaking(false);
+  };
+
+  const playReplyAudio = (base64: string) => {
+    if (isSpeakerMuted || !base64) return;
+    stopReplyAudio();
+    try {
+      const audio = new Audio(`data:audio/mpeg;base64,${base64}`);
+      replyAudioRef.current = audio;
+      audio.onplay = () => setIsSpeaking(true);
+      audio.onended = () => {
+        setIsSpeaking(false);
+        replyAudioRef.current = null;
+      };
+      audio.onerror = () => setIsSpeaking(false);
+      void audio.play();
+    } catch {
+      setIsSpeaking(false);
+    }
+  };
+
+  const sendUserMessage = useCallback(async (raw: string) => {
+    const msg = raw.trim();
+    if (!msg || status !== 'CONNECTED' || isThinking) return;
+
+    setMessages((prev) => [...prev, { role: 'user', text: msg }]);
+    setTextInput('');
+    setInterimText('');
+    setIsThinking(true);
+
+    const history = messages
+      .filter((m) => m.role === 'user' || m.role === 'luna')
+      .slice(-6)
+      .map((m) => ({ role: m.role === 'luna' ? 'assistant' as const : 'user' as const, text: m.text }));
+
+    try {
+      if (isVoiceAiEnabled() && (voiceConfig?.enabled || voiceConfig?.ttsEnabled)) {
+        const result = await requestLunaVoiceResponse({
+          transcript: msg,
+          lang,
+          personaId,
+          mode: 'live',
+          history,
+          context: { stateSnapshot },
+          withAudio: !isSpeakerMuted,
+        });
+        setMessages((prev) => [...prev, { role: 'luna', text: result.text }]);
+        if (result.audio) {
+          playReplyAudio(result.audio);
+        } else {
+          speakReply(result.text);
+        }
+      } else {
+        const reply = buildLocalReply(msg, stateSnapshot, lang);
+        setMessages((prev) => [...prev, { role: 'luna', text: reply }]);
+        speakReply(reply);
+      }
+    } finally {
+      setIsThinking(false);
+    }
+  }, [isSpeakerMuted, isThinking, lang, messages, personaId, stateSnapshot, status, voiceConfig?.enabled, voiceConfig?.ttsEnabled]);
+
   const startListening = () => {
     if (isMicMuted || status !== 'CONNECTED') return;
     const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -488,7 +578,20 @@ export const LiveAssistant: React.FC<{ isOpen: boolean; onClose: () => void; sta
         }
 
         if (finalChunk.trim()) {
-          setTextInput((prev) => (prev ? `${prev} ${finalChunk.trim()}` : finalChunk.trim()));
+          pendingVoiceTextRef.current = pendingVoiceTextRef.current
+            ? `${pendingVoiceTextRef.current} ${finalChunk.trim()}`
+            : finalChunk.trim();
+          setTextInput(pendingVoiceTextRef.current);
+          if (voiceSendTimerRef.current) {
+            window.clearTimeout(voiceSendTimerRef.current);
+          }
+          voiceSendTimerRef.current = window.setTimeout(() => {
+            const toSend = pendingVoiceTextRef.current.trim();
+            pendingVoiceTextRef.current = '';
+            if (toSend) {
+              void sendUserMessage(toSend);
+            }
+          }, 1400);
         }
         setInterimText(interimChunk.trim());
       };
@@ -534,12 +637,26 @@ export const LiveAssistant: React.FC<{ isOpen: boolean; onClose: () => void; sta
     setInterimText('');
     setIsListening(false);
     setIsSpeaking(false);
-    stopListening();
-    stopAudioVisualizer();
-    if (window.speechSynthesis) {
-      window.speechSynthesis.cancel();
+    setIsThinking(false);
+    pendingVoiceTextRef.current = '';
+    if (voiceSendTimerRef.current) {
+      window.clearTimeout(voiceSendTimerRef.current);
+      voiceSendTimerRef.current = null;
     }
+    stopListening();
+    stopReplyAudio();
+    stopAudioVisualizer();
   };
+
+  const introForPersona = useMemo(() => {
+    const byLang = personaIntroByLang[lang] || personaIntroByLang.en;
+    return byLang?.[personaId] || copy.intro;
+  }, [copy.intro, lang, personaId]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    void fetchVoiceServiceConfig().then(setVoiceConfig);
+  }, [isOpen]);
 
   const startSession = () => {
     if (status !== 'IDLE') return;
@@ -547,26 +664,16 @@ export const LiveAssistant: React.FC<{ isOpen: boolean; onClose: () => void; sta
 
     setTimeout(() => {
       setStatus('CONNECTED');
-      setMessages([
-        { role: 'system', text: copy.localMode },
-        { role: 'luna', text: copy.intro }
-      ]);
+      const opening: ChatMessage[] = [{ role: 'luna', text: introForPersona }];
+      if (!isVoiceAiEnabled() || !(voiceConfig?.enabled || voiceConfig?.ttsEnabled)) {
+        opening.unshift({ role: 'system', text: copy.localMode || copy.intro });
+      }
+      setMessages(opening);
     }, 280);
   };
 
   const handleSendText = () => {
-    const msg = textInput.trim();
-    if (!msg || status !== 'CONNECTED') return;
-
-    setMessages((prev) => [...prev, { role: 'user', text: msg }]);
-    setTextInput('');
-    setInterimText('');
-
-    const reply = buildLocalReply(msg, stateSnapshot, lang);
-    setTimeout(() => {
-      setMessages((prev) => [...prev, { role: 'luna', text: reply }]);
-      speakReply(reply);
-    }, 220);
+    void sendUserMessage(textInput);
   };
 
   useEffect(() => {
@@ -614,6 +721,9 @@ export const LiveAssistant: React.FC<{ isOpen: boolean; onClose: () => void; sta
                 <div className={`w-2.5 h-2.5 rounded-full ${status === 'CONNECTED' ? 'bg-emerald-500 shadow-[0_0_10px_#10b981] animate-pulse' : status === 'CONNECTING' ? 'bg-amber-500 animate-pulse' : 'bg-slate-500'}`} />
                 <Logo size="sm" className="!text-[2rem] !leading-none !pt-0 pointer-events-none" />
                 <span className="mb-1 text-[10px] font-black uppercase tracking-widest opacity-60">{copy.live}</span>
+                {voiceConfig?.ttsEnabled && (
+                  <span className="mb-1 text-[8px] font-bold uppercase tracking-widest text-violet-400/90">ElevenLabs</span>
+                )}
                 <span className="mb-1 ml-1 flex items-end gap-[2px] h-3">
                   {audioBars.slice(0, 6).map((height, idx) => (
                     <span
@@ -703,7 +813,28 @@ export const LiveAssistant: React.FC<{ isOpen: boolean; onClose: () => void; sta
           </div>
 
           {status === 'CONNECTED' && (
-            <footer className="relative p-6 border-t border-inherit bg-inherit/40 backdrop-blur-md z-20">
+            <footer className="relative p-6 border-t border-inherit bg-inherit/40 backdrop-blur-md z-20 space-y-3">
+              {(voiceConfig?.personas?.length ?? 0) > 1 && (
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {voiceConfig!.personas.map((persona) => (
+                    <button
+                      key={persona.id}
+                      type="button"
+                      onClick={() => setPersonaId(persona.id as LunaVoicePersonaId)}
+                      className={`px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border transition-all ${
+                        personaId === persona.id
+                          ? 'bg-luna-purple text-white border-luna-purple shadow-md shadow-luna-purple/30'
+                          : 'border-inherit opacity-70 hover:opacity-100'
+                      }`}
+                    >
+                      {persona.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {isThinking && (
+                <p className="text-center text-[10px] font-semibold uppercase tracking-widest opacity-60">{copy.thinking || 'Luna is listening…'}</p>
+              )}
               <div className="relative bg-inherit rounded-[2rem] border-2 border-inherit shadow-[0_12px_35px_rgba(49,74,131,0.25)] flex items-end gap-2 p-1.5">
                 <textarea
                   value={textInput}
@@ -717,8 +848,9 @@ export const LiveAssistant: React.FC<{ isOpen: boolean; onClose: () => void; sta
                   placeholder={copy.placeholder}
                   className="flex-1 bg-transparent p-3 outline-none text-sm resize-none min-h-[44px] max-h-[120px]"
                   rows={1}
+                  disabled={isThinking}
                 />
-                <button onClick={handleSendText} disabled={!textInput.trim()} className="w-10 h-10 flex items-center justify-center rounded-full bg-luna-purple text-white disabled:opacity-20 flex-shrink-0 mb-0.5 shadow-lg shadow-luna-purple/30">
+                <button onClick={handleSendText} disabled={!textInput.trim() || isThinking} className="w-10 h-10 flex items-center justify-center rounded-full bg-luna-purple text-white disabled:opacity-20 flex-shrink-0 mb-0.5 shadow-lg shadow-luna-purple/30">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                 </button>
               </div>

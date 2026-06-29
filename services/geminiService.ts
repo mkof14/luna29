@@ -161,16 +161,14 @@ export const generatePsychologistResponse = async (
   text: string,
   lang: string = 'en'
 ): Promise<{ text: string; audio: string | null }> => {
-  const response = fallbackByLang(
-    'Я слышу тебя. Спасибо, что поделилась. Давай сегодня держаться мягкого темпа и опоры на простые действия.',
-    'I hear you. Thank you for sharing this. Let us keep today steady, simple, and supportive.',
-    lang
-  );
-
-  return {
-    text: text.trim() ? response : fallbackByLang('Я рядом.', 'I am here with you.', lang),
-    audio: null,
-  };
+  const { requestLunaVoiceResponse } = await import('./voiceConversationService');
+  const result = await requestLunaVoiceResponse({
+    transcript: text,
+    lang: lang as import('../constants').Language,
+    mode: 'reflection',
+    personaId: 'luna',
+  });
+  return { text: result.text, audio: result.audio };
 };
 
 export const startVeoVideo = async (_prompt: string) => {

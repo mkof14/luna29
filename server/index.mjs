@@ -4,6 +4,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { GoogleGenAI } from '@google/genai';
+import { getPublicVoiceConfig, handleVoiceConversation, listElevenLabsVoices } from './voiceConversation.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -1532,6 +1533,36 @@ const start = async () => {
         send(res, 200, { text: result.text, message: result.message, provider: GEMINI_API_KEY ? 'gemini' : 'fallback' }, headers);
       } catch (error) {
         send(res, 400, { error: error instanceof Error ? error.message : 'Could not scan image.' }, headers);
+      }
+      return;
+    }
+
+    if (method === 'GET' && url.pathname === '/api/voice/config') {
+      send(res, 200, getPublicVoiceConfig(), headers);
+      return;
+    }
+
+    if (method === 'GET' && url.pathname === '/api/voice/voices') {
+      try {
+        const voices = await listElevenLabsVoices();
+        send(res, 200, { voices, configured: voices.length > 0 }, headers);
+      } catch (error) {
+        send(res, 500, { error: error instanceof Error ? error.message : 'Could not list voices.' }, headers);
+      }
+      return;
+    }
+
+    if (method === 'POST' && url.pathname === '/api/voice/respond') {
+      if (!rateLimit(`voice-respond:${ip}`, 30, 60_000)) {
+        send(res, 429, { error: 'Too many voice requests. Try again in a minute.' }, headers);
+        return;
+      }
+      try {
+        const body = await readBody(req);
+        const result = await handleVoiceConversation(body);
+        send(res, 200, result, headers);
+      } catch (error) {
+        send(res, 500, { error: error instanceof Error ? error.message : 'Voice conversation failed.' }, headers);
       }
       return;
     }
