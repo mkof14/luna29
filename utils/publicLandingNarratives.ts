@@ -352,7 +352,28 @@ export type HomeStory = {
     zh: { title: '清晰透明的价格', subtitle: '一个套餐，完整会员功能。可按月或按年。', month: '$12.99', year: '$89', monthNote: '每月', yearNote: '每年', saveBadge: '年付节省25%', cta: '购买 Luna29 会员', recommended: '建议价格：$12.99/月。' },
     ja: { title: 'わかりやすい料金', subtitle: '1プランで会員機能をすべて利用。月額/年額を選択。', month: '$12.99', year: '$89', monthNote: '月額', yearNote: '年額', saveBadge: '年額で25%オフ', cta: 'Luna29を購入', recommended: '推奨価格: $12.99/月。' },
     pt: { title: 'Preco Simples E Claro', subtitle: 'Um plano com acesso completo. Mensal ou anual.', month: '$12.99', year: '$89', monthNote: 'por mes', yearNote: 'por ano', saveBadge: 'Economize 25% no anual', cta: 'Comprar Luna29', recommended: 'Recomendado: $12.99/mes.' },
-  };
+  ar: {
+      title: 'Simple, Transparent Pricing',
+      subtitle: 'Start free. Upgrade when you want deeper patterns, reports, and unlimited Bridge.',
+      month: '$12.99',
+      year: '$89',
+      monthNote: 'per month',
+      yearNote: 'per year',
+      saveBadge: 'Save 25% yearly',
+      cta: 'Buy Luna29 Access',
+      recommended: 'Recommended: $12.99/month for early growth stage.',
+    },
+  he: {
+      title: 'Simple, Transparent Pricing',
+      subtitle: 'Start free. Upgrade when you want deeper patterns, reports, and unlimited Bridge.',
+      month: '$12.99',
+      year: '$89',
+      monthNote: 'per month',
+      yearNote: 'per year',
+      saveBadge: 'Save 25% yearly',
+      cta: 'Buy Luna29 Access',
+      recommended: 'Recommended: $12.99/month for early growth stage.',
+    },};
 
   const homeToggleByLang: LangCopy< { more: string; less: string }> = {
     en: { more: 'Show Full Story', less: 'Show Less' },
@@ -364,7 +385,8 @@ export type HomeStory = {
     zh: { more: '显示完整内容', less: '收起详情' },
     ja: { more: '全文を表示', less: '表示を減らす' },
     pt: { more: 'Mostrar Historia Completa', less: 'Mostrar Menos' },
-  };
+  ar: { more: 'Show Full Story', less: 'Show Less' },
+  he: { more: 'Show Full Story', less: 'Show Less' },};
 
   const hormoneFocusByLang: Partial<LangCopy< { title: string; subtitle: string; cards: Array<{ hormone: string; why: string }> }>> = {
     en: {
@@ -505,7 +527,16 @@ export type HomeStory = {
       subtitle: 'Página clara para consulta médica: exames e sintomas em um relatório estruturado.',
       points: ['Envie scan/foto ou cole texto', 'Acompanhe marcadores por categorias', 'Relatório de marca com ID e data', 'Copy, Print, Share, Download, PDF no idioma escolhido'],
     },
-  };
+  ar: {
+      title: 'My Health Reports',
+      subtitle: 'A clear, doctor-ready page that turns labs and symptoms into one structured report.',
+      points: ['Upload scan/photo or paste text', 'Track lab markers by categories', 'Generate branded report with ID and date', 'Copy, Print, Share, Download, PDF in selected language'],
+    },
+  he: {
+      title: 'My Health Reports',
+      subtitle: 'A clear, doctor-ready page that turns labs and symptoms into one structured report.',
+      points: ['Upload scan/photo or paste text', 'Track lab markers by categories', 'Generate branded report with ID and date', 'Copy, Print, Share, Download, PDF in selected language'],
+    },};
 
 export interface LandingNarratives {
   homeStory: HomeStory;

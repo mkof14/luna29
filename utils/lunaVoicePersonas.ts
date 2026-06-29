@@ -9,7 +9,7 @@ export type LunaVoicePersonaPublic = {
   description: string;
 };
 
-export type VoiceConversationMode = 'live' | 'reflection' | 'guide';
+export type VoiceConversationMode = 'live' | 'reflection' | 'guide' | 'teaser';
 
 export type VoiceHistoryTurn = {
   role: 'user' | 'assistant' | 'luna';

@@ -394,7 +394,88 @@ export const CrisisCenterView: React.FC<{ lang: Language; onBack: () => void }> 
       toolsHint: 'Dica: se falar estiver dificil, envie primeiro a mensagem copiada.',
       checklistHint: 'Dica: conclua um passo por vez.',
     },
-  };
+  ar: {
+      back: 'Back',
+      title: 'Reset Room',
+      subtitle: 'A live stabilization space for intense moments.',
+      demand: 'Nervous System Overload Detected',
+      breathTitle: 'Breath Protocol',
+      breathProtocol: 'Inhale 4s • Hold 4s • Exhale 6s',
+      start: 'Start',
+      pause: 'Pause',
+      reset: 'Reset',
+      cycles: 'Completed cycles',
+      groundingTitle: 'Grounding 5-4-3-2-1',
+      groundingSubtitle: 'Fill what you notice right now. This lowers system intensity by restoring orientation.',
+      toolsTitle: 'Immediate Actions',
+      call911: 'Call 911',
+      call988: 'Call 988 Lifeline',
+      copyMessage: 'Copy check-in message',
+      copied: 'Message copied',
+      copyFailed: 'Copy failed',
+      noteTitle: 'Personal Safety Note',
+      notePlaceholder: 'Write one grounding sentence for yourself...',
+      checklistTitle: 'Next 10-Minute Plan',
+      checklist: ['Drink water', 'Open a window / fresh air', 'Send one safe-message', 'Set a 10-minute timer'],
+      commentsTitle: 'After-Reset Comments',
+      comments: [
+        { quote: 'The breathing timer helps me stop spiraling in under two minutes.', author: 'Maya • 29' },
+        { quote: 'Grounding fields make me focus on reality, not panic loops.', author: 'Elena • 34' },
+        { quote: 'Copy message saved me from writing while overloaded.', author: 'Rina • 31' },
+      ],
+      quickStartTitle: 'How To Use This Page',
+      quickStart: [
+        '1. Start Breath Protocol and complete at least 3 cycles.',
+        '2. Fill Grounding fields with short real observations.',
+        '3. Use one Immediate Action (call or copy message).',
+        '4. Complete your 10-minute plan and leave one note.',
+      ],
+      breathingHint: 'Tip: do not force deep breathing. Keep it soft and rhythmic.',
+      groundingHint: 'Tip: write simple facts, not analysis.',
+      toolsHint: 'Tip: if verbal communication is hard, use the copied message first.',
+      checklistHint: 'Tip: complete only one step at a time.',
+    },
+  he: {
+      back: 'Back',
+      title: 'Reset Room',
+      subtitle: 'A live stabilization space for intense moments.',
+      demand: 'Nervous System Overload Detected',
+      breathTitle: 'Breath Protocol',
+      breathProtocol: 'Inhale 4s • Hold 4s • Exhale 6s',
+      start: 'Start',
+      pause: 'Pause',
+      reset: 'Reset',
+      cycles: 'Completed cycles',
+      groundingTitle: 'Grounding 5-4-3-2-1',
+      groundingSubtitle: 'Fill what you notice right now. This lowers system intensity by restoring orientation.',
+      toolsTitle: 'Immediate Actions',
+      call911: 'Call 911',
+      call988: 'Call 988 Lifeline',
+      copyMessage: 'Copy check-in message',
+      copied: 'Message copied',
+      copyFailed: 'Copy failed',
+      noteTitle: 'Personal Safety Note',
+      notePlaceholder: 'Write one grounding sentence for yourself...',
+      checklistTitle: 'Next 10-Minute Plan',
+      checklist: ['Drink water', 'Open a window / fresh air', 'Send one safe-message', 'Set a 10-minute timer'],
+      commentsTitle: 'After-Reset Comments',
+      comments: [
+        { quote: 'The breathing timer helps me stop spiraling in under two minutes.', author: 'Maya • 29' },
+        { quote: 'Grounding fields make me focus on reality, not panic loops.', author: 'Elena • 34' },
+        { quote: 'Copy message saved me from writing while overloaded.', author: 'Rina • 31' },
+      ],
+      quickStartTitle: 'How To Use This Page',
+      quickStart: [
+        '1. Start Breath Protocol and complete at least 3 cycles.',
+        '2. Fill Grounding fields with short real observations.',
+        '3. Use one Immediate Action (call or copy message).',
+        '4. Complete your 10-minute plan and leave one note.',
+      ],
+      breathingHint: 'Tip: do not force deep breathing. Keep it soft and rhythmic.',
+      groundingHint: 'Tip: write simple facts, not analysis.',
+      toolsHint: 'Tip: if verbal communication is hard, use the copied message first.',
+      checklistHint: 'Tip: complete only one step at a time.',
+    },};
 
   const copy = getLang(copyByLang, lang) || copyByLang.en;
   const phaseCopyByLang: LangCopy< { inhale: string; hold: string; exhale: string }> = {
@@ -407,7 +488,8 @@ export const CrisisCenterView: React.FC<{ lang: Language; onBack: () => void }> 
     zh: { inhale: '吸气', hold: '停留', exhale: '呼气' },
     ja: { inhale: '吸う', hold: '止める', exhale: '吐く' },
     pt: { inhale: 'Inspirar', hold: 'Pausa', exhale: 'Expirar' },
-  };
+  ar: { inhale: 'Inhale', hold: 'Hold', exhale: 'Exhale' },
+  he: { inhale: 'Inhale', hold: 'Hold', exhale: 'Exhale' },};
   const phaseText = getLang(phaseCopyByLang, lang) || phaseCopyByLang.en;
   const phases = useMemo(
     () => [
@@ -428,7 +510,8 @@ export const CrisisCenterView: React.FC<{ lang: Language; onBack: () => void }> 
     zh: { see: '看到', feel: '感到', hear: '听到', smell: '闻到', taste: '尝到' },
     ja: { see: '見る', feel: '感じる', hear: '聞く', smell: '嗅ぐ', taste: '味わう' },
     pt: { see: 'Vejo', feel: 'Sinto', hear: 'Ouco', smell: 'Cheiro', taste: 'Sabor' },
-  };
+  ar: { see: 'See', feel: 'Feel', hear: 'Hear', smell: 'Smell', taste: 'Taste' },
+  he: { see: 'See', feel: 'Feel', hear: 'Hear', smell: 'Smell', taste: 'Taste' },};
   const senses = getLang(sensesByLang, lang) || sensesByLang.en;
 
   const [isRunning, setIsRunning] = useState(false);
@@ -526,7 +609,8 @@ export const CrisisCenterView: React.FC<{ lang: Language; onBack: () => void }> 
       zh: '我现在处于过载状态。我正在执行重置流程，稍后会恢复联系。',
       ja: '今は過負荷の状態です。リセット手順を使って落ち着き、少ししてから戻ります。',
       pt: 'Estou em sobrecarga agora. Estou usando meu protocolo reset e retorno em breve.',
-    };
+  ar: 'I am in overload right now. I am using my reset protocol and will reconnect shortly.',
+  he: 'I am in overload right now. I am using my reset protocol and will reconnect shortly.',};
     const message = getLang(messageByLang, lang) || messageByLang.en;
     try {
       await navigator.clipboard.writeText(message);

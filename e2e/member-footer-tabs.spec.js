@@ -23,7 +23,6 @@ test('footer-only member tabs are reachable and clickable', async ({ page }) => 
         payload: {},
       },
     ];
-    window.localStorage.setItem('luna_api_base_url', 'http://127.0.0.1:65535');
     window.localStorage.setItem('luna_auth_session_v2', encode(session));
     window.localStorage.setItem('luna_event_log_v3', JSON.stringify(log));
   });

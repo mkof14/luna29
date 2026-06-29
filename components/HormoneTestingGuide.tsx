@@ -277,7 +277,52 @@ const copyByLang: LangCopy< GuideCopy> = {
     columns: { hormone: 'Eixo Hormonal', tests: 'Exames Chave', timing: 'Melhor Momento', why: 'Por Que Importa' },
     rows: baseRows,
   },
-};
+  ar: {
+    title: 'Hormones + Required Tests',
+    subtitle: 'Clear test map for more accurate women health analysis.',
+    focusTitle: 'Sexual Health Focus',
+    focusItems: [
+      'Libido and arousal: Estradiol, free testosterone, SHBG.',
+      'Comfort and lubrication: Estradiol + thyroid + stress axis.',
+      'Closeness and emotional receptivity: Progesterone + cortisol balance.',
+      'Desire suppression signals: high prolactin, high stress load, low ferritin.',
+    ],
+    focusPrivate: 'Private section. Expand only when needed.',
+    focusExpand: 'Show Sexual Health Focus',
+    focusCollapse: 'Hide Sexual Health Focus',
+    focusSignalsTitle: 'What to monitor',
+    focusSignals: ['Desire level across cycle phases.', 'Arousal and lubrication quality.', 'Comfort and pain during intimacy.', 'Emotional closeness and recovery after intimacy.'],
+    focusActionsTitle: 'Practical actions',
+    focusActions: ['Track 2-3 cycles before conclusions.', 'Compare symptoms with lab timing.', 'Review stress/sleep before changing treatment.', 'Take report summary to clinician.'],
+    focusRedFlagsTitle: 'When to consult faster',
+    focusRedFlags: ['Persistent pain during intimacy.', 'Sudden loss of libido with distress.', 'Cycle disruption with androgen symptoms.', 'Severe dryness or bleeding after intimacy.'],
+    markerNote: 'Markers keep international lab notation for consistency.',
+    columns: { hormone: 'Hormone Axis', tests: 'Key Tests', timing: 'Best Timing', why: 'Why It Matters' },
+    rows: baseRows,
+  },
+  he: {
+    title: 'Hormones + Required Tests',
+    subtitle: 'Clear test map for more accurate women health analysis.',
+    focusTitle: 'Sexual Health Focus',
+    focusItems: [
+      'Libido and arousal: Estradiol, free testosterone, SHBG.',
+      'Comfort and lubrication: Estradiol + thyroid + stress axis.',
+      'Closeness and emotional receptivity: Progesterone + cortisol balance.',
+      'Desire suppression signals: high prolactin, high stress load, low ferritin.',
+    ],
+    focusPrivate: 'Private section. Expand only when needed.',
+    focusExpand: 'Show Sexual Health Focus',
+    focusCollapse: 'Hide Sexual Health Focus',
+    focusSignalsTitle: 'What to monitor',
+    focusSignals: ['Desire level across cycle phases.', 'Arousal and lubrication quality.', 'Comfort and pain during intimacy.', 'Emotional closeness and recovery after intimacy.'],
+    focusActionsTitle: 'Practical actions',
+    focusActions: ['Track 2-3 cycles before conclusions.', 'Compare symptoms with lab timing.', 'Review stress/sleep before changing treatment.', 'Take report summary to clinician.'],
+    focusRedFlagsTitle: 'When to consult faster',
+    focusRedFlags: ['Persistent pain during intimacy.', 'Sudden loss of libido with distress.', 'Cycle disruption with androgen symptoms.', 'Severe dryness or bleeding after intimacy.'],
+    markerNote: 'Markers keep international lab notation for consistency.',
+    columns: { hormone: 'Hormone Axis', tests: 'Key Tests', timing: 'Best Timing', why: 'Why It Matters' },
+    rows: baseRows,
+  },};
 
 export const HormoneTestingGuide: React.FC<HormoneTestingGuideProps> = ({ lang }) => {
   const [showFocus, setShowFocus] = useState(false);

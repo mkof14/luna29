@@ -29,7 +29,8 @@ export type TabType =
   | 'terms'
   | 'medical'
   | 'cookies'
-  | 'data_rights';
+  | 'data_rights'
+  | 'rhythm_calendar';
 
 type NavItem = {
   id: TabType;
@@ -94,6 +95,7 @@ export const buildSidebarGroups = (_ui: NavigationUi, includeAdmin = false): Nav
         { id: 'dashboard', label: 'Member Home', icon: '🏠' },
         { id: 'labs', label: 'Health Reports', icon: '📄' },
         { id: 'monthly_reflection', label: 'Your month with Luna29', icon: '🗓️' },
+        { id: 'rhythm_calendar', label: 'Rhythm Calendar', icon: '📅' },
         { id: 'insights_paywall', label: 'Unlock Insights', icon: '🔐' },
       ],
     },

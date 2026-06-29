@@ -157,7 +157,34 @@ export const EXTRA_HOW_COPY: LangCopy< ExtraHowCopy> = {
     reportsTitle: 'My Health Reports',
     reportsBody: 'Gera relatório clínico focado na mulher com combinações hormonais, efeitos potenciais, riscos e recomendações práticas.',
   },
-};
+  ar: {
+    dailyTitle: 'Daily Use Structure (90 Seconds)',
+    dailyItems: [
+      'Morning: set baseline (energy, mood, focus).',
+      'Midday: check capacity and adjust workload.',
+      'Evening: add one short reflection or voice note.',
+    ],
+    onboardingTitle: '7-Day Guided Start',
+    onboardingBody: 'Day 1-2 capture baseline, day 3-5 detect pattern shifts, day 6-7 create your first Inner Weather summary and personal rhythm rules.',
+    localModeTitle: 'Development Mode (Local-First)',
+    localModeBody: 'Current setup runs locally. Data remains on this device unless manually exported.',
+    reportsTitle: 'My Health Reports',
+    reportsBody: 'Generates a doctor-ready women-focused report with hormone combinations, potential effects, risk areas, and practical recommendations.',
+  },
+  he: {
+    dailyTitle: 'Daily Use Structure (90 Seconds)',
+    dailyItems: [
+      'Morning: set baseline (energy, mood, focus).',
+      'Midday: check capacity and adjust workload.',
+      'Evening: add one short reflection or voice note.',
+    ],
+    onboardingTitle: '7-Day Guided Start',
+    onboardingBody: 'Day 1-2 capture baseline, day 3-5 detect pattern shifts, day 6-7 create your first Inner Weather summary and personal rhythm rules.',
+    localModeTitle: 'Development Mode (Local-First)',
+    localModeBody: 'Current setup runs locally. Data remains on this device unless manually exported.',
+    reportsTitle: 'My Health Reports',
+    reportsBody: 'Generates a doctor-ready women-focused report with hormone combinations, potential effects, risk areas, and practical recommendations.',
+  },};
 
 export const COPY: LangCopy< Copy> = {
   en: {
@@ -484,4 +511,75 @@ export const COPY: LangCopy< Copy> = {
     next: 'Proxima',
     of: 'de',
   },
-};
+  ar: {
+    eyebrow: 'How It Works',
+    title: 'From Daily Signal To Clear Decisions',
+    subtitle: 'Luna29 turns small daily inputs into visible rhythm patterns so users can understand themselves faster and act with less stress.',
+    flowTitle: 'Simple 4-Step Flow',
+    flow: [
+      { step: '01', title: 'Check In Daily', text: 'A short daily check-in captures energy, mood, stress, sleep, and context.', icon: 'pulse' },
+      { step: '02', title: 'See The Pattern', text: 'Luna29 maps changes over days and cycles so patterns become clear, not random.', icon: 'map' },
+      { step: '03', title: 'Get Gentle Guidance', text: 'The system proposes low-friction suggestions for pacing, care, and communication.', icon: 'guide' },
+      { step: '04', title: 'Act And Reflect', text: 'Users adjust plans, share partner notes, and build a calmer routine over time.', icon: 'bridge' },
+    ],
+    benefitsTitle: 'What Users Understand Quickly',
+    benefits: [
+      { title: 'Why they feel different day-to-day', text: 'State shifts become explainable through rhythm context.' },
+      { title: 'When to push vs. when to protect energy', text: 'Users avoid overload by matching plans to capacity.' },
+      { title: 'How to communicate needs clearly', text: 'Bridge tools reduce conflict and improve partner understanding.' },
+    ],
+    faqTitle: 'Quick Answers',
+    faq: [
+      { q: 'Is Luna29 a medical diagnosis tool?', a: 'No. It is a self-observation and decision support system.' },
+      { q: 'How long does daily use take?', a: 'Usually about 60 seconds per day for core check-in.' },
+      { q: 'Is my data private?', a: 'Yes. The architecture is local-first with controlled member access.' },
+    ],
+    commentsTitle: 'Member Comments',
+    comments: [
+      { quote: 'I finally understood why my energy drops were not random.', author: 'Anna • 32' },
+      { quote: 'The 60-second check-in made my routine realistic.', author: 'Mia • 28' },
+      { quote: 'Bridge notes helped me explain my state without conflict.', author: 'Sara • 35' },
+    ],
+    cta: 'Start With 7-Day Trial',
+    livePreview: 'Live Preview',
+    stepLabel: 'Step',
+    prev: 'Prev',
+    next: 'Next',
+    of: 'of',
+  },
+  he: {
+    eyebrow: 'How It Works',
+    title: 'From Daily Signal To Clear Decisions',
+    subtitle: 'Luna29 turns small daily inputs into visible rhythm patterns so users can understand themselves faster and act with less stress.',
+    flowTitle: 'Simple 4-Step Flow',
+    flow: [
+      { step: '01', title: 'Check In Daily', text: 'A short daily check-in captures energy, mood, stress, sleep, and context.', icon: 'pulse' },
+      { step: '02', title: 'See The Pattern', text: 'Luna29 maps changes over days and cycles so patterns become clear, not random.', icon: 'map' },
+      { step: '03', title: 'Get Gentle Guidance', text: 'The system proposes low-friction suggestions for pacing, care, and communication.', icon: 'guide' },
+      { step: '04', title: 'Act And Reflect', text: 'Users adjust plans, share partner notes, and build a calmer routine over time.', icon: 'bridge' },
+    ],
+    benefitsTitle: 'What Users Understand Quickly',
+    benefits: [
+      { title: 'Why they feel different day-to-day', text: 'State shifts become explainable through rhythm context.' },
+      { title: 'When to push vs. when to protect energy', text: 'Users avoid overload by matching plans to capacity.' },
+      { title: 'How to communicate needs clearly', text: 'Bridge tools reduce conflict and improve partner understanding.' },
+    ],
+    faqTitle: 'Quick Answers',
+    faq: [
+      { q: 'Is Luna29 a medical diagnosis tool?', a: 'No. It is a self-observation and decision support system.' },
+      { q: 'How long does daily use take?', a: 'Usually about 60 seconds per day for core check-in.' },
+      { q: 'Is my data private?', a: 'Yes. The architecture is local-first with controlled member access.' },
+    ],
+    commentsTitle: 'Member Comments',
+    comments: [
+      { quote: 'I finally understood why my energy drops were not random.', author: 'Anna • 32' },
+      { quote: 'The 60-second check-in made my routine realistic.', author: 'Mia • 28' },
+      { quote: 'Bridge notes helped me explain my state without conflict.', author: 'Sara • 35' },
+    ],
+    cta: 'Start With 7-Day Trial',
+    livePreview: 'Live Preview',
+    stepLabel: 'Step',
+    prev: 'Prev',
+    next: 'Next',
+    of: 'of',
+  },};

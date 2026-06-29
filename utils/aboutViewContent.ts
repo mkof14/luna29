@@ -55,7 +55,18 @@ const REPORT_EXPLAINER_BY_LANG: LangCopy< { title: string; body1: string; body2:
     body2: 'Você pode mostrar apenas o ID ou manter privacidade, escolher o idioma do relatório e exportar em formato pronto para consulta.',
     bullets: ['Lógica de padrões, não números soltos.', 'Categorias, riscos e recomendações claras.', 'Fluxo de copy, print, share, download e PDF.'],
   },
-};
+  ar: {
+    title: 'Why My Health Reports Matter',
+    body1: 'My Health Reports convert raw lab values into a structured women-focused explanation: cycle context, thyroid/metabolic links, libido-related signals, and actionable next steps.',
+    body2: 'You can include only ID or keep identity private, pick report language, and export in doctor-ready format for discussion.',
+    bullets: ['Pattern logic, not isolated numbers.', 'Clear categories, risks, and recommendations.', 'Copy, print, share, download, and PDF workflow.'],
+  },
+  he: {
+    title: 'Why My Health Reports Matter',
+    body1: 'My Health Reports convert raw lab values into a structured women-focused explanation: cycle context, thyroid/metabolic links, libido-related signals, and actionable next steps.',
+    body2: 'You can include only ID or keep identity private, pick report language, and export in doctor-ready format for discussion.',
+    bullets: ['Pattern logic, not isolated numbers.', 'Clear categories, risks, and recommendations.', 'Copy, print, share, download, and PDF workflow.'],
+  },};
 
 
 export const getAboutViewContent = (lang: Language) => ({

@@ -17,8 +17,9 @@ export const HormoneLibraryView: React.FC<{ lang: Language; onBack: () => void }
     de: { back: 'Zurück', titleA: 'Wissens', titleB: 'Basis.', part: 'Teil', active: 'Aktiv', details: 'Details →', wisdom: 'Körperweisheit', quote: 'Deinen Körper zu verstehen ist deine größte Stärke.' },
     zh: { back: '返回', titleA: '知识', titleB: '库。', part: '部分', active: '已激活', details: '详情 →', wisdom: '身体智慧', quote: '理解你的身体是你最大的力量。' },
     ja: { back: '戻る', titleA: '知識', titleB: 'ベース。', part: 'パート', active: '有効', details: '詳細 →', wisdom: '身体の知恵', quote: '自分の体を理解することは、あなたの最大の強みです。' },
-    pt: { back: 'Voltar', titleA: 'Base de', titleB: 'Conhecimento.', part: 'Parte', active: 'Ativo', details: 'Detalhes →', wisdom: 'Sabedoria do corpo', quote: 'Entender seu corpo é sua maior força.' }
-  };
+    pt: { back: 'Voltar', titleA: 'Base de', titleB: 'Conhecimento.', part: 'Parte', active: 'Ativo', details: 'Detalhes →', wisdom: 'Sabedoria do corpo', quote: 'Entender seu corpo é sua maior força.' },
+  ar: { back: 'Back', titleA: 'Knowledge', titleB: 'Base.', part: 'Part', active: 'Active', details: 'Details →', wisdom: "Your Body's Wisdom", quote: 'Understanding your body is your greatest strength.' },
+  he: { back: 'Back', titleA: 'Knowledge', titleB: 'Base.', part: 'Part', active: 'Active', details: 'Details →', wisdom: "Your Body's Wisdom", quote: 'Understanding your body is your greatest strength.' },};
   const copy = getLang(copyByLang, lang);
   const extraByLang: LangCopy< { innerWeatherTitle: string; innerWeatherText: string; points: string[]; usageTitle: string; usageItems: string[]; localTitle: string; localText: string }> = {
     en: {
@@ -102,7 +103,24 @@ export const HormoneLibraryView: React.FC<{ lang: Language; onBack: () => void }
       localTitle: 'Modo De Desenvolvimento',
       localText: 'Knowledge e suas interações estão em local-first e ficam neste dispositivo.',
     },
-  };
+  ar: {
+      innerWeatherTitle: 'INNER WEATHER',
+      innerWeatherText: 'Energy, mood, and concentration change across time. Most shifts are rhythms, not randomness.',
+      points: ['Energy changes', 'Mood changes', 'Concentration changes', 'Recovery changes'],
+      usageTitle: 'How To Use Knowledge Daily',
+      usageItems: ['Check 1-2 markers that match your current state.', 'Compare with your latest check-in and notes.', 'Choose one low-friction action for today.'],
+      localTitle: 'Development Mode',
+      localText: 'Knowledge data and your interactions are currently local-first and stay on this device.',
+    },
+  he: {
+      innerWeatherTitle: 'INNER WEATHER',
+      innerWeatherText: 'Energy, mood, and concentration change across time. Most shifts are rhythms, not randomness.',
+      points: ['Energy changes', 'Mood changes', 'Concentration changes', 'Recovery changes'],
+      usageTitle: 'How To Use Knowledge Daily',
+      usageItems: ['Check 1-2 markers that match your current state.', 'Compare with your latest check-in and notes.', 'Choose one low-friction action for today.'],
+      localTitle: 'Development Mode',
+      localText: 'Knowledge data and your interactions are currently local-first and stay on this device.',
+    },};
   const extra = getLang(extraByLang, lang) || extraByLang.en;
   const [selectedHormone, setSelectedHormone] = useState<HormoneData | null>(null);
   

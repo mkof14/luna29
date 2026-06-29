@@ -28,8 +28,9 @@ export const BridgeView: React.FC<{ lang: Language; onBack: () => void }> = ({ l
     de: { q1: 'Was ist heute still, aber in mir präsent?', q2: 'Was bedeutet dieser Zustand NICHT?', q3: 'Was würde sich heute Abend wie Freundlichkeit anfühlen?', weeklyLimit: 'Die Brücke ist ein seltener Raum. Du hast dein Wochenlimit von 2 Reflexionen erreicht.', generateError: 'Reflexion konnte gerade nicht erstellt werden. Bitte erneut versuchen.', shareTitle: 'Eine Reflexion von Luna29', shared: 'Geteilt.', copied: 'In Zwischenablage kopiert.', shareError: 'Teilen nicht möglich. Bitte manuell kopieren.', entryQuote: 'Bevor du dich erklärst, spüre, was wahr ist.', continue: 'Weiter', question: 'Frage', of3: 'von 3', placeholder: 'Antwort eingeben...', next: 'Weiter', form: 'Reflexion erstellen', forming: 'Reflexion wird erstellt...', back: 'Zurück', resultQuote: 'Möchtest du das teilen oder einfach verstanden werden?', keep: 'Hier behalten', share: 'Teilen' },
     zh: { q1: '今天在我心中安静但存在的是什么？', q2: '这种状态“不意味着”什么？', q3: '今晚什么会让我感到被善待？', weeklyLimit: 'Bridge 是稀缺空间。你已达到每周 2 次反思上限。', generateError: '暂时无法生成反思，请重试。', shareTitle: '来自 Luna29 的反思', shared: '已分享。', copied: '已复制到剪贴板。', shareError: '无法分享，请尝试手动复制。', entryQuote: '在解释自己之前，先感受真实。', continue: '继续', question: '问题', of3: '/3', placeholder: '输入你的回答...', next: '下一步', form: '生成反思', forming: '正在生成反思...', back: '返回', resultQuote: '你想分享它，还是只是被理解？', keep: '仅保留在这里', share: '分享' },
     ja: { q1: '今日、静かに存在しているものは何ですか？', q2: 'この状態が「意味しない」ことは何ですか？', q3: '今夜、優しさと感じられることは何ですか？', weeklyLimit: 'Bridgeは希少な空間です。週間上限（2回）に達しました。', generateError: '現在リフレクションを作成できません。再試行してください。', shareTitle: 'Luna29からのリフレクション', shared: '共有しました。', copied: 'クリップボードにコピーしました。', shareError: '共有できませんでした。手動コピーをお試しください。', entryQuote: '説明する前に、本当の感覚に触れてください。', continue: '続ける', question: '質問', of3: '/3', placeholder: '回答を入力...', next: '次へ', form: 'リフレクションを作成', forming: 'リフレクション作成中...', back: '戻る', resultQuote: '共有したいですか、それとも理解されるだけで十分ですか？', keep: 'ここに保存', share: '共有' },
-    pt: { q1: 'O que está quieto, mas presente em mim hoje?', q2: 'O que este estado NÃO significa?', q3: 'O que seria gentileza esta noite?', weeklyLimit: 'Bridge é um espaço raro. Você atingiu o limite semanal de 2 reflexões.', generateError: 'Não foi possível formar a reflexão agora. Tente novamente.', shareTitle: 'Uma reflexão da Luna29', shared: 'Compartilhado.', copied: 'Copiado para a área de transferência.', shareError: 'Não foi possível compartilhar. Tente copiar manualmente.', entryQuote: 'Antes de se explicar, sinta o que é verdade.', continue: 'Continuar', question: 'Pergunta', of3: 'de 3', placeholder: 'Digite sua resposta...', next: 'Próxima', form: 'Formar reflexão', forming: 'Formando reflexão...', back: 'Voltar', resultQuote: 'Você quer compartilhar isso ou apenas ser compreendida?', keep: 'Manter aqui', share: 'Compartilhar' }
-  };
+    pt: { q1: 'O que está quieto, mas presente em mim hoje?', q2: 'O que este estado NÃO significa?', q3: 'O que seria gentileza esta noite?', weeklyLimit: 'Bridge é um espaço raro. Você atingiu o limite semanal de 2 reflexões.', generateError: 'Não foi possível formar a reflexão agora. Tente novamente.', shareTitle: 'Uma reflexão da Luna29', shared: 'Compartilhado.', copied: 'Copiado para a área de transferência.', shareError: 'Não foi possível compartilhar. Tente copiar manualmente.', entryQuote: 'Antes de se explicar, sinta o que é verdade.', continue: 'Continuar', question: 'Pergunta', of3: 'de 3', placeholder: 'Digite sua resposta...', next: 'Próxima', form: 'Formar reflexão', forming: 'Formando reflexão...', back: 'Voltar', resultQuote: 'Você quer compartilhar isso ou apenas ser compreendida?', keep: 'Manter aqui', share: 'Compartilhar' },
+  ar: { q1: 'What is quiet but present in me today?', q2: 'What does this state not mean?', q3: 'What would feel like kindness tonight?', weeklyLimit: 'The Bridge is a rare space. You have reached your weekly limit of 2 reflections.', generateError: 'Could not form reflection right now. Please retry.', shareTitle: 'A Reflection from Luna29', shared: 'Shared.', copied: 'Copied to clipboard.', shareError: 'Could not share. Try copy manually.', entryQuote: 'Before you explain yourself — feel what is true.', continue: 'Continue', question: 'Question', of3: 'of 3', placeholder: 'Type your answer...', next: 'Next', form: 'Form Reflection', forming: 'Forming Reflection...', back: 'Back', resultQuote: 'Do you want this to be shared — or simply understood?', keep: 'Keep it here', share: 'Share' },
+  he: { q1: 'What is quiet but present in me today?', q2: 'What does this state not mean?', q3: 'What would feel like kindness tonight?', weeklyLimit: 'The Bridge is a rare space. You have reached your weekly limit of 2 reflections.', generateError: 'Could not form reflection right now. Please retry.', shareTitle: 'A Reflection from Luna29', shared: 'Shared.', copied: 'Copied to clipboard.', shareError: 'Could not share. Try copy manually.', entryQuote: 'Before you explain yourself — feel what is true.', continue: 'Continue', question: 'Question', of3: 'of 3', placeholder: 'Type your answer...', next: 'Next', form: 'Form Reflection', forming: 'Forming Reflection...', back: 'Back', resultQuote: 'Do you want this to be shared — or simply understood?', keep: 'Keep it here', share: 'Share' },};
   const copy = getLang(copyByLang, lang);
   const infoByLang: LangCopy< {
     eyebrow: string;
@@ -188,7 +189,38 @@ export const BridgeView: React.FC<{ lang: Language; onBack: () => void }> = ({ l
         { quote: 'Parei de me explicar demais. Uma mensagem clara bastou.', author: 'Aria • Membro' },
       ],
     },
-  };
+  ar: {
+      eyebrow: 'THE BRIDGE',
+      title: 'Explain State Without Escalation',
+      problemTitle: 'Problem',
+      problemBody: 'Sometimes it is hard to explain your state to your partner or even to yourself.',
+      helpsTitle: 'Bridge helps',
+      helps: ['formulate your state', 'explain it calmly', 'preserve respect in conversation'],
+      unique: 'This is one of Luna29’s unique functions.',
+      howTitle: 'How It Works',
+      how: ['You answer 3 short prompts.', 'Luna29 forms a calm reflection letter.', 'You keep it private or share it safely.'],
+      commentsTitle: 'Member Comments',
+      comments: [
+        { quote: 'Bridge gave me words before conflict started.', author: 'Mila • Member' },
+        { quote: 'I stopped overexplaining. One clear note was enough.', author: 'Aria • Member' },
+      ],
+    },
+  he: {
+      eyebrow: 'THE BRIDGE',
+      title: 'Explain State Without Escalation',
+      problemTitle: 'Problem',
+      problemBody: 'Sometimes it is hard to explain your state to your partner or even to yourself.',
+      helpsTitle: 'Bridge helps',
+      helps: ['formulate your state', 'explain it calmly', 'preserve respect in conversation'],
+      unique: 'This is one of Luna29’s unique functions.',
+      howTitle: 'How It Works',
+      how: ['You answer 3 short prompts.', 'Luna29 forms a calm reflection letter.', 'You keep it private or share it safely.'],
+      commentsTitle: 'Member Comments',
+      comments: [
+        { quote: 'Bridge gave me words before conflict started.', author: 'Mila • Member' },
+        { quote: 'I stopped overexplaining. One clear note was enough.', author: 'Aria • Member' },
+      ],
+    },};
   const info = getLang(infoByLang, lang) || infoByLang.en;
   const [step, setStep] = useState<BridgeStep>('entry');
   const [questionIndex, setQuestionIndex] = useState(0);

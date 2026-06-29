@@ -18,7 +18,8 @@ const copyByLang: LangCopy< { title: string; steps: [string, string, string] }> 
   zh: { title: '成员路径', steps: ['Home', 'Cycle', 'Bridge'] },
   ja: { title: 'メンバーパス', steps: ['Home', 'Cycle', 'Bridge'] },
   pt: { title: 'Caminho Da Membro', steps: ['Home', 'Cycle', 'Bridge'] },
-};
+  ar: { title: 'Member Path', steps: ['Home', 'Cycle', 'Bridge'] },
+  he: { title: 'Member Path', steps: ['Home', 'Cycle', 'Bridge'] },};
 
 export const JourneyProgress: React.FC<JourneyProgressProps> = ({ lang, currentStep }) => {
   const copy = getLang(copyByLang, lang) || copyByLang.en;

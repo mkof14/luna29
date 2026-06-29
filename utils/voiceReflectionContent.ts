@@ -43,8 +43,9 @@ export type VoiceReflectionExplanation = {
     de: { unsupported: 'Dein Browser unterstützt keine Spracherkennung. Bitte nutze Chrome oder Safari.', listening: 'Ich höre zu...', micDenied: 'Mikrofonzugriff verweigert. Bitte Browser-Einstellungen prüfen.', errorPrefix: 'Fehler', micAccess: 'Kein Zugriff auf das Mikrofon möglich.', noSpeech: 'Ich habe dich nicht verstanden. Bitte versuche es erneut.', unavailable: 'Luna29 ist vorübergehend nicht verfügbar. Bitte versuche es erneut.', back: 'Zurück zum Journal', reflectionLabel: 'Sprachreflexion', subtitle: 'Sprich deinen Zustand aus. Luna29 hört zu, versteht und antwortet.', holdToSpeak: 'Tippen zum Sprechen', stopListening: 'Stoppen', lunaReflecting: 'Luna29 reflektiert...', yourReflection: 'Deine Reflexion', lunaResponse: 'Antwort von Luna29', reflecting: 'Reflektiere...', listenAgain: 'Erneut anhören', save: 'Im Journal speichern', redo: 'Neu', recording: 'Aufnahme...' },
     zh: { unsupported: '你的浏览器不支持语音识别。请尝试 Chrome 或 Safari。', listening: '正在聆听...', micDenied: '麦克风访问被拒绝。请检查浏览器设置。', errorPrefix: '错误', micAccess: '无法访问麦克风。', noSpeech: '我没有听清，请再试一次。', unavailable: 'Luna29 暂时不可用，请稍后再试。', back: '返回日记', reflectionLabel: '语音反思', subtitle: '说出你的状态。Luna29 会倾听、理解并回应。', holdToSpeak: '点击说话', stopListening: '停止', lunaReflecting: 'Luna29 正在思考...', yourReflection: '你的表达', lunaResponse: 'Luna29 的回应', reflecting: '思考中...', listenAgain: '再听一次', save: '保存到日记', redo: '重来', recording: '录音中...' },
     ja: { unsupported: 'お使いのブラウザは音声認識に対応していません。ChromeまたはSafariをお試しください。', listening: '聞いています...', micDenied: 'マイクへのアクセスが拒否されました。ブラウザ設定を確認してください。', errorPrefix: 'エラー', micAccess: 'マイクにアクセスできませんでした。', noSpeech: '聞き取れませんでした。もう一度お試しください。', unavailable: 'Luna29は一時的に利用できません。再度お試しください。', back: 'ジャーナルに戻る', reflectionLabel: '音声リフレクション', subtitle: '今の状態を話してください。Luna29が聴き、理解し、応答します。', holdToSpeak: 'タップして話す', stopListening: '停止', lunaReflecting: 'Luna29が考えています...', yourReflection: 'あなたの言葉', lunaResponse: 'Luna29の応答', reflecting: '思考中...', listenAgain: 'もう一度聞く', save: 'ジャーナルに保存', redo: 'やり直し', recording: '録音中...' },
-    pt: { unsupported: 'Seu navegador não oferece suporte a reconhecimento de voz. Tente Chrome ou Safari.', listening: 'Ouvindo...', micDenied: 'Acesso ao microfone negado. Verifique as configurações do navegador.', errorPrefix: 'Erro', micAccess: 'Não foi possível acessar o microfone.', noSpeech: 'Não consegui entender. Tente novamente.', unavailable: 'Luna29 está temporariamente indisponível. Tente novamente.', back: 'Voltar ao diário', reflectionLabel: 'Reflexão por voz', subtitle: 'Fale seu estado. Luna29 está aqui para ouvir e compreender.', holdToSpeak: 'Toque para falar', stopListening: 'Parar', lunaReflecting: 'Luna29 está refletindo...', yourReflection: 'Sua reflexão', lunaResponse: 'Resposta da Luna29', reflecting: 'Refletindo...', listenAgain: 'Ouvir novamente', save: 'Salvar no diário', redo: 'Refazer', recording: 'Gravando...' }
-  };
+    pt: { unsupported: 'Seu navegador não oferece suporte a reconhecimento de voz. Tente Chrome ou Safari.', listening: 'Ouvindo...', micDenied: 'Acesso ao microfone negado. Verifique as configurações do navegador.', errorPrefix: 'Erro', micAccess: 'Não foi possível acessar o microfone.', noSpeech: 'Não consegui entender. Tente novamente.', unavailable: 'Luna29 está temporariamente indisponível. Tente novamente.', back: 'Voltar ao diário', reflectionLabel: 'Reflexão por voz', subtitle: 'Fale seu estado. Luna29 está aqui para ouvir e compreender.', holdToSpeak: 'Toque para falar', stopListening: 'Parar', lunaReflecting: 'Luna29 está refletindo...', yourReflection: 'Sua reflexão', lunaResponse: 'Resposta da Luna29', reflecting: 'Refletindo...', listenAgain: 'Ouvir novamente', save: 'Salvar no diário', redo: 'Refazer', recording: 'Gravando...' },
+  ar: { unsupported: 'Your browser does not support voice recognition. Please try Chrome or Safari.', listening: 'Listening...', micDenied: 'Microphone access denied. Check browser settings.', errorPrefix: 'Error', micAccess: 'Could not access microphone.', noSpeech: "I didn't catch that. Please try again.", unavailable: 'Luna29 is temporarily unavailable. Please try again.', back: 'Back to Journal', reflectionLabel: 'Live Reflection', subtitle: 'Speak your state. Luna29 is here to listen, understand, and respond.', holdToSpeak: 'Tap to speak', stopListening: 'Stop Listening', lunaReflecting: 'Luna29 is reflecting...', yourReflection: 'Your Reflection', lunaResponse: "Luna29's Response", reflecting: 'Reflecting...', listenAgain: 'Listen Again', save: 'Save to Journal', redo: 'Redo', recording: 'Recording...' },
+  he: { unsupported: 'Your browser does not support voice recognition. Please try Chrome or Safari.', listening: 'Listening...', micDenied: 'Microphone access denied. Check browser settings.', errorPrefix: 'Error', micAccess: 'Could not access microphone.', noSpeech: "I didn't catch that. Please try again.", unavailable: 'Luna29 is temporarily unavailable. Please try again.', back: 'Back to Journal', reflectionLabel: 'Live Reflection', subtitle: 'Speak your state. Luna29 is here to listen, understand, and respond.', holdToSpeak: 'Tap to speak', stopListening: 'Stop Listening', lunaReflecting: 'Luna29 is reflecting...', yourReflection: 'Your Reflection', lunaResponse: "Luna29's Response", reflecting: 'Reflecting...', listenAgain: 'Listen Again', save: 'Save to Journal', redo: 'Redo', recording: 'Recording...' },};
   const explanationByLang: LangCopy< { title: string; lead: string; line1: string; line2: string }> = {
     en: {
       title: 'Short explanation: Why voice matters.',
@@ -100,7 +101,18 @@ export type VoiceReflectionExplanation = {
       line1: 'As pessoas pensam mais rápido do que escrevem.',
       line2: 'Voice Note permite registrar seu estado na hora.',
     },
-  };
+  ar: {
+      title: 'Short explanation: Why voice matters.',
+      lead: 'Reason is simple:',
+      line1: 'People think faster than they write.',
+      line2: 'Voice Note lets you capture your state immediately.',
+    },
+  he: {
+      title: 'Short explanation: Why voice matters.',
+      lead: 'Reason is simple:',
+      line1: 'People think faster than they write.',
+      line2: 'Voice Note lets you capture your state immediately.',
+    },};
 
 export function getVoiceReflectionContent(lang: Language): {
   copy: VoiceReflectionCopy;

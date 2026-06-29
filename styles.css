@@ -4,6 +4,208 @@
 
 :root {
   --app-vh: 1vh;
+  /* Match Tailwind slate-100 page background for seamless hero fade */
+  --hero-fade-color: rgb(241, 245, 249);
+  --hero-fade-mid: rgba(241, 245, 249, 0.72);
+  --hero-fade-soft: rgba(241, 245, 249, 0.28);
+}
+
+html.dark {
+  /* Match Tailwind slate-950 */
+  --hero-fade-color: rgb(2, 6, 23);
+  --hero-fade-mid: rgba(2, 6, 23, 0.78);
+  --hero-fade-soft: rgba(2, 6, 23, 0.32);
+}
+
+.member-hero-art .hero-sky-light {
+  display: block;
+}
+
+.member-hero-art .hero-sky-dark {
+  display: none;
+}
+
+html.dark .member-hero-art .hero-sky-light {
+  display: none;
+}
+
+html.dark .member-hero-art .hero-sky-dark {
+  display: block;
+}
+
+.member-hero-art .hero-accent-light {
+  display: block;
+}
+
+.member-hero-art .hero-accent-dark {
+  display: none;
+}
+
+html.dark .member-hero-art .hero-accent-light {
+  display: none;
+}
+
+html.dark .member-hero-art .hero-accent-dark {
+  display: block;
+}
+
+.member-hero-art .hero-layer-light {
+  display: block;
+}
+
+.member-hero-art .hero-layer-dark {
+  display: none;
+}
+
+html.dark .member-hero-art .hero-layer-light {
+  display: none;
+}
+
+html.dark .member-hero-art .hero-layer-dark {
+  display: block;
+}
+
+/* Painted hero photography / illustration */
+.member-hero-art--painted .member-hero-art__photo {
+  transform: scale(1.01);
+  filter: saturate(1.06) contrast(1.03);
+}
+
+html.dark .member-hero-art--painted .member-hero-art__photo {
+  filter: brightness(0.82) saturate(0.94) contrast(1.06);
+}
+
+.member-hero-art--painted .member-hero-art__fade {
+  height: 55%;
+  min-height: 9rem;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    var(--hero-fade-soft) 38%,
+    var(--hero-fade-mid) 68%,
+    var(--hero-fade-color) 100%
+  );
+}
+
+html.dark .member-hero-art--painted .member-hero-art__tone-light {
+  display: none;
+}
+
+html.dark .member-hero-art--painted .member-hero-art__tone-dark {
+  display: block;
+}
+
+/* Member page: first content card overlaps hero */
+.member-tab-content {
+  margin-top: -3.25rem;
+  position: relative;
+  z-index: 20;
+}
+
+@media (min-width: 768px) {
+  .member-tab-content {
+    margin-top: -4.5rem;
+  }
+}
+
+.member-tab-content > * > article:first-of-type,
+.member-tab-content > * > section:first-of-type,
+.member-tab-content > * > div:first-child > article:first-of-type {
+  position: relative;
+  z-index: 1;
+}
+
+/* Luna Rhythm Calendar — print */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .luna-rhythm-calendar-page,
+  .luna-rhythm-calendar-page * {
+    visibility: visible;
+  }
+
+  .luna-rhythm-calendar-page {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+
+  .luna-rhythm-calendar__toolbar,
+  .luna-rhythm-calendar__back,
+  .luna-rhythm-calendar__footer {
+    display: none !important;
+  }
+
+  .luna-rhythm-calendar__cell {
+    break-inside: avoid;
+  }
+
+  .luna-rhythm-calendar__month-page {
+    break-after: page;
+    page-break-after: always;
+  }
+
+  .luna-rhythm-calendar__month-page:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  .luna-rhythm-calendar__year {
+    background: white !important;
+  }
+
+  .calendar-day-drawer {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    max-width: 100%;
+    border-radius: 0 !important;
+  }
+}
+
+.public-quiet-art__image {
+  opacity: 0.28;
+  filter: saturate(0.92) contrast(1.02);
+}
+
+.public-quiet-art__image--home {
+  opacity: 0.62;
+  filter: saturate(0.86) contrast(0.98) brightness(0.94);
+}
+
+html.dark .public-quiet-art__image {
+  opacity: 0.2;
+  filter: saturate(0.85) brightness(0.78);
+}
+
+html.dark .public-quiet-art__image--home {
+  opacity: 0.48;
+  filter: saturate(0.8) contrast(0.96) brightness(0.78);
+}
+
+.public-page-art-header__image {
+  opacity: 0.42;
+  filter: saturate(1.02) contrast(1.03);
+}
+
+html.dark .public-page-art-header__image {
+  opacity: 0.32;
+  filter: saturate(0.9) brightness(0.82);
+}
+
+.luna-rhythm-calendar__hero img {
+  filter: saturate(1.04) contrast(1.02);
+}
+
+.luna-rhythm-calendar__hero h4 {
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.4);
 }
 
 * {
@@ -572,4 +774,36 @@ input[type='range'] {
 
 .dark .luna-soft-glow {
   animation: luna-soft-glow 3.2s ease-in-out infinite;
+}
+
+/* RTL (Arabic / Hebrew) — html[dir] set in useAppPreferences */
+[dir='rtl'] {
+  text-align: right;
+}
+
+[dir='rtl'] input,
+[dir='rtl'] textarea,
+[dir='rtl'] select {
+  text-align: right;
+}
+
+[dir='rtl'] .flex-row,
+[dir='rtl'] .inline-flex {
+  flex-direction: row-reverse;
+}
+
+[dir='rtl'] .text-left {
+  text-align: right;
+}
+
+[dir='rtl'] .text-right {
+  text-align: left;
+}
+
+[dir='rtl'] .ltr-preserve,
+[dir='rtl'] code,
+[dir='rtl'] pre {
+  direction: ltr;
+  unicode-bidi: embed;
+  text-align: left;
 }

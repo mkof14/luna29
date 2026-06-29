@@ -23,7 +23,8 @@ export const FuelCompass: React.FC<FuelCompassProps> = ({ phase, lang }) => {
     zh: { Menstrual: '经期', Follicular: '卵泡期', Ovulatory: '排卵期', Luteal: '黄体期' },
     ja: { Menstrual: '月経期', Follicular: '卵胞期', Ovulatory: '排卵期', Luteal: '黄体期' },
     pt: { Menstrual: 'Menstrual', Follicular: 'Folicular', Ovulatory: 'Ovulatória', Luteal: 'Lútea' },
-  };
+  ar: { Menstrual: 'Menstrual', Follicular: 'Follicular', Ovulatory: 'Ovulatory', Luteal: 'Luteal' },
+  he: { Menstrual: 'Menstrual', Follicular: 'Follicular', Ovulatory: 'Ovulatory', Luteal: 'Luteal' },};
   const phaseLabel = getLang(phaseByLang, lang)[phase] || phase;
   const reasonByLang: LangCopy< Record<CyclePhase, string>> = {
     en: {
@@ -79,8 +80,19 @@ export const FuelCompass: React.FC<FuelCompassProps> = ({ phase, lang }) => {
       Follicular: 'A energia está subindo. Apoie seu corpo com fibras e alimentos frescos.',
       Ovulatory: 'Sua energia está no auge. Hidrate-se e inclua gorduras saudáveis.',
       Luteal: 'Seu corpo desacelera. Foque em energia estável e minerais calmantes.'
-    }
-  };
+    },
+  ar: {
+      Menstrual: 'Your body is renewing itself. Focus on warmth and minerals.',
+      Follicular: 'Energy is rising. Support your body with fiber and fresh foods.',
+      Ovulatory: 'Your energy is at its peak. Stay hydrated and eat healthy fats.',
+      Luteal: 'Your body is slowing down. Focus on steady energy and calming minerals.'
+    },
+  he: {
+      Menstrual: 'Your body is renewing itself. Focus on warmth and minerals.',
+      Follicular: 'Energy is rising. Support your body with fiber and fresh foods.',
+      Ovulatory: 'Your energy is at its peak. Stay hydrated and eat healthy fats.',
+      Luteal: 'Your body is slowing down. Focus on steady energy and calming minerals.'
+    },};
   const tokenMapByLang: LangCopy< Record<string, string>> = {
     en: {},
     ru: { Iron: 'Железо', Zinc: 'Цинк', 'Warm Soups': 'Теплые супы', 'Vitamin C': 'Витамин C', Magnesium: 'Магний', 'Cold Drinks': 'Холодные напитки', 'Too much Caffeine': 'Много кофеина', Sugar: 'Сахар', 'Salty Snacks': 'Соленые снеки', 'Vitamin B12': 'Витамин B12', 'Lentils or Red Meat': 'Чечевица или красное мясо', 'Spinach & Kale': 'Шпинат и кейл', Beets: 'Свекла', 'Warm Broth': 'Теплый бульон', 'Dark Chocolate': 'Темный шоколад', Seaweed: 'Морские водоросли', Beans: 'Бобовые', 'Warm herbal tea': 'Теплый травяной чай', 'Gentle warmth': 'Мягкое тепло', 'Slow breathing': 'Медленное дыхание', 'Stay hydrated': 'Поддерживать гидратацию', 'B-Vitamins': 'Витамины группы B', 'Fresh Veggies': 'Свежие овощи', Probiotics: 'Пробиотики', 'Vitamin E': 'Витамин E', Folate: 'Фолат', Alcohol: 'Алкоголь', 'Heavy Fats': 'Тяжелые жиры', 'Heavy Dairy': 'Тяжелая молочка', CoQ10: 'Коэнзим Q10', Selenium: 'Селен', 'Kimchi or Kraut': 'Кимчи или квашеная капуста', Kefir: 'Кефир', 'Broccoli & Cauliflower': 'Брокколи и цветная капуста', Seeds: 'Семена', Citrus: 'Цитрусовые', 'Chicken or Fish': 'Курица или рыба', Nuts: 'Орехи', 'Try something creative': 'Сделать что-то творческое', 'Lemon water': 'Вода с лимоном', 'Morning sun': 'Утреннее солнце', 'Start a new habit': 'Начать новую привычку', 'Omega-3': 'Омега-3', Fiber: 'Клетчатка', 'Healthy Fats': 'Полезные жиры', Hydration: 'Гидратация', 'Vitamin A': 'Витамин A', 'Too much Salt': 'Много соли', 'Fried Foods': 'Жареная еда', 'White Bread': 'Белый хлеб', NAC: 'NAC', 'Vitamin D3': 'Витамин D3', Antioxidants: 'Антиоксиданты', Salmon: 'Лосось', Avocado: 'Авокадо', Quinoa: 'Киноа', Berries: 'Ягоды', Sprouts: 'Проростки', Peppers: 'Перец', 'Flax Seeds': 'Семена льна', Walnuts: 'Грецкие орехи', 'Dinner with friends': 'Ужин с друзьями', 'Active movement': 'Активное движение', 'Cool showers': 'Прохладный душ', 'Talk and connect': 'Общение и контакт', 'Slow Carbs': 'Медленные углеводы', Calcium: 'Кальций', 'Vitamin B6': 'Витамин B6', 'White Flour': 'Белая мука', Stimulants: 'Стимуляторы', 'Late-night Snacks': 'Поздние перекусы', Inositol: 'Инозитол', 'GABA support': 'Поддержка GABA', 'Roasted Veggies': 'Запеченные овощи', Oats: 'Овсянка', Bananas: 'Бананы', 'Sesame Seeds': 'Кунжут', 'Sunflower Seeds': 'Семечки подсолнечника', 'Tofu or Beef': 'Тофу или говядина', Spinach: 'Шпинат', 'Peppermint Tea': 'Мятный чай', 'Early screen-off': 'Ранний отказ от экранов', Journaling: 'Дневник', 'Warm baths': 'Теплые ванны', 'Keep things simple': 'Упростить день' },
@@ -90,8 +102,9 @@ export const FuelCompass: React.FC<FuelCompassProps> = ({ phase, lang }) => {
     de: {},
     zh: {},
     ja: {},
-    pt: {}
-  };
+    pt: {},
+  ar: {},
+  he: {},};
   const tokenMap = getLang(tokenMapByLang, lang);
   const wordMapByLang: LangCopy< Record<string, string>> = {
     en: {},
@@ -102,8 +115,9 @@ export const FuelCompass: React.FC<FuelCompassProps> = ({ phase, lang }) => {
     de: { Warm: 'Warme', Soups: 'Suppen', Vitamin: 'Vitamin', Fresh: 'Frisches', Veggies: 'Gemüse', Healthy: 'Gesunde', Fats: 'Fette', Foods: 'Lebensmittel', Hydration: 'Hydration', Stress: 'Stress', Sleep: 'Schlaf', Energy: 'Energie', Tea: 'Tee', Water: 'Wasser', Seeds: 'Samen', Fish: 'Fisch', Nuts: 'Nüsse', Fiber: 'Ballaststoffe', Magnesium: 'Magnesium', Calcium: 'Kalzium', Protein: 'Protein', Sugar: 'Zucker', Salt: 'Salz' },
     zh: { Warm: '温热', Soups: '汤', Vitamin: '维生素', Fresh: '新鲜', Veggies: '蔬菜', Healthy: '健康', Fats: '脂肪', Foods: '食物', Hydration: '补水', Stress: '压力', Sleep: '睡眠', Energy: '能量', Tea: '茶', Water: '水', Seeds: '种子', Fish: '鱼', Nuts: '坚果', Fiber: '纤维', Magnesium: '镁', Calcium: '钙', Protein: '蛋白质', Sugar: '糖', Salt: '盐' },
     ja: { Warm: '温かい', Soups: 'スープ', Vitamin: 'ビタミン', Fresh: '新鮮な', Veggies: '野菜', Healthy: '良質な', Fats: '脂質', Foods: '食品', Hydration: '水分補給', Stress: 'ストレス', Sleep: '睡眠', Energy: 'エネルギー', Tea: 'お茶', Water: '水', Seeds: '種子', Fish: '魚', Nuts: 'ナッツ', Fiber: '食物繊維', Magnesium: 'マグネシウム', Calcium: 'カルシウム', Protein: 'たんぱく質', Sugar: '糖', Salt: '塩' },
-    pt: { Warm: 'Quentes', Soups: 'sopas', Vitamin: 'Vitamina', Fresh: 'Frescos', Veggies: 'vegetais', Healthy: 'Saudáveis', Fats: 'gorduras', Foods: 'alimentos', Hydration: 'Hidratação', Stress: 'Estresse', Sleep: 'Sono', Energy: 'Energia', Tea: 'chá', Water: 'água', Seeds: 'sementes', Fish: 'peixe', Nuts: 'nozes', Fiber: 'Fibra', Magnesium: 'Magnésio', Calcium: 'Cálcio', Protein: 'Proteína', Sugar: 'Açúcar', Salt: 'Sal' }
-  };
+    pt: { Warm: 'Quentes', Soups: 'sopas', Vitamin: 'Vitamina', Fresh: 'Frescos', Veggies: 'vegetais', Healthy: 'Saudáveis', Fats: 'gorduras', Foods: 'alimentos', Hydration: 'Hidratação', Stress: 'Estresse', Sleep: 'Sono', Energy: 'Energia', Tea: 'chá', Water: 'água', Seeds: 'sementes', Fish: 'peixe', Nuts: 'nozes', Fiber: 'Fibra', Magnesium: 'Magnésio', Calcium: 'Cálcio', Protein: 'Proteína', Sugar: 'Açúcar', Salt: 'Sal' },
+  ar: {},
+  he: {},};
   const tItem = (item: string) => {
     if (tokenMap[item]) return tokenMap[item];
     if (lang === 'en' || lang === 'ru') return item;
@@ -121,8 +135,9 @@ export const FuelCompass: React.FC<FuelCompassProps> = ({ phase, lang }) => {
     de: { done: 'Erledigt', mealIdea: 'Essensidee', mealHint: `Erhalte eine Essensidee für die ${phaseLabel}-Phase.`, thinking: 'Denke...', generate: 'Rezept erstellen', suggestion: 'Luna29 Vorschlag', reset: 'Zurücksetzen' },
     zh: { done: '完成', mealIdea: '餐食建议', mealHint: `获取适合${phaseLabel}的餐食建议。`, thinking: '思考中...', generate: '生成食谱', suggestion: 'Luna29 建议', reset: '重置' },
     ja: { done: '完了', mealIdea: '食事アイデア', mealHint: `${phaseLabel}に合う食事アイデアを取得します。`, thinking: '考え中...', generate: 'レシピ生成', suggestion: 'Luna29の提案', reset: 'リセット' },
-    pt: { done: 'Concluído', mealIdea: 'Ideia de refeição', mealHint: `Receba uma ideia de refeição para a fase ${phaseLabel}.`, thinking: 'Pensando...', generate: 'Gerar receita', suggestion: 'Sugestão da Luna29', reset: 'Redefinir' }
-  };
+    pt: { done: 'Concluído', mealIdea: 'Ideia de refeição', mealHint: `Receba uma ideia de refeição para a fase ${phaseLabel}.`, thinking: 'Pensando...', generate: 'Gerar receita', suggestion: 'Sugestão da Luna29', reset: 'Redefinir' },
+  ar: { done: 'Done', mealIdea: 'Meal Idea', mealHint: `Get a meal idea that fits your ${phaseLabel} phase.`, thinking: 'Thinking...', generate: 'Generate Recipe', suggestion: "Luna29's Suggestion", reset: 'Reset' },
+  he: { done: 'Done', mealIdea: 'Meal Idea', mealHint: `Get a meal idea that fits your ${phaseLabel} phase.`, thinking: 'Thinking...', generate: 'Generate Recipe', suggestion: "Luna29's Suggestion", reset: 'Reset' },};
   const copy = getLang(copyByLang, lang);
   type FuelCategoryKey = keyof typeof ui.fuel.categories;
   

@@ -47,8 +47,13 @@ export const RelationshipsView: React.FC<{ phase: CyclePhase; lang: Language; on
     },
     pt: {
       begin: 'Começar', retry: 'Tentar novamente', shared: '✓ Compartilhado', selectRefinement: 'Selecione uma opção', editableHint: 'Você pode editar cada palavra antes de compartilhar.', back: 'Voltar', readiness: 'Prontidão social atual', battery: 'Carga', quote: 'Conexão é um ritmo compartilhado. Ao entender seu próprio tempo, você convida os outros a dançar em um ritmo seguro.', generateError: 'Não foi possível gerar a nota agora. Tente novamente.', shareError: 'Não foi possível compartilhar a nota agora.', copyError: 'Não foi possível copiar a nota agora.'
-    }
-  };
+    },
+  ar: {
+      begin: 'Begin', retry: 'Try Again', shared: '✓ Shared', selectRefinement: 'Select refinement option', editableHint: 'You can edit every word before sharing.', back: 'Back', readiness: 'Current Social Readiness', battery: 'Battery', quote: 'Connection is a shared rhythm. By understanding your own tempo, you can invite others to dance at a pace that feels safe for both.', generateError: 'Could not generate a note right now. Please retry.', shareError: 'Could not share this note right now.', copyError: 'Could not copy this note right now.'
+    },
+  he: {
+      begin: 'Begin', retry: 'Try Again', shared: '✓ Shared', selectRefinement: 'Select refinement option', editableHint: 'You can edit every word before sharing.', back: 'Back', readiness: 'Current Social Readiness', battery: 'Battery', quote: 'Connection is a shared rhythm. By understanding your own tempo, you can invite others to dance at a pace that feels safe for both.', generateError: 'Could not generate a note right now. Please retry.', shareError: 'Could not share this note right now.', copyError: 'Could not copy this note right now.'
+    },};
   const basedOnEstrogenByLang: LangCopy< string> = {
     en: `Based on your ${socialHormone?.name} level`,
     ru: 'На основе уровня Эстрогена',
@@ -58,8 +63,9 @@ export const RelationshipsView: React.FC<{ phase: CyclePhase; lang: Language; on
     de: 'Basierend auf deinem Östrogenspiegel',
     zh: '基于你的雌激素水平',
     ja: 'エストロゲンレベルに基づく',
-    pt: 'Com base no seu nível de estrogênio'
-  };
+    pt: 'Com base no seu nível de estrogênio',
+  ar: `Based on your ${socialHormone?.name} level`,
+  he: `Based on your ${socialHormone?.name} level`,};
   const copy = { ...getLang(copyByLang, lang), basedOnEstrogen: getLang(basedOnEstrogenByLang, lang) };
   
   const [input, setInput] = useState<Partial<PartnerNoteInput>>({

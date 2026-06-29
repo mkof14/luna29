@@ -4,6 +4,7 @@ import { AdminRole, AuthSession, HormoneData } from './types';
 import { dataService } from './services/dataService';
 import { useAppPreferences } from './hooks/useAppPreferences';
 import { buildBottomNavItems, buildSidebarGroups, buildTopNavItems, TabType } from './utils/navigation';
+import { readTabFromUrl, syncUrlState } from './utils/urlRouting';
 import { AppShellNav } from './components/AppShellNav';
 import { AppFooter } from './components/AppFooter';
 import { AppMobileNav } from './components/AppMobileNav';
@@ -14,6 +15,9 @@ import { useHealthModel } from './hooks/useHealthModel';
 import { authService } from './services/authService';
 import { captureAppError, initMonitoring } from './services/monitoringService';
 import { initAnalytics, trackPageView } from './services/analyticsService';
+import { conversionEvents } from './utils/conversionEvents';
+import { billingService } from './services/billingService';
+import { applyServerTrialToLocal, consumeTrialPending, markTrialPending } from './utils/subscriptionAccess';
 import { InstallAppPrompt } from './components/InstallAppPrompt';
 import { StandaloneWelcomeOverlay } from './components/StandaloneWelcomeOverlay';
 import { StandaloneLaunchSplash } from './components/StandaloneLaunchSplash';
@@ -36,7 +40,7 @@ const App: React.FC = () => {
   const [showLive, setShowLive] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
   const [selectedHormone, setSelectedHormone] = useState<HormoneData | null>(null);
-  const [activeTab, setActiveTab] = useState<TabType>('today_mirror');
+  const [activeTab, setActiveTab] = useState<TabType>(() => readTabFromUrl() || 'today_mirror');
   const [showSyncOverlay, setShowSyncOverlay] = useState(false);
   
   const [checkinData, setCheckinData] = useState<Record<string, number>>({ 
@@ -75,6 +79,7 @@ const App: React.FC = () => {
   useEffect(() => {
     initMonitoring().catch(() => undefined);
     initAnalytics().catch(() => undefined);
+    dataService.hydrateLog().catch(() => undefined);
   }, []);
 
   useEffect(() => {
@@ -139,8 +144,9 @@ const App: React.FC = () => {
   const navigateTo = useCallback((tab: TabType) => {
     setActiveTab(tab);
     setShowSidebar(false);
+    syncUrlState({ tab, lang });
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
+  }, [lang]);
 
   const saveCheckin = useCallback(() => {
     dataService.logEvent('DAILY_CHECKIN', { metrics: { ...checkinData }, symptoms: [], isPeriod: false });
@@ -194,7 +200,11 @@ const App: React.FC = () => {
   if (!session) {
     return (
       <div className="min-h-screen flex flex-col bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans relative overflow-x-hidden">
-        <Suspense fallback={null}>
+        <Suspense fallback={
+          <div className="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-950 text-slate-500 dark:text-slate-400">
+            <div className="text-[10px] font-black uppercase tracking-[0.3em]">Loading…</div>
+          </div>
+        }>
           <PublicLandingView
             onSignIn={() => {
               setAuthMode('signin');
@@ -216,13 +226,22 @@ const App: React.FC = () => {
               initialMode={authMode}
               onClose={() => setShowAuthModal(false)}
               onBack={() => setShowAuthModal(false)}
-              onSuccess={(nextSession) => {
+              onSuccess={async (nextSession) => {
                 setShowAuthModal(false);
                 setSession(nextSession);
                 const isAdmin =
                   authService.hasPermission(nextSession, 'manage_services') ||
                   authService.hasPermission(nextSession, 'manage_admin_roles');
                 setActiveTab(isAdmin ? 'admin' : 'today_mirror');
+                if (consumeTrialPending()) {
+                  try {
+                    const result = await billingService.startServerTrial();
+                    applyServerTrialToLocal(result.trial as { startedAt: string; endsAt: string; used?: boolean });
+                    conversionEvents.trialStarted();
+                  } catch {
+                    // trial may already be used server-side
+                  }
+                }
               }}
             />
           )}
@@ -288,7 +307,12 @@ const App: React.FC = () => {
         onLogout={handleLogout}
       />
 
-      <AppFooter ui={ui} lang={lang} navigateTo={navigateTo} canAccessAdmin={canAccessAdmin} />
+      <AppFooter
+        ui={ui}
+        lang={lang}
+        navigateTo={navigateTo}
+        canAccessAdmin={canAccessAdmin}
+      />
 
       <Suspense fallback={null}>
         <CheckinOverlay

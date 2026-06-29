@@ -177,7 +177,38 @@ export type VoiceFilesCopy = {
       delete: 'Excluir',
       transcript: 'Transcrição',
     },
-  };
+  ar: {
+      back: 'Back',
+      title: 'My Voice Files',
+      subtitle: 'Saved recordings from Voice Note. Play, search, filter, and manage your files.',
+      search: 'Search transcript...',
+      allLanguages: 'All languages',
+      fromDate: 'From',
+      toDate: 'To',
+      clearFilters: 'Clear filters',
+      clearAll: 'Clear all files',
+      noFiles: 'No saved voice files yet.',
+      filesCount: 'files',
+      download: 'Download',
+      delete: 'Delete',
+      transcript: 'Transcript',
+    },
+  he: {
+      back: 'Back',
+      title: 'My Voice Files',
+      subtitle: 'Saved recordings from Voice Note. Play, search, filter, and manage your files.',
+      search: 'Search transcript...',
+      allLanguages: 'All languages',
+      fromDate: 'From',
+      toDate: 'To',
+      clearFilters: 'Clear filters',
+      clearAll: 'Clear all files',
+      noFiles: 'No saved voice files yet.',
+      filesCount: 'files',
+      download: 'Download',
+      delete: 'Delete',
+      transcript: 'Transcript',
+    },};
 
 export function getVoiceFilesCopy(lang: Language): VoiceFilesCopy {
   return getLang(copyByLang, lang) || copyByLang.en;

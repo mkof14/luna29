@@ -86,8 +86,23 @@ export const PartnerFAQView: React.FC<{ lang: Language; onBack: () => void }> = 
       reportsTitle: 'Como O Parceiro Usa My Health Reports',
       reportsLead: 'O relatório facilita conversas sem conflito: o que mudou, por que pode ter ocorrido e qual apoio faz sentido agora.',
       reportsPoints: ['Use a linguagem do relatório para conversar sem culpa.', 'Levem o relatório à consulta e definam próximos exames juntos.', 'Compartilhe só ID/sem nome quando precisar de privacidade.'],
-    }
-  };
+    },
+  ar: {
+      back: 'Back',
+      philosophy: 'Luna29 Philosophy',
+      quote: '"We believe that understanding biological context is the shortest path to empathy in relationships."',
+      reportsTitle: 'How Partners Use My Health Reports',
+      reportsLead: 'Reports help couples discuss health with less conflict: what changed, why it may happen, and what support is useful now.',
+      reportsPoints: ['Use report language to discuss needs without blame.', 'Bring report to clinician and decide next tests together.', 'Share only ID/no name if privacy is needed.'],
+    },
+  he: {
+      back: 'Back',
+      philosophy: 'Luna29 Philosophy',
+      quote: '"We believe that understanding biological context is the shortest path to empathy in relationships."',
+      reportsTitle: 'How Partners Use My Health Reports',
+      reportsLead: 'Reports help couples discuss health with less conflict: what changed, why it may happen, and what support is useful now.',
+      reportsPoints: ['Use report language to discuss needs without blame.', 'Bring report to clinician and decide next tests together.', 'Share only ID/no name if privacy is needed.'],
+    },};
   const copy = getLang(copyByLang, lang);
 
   const toggle = (index: number) => {

@@ -261,7 +261,8 @@ export const AppFooter: React.FC<AppFooterProps> = ({ ui, lang, navigateTo, canA
     zh: { member: '会员区', tools: '工具', support: '支持', legal: '法律', public: '公开', account: '账户' },
     ja: { member: 'メンバーゾーン', tools: 'ツール', support: 'サポート', legal: '法務', public: '公開', account: 'アカウント' },
     pt: { member: 'Member Zone', tools: 'Ferramentas', support: 'Suporte', legal: 'Legal', public: 'Público', account: 'Conta' },
-  };
+  ar: { member: 'Member Zone', tools: 'Tools', support: 'Support', legal: 'Legal', public: 'Public', account: 'Account' },
+  he: { member: 'Member Zone', tools: 'Tools', support: 'Support', legal: 'Legal', public: 'Public', account: 'Account' },};
   const category = getLang(footerCategoriesByLang, lang) || footerCategoriesByLang.en;
 
   const memberCategoryLinks: Array<{ title: string; items: Array<{ id: TabType; label: string; danger?: boolean }> }> = [

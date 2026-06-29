@@ -1,4 +1,5 @@
 import type { Language } from '../constants';
+import { aiConsentHeaders, isAiProcessingAllowed } from '../utils/aiConsent';
 import {
   DEFAULT_LUNA_PERSONA_ID,
   LUNA_PERSONA_FALLBACK,
@@ -17,6 +18,35 @@ export type VoiceConversationResult = {
   followUpQuestion?: string | null;
   provider: string;
   ttsProvider?: string | null;
+  degraded?: boolean;
+};
+
+export type VoiceExtractTask =
+  | 'checkin'
+  | 'onboarding_checkin'
+  | 'bridge_answer'
+  | 'bridge_all'
+  | 'partner_intake'
+  | 'reflection';
+
+export type VoiceCheckinExtract = {
+  energy: number;
+  mood: number;
+  sleep: number;
+  libido: number;
+  irritability: number;
+  stress: number;
+  symptoms: string[];
+  isPeriod: boolean;
+  summary?: string;
+};
+
+export type VoiceExtractResult<T = Record<string, unknown>> = {
+  task: VoiceExtractTask;
+  data: T | null;
+  provider: string;
+  degraded?: boolean;
+  error?: string;
 };
 
 export type VoiceServiceConfig = {
@@ -34,17 +64,24 @@ const isLocalHostRuntime = () => {
   return host === 'localhost' || host === '127.0.0.1';
 };
 
+const isLocalApiBase = (raw: string) => {
+  try {
+    const url = new URL(raw.startsWith('http') ? raw : `http://${raw}`);
+    return url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+  } catch {
+    return false;
+  }
+};
+
 const getApiBase = (): string => {
   if (typeof window === 'undefined') return '';
-  const fromStorage = localStorage.getItem(API_BASE_STORAGE_KEY)?.trim();
-  if (!fromStorage) return '';
-  try {
-    const url = new URL(fromStorage.startsWith('http') ? fromStorage : `http://${fromStorage}`);
-    if (!isLocalHostRuntime() && (url.hostname === 'localhost' || url.hostname === '127.0.0.1')) return '';
-  } catch {
-    return '';
-  }
-  return fromStorage.replace(/\/$/, '');
+  if (isLocalHostRuntime()) return '';
+  const fromEnv = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim() ?? '';
+  const fromStorage = localStorage.getItem(API_BASE_STORAGE_KEY)?.trim() ?? '';
+  const raw = fromEnv || fromStorage;
+  if (!raw) return '';
+  if (isLocalApiBase(raw)) return '';
+  return raw.replace(/\/$/, '');
 };
 
 const apiUrl = (path: string) => {
@@ -100,7 +137,7 @@ export const requestLunaVoiceResponse = async (params: {
     withAudio = true,
   } = params;
 
-  if (voiceAiExplicitlyDisabled()) {
+  if (voiceAiExplicitlyDisabled() || !isAiProcessingAllowed()) {
     return localVoiceFallback(transcript, lang, personaId);
   }
 
@@ -108,7 +145,7 @@ export const requestLunaVoiceResponse = async (params: {
     const res = await fetch(apiUrl('/api/voice/respond'), {
       method: 'POST',
       credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...aiConsentHeaders() },
       body: JSON.stringify({
         transcript,
         lang,
@@ -133,21 +170,57 @@ export const requestLunaVoiceResponse = async (params: {
       followUpQuestion: data.followUpQuestion ?? null,
       provider: data.provider || 'gemini',
       ttsProvider: data.ttsProvider ?? null,
+      degraded: data.degraded ?? false,
     };
-  } catch {
-    return localVoiceFallback(transcript, lang, personaId);
+  } catch (error) {
+    const fallback = localVoiceFallback(transcript, lang, personaId);
+    fallback.degraded = true;
+    return fallback;
   }
 };
 
 const localVoiceFallback = (transcript: string, lang: Language, personaId: LunaVoicePersonaId): VoiceConversationResult => {
   const ru = lang === 'ru' || lang === 'uk';
-  const text = transcript.trim()
-    ? ru
-      ? 'Я слышу тебя. Спасибо, что поделилась. Что сейчас было бы самым бережным шагом?'
-      : 'I hear you. Thank you for sharing. What would feel like the kindest next step right now?'
-    : ru
-      ? 'Я рядом. Расскажи, что сейчас внутри — я слушаю.'
-      : 'I am here. Tell me what is inside right now — I am listening.';
+  const text = transcript.trim();
+  const snippet = text.length > 72 ? `${text.slice(0, 72).trim()}…` : text;
 
-  return { text, audio: null, personaId, provider: 'local', followUpQuestion: null, ttsProvider: null };
+  const reply = !text
+    ? ru
+      ? 'Я рядом. Расскажи, что сейчас внутри — я слушаю.'
+      : 'I am here. Tell me what is inside right now — I am listening.'
+    : ru
+      ? `Я слышу: «${snippet}». Спасибо, что поделилась. Что сейчас было бы самым бережным шагом?`
+      : `I hear: "${snippet}". Thank you for sharing. What would feel like the kindest next step right now?`;
+
+  return { text: reply, audio: null, personaId, provider: 'local', followUpQuestion: null, ttsProvider: null, degraded: true };
+};
+
+export const requestVoiceExtract = async <T = Record<string, unknown>>(params: {
+  task: VoiceExtractTask;
+  transcript: string;
+  lang: Language;
+  context?: Record<string, unknown>;
+}): Promise<VoiceExtractResult<T>> => {
+  const { task, transcript, lang, context = {} } = params;
+
+  if (voiceAiExplicitlyDisabled() || !isAiProcessingAllowed()) {
+    return { task, data: null, provider: 'local', degraded: true, error: 'ai_consent_required' };
+  }
+
+  try {
+    const res = await fetch(apiUrl('/api/voice/extract'), {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json', ...aiConsentHeaders() },
+      body: JSON.stringify({ task, transcript, lang, context }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Extract API ${res.status}`);
+    }
+
+    return (await res.json()) as VoiceExtractResult<T>;
+  } catch {
+    return { task, data: null, provider: 'local', degraded: true, error: 'request_failed' };
+  }
 };

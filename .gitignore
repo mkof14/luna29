@@ -13,3 +13,4 @@ test-results/
 .tmp-tests/
 server/data/*.json
 .vercel
+.env*

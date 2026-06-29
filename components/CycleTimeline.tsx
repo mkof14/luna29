@@ -32,7 +32,8 @@ const CycleTimeline: React.FC<CycleTimelineProps> = ({ currentDay, onDayChange, 
     zh: { Menstrual: '经期', Follicular: '卵泡期', Ovulatory: '排卵期', Luteal: '黄体期' },
     ja: { Menstrual: '月経期', Follicular: '卵胞期', Ovulatory: '排卵期', Luteal: '黄体期' },
     pt: { Menstrual: 'Menstrual', Follicular: 'Folicular', Ovulatory: 'Ovulatória', Luteal: 'Lútea' },
-  };
+  ar: { Menstrual: 'Menstrual', Follicular: 'Follicular', Ovulatory: 'Ovulatory', Luteal: 'Luteal' },
+  he: { Menstrual: 'Menstrual', Follicular: 'Follicular', Ovulatory: 'Ovulatory', Luteal: 'Luteal' },};
   const uiByLang: LangCopy< { back: string; internalSeason: string; cycleRegulator: string; day: string; slideToAdjust: string; min: string; peak: string; mode: string; peakCapacity: string; conserveEnergy: string; steadyState: string }> = {
     en: { back: 'Back', internalSeason: 'Internal Season', cycleRegulator: 'Cycle Regulator', day: 'Day', slideToAdjust: 'Slide to adjust', min: 'Min', peak: 'Peak', mode: 'mode', peakCapacity: 'Peak Capacity', conserveEnergy: 'Conserve Energy', steadyState: 'Steady State' },
     ru: { back: 'Назад', internalSeason: 'Внутренний сезон', cycleRegulator: 'Регулятор цикла', day: 'День', slideToAdjust: 'Сдвиньте для настройки', min: 'Мин', peak: 'Пик', mode: 'режим', peakCapacity: 'Пиковый ресурс', conserveEnergy: 'Сохранять энергию', steadyState: 'Стабильный режим' },
@@ -43,7 +44,8 @@ const CycleTimeline: React.FC<CycleTimelineProps> = ({ currentDay, onDayChange, 
     zh: { back: '返回', internalSeason: '内在季节', cycleRegulator: '周期调节器', day: '第', slideToAdjust: '滑动调整', min: '低', peak: '峰值', mode: '模式', peakCapacity: '峰值容量', conserveEnergy: '节省能量', steadyState: '稳定状态' },
     ja: { back: '戻る', internalSeason: '内なる季節', cycleRegulator: 'サイクル調整', day: '日', slideToAdjust: 'スライドで調整', min: '最小', peak: '最大', mode: 'モード', peakCapacity: '最大容量', conserveEnergy: '省エネ', steadyState: '安定状態' },
     pt: { back: 'Voltar', internalSeason: 'Estação interna', cycleRegulator: 'Regulador do ciclo', day: 'Dia', slideToAdjust: 'Deslize para ajustar', min: 'Mín', peak: 'Pico', mode: 'modo', peakCapacity: 'Capacidade máxima', conserveEnergy: 'Conservar energia', steadyState: 'Estado estável' },
-  };
+  ar: { back: 'Back', internalSeason: 'Internal Season', cycleRegulator: 'Cycle Regulator', day: 'Day', slideToAdjust: 'Slide to adjust', min: 'Min', peak: 'Peak', mode: 'mode', peakCapacity: 'Peak Capacity', conserveEnergy: 'Conserve Energy', steadyState: 'Steady State' },
+  he: { back: 'Back', internalSeason: 'Internal Season', cycleRegulator: 'Cycle Regulator', day: 'Day', slideToAdjust: 'Slide to adjust', min: 'Min', peak: 'Peak', mode: 'mode', peakCapacity: 'Peak Capacity', conserveEnergy: 'Conserve Energy', steadyState: 'Steady State' },};
   const ui = getLang(uiByLang, lang);
   const lunaBalanceByLang: LangCopy< { title: string; subtitle: string; points: [string, string, string, string]; appliedTitle: string; appliedBody: string; summary: string }> = {
     en: {
@@ -69,7 +71,22 @@ const CycleTimeline: React.FC<CycleTimelineProps> = ({ currentDay, onDayChange, 
     zh: { title: 'Luna29 Balance', subtitle: 'A visual map of physiological rhythms. See how hormonal and biological markers interact and affect your daily state.', points: ['Energy', 'Mood', 'Focus', 'Recovery'], appliedTitle: 'Applied In Member Mode', appliedBody: 'Use cycle day, phase state, and sensitivity cards to turn patterns into practical decisions for work, communication, and restoration.', summary: 'Instead of isolated numbers, this view shows your inner dynamics as one connected system.' },
     ja: { title: 'Luna29 Balance', subtitle: 'A visual map of physiological rhythms. See how hormonal and biological markers interact and affect your daily state.', points: ['Energy', 'Mood', 'Focus', 'Recovery'], appliedTitle: 'Applied In Member Mode', appliedBody: 'Use cycle day, phase state, and sensitivity cards to turn patterns into practical decisions for work, communication, and restoration.', summary: 'Instead of isolated numbers, this view shows your inner dynamics as one connected system.' },
     pt: { title: 'Luna29 Balance', subtitle: 'A visual map of physiological rhythms. See how hormonal and biological markers interact and affect your daily state.', points: ['Energy', 'Mood', 'Focus', 'Recovery'], appliedTitle: 'Applied In Member Mode', appliedBody: 'Use cycle day, phase state, and sensitivity cards to turn patterns into practical decisions for work, communication, and restoration.', summary: 'Instead of isolated numbers, this view shows your inner dynamics as one connected system.' },
-  };
+  ar: {
+      title: 'Luna29 Balance',
+      subtitle: 'A visual map of physiological rhythms. See how hormonal and biological markers interact and affect your daily state.',
+      points: ['Energy', 'Mood', 'Focus', 'Recovery'],
+      appliedTitle: 'Applied In Member Mode',
+      appliedBody: 'Use cycle day, phase state, and sensitivity cards to turn patterns into practical decisions for work, communication, and restoration.',
+      summary: 'Instead of isolated numbers, this view shows your inner dynamics as one connected system.',
+    },
+  he: {
+      title: 'Luna29 Balance',
+      subtitle: 'A visual map of physiological rhythms. See how hormonal and biological markers interact and affect your daily state.',
+      points: ['Energy', 'Mood', 'Focus', 'Recovery'],
+      appliedTitle: 'Applied In Member Mode',
+      appliedBody: 'Use cycle day, phase state, and sensitivity cards to turn patterns into practical decisions for work, communication, and restoration.',
+      summary: 'Instead of isolated numbers, this view shows your inner dynamics as one connected system.',
+    },};
   const lunaBalance = getLang(lunaBalanceByLang, lang) || lunaBalanceByLang.en;
   const innerWeatherByLang: LangCopy< { title: string; intro: string; points: [string, string, string]; line1: string; line2: string; line3: string }> = {
     en: { title: 'INNER WEATHER', intro: 'Short explanation:', points: ['energy changes', 'mood changes', 'focus changes'], line1: 'But these changes are rarely random.', line2: 'More often, they are rhythms of physiology.', line3: 'Luna29 helps you see this dynamic as a map of inner weather.' },
@@ -81,7 +98,8 @@ const CycleTimeline: React.FC<CycleTimelineProps> = ({ currentDay, onDayChange, 
     zh: { title: '内在天气', intro: '简短说明：', points: ['能量会变化', '情绪会变化', '专注会变化'], line1: '但这些变化很少是随机的。', line2: '更常见的是生理节律在起作用。', line3: 'Luna29 帮助你把这种动态看作一张内在天气地图。' },
     ja: { title: 'インナーウェザー', intro: '短い説明：', points: ['エネルギーは変わる', '気分は変わる', '集中は変わる'], line1: 'しかし、これらの変化は偶然ではありません。', line2: '多くは生理的リズムです。', line3: 'Luna29 はこの動きを「内なる天気図」として見える化します。' },
     pt: { title: 'CLIMA INTERNO', intro: 'Explicação curta:', points: ['a energia muda', 'o humor muda', 'a concentração muda'], line1: 'Mas essas mudanças raramente são aleatórias.', line2: 'Na maioria das vezes, são ritmos da fisiologia.', line3: 'A Luna29 ajuda você a ver essa dinâmica como um mapa do clima interno.' },
-  };
+  ar: { title: 'INNER WEATHER', intro: 'Short explanation:', points: ['energy changes', 'mood changes', 'focus changes'], line1: 'But these changes are rarely random.', line2: 'More often, they are rhythms of physiology.', line3: 'Luna29 helps you see this dynamic as a map of inner weather.' },
+  he: { title: 'INNER WEATHER', intro: 'Short explanation:', points: ['energy changes', 'mood changes', 'focus changes'], line1: 'But these changes are rarely random.', line2: 'More often, they are rhythms of physiology.', line3: 'Luna29 helps you see this dynamic as a map of inner weather.' },};
   const innerWeather = getLang(innerWeatherByLang, lang) || innerWeatherByLang.en;
   const phaseSeasonByLang: LangCopy< Record<CyclePhase, string>> = {
     en: { Menstrual: 'Restoration Season', Follicular: 'Building Season', Ovulatory: 'Vibrancy Season', Luteal: 'Nesting Season' },
@@ -93,7 +111,8 @@ const CycleTimeline: React.FC<CycleTimelineProps> = ({ currentDay, onDayChange, 
     zh: { Menstrual: '修复季', Follicular: '构建季', Ovulatory: '活力季', Luteal: '内收季' },
     ja: { Menstrual: '回復シーズン', Follicular: '構築シーズン', Ovulatory: '活性シーズン', Luteal: '内向シーズン' },
     pt: { Menstrual: 'Estação de restauração', Follicular: 'Estação de construção', Ovulatory: 'Estação de vitalidade', Luteal: 'Estação de recolhimento' },
-  };
+  ar: { Menstrual: 'Restoration Season', Follicular: 'Building Season', Ovulatory: 'Vibrancy Season', Luteal: 'Nesting Season' },
+  he: { Menstrual: 'Restoration Season', Follicular: 'Building Season', Ovulatory: 'Vibrancy Season', Luteal: 'Nesting Season' },};
   const sensitivityByLang: LangCopy< Record<string, string>> = {
     en: {},
     ru: { Quiet: 'Тихо', Soft: 'Мягко', Selective: 'Избирательно', Bright: 'Ясно', Rising: 'Растет', Open: 'Открыто', Radiant: 'Сияние', Full: 'Полно', Outgoing: 'Общительно', Reflective: 'Рефлексивно', Grounding: 'Заземление', Guarded: 'Бережно' },
@@ -104,7 +123,8 @@ const CycleTimeline: React.FC<CycleTimelineProps> = ({ currentDay, onDayChange, 
     zh: { Quiet: '安静', Soft: '柔和', Selective: '选择性', Bright: '明亮', Rising: '上升', Open: '开放', Radiant: '充盈', Full: '满格', Outgoing: '外向', Reflective: '内省', Grounding: '稳定', Guarded: '防护' },
     ja: { Quiet: '静穏', Soft: 'やわらかい', Selective: '選択的', Bright: '明るい', Rising: '上昇中', Open: 'オープン', Radiant: '輝き', Full: '満ちる', Outgoing: '社交的', Reflective: '内省的', Grounding: '安定', Guarded: '防御的' },
     pt: { Quiet: 'Calmo', Soft: 'Suave', Selective: 'Seletivo', Bright: 'Brilhante', Rising: 'Em alta', Open: 'Aberto', Radiant: 'Radiante', Full: 'Cheio', Outgoing: 'Expansivo', Reflective: 'Reflexivo', Grounding: 'Aterrado', Guarded: 'Reservado' },
-  };
+  ar: {},
+  he: {},};
 
   return (
     <div className="w-full luna-page-shell luna-page-ritual animate-in fade-in duration-1000 space-y-8 p-8 md:p-10 relative overflow-hidden">

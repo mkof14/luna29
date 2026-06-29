@@ -47,7 +47,8 @@ const subtitleByLang: LangCopy< string> = {
   zh: '会员区',
   ja: 'メンバーゾーン',
   pt: 'Zona Member',
-};
+  ar: 'Member Zone',
+  he: 'Member Zone',};
 
 export const MemberPageHero: React.FC<{
   activeTab: TabType;
@@ -64,7 +65,8 @@ export const MemberPageHero: React.FC<{
     zh: { about: '关于', how_it_works: '如何使用', terms: '服务条款', medical: '免责声明', cookies: 'Cookie 声明', data_rights: '数据权利' },
     ja: { about: '概要', how_it_works: '使い方', terms: '利用規約', medical: '免責', cookies: 'Cookie 通知', data_rights: 'データ権利' },
     pt: { about: 'Sobre', how_it_works: 'Como Funciona', terms: 'Termos De Servico', medical: 'Aviso', cookies: 'Aviso De Cookies', data_rights: 'Direitos De Dados' },
-  };
+  ar: { about: 'About', how_it_works: 'How It Works', terms: 'Terms', medical: 'Disclaimer', cookies: 'Cookies', data_rights: 'Data Rights' },
+  he: { about: 'About', how_it_works: 'How It Works', terms: 'Terms', medical: 'Disclaimer', cookies: 'Cookies', data_rights: 'Data Rights' },};
   const legal = getLang(legalTitleByLang, lang) || legalTitleByLang.en;
   const subtitle = getLang(subtitleByLang, lang) || subtitleByLang.en;
   const descriptionByLang: LangCopy< Record<DescriptionKey, string>> = {
@@ -311,12 +313,66 @@ export const MemberPageHero: React.FC<{
       cookies: 'Uso de cookies e controle de preferencias de sessao e analise.',
       data_rights: 'Direitos sobre acesso, exportacao, correcao e exclusao de dados.',
     },
-  };
+  ar: {
+      home: 'Your daily orientation layer with the most important signals, focus points, and next actions.',
+      about: 'Background of Luna29 and BioMath context with the purpose and boundaries of the system.',
+      cycle: 'Visual map of physiological rhythms across energy, mood, focus, and recovery.',
+      labs: 'Track metrics, trends, and practical interpretations of your health signals over time.',
+      history: 'Review timeline, repeated patterns, and what changed across recent cycles and days.',
+      create: 'Generate guided reflections, drafts, and supportive communication artifacts.',
+      profile: 'Manage your personal settings, preferences, and profile information.',
+      privacy: 'Control data visibility, consent settings, and personal privacy boundaries.',
+      bridge: 'Turn internal states into clear, respectful messages for yourself or close people.',
+      family: 'Adaptive home rhythm tools for load planning, conflict forecast, and shared check-ins.',
+      voice: 'Capture thoughts by voice, convert to structured reflection, and receive focused responses.',
+      voice_files: 'Access, review, and manage saved voice records and transcripts.',
+      knowledge: 'Reference materials and practical guidance for understanding your internal patterns.',
+      faq: 'Quick answers to common questions about scope, safety, data, and usage.',
+      support: 'Communication and support channels for practical help and service feedback.',
+      meds: 'Medication tracking context and supportive notes for daily adherence routines.',
+      reset: 'Short stabilization protocols to reduce overload and restore functional calm.',
+      partner: 'Guidance for partners: how to support without pressure and communicate with clarity.',
+      relationships: 'Relationship regulation tools aligned with capacity, timing, and emotional load.',
+      admin: 'Private workspace for managing content, team access, and key account insights.',
+      how: 'Step-by-step flow of Luna29 usage from public orientation to private member tools.',
+      terms: 'Legal terms describing use conditions, account rules, and service limitations.',
+      disclaimer: 'Service boundary notice: Luna29 is informational support, not medical diagnosis or treatment.',
+      cookies: 'Cookie usage details and controls for session, preferences, and analytics.',
+      data_rights: 'Your rights over access, export, correction, and deletion of personal data.',
+    },
+  he: {
+      home: 'Your daily orientation layer with the most important signals, focus points, and next actions.',
+      about: 'Background of Luna29 and BioMath context with the purpose and boundaries of the system.',
+      cycle: 'Visual map of physiological rhythms across energy, mood, focus, and recovery.',
+      labs: 'Track metrics, trends, and practical interpretations of your health signals over time.',
+      history: 'Review timeline, repeated patterns, and what changed across recent cycles and days.',
+      create: 'Generate guided reflections, drafts, and supportive communication artifacts.',
+      profile: 'Manage your personal settings, preferences, and profile information.',
+      privacy: 'Control data visibility, consent settings, and personal privacy boundaries.',
+      bridge: 'Turn internal states into clear, respectful messages for yourself or close people.',
+      family: 'Adaptive home rhythm tools for load planning, conflict forecast, and shared check-ins.',
+      voice: 'Capture thoughts by voice, convert to structured reflection, and receive focused responses.',
+      voice_files: 'Access, review, and manage saved voice records and transcripts.',
+      knowledge: 'Reference materials and practical guidance for understanding your internal patterns.',
+      faq: 'Quick answers to common questions about scope, safety, data, and usage.',
+      support: 'Communication and support channels for practical help and service feedback.',
+      meds: 'Medication tracking context and supportive notes for daily adherence routines.',
+      reset: 'Short stabilization protocols to reduce overload and restore functional calm.',
+      partner: 'Guidance for partners: how to support without pressure and communicate with clarity.',
+      relationships: 'Relationship regulation tools aligned with capacity, timing, and emotional load.',
+      admin: 'Private workspace for managing content, team access, and key account insights.',
+      how: 'Step-by-step flow of Luna29 usage from public orientation to private member tools.',
+      terms: 'Legal terms describing use conditions, account rules, and service limitations.',
+      disclaimer: 'Service boundary notice: Luna29 is informational support, not medical diagnosis or treatment.',
+      cookies: 'Cookie usage details and controls for session, preferences, and analytics.',
+      data_rights: 'Your rights over access, export, correction, and deletion of personal data.',
+    },};
   const descriptionKeyByTab: Record<TabType, DescriptionKey> = {
     dashboard: 'home',
     today_mirror: 'home',
     my_day: 'home',
     monthly_reflection: 'home',
+    rhythm_calendar: 'cycle',
     insights_paywall: 'home',
     about: 'about',
     cycle: 'cycle',
@@ -350,6 +406,7 @@ export const MemberPageHero: React.FC<{
     today_mirror: { image: '/images/luna_banner_1.jpg', title: 'Today', subtitle, description: descriptions[descriptionKeyByTab.today_mirror] },
     my_day: { image: '/images/luna_banner_1.jpg', title: 'My Day with Luna29', subtitle, description: descriptions[descriptionKeyByTab.my_day] },
     monthly_reflection: { image: '/images/luna_banner_1.jpg', title: 'Your month with Luna29', subtitle, description: descriptions[descriptionKeyByTab.monthly_reflection] },
+    rhythm_calendar: { image: '/images/heroes/cycle.webp', title: 'Rhythm Calendar', subtitle, description: descriptions[descriptionKeyByTab.rhythm_calendar] },
     insights_paywall: { image: '/images/luna_banner_1.jpg', title: 'Unlock Insights', subtitle, description: descriptions[descriptionKeyByTab.insights_paywall] },
     about: { image: '/images/Luna L 44.png', title: legal.about, subtitle, description: descriptions[descriptionKeyByTab.about] },
     cycle: { image: '/images/luna_banner_10.jpg', title: ui.navigation.cycle || 'Luna29 Balance', subtitle, description: descriptions[descriptionKeyByTab.cycle] },

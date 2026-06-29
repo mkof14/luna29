@@ -150,8 +150,9 @@ const nameMap: LangCopy< Record<string, string>> = {
     dopamine: 'Dopamina',
     gaba: 'GABA',
     melatonin: 'Melatonina'
-  }
-};
+  },
+  ar: {},
+  he: {},};
 
 const templateByLang: LangCopy< {
   description: (name: string) => string;

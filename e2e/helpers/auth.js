@@ -48,7 +48,6 @@ async function seedLocalSession(page, { onboardingComplete = false } = {}) {
         ]
       : [];
 
-    window.localStorage.setItem('luna_api_base_url', 'http://127.0.0.1:65535');
     window.localStorage.setItem('luna_allow_local_auth_fallback', 'true');
     window.localStorage.setItem('luna_auth_session_v2', encode(session));
     window.localStorage.setItem('luna_auth_users_v2', encode(users));
@@ -93,7 +92,6 @@ async function seedLocalSession(page, { onboardingComplete = false } = {}) {
         ]
       : [];
 
-    window.localStorage.setItem('luna_api_base_url', 'http://127.0.0.1:65535');
     window.localStorage.setItem('luna_allow_local_auth_fallback', 'true');
     window.localStorage.setItem('luna_auth_session_v2', encode(session));
     window.localStorage.setItem('luna_auth_users_v2', encode(users));

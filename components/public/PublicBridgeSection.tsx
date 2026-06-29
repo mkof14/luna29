@@ -21,7 +21,8 @@ export const PublicBridgeSection: React.FC<PublicBridgeSectionProps> = ({
     zh: { eyebrow: '连接桥', title: '清晰表达你的状态', problemTitle: '问题', problemBody: '有时很难向伴侣，甚至向自己解释当前状态。', helpsTitle: '连接桥帮你', helps: ['组织你的状态表达', '平静地说明感受', '在对话中保留尊重'], unique: '这是 Luna29 的独特功能之一。', memberLinkTitle: '与会员区逻辑联动', memberLinkBody: '在会员区，连接桥会运行 3 个引导问题流程，并生成可保存或分享的平静反思信息。' },
     ja: { eyebrow: 'ブリッジ', title: '状態を明確に伝える', problemTitle: '課題', problemBody: 'ときに、自分の状態をパートナーや自分自身に説明するのは難しいです。', helpsTitle: 'ブリッジは次を助けます', helps: ['状態を言語化する', '落ち着いて説明する', '会話の尊重を保つ'], unique: 'これは Luna29 のユニークな機能の一つです。', memberLinkTitle: 'メンバーゾーンのロジックと接続', memberLinkBody: 'メンバーゾーンではブリッジが3つの質問フローを実行し、保存・共有できる落ち着いたリフレクション文を生成します。' },
     pt: { eyebrow: 'A PONTE', title: 'Expresse seu estado com clareza', problemTitle: 'Problema', problemBody: 'Às vezes é difícil explicar seu estado ao parceiro ou até para si mesma.', helpsTitle: 'A Ponte ajuda a', helps: ['formular seu estado', 'explicar com calma', 'preservar o respeito na conversa'], unique: 'Esta é uma das funções únicas da Luna29.', memberLinkTitle: 'Conectado à lógica da zona de membros', memberLinkBody: 'Na área de membros, a Ponte executa o fluxo guiado de 3 perguntas e forma uma mensagem de reflexão calma para manter ou compartilhar.' },
-  };
+  ar: { eyebrow: 'THE BRIDGE', title: 'Say Your State Clearly', problemTitle: 'Problem', problemBody: 'Sometimes it is hard to explain your state to a partner or even to yourself.', helpsTitle: 'Bridge helps', helps: ['formulate your state', 'explain it calmly', 'preserve respect in conversation'], unique: 'This is one of Luna29’s unique functions.', memberLinkTitle: 'Connected to Member Logic', memberLinkBody: 'In the member zone, The Bridge runs the guided 3-question flow and forms a calm note you can keep or share.' },
+  he: { eyebrow: 'THE BRIDGE', title: 'Say Your State Clearly', problemTitle: 'Problem', problemBody: 'Sometimes it is hard to explain your state to a partner or even to yourself.', helpsTitle: 'Bridge helps', helps: ['formulate your state', 'explain it calmly', 'preserve respect in conversation'], unique: 'This is one of Luna29’s unique functions.', memberLinkTitle: 'Connected to Member Logic', memberLinkBody: 'In the member zone, The Bridge runs the guided 3-question flow and forms a calm note you can keep or share.' },};
   const actionByLang: LangCopy< { enterMember: string; memberSignIn: string }> = {
     en: { enterMember: 'Enter Member Zone', memberSignIn: 'Already a member? Sign in' },
     ru: { enterMember: 'Перейти в зону участника', memberSignIn: 'Уже участник? Войти' },
@@ -32,7 +33,8 @@ export const PublicBridgeSection: React.FC<PublicBridgeSectionProps> = ({
     zh: { enterMember: '进入会员区', memberSignIn: '已有会员？登录' },
     ja: { enterMember: 'メンバーゾーンへ', memberSignIn: 'メンバーですか？ サインイン' },
     pt: { enterMember: 'Entrar na zona de membro', memberSignIn: 'Ja e membro? Entrar' },
-  };
+  ar: { enterMember: 'Enter Member Zone', memberSignIn: 'Already a member? Sign in' },
+  he: { enterMember: 'Enter Member Zone', memberSignIn: 'Already a member? Sign in' },};
   const bridgePublic = getLang(bridgePublicByLang, lang) || bridgePublicByLang.en;
   const actions = getLang(actionByLang, lang) || actionByLang.en;
   return (

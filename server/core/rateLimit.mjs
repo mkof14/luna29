@@ -1,0 +1,47 @@
+const memoryStore = new Map();
+
+const upstashEnabled = () =>
+  Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+
+const upstashIncr = async (key, windowMs) => {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  const ttlSec = Math.max(1, Math.ceil(windowMs / 1000));
+  const response = await fetch(`${url}/pipeline`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify([
+      ['INCR', key],
+      ['EXPIRE', key, ttlSec],
+    ]),
+  });
+  if (!response.ok) return null;
+  const data = await response.json();
+  const count = Number(data?.[0]?.result);
+  return Number.isFinite(count) ? count : null;
+};
+
+export const createRateLimiter = () => {
+  const check = async (key, limit, windowMs) => {
+    if (upstashEnabled()) {
+      try {
+        const count = await upstashIncr(`luna:rl:${key}`, windowMs);
+        if (count !== null) return count <= limit;
+      } catch {
+        // fall through to memory
+      }
+    }
+
+    const now = Date.now();
+    const state = memoryStore.get(key);
+    if (!state || state.resetAt < now) {
+      memoryStore.set(key, { count: 1, resetAt: now + windowMs });
+      return true;
+    }
+    if (state.count >= limit) return false;
+    state.count += 1;
+    return true;
+  };
+
+  return check;
+};

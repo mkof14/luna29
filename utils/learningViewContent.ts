@@ -40,7 +40,78 @@ const COPY: LangCopy<LearningViewCopy> = {
     promiseTitle: 'Як користуватися сторінкою',
     promiseQuote: 'Читайте повільно. Відкривайте по одному блоку. Luna29 — дзеркало для самоспостереження.',
   },
-};
+  es: {
+    back: 'Back to public home',
+    eyebrow: 'Luna29 Learning',
+    titleA: 'System',
+    titleB: 'Learning.',
+    subtitle: 'Terminology, core concepts, and practical questions — written in Luna29\'s calm language of observation. A structured guide for reading your physiology without turning it into diagnosis.',
+    promiseTitle: 'How to use this page',
+    promiseQuote: 'Read slowly. Open one section at a time. Luna29 is a mirror for self-observation — these notes help you read the mirror without turning it into a verdict.',
+  },
+  fr: {
+    back: 'Back to public home',
+    eyebrow: 'Luna29 Learning',
+    titleA: 'System',
+    titleB: 'Learning.',
+    subtitle: 'Terminology, core concepts, and practical questions — written in Luna29\'s calm language of observation. A structured guide for reading your physiology without turning it into diagnosis.',
+    promiseTitle: 'How to use this page',
+    promiseQuote: 'Read slowly. Open one section at a time. Luna29 is a mirror for self-observation — these notes help you read the mirror without turning it into a verdict.',
+  },
+  de: {
+    back: 'Back to public home',
+    eyebrow: 'Luna29 Learning',
+    titleA: 'System',
+    titleB: 'Learning.',
+    subtitle: 'Terminology, core concepts, and practical questions — written in Luna29\'s calm language of observation. A structured guide for reading your physiology without turning it into diagnosis.',
+    promiseTitle: 'How to use this page',
+    promiseQuote: 'Read slowly. Open one section at a time. Luna29 is a mirror for self-observation — these notes help you read the mirror without turning it into a verdict.',
+  },
+  zh: {
+    back: 'Back to public home',
+    eyebrow: 'Luna29 Learning',
+    titleA: 'System',
+    titleB: 'Learning.',
+    subtitle: 'Terminology, core concepts, and practical questions — written in Luna29\'s calm language of observation. A structured guide for reading your physiology without turning it into diagnosis.',
+    promiseTitle: 'How to use this page',
+    promiseQuote: 'Read slowly. Open one section at a time. Luna29 is a mirror for self-observation — these notes help you read the mirror without turning it into a verdict.',
+  },
+  ja: {
+    back: 'Back to public home',
+    eyebrow: 'Luna29 Learning',
+    titleA: 'System',
+    titleB: 'Learning.',
+    subtitle: 'Terminology, core concepts, and practical questions — written in Luna29\'s calm language of observation. A structured guide for reading your physiology without turning it into diagnosis.',
+    promiseTitle: 'How to use this page',
+    promiseQuote: 'Read slowly. Open one section at a time. Luna29 is a mirror for self-observation — these notes help you read the mirror without turning it into a verdict.',
+  },
+  pt: {
+    back: 'Back to public home',
+    eyebrow: 'Luna29 Learning',
+    titleA: 'System',
+    titleB: 'Learning.',
+    subtitle: 'Terminology, core concepts, and practical questions — written in Luna29\'s calm language of observation. A structured guide for reading your physiology without turning it into diagnosis.',
+    promiseTitle: 'How to use this page',
+    promiseQuote: 'Read slowly. Open one section at a time. Luna29 is a mirror for self-observation — these notes help you read the mirror without turning it into a verdict.',
+  },
+  ar: {
+    back: 'Back to public home',
+    eyebrow: 'Luna29 Learning',
+    titleA: 'System',
+    titleB: 'Learning.',
+    subtitle: 'Terminology, core concepts, and practical questions — written in Luna29\'s calm language of observation. A structured guide for reading your physiology without turning it into diagnosis.',
+    promiseTitle: 'How to use this page',
+    promiseQuote: 'Read slowly. Open one section at a time. Luna29 is a mirror for self-observation — these notes help you read the mirror without turning it into a verdict.',
+  },
+  he: {
+    back: 'Back to public home',
+    eyebrow: 'Luna29 Learning',
+    titleA: 'System',
+    titleB: 'Learning.',
+    subtitle: 'Terminology, core concepts, and practical questions — written in Luna29\'s calm language of observation. A structured guide for reading your physiology without turning it into diagnosis.',
+    promiseTitle: 'How to use this page',
+    promiseQuote: 'Read slowly. Open one section at a time. Luna29 is a mirror for self-observation — these notes help you read the mirror without turning it into a verdict.',
+  },};
 
 const LEARNING_DATA: LangCopy<AccordionCategory[]> = {
   en: [
@@ -331,6 +402,1320 @@ const LEARNING_DATA: LangCopy<AccordionCategory[]> = {
         {
           title: 'Экспорт осознанно',
           body: 'Экспортируйте перед визитом, сессией или месячной рефлексией — не из тревоги. Файл под вашим контролем.',
+        },
+      ],
+    },
+  ],
+  uk: [
+    {
+      title: 'Core Terminology',
+      intro: 'These terms appear across Luna29 public pages, member tools, and reports. They describe patterns — not labels for who you are.',
+      items: [
+        {
+          title: 'Luna29 Balance',
+          body: 'The visual rhythm map at the center of the system. It connects cycle context, sensitivity states, and daily markers into one readable picture — like weather for your inner state.',
+        },
+        {
+          title: 'BioMath',
+          body: 'The underlying logic that links physiological signals to plain-language states. BioMath does not diagnose; it organizes what you observe into structured, repeatable patterns.',
+        },
+        {
+          title: 'Rhythm Map',
+          body: 'A day-by-day view of where you are in your internal cycle. It helps you see phase shifts, not just calendar dates.',
+        },
+        {
+          title: 'Phase / Internal Season',
+          body: 'Luna29 describes cycle segments as seasons: renewal, growth, peak expression, and integration. Each phase has a different baseline for energy, focus, and sensitivity.',
+        },
+        {
+          title: 'Sensitivity State',
+          body: 'A readable summary of how reactive or resourced your system feels today — for example Steady, Elevated, Strained, or Quiet. It is descriptive, not a grade.',
+        },
+        {
+          title: 'Marker',
+          body: 'Any signal you log or import: sleep quality, mood, energy, symptoms, lab values, or voice reflections. Markers become meaningful when seen across time.',
+        },
+        {
+          title: 'Weather Map',
+          body: 'A metaphor Luna29 uses for inner state: conditions change, all states are valid, and the goal is orientation — not control.',
+        },
+        {
+          title: 'Temporal Scrubber',
+          body: 'A tool to align the map with your real body timing when cycles are irregular, delayed, or affected by stress or medication.',
+        },
+        {
+          title: 'Voice Note',
+          body: 'A structured voice reflection. Speaking often captures nuance faster than typing; Luna29 listens for themes, not for clinical scoring.',
+        },
+        {
+          title: 'The Bridge',
+          body: 'A communication layer that helps you translate inner state into calm, respectful language for partners, family, or colleagues.',
+        },
+        {
+          title: 'Ritual Path',
+          body: 'A gentle daily rhythm — a path, not a checklist. It protects attention and keeps signal quality high over time.',
+        },
+        {
+          title: 'Reset Room',
+          body: 'A crisis-orientation space for overwhelm. It is not emergency care; it helps you pause, ground, and choose the next safe step.',
+        },
+        {
+          title: 'Local-First',
+          body: 'Core wellness records stay on your device when possible. Account, security, and selected features may use protected backend services.',
+        },
+        {
+          title: 'Health Report',
+          body: 'A structured export that organizes markers and observations into a clear document you can review yourself or share with a licensed professional.',
+        },
+      ],
+    },
+    {
+      title: 'Key Concepts',
+      intro: 'Ideas that shape how Luna29 reads your data and how you should read Luna29.',
+      items: [
+        {
+          title: 'Mirror, not coach',
+          body: 'Luna29 reflects patterns back to you. It does not command behavior, assign scores, or push optimization culture. The question is always: "What do I notice?" — not "Am I failing?"',
+        },
+        {
+          title: 'Network, not single hormone',
+          body: 'Energy and mood emerge from interactions — reproductive rhythm, stress load, metabolism, sleep, and context. Luna29 maps connections instead of isolating one number.',
+        },
+        {
+          title: 'Pattern over snapshot',
+          body: 'One hard day is data, not destiny. The system becomes useful when you compare weeks, phases, and seasons — not when you judge a single morning.',
+        },
+        {
+          title: 'Language before diagnosis',
+          body: 'Many users come to Luna29 because they lack words for their state. Clear language helps conversations with partners and clinicians — it does not replace clinicians.',
+        },
+        {
+          title: 'Consent and pace',
+          body: 'You choose what to log, export, or share. Luna29 is designed for sustainable attention: small honest inputs beat perfect daily compliance.',
+        },
+      ],
+    },
+    {
+      title: 'Important Questions',
+      intro: 'Questions users ask once they start taking the system seriously.',
+      items: [
+        {
+          title: 'What should I log first?',
+          body: 'Start with three anchors: sleep quality, energy, and one sentence of context ("what kind of day was this?"). Add cycle day if you know it. After one week, add voice notes or lab markers if they matter to you.',
+        },
+        {
+          title: 'What if my cycle is irregular?',
+          body: 'Use physical signs and the Temporal Scrubber instead of forcing a 28-day template. Luna29 remains useful when the map is approximate — honesty beats artificial precision.',
+        },
+        {
+          title: 'Can I use Luna29 on hormonal birth control?',
+          body: 'Yes. Your map may look flatter because medication stabilizes hormone swings. Track how you feel on that steady baseline — sensitivity, sleep, mood, and stress still matter.',
+        },
+        {
+          title: 'When should I bring a report to a doctor?',
+          body: 'When you notice a persistent pattern that affects daily life, or when you need language for a visit. Luna29 prepares observation — your clinician provides medical judgment.',
+        },
+        {
+          title: 'What should I not use Luna29 for?',
+          body: 'Emergency decisions, self-diagnosis, medication changes, or replacing therapy or psychiatric care. If you may be in danger, contact local emergency services immediately.',
+        },
+        {
+          title: 'Why do I feel worse after learning about hormones?',
+          body: 'Naming patterns can feel exposing at first. Treat each state as weather passing through — not as identity. Reduce inputs for a few days if you feel overloaded; the system waits for you.',
+        },
+      ],
+    },
+    {
+      title: 'Daily Practice',
+      intro: 'How experienced members use Luna29 without turning it into another obligation.',
+      items: [
+        {
+          title: 'The 60-second check-in',
+          body: 'Once a day: energy (low–high), sleep (rough–rested), one word for mood. That is enough to build a rhythm map over time.',
+        },
+        {
+          title: 'Weekly review (10 minutes)',
+          body: 'Look at the week as a strip, not as individual failures. Ask: which phase was this? what repeated? what was context (work, travel, conflict, illness)?',
+        },
+        {
+          title: 'Voice before fix',
+          body: 'When you feel tangled, record a Voice Note before searching for solutions. Often the need is witness, not advice.',
+        },
+        {
+          title: 'Bridge before conflict',
+          body: 'If a conversation matters, open The Bridge and draft two calm sentences about your state. Share capacity, not blame.',
+        },
+        {
+          title: 'Export with intention',
+          body: 'Export data when preparing for a visit, a therapist session, or your own monthly reflection — not from anxiety. You control the file.',
+        },
+      ],
+    },
+  ],
+  es: [
+    {
+      title: 'Core Terminology',
+      intro: 'These terms appear across Luna29 public pages, member tools, and reports. They describe patterns — not labels for who you are.',
+      items: [
+        {
+          title: 'Luna29 Balance',
+          body: 'The visual rhythm map at the center of the system. It connects cycle context, sensitivity states, and daily markers into one readable picture — like weather for your inner state.',
+        },
+        {
+          title: 'BioMath',
+          body: 'The underlying logic that links physiological signals to plain-language states. BioMath does not diagnose; it organizes what you observe into structured, repeatable patterns.',
+        },
+        {
+          title: 'Rhythm Map',
+          body: 'A day-by-day view of where you are in your internal cycle. It helps you see phase shifts, not just calendar dates.',
+        },
+        {
+          title: 'Phase / Internal Season',
+          body: 'Luna29 describes cycle segments as seasons: renewal, growth, peak expression, and integration. Each phase has a different baseline for energy, focus, and sensitivity.',
+        },
+        {
+          title: 'Sensitivity State',
+          body: 'A readable summary of how reactive or resourced your system feels today — for example Steady, Elevated, Strained, or Quiet. It is descriptive, not a grade.',
+        },
+        {
+          title: 'Marker',
+          body: 'Any signal you log or import: sleep quality, mood, energy, symptoms, lab values, or voice reflections. Markers become meaningful when seen across time.',
+        },
+        {
+          title: 'Weather Map',
+          body: 'A metaphor Luna29 uses for inner state: conditions change, all states are valid, and the goal is orientation — not control.',
+        },
+        {
+          title: 'Temporal Scrubber',
+          body: 'A tool to align the map with your real body timing when cycles are irregular, delayed, or affected by stress or medication.',
+        },
+        {
+          title: 'Voice Note',
+          body: 'A structured voice reflection. Speaking often captures nuance faster than typing; Luna29 listens for themes, not for clinical scoring.',
+        },
+        {
+          title: 'The Bridge',
+          body: 'A communication layer that helps you translate inner state into calm, respectful language for partners, family, or colleagues.',
+        },
+        {
+          title: 'Ritual Path',
+          body: 'A gentle daily rhythm — a path, not a checklist. It protects attention and keeps signal quality high over time.',
+        },
+        {
+          title: 'Reset Room',
+          body: 'A crisis-orientation space for overwhelm. It is not emergency care; it helps you pause, ground, and choose the next safe step.',
+        },
+        {
+          title: 'Local-First',
+          body: 'Core wellness records stay on your device when possible. Account, security, and selected features may use protected backend services.',
+        },
+        {
+          title: 'Health Report',
+          body: 'A structured export that organizes markers and observations into a clear document you can review yourself or share with a licensed professional.',
+        },
+      ],
+    },
+    {
+      title: 'Key Concepts',
+      intro: 'Ideas that shape how Luna29 reads your data and how you should read Luna29.',
+      items: [
+        {
+          title: 'Mirror, not coach',
+          body: 'Luna29 reflects patterns back to you. It does not command behavior, assign scores, or push optimization culture. The question is always: "What do I notice?" — not "Am I failing?"',
+        },
+        {
+          title: 'Network, not single hormone',
+          body: 'Energy and mood emerge from interactions — reproductive rhythm, stress load, metabolism, sleep, and context. Luna29 maps connections instead of isolating one number.',
+        },
+        {
+          title: 'Pattern over snapshot',
+          body: 'One hard day is data, not destiny. The system becomes useful when you compare weeks, phases, and seasons — not when you judge a single morning.',
+        },
+        {
+          title: 'Language before diagnosis',
+          body: 'Many users come to Luna29 because they lack words for their state. Clear language helps conversations with partners and clinicians — it does not replace clinicians.',
+        },
+        {
+          title: 'Consent and pace',
+          body: 'You choose what to log, export, or share. Luna29 is designed for sustainable attention: small honest inputs beat perfect daily compliance.',
+        },
+      ],
+    },
+    {
+      title: 'Important Questions',
+      intro: 'Questions users ask once they start taking the system seriously.',
+      items: [
+        {
+          title: 'What should I log first?',
+          body: 'Start with three anchors: sleep quality, energy, and one sentence of context ("what kind of day was this?"). Add cycle day if you know it. After one week, add voice notes or lab markers if they matter to you.',
+        },
+        {
+          title: 'What if my cycle is irregular?',
+          body: 'Use physical signs and the Temporal Scrubber instead of forcing a 28-day template. Luna29 remains useful when the map is approximate — honesty beats artificial precision.',
+        },
+        {
+          title: 'Can I use Luna29 on hormonal birth control?',
+          body: 'Yes. Your map may look flatter because medication stabilizes hormone swings. Track how you feel on that steady baseline — sensitivity, sleep, mood, and stress still matter.',
+        },
+        {
+          title: 'When should I bring a report to a doctor?',
+          body: 'When you notice a persistent pattern that affects daily life, or when you need language for a visit. Luna29 prepares observation — your clinician provides medical judgment.',
+        },
+        {
+          title: 'What should I not use Luna29 for?',
+          body: 'Emergency decisions, self-diagnosis, medication changes, or replacing therapy or psychiatric care. If you may be in danger, contact local emergency services immediately.',
+        },
+        {
+          title: 'Why do I feel worse after learning about hormones?',
+          body: 'Naming patterns can feel exposing at first. Treat each state as weather passing through — not as identity. Reduce inputs for a few days if you feel overloaded; the system waits for you.',
+        },
+      ],
+    },
+    {
+      title: 'Daily Practice',
+      intro: 'How experienced members use Luna29 without turning it into another obligation.',
+      items: [
+        {
+          title: 'The 60-second check-in',
+          body: 'Once a day: energy (low–high), sleep (rough–rested), one word for mood. That is enough to build a rhythm map over time.',
+        },
+        {
+          title: 'Weekly review (10 minutes)',
+          body: 'Look at the week as a strip, not as individual failures. Ask: which phase was this? what repeated? what was context (work, travel, conflict, illness)?',
+        },
+        {
+          title: 'Voice before fix',
+          body: 'When you feel tangled, record a Voice Note before searching for solutions. Often the need is witness, not advice.',
+        },
+        {
+          title: 'Bridge before conflict',
+          body: 'If a conversation matters, open The Bridge and draft two calm sentences about your state. Share capacity, not blame.',
+        },
+        {
+          title: 'Export with intention',
+          body: 'Export data when preparing for a visit, a therapist session, or your own monthly reflection — not from anxiety. You control the file.',
+        },
+      ],
+    },
+  ],
+  fr: [
+    {
+      title: 'Core Terminology',
+      intro: 'These terms appear across Luna29 public pages, member tools, and reports. They describe patterns — not labels for who you are.',
+      items: [
+        {
+          title: 'Luna29 Balance',
+          body: 'The visual rhythm map at the center of the system. It connects cycle context, sensitivity states, and daily markers into one readable picture — like weather for your inner state.',
+        },
+        {
+          title: 'BioMath',
+          body: 'The underlying logic that links physiological signals to plain-language states. BioMath does not diagnose; it organizes what you observe into structured, repeatable patterns.',
+        },
+        {
+          title: 'Rhythm Map',
+          body: 'A day-by-day view of where you are in your internal cycle. It helps you see phase shifts, not just calendar dates.',
+        },
+        {
+          title: 'Phase / Internal Season',
+          body: 'Luna29 describes cycle segments as seasons: renewal, growth, peak expression, and integration. Each phase has a different baseline for energy, focus, and sensitivity.',
+        },
+        {
+          title: 'Sensitivity State',
+          body: 'A readable summary of how reactive or resourced your system feels today — for example Steady, Elevated, Strained, or Quiet. It is descriptive, not a grade.',
+        },
+        {
+          title: 'Marker',
+          body: 'Any signal you log or import: sleep quality, mood, energy, symptoms, lab values, or voice reflections. Markers become meaningful when seen across time.',
+        },
+        {
+          title: 'Weather Map',
+          body: 'A metaphor Luna29 uses for inner state: conditions change, all states are valid, and the goal is orientation — not control.',
+        },
+        {
+          title: 'Temporal Scrubber',
+          body: 'A tool to align the map with your real body timing when cycles are irregular, delayed, or affected by stress or medication.',
+        },
+        {
+          title: 'Voice Note',
+          body: 'A structured voice reflection. Speaking often captures nuance faster than typing; Luna29 listens for themes, not for clinical scoring.',
+        },
+        {
+          title: 'The Bridge',
+          body: 'A communication layer that helps you translate inner state into calm, respectful language for partners, family, or colleagues.',
+        },
+        {
+          title: 'Ritual Path',
+          body: 'A gentle daily rhythm — a path, not a checklist. It protects attention and keeps signal quality high over time.',
+        },
+        {
+          title: 'Reset Room',
+          body: 'A crisis-orientation space for overwhelm. It is not emergency care; it helps you pause, ground, and choose the next safe step.',
+        },
+        {
+          title: 'Local-First',
+          body: 'Core wellness records stay on your device when possible. Account, security, and selected features may use protected backend services.',
+        },
+        {
+          title: 'Health Report',
+          body: 'A structured export that organizes markers and observations into a clear document you can review yourself or share with a licensed professional.',
+        },
+      ],
+    },
+    {
+      title: 'Key Concepts',
+      intro: 'Ideas that shape how Luna29 reads your data and how you should read Luna29.',
+      items: [
+        {
+          title: 'Mirror, not coach',
+          body: 'Luna29 reflects patterns back to you. It does not command behavior, assign scores, or push optimization culture. The question is always: "What do I notice?" — not "Am I failing?"',
+        },
+        {
+          title: 'Network, not single hormone',
+          body: 'Energy and mood emerge from interactions — reproductive rhythm, stress load, metabolism, sleep, and context. Luna29 maps connections instead of isolating one number.',
+        },
+        {
+          title: 'Pattern over snapshot',
+          body: 'One hard day is data, not destiny. The system becomes useful when you compare weeks, phases, and seasons — not when you judge a single morning.',
+        },
+        {
+          title: 'Language before diagnosis',
+          body: 'Many users come to Luna29 because they lack words for their state. Clear language helps conversations with partners and clinicians — it does not replace clinicians.',
+        },
+        {
+          title: 'Consent and pace',
+          body: 'You choose what to log, export, or share. Luna29 is designed for sustainable attention: small honest inputs beat perfect daily compliance.',
+        },
+      ],
+    },
+    {
+      title: 'Important Questions',
+      intro: 'Questions users ask once they start taking the system seriously.',
+      items: [
+        {
+          title: 'What should I log first?',
+          body: 'Start with three anchors: sleep quality, energy, and one sentence of context ("what kind of day was this?"). Add cycle day if you know it. After one week, add voice notes or lab markers if they matter to you.',
+        },
+        {
+          title: 'What if my cycle is irregular?',
+          body: 'Use physical signs and the Temporal Scrubber instead of forcing a 28-day template. Luna29 remains useful when the map is approximate — honesty beats artificial precision.',
+        },
+        {
+          title: 'Can I use Luna29 on hormonal birth control?',
+          body: 'Yes. Your map may look flatter because medication stabilizes hormone swings. Track how you feel on that steady baseline — sensitivity, sleep, mood, and stress still matter.',
+        },
+        {
+          title: 'When should I bring a report to a doctor?',
+          body: 'When you notice a persistent pattern that affects daily life, or when you need language for a visit. Luna29 prepares observation — your clinician provides medical judgment.',
+        },
+        {
+          title: 'What should I not use Luna29 for?',
+          body: 'Emergency decisions, self-diagnosis, medication changes, or replacing therapy or psychiatric care. If you may be in danger, contact local emergency services immediately.',
+        },
+        {
+          title: 'Why do I feel worse after learning about hormones?',
+          body: 'Naming patterns can feel exposing at first. Treat each state as weather passing through — not as identity. Reduce inputs for a few days if you feel overloaded; the system waits for you.',
+        },
+      ],
+    },
+    {
+      title: 'Daily Practice',
+      intro: 'How experienced members use Luna29 without turning it into another obligation.',
+      items: [
+        {
+          title: 'The 60-second check-in',
+          body: 'Once a day: energy (low–high), sleep (rough–rested), one word for mood. That is enough to build a rhythm map over time.',
+        },
+        {
+          title: 'Weekly review (10 minutes)',
+          body: 'Look at the week as a strip, not as individual failures. Ask: which phase was this? what repeated? what was context (work, travel, conflict, illness)?',
+        },
+        {
+          title: 'Voice before fix',
+          body: 'When you feel tangled, record a Voice Note before searching for solutions. Often the need is witness, not advice.',
+        },
+        {
+          title: 'Bridge before conflict',
+          body: 'If a conversation matters, open The Bridge and draft two calm sentences about your state. Share capacity, not blame.',
+        },
+        {
+          title: 'Export with intention',
+          body: 'Export data when preparing for a visit, a therapist session, or your own monthly reflection — not from anxiety. You control the file.',
+        },
+      ],
+    },
+  ],
+  de: [
+    {
+      title: 'Core Terminology',
+      intro: 'These terms appear across Luna29 public pages, member tools, and reports. They describe patterns — not labels for who you are.',
+      items: [
+        {
+          title: 'Luna29 Balance',
+          body: 'The visual rhythm map at the center of the system. It connects cycle context, sensitivity states, and daily markers into one readable picture — like weather for your inner state.',
+        },
+        {
+          title: 'BioMath',
+          body: 'The underlying logic that links physiological signals to plain-language states. BioMath does not diagnose; it organizes what you observe into structured, repeatable patterns.',
+        },
+        {
+          title: 'Rhythm Map',
+          body: 'A day-by-day view of where you are in your internal cycle. It helps you see phase shifts, not just calendar dates.',
+        },
+        {
+          title: 'Phase / Internal Season',
+          body: 'Luna29 describes cycle segments as seasons: renewal, growth, peak expression, and integration. Each phase has a different baseline for energy, focus, and sensitivity.',
+        },
+        {
+          title: 'Sensitivity State',
+          body: 'A readable summary of how reactive or resourced your system feels today — for example Steady, Elevated, Strained, or Quiet. It is descriptive, not a grade.',
+        },
+        {
+          title: 'Marker',
+          body: 'Any signal you log or import: sleep quality, mood, energy, symptoms, lab values, or voice reflections. Markers become meaningful when seen across time.',
+        },
+        {
+          title: 'Weather Map',
+          body: 'A metaphor Luna29 uses for inner state: conditions change, all states are valid, and the goal is orientation — not control.',
+        },
+        {
+          title: 'Temporal Scrubber',
+          body: 'A tool to align the map with your real body timing when cycles are irregular, delayed, or affected by stress or medication.',
+        },
+        {
+          title: 'Voice Note',
+          body: 'A structured voice reflection. Speaking often captures nuance faster than typing; Luna29 listens for themes, not for clinical scoring.',
+        },
+        {
+          title: 'The Bridge',
+          body: 'A communication layer that helps you translate inner state into calm, respectful language for partners, family, or colleagues.',
+        },
+        {
+          title: 'Ritual Path',
+          body: 'A gentle daily rhythm — a path, not a checklist. It protects attention and keeps signal quality high over time.',
+        },
+        {
+          title: 'Reset Room',
+          body: 'A crisis-orientation space for overwhelm. It is not emergency care; it helps you pause, ground, and choose the next safe step.',
+        },
+        {
+          title: 'Local-First',
+          body: 'Core wellness records stay on your device when possible. Account, security, and selected features may use protected backend services.',
+        },
+        {
+          title: 'Health Report',
+          body: 'A structured export that organizes markers and observations into a clear document you can review yourself or share with a licensed professional.',
+        },
+      ],
+    },
+    {
+      title: 'Key Concepts',
+      intro: 'Ideas that shape how Luna29 reads your data and how you should read Luna29.',
+      items: [
+        {
+          title: 'Mirror, not coach',
+          body: 'Luna29 reflects patterns back to you. It does not command behavior, assign scores, or push optimization culture. The question is always: "What do I notice?" — not "Am I failing?"',
+        },
+        {
+          title: 'Network, not single hormone',
+          body: 'Energy and mood emerge from interactions — reproductive rhythm, stress load, metabolism, sleep, and context. Luna29 maps connections instead of isolating one number.',
+        },
+        {
+          title: 'Pattern over snapshot',
+          body: 'One hard day is data, not destiny. The system becomes useful when you compare weeks, phases, and seasons — not when you judge a single morning.',
+        },
+        {
+          title: 'Language before diagnosis',
+          body: 'Many users come to Luna29 because they lack words for their state. Clear language helps conversations with partners and clinicians — it does not replace clinicians.',
+        },
+        {
+          title: 'Consent and pace',
+          body: 'You choose what to log, export, or share. Luna29 is designed for sustainable attention: small honest inputs beat perfect daily compliance.',
+        },
+      ],
+    },
+    {
+      title: 'Important Questions',
+      intro: 'Questions users ask once they start taking the system seriously.',
+      items: [
+        {
+          title: 'What should I log first?',
+          body: 'Start with three anchors: sleep quality, energy, and one sentence of context ("what kind of day was this?"). Add cycle day if you know it. After one week, add voice notes or lab markers if they matter to you.',
+        },
+        {
+          title: 'What if my cycle is irregular?',
+          body: 'Use physical signs and the Temporal Scrubber instead of forcing a 28-day template. Luna29 remains useful when the map is approximate — honesty beats artificial precision.',
+        },
+        {
+          title: 'Can I use Luna29 on hormonal birth control?',
+          body: 'Yes. Your map may look flatter because medication stabilizes hormone swings. Track how you feel on that steady baseline — sensitivity, sleep, mood, and stress still matter.',
+        },
+        {
+          title: 'When should I bring a report to a doctor?',
+          body: 'When you notice a persistent pattern that affects daily life, or when you need language for a visit. Luna29 prepares observation — your clinician provides medical judgment.',
+        },
+        {
+          title: 'What should I not use Luna29 for?',
+          body: 'Emergency decisions, self-diagnosis, medication changes, or replacing therapy or psychiatric care. If you may be in danger, contact local emergency services immediately.',
+        },
+        {
+          title: 'Why do I feel worse after learning about hormones?',
+          body: 'Naming patterns can feel exposing at first. Treat each state as weather passing through — not as identity. Reduce inputs for a few days if you feel overloaded; the system waits for you.',
+        },
+      ],
+    },
+    {
+      title: 'Daily Practice',
+      intro: 'How experienced members use Luna29 without turning it into another obligation.',
+      items: [
+        {
+          title: 'The 60-second check-in',
+          body: 'Once a day: energy (low–high), sleep (rough–rested), one word for mood. That is enough to build a rhythm map over time.',
+        },
+        {
+          title: 'Weekly review (10 minutes)',
+          body: 'Look at the week as a strip, not as individual failures. Ask: which phase was this? what repeated? what was context (work, travel, conflict, illness)?',
+        },
+        {
+          title: 'Voice before fix',
+          body: 'When you feel tangled, record a Voice Note before searching for solutions. Often the need is witness, not advice.',
+        },
+        {
+          title: 'Bridge before conflict',
+          body: 'If a conversation matters, open The Bridge and draft two calm sentences about your state. Share capacity, not blame.',
+        },
+        {
+          title: 'Export with intention',
+          body: 'Export data when preparing for a visit, a therapist session, or your own monthly reflection — not from anxiety. You control the file.',
+        },
+      ],
+    },
+  ],
+  zh: [
+    {
+      title: 'Core Terminology',
+      intro: 'These terms appear across Luna29 public pages, member tools, and reports. They describe patterns — not labels for who you are.',
+      items: [
+        {
+          title: 'Luna29 Balance',
+          body: 'The visual rhythm map at the center of the system. It connects cycle context, sensitivity states, and daily markers into one readable picture — like weather for your inner state.',
+        },
+        {
+          title: 'BioMath',
+          body: 'The underlying logic that links physiological signals to plain-language states. BioMath does not diagnose; it organizes what you observe into structured, repeatable patterns.',
+        },
+        {
+          title: 'Rhythm Map',
+          body: 'A day-by-day view of where you are in your internal cycle. It helps you see phase shifts, not just calendar dates.',
+        },
+        {
+          title: 'Phase / Internal Season',
+          body: 'Luna29 describes cycle segments as seasons: renewal, growth, peak expression, and integration. Each phase has a different baseline for energy, focus, and sensitivity.',
+        },
+        {
+          title: 'Sensitivity State',
+          body: 'A readable summary of how reactive or resourced your system feels today — for example Steady, Elevated, Strained, or Quiet. It is descriptive, not a grade.',
+        },
+        {
+          title: 'Marker',
+          body: 'Any signal you log or import: sleep quality, mood, energy, symptoms, lab values, or voice reflections. Markers become meaningful when seen across time.',
+        },
+        {
+          title: 'Weather Map',
+          body: 'A metaphor Luna29 uses for inner state: conditions change, all states are valid, and the goal is orientation — not control.',
+        },
+        {
+          title: 'Temporal Scrubber',
+          body: 'A tool to align the map with your real body timing when cycles are irregular, delayed, or affected by stress or medication.',
+        },
+        {
+          title: 'Voice Note',
+          body: 'A structured voice reflection. Speaking often captures nuance faster than typing; Luna29 listens for themes, not for clinical scoring.',
+        },
+        {
+          title: 'The Bridge',
+          body: 'A communication layer that helps you translate inner state into calm, respectful language for partners, family, or colleagues.',
+        },
+        {
+          title: 'Ritual Path',
+          body: 'A gentle daily rhythm — a path, not a checklist. It protects attention and keeps signal quality high over time.',
+        },
+        {
+          title: 'Reset Room',
+          body: 'A crisis-orientation space for overwhelm. It is not emergency care; it helps you pause, ground, and choose the next safe step.',
+        },
+        {
+          title: 'Local-First',
+          body: 'Core wellness records stay on your device when possible. Account, security, and selected features may use protected backend services.',
+        },
+        {
+          title: 'Health Report',
+          body: 'A structured export that organizes markers and observations into a clear document you can review yourself or share with a licensed professional.',
+        },
+      ],
+    },
+    {
+      title: 'Key Concepts',
+      intro: 'Ideas that shape how Luna29 reads your data and how you should read Luna29.',
+      items: [
+        {
+          title: 'Mirror, not coach',
+          body: 'Luna29 reflects patterns back to you. It does not command behavior, assign scores, or push optimization culture. The question is always: "What do I notice?" — not "Am I failing?"',
+        },
+        {
+          title: 'Network, not single hormone',
+          body: 'Energy and mood emerge from interactions — reproductive rhythm, stress load, metabolism, sleep, and context. Luna29 maps connections instead of isolating one number.',
+        },
+        {
+          title: 'Pattern over snapshot',
+          body: 'One hard day is data, not destiny. The system becomes useful when you compare weeks, phases, and seasons — not when you judge a single morning.',
+        },
+        {
+          title: 'Language before diagnosis',
+          body: 'Many users come to Luna29 because they lack words for their state. Clear language helps conversations with partners and clinicians — it does not replace clinicians.',
+        },
+        {
+          title: 'Consent and pace',
+          body: 'You choose what to log, export, or share. Luna29 is designed for sustainable attention: small honest inputs beat perfect daily compliance.',
+        },
+      ],
+    },
+    {
+      title: 'Important Questions',
+      intro: 'Questions users ask once they start taking the system seriously.',
+      items: [
+        {
+          title: 'What should I log first?',
+          body: 'Start with three anchors: sleep quality, energy, and one sentence of context ("what kind of day was this?"). Add cycle day if you know it. After one week, add voice notes or lab markers if they matter to you.',
+        },
+        {
+          title: 'What if my cycle is irregular?',
+          body: 'Use physical signs and the Temporal Scrubber instead of forcing a 28-day template. Luna29 remains useful when the map is approximate — honesty beats artificial precision.',
+        },
+        {
+          title: 'Can I use Luna29 on hormonal birth control?',
+          body: 'Yes. Your map may look flatter because medication stabilizes hormone swings. Track how you feel on that steady baseline — sensitivity, sleep, mood, and stress still matter.',
+        },
+        {
+          title: 'When should I bring a report to a doctor?',
+          body: 'When you notice a persistent pattern that affects daily life, or when you need language for a visit. Luna29 prepares observation — your clinician provides medical judgment.',
+        },
+        {
+          title: 'What should I not use Luna29 for?',
+          body: 'Emergency decisions, self-diagnosis, medication changes, or replacing therapy or psychiatric care. If you may be in danger, contact local emergency services immediately.',
+        },
+        {
+          title: 'Why do I feel worse after learning about hormones?',
+          body: 'Naming patterns can feel exposing at first. Treat each state as weather passing through — not as identity. Reduce inputs for a few days if you feel overloaded; the system waits for you.',
+        },
+      ],
+    },
+    {
+      title: 'Daily Practice',
+      intro: 'How experienced members use Luna29 without turning it into another obligation.',
+      items: [
+        {
+          title: 'The 60-second check-in',
+          body: 'Once a day: energy (low–high), sleep (rough–rested), one word for mood. That is enough to build a rhythm map over time.',
+        },
+        {
+          title: 'Weekly review (10 minutes)',
+          body: 'Look at the week as a strip, not as individual failures. Ask: which phase was this? what repeated? what was context (work, travel, conflict, illness)?',
+        },
+        {
+          title: 'Voice before fix',
+          body: 'When you feel tangled, record a Voice Note before searching for solutions. Often the need is witness, not advice.',
+        },
+        {
+          title: 'Bridge before conflict',
+          body: 'If a conversation matters, open The Bridge and draft two calm sentences about your state. Share capacity, not blame.',
+        },
+        {
+          title: 'Export with intention',
+          body: 'Export data when preparing for a visit, a therapist session, or your own monthly reflection — not from anxiety. You control the file.',
+        },
+      ],
+    },
+  ],
+  ja: [
+    {
+      title: 'Core Terminology',
+      intro: 'These terms appear across Luna29 public pages, member tools, and reports. They describe patterns — not labels for who you are.',
+      items: [
+        {
+          title: 'Luna29 Balance',
+          body: 'The visual rhythm map at the center of the system. It connects cycle context, sensitivity states, and daily markers into one readable picture — like weather for your inner state.',
+        },
+        {
+          title: 'BioMath',
+          body: 'The underlying logic that links physiological signals to plain-language states. BioMath does not diagnose; it organizes what you observe into structured, repeatable patterns.',
+        },
+        {
+          title: 'Rhythm Map',
+          body: 'A day-by-day view of where you are in your internal cycle. It helps you see phase shifts, not just calendar dates.',
+        },
+        {
+          title: 'Phase / Internal Season',
+          body: 'Luna29 describes cycle segments as seasons: renewal, growth, peak expression, and integration. Each phase has a different baseline for energy, focus, and sensitivity.',
+        },
+        {
+          title: 'Sensitivity State',
+          body: 'A readable summary of how reactive or resourced your system feels today — for example Steady, Elevated, Strained, or Quiet. It is descriptive, not a grade.',
+        },
+        {
+          title: 'Marker',
+          body: 'Any signal you log or import: sleep quality, mood, energy, symptoms, lab values, or voice reflections. Markers become meaningful when seen across time.',
+        },
+        {
+          title: 'Weather Map',
+          body: 'A metaphor Luna29 uses for inner state: conditions change, all states are valid, and the goal is orientation — not control.',
+        },
+        {
+          title: 'Temporal Scrubber',
+          body: 'A tool to align the map with your real body timing when cycles are irregular, delayed, or affected by stress or medication.',
+        },
+        {
+          title: 'Voice Note',
+          body: 'A structured voice reflection. Speaking often captures nuance faster than typing; Luna29 listens for themes, not for clinical scoring.',
+        },
+        {
+          title: 'The Bridge',
+          body: 'A communication layer that helps you translate inner state into calm, respectful language for partners, family, or colleagues.',
+        },
+        {
+          title: 'Ritual Path',
+          body: 'A gentle daily rhythm — a path, not a checklist. It protects attention and keeps signal quality high over time.',
+        },
+        {
+          title: 'Reset Room',
+          body: 'A crisis-orientation space for overwhelm. It is not emergency care; it helps you pause, ground, and choose the next safe step.',
+        },
+        {
+          title: 'Local-First',
+          body: 'Core wellness records stay on your device when possible. Account, security, and selected features may use protected backend services.',
+        },
+        {
+          title: 'Health Report',
+          body: 'A structured export that organizes markers and observations into a clear document you can review yourself or share with a licensed professional.',
+        },
+      ],
+    },
+    {
+      title: 'Key Concepts',
+      intro: 'Ideas that shape how Luna29 reads your data and how you should read Luna29.',
+      items: [
+        {
+          title: 'Mirror, not coach',
+          body: 'Luna29 reflects patterns back to you. It does not command behavior, assign scores, or push optimization culture. The question is always: "What do I notice?" — not "Am I failing?"',
+        },
+        {
+          title: 'Network, not single hormone',
+          body: 'Energy and mood emerge from interactions — reproductive rhythm, stress load, metabolism, sleep, and context. Luna29 maps connections instead of isolating one number.',
+        },
+        {
+          title: 'Pattern over snapshot',
+          body: 'One hard day is data, not destiny. The system becomes useful when you compare weeks, phases, and seasons — not when you judge a single morning.',
+        },
+        {
+          title: 'Language before diagnosis',
+          body: 'Many users come to Luna29 because they lack words for their state. Clear language helps conversations with partners and clinicians — it does not replace clinicians.',
+        },
+        {
+          title: 'Consent and pace',
+          body: 'You choose what to log, export, or share. Luna29 is designed for sustainable attention: small honest inputs beat perfect daily compliance.',
+        },
+      ],
+    },
+    {
+      title: 'Important Questions',
+      intro: 'Questions users ask once they start taking the system seriously.',
+      items: [
+        {
+          title: 'What should I log first?',
+          body: 'Start with three anchors: sleep quality, energy, and one sentence of context ("what kind of day was this?"). Add cycle day if you know it. After one week, add voice notes or lab markers if they matter to you.',
+        },
+        {
+          title: 'What if my cycle is irregular?',
+          body: 'Use physical signs and the Temporal Scrubber instead of forcing a 28-day template. Luna29 remains useful when the map is approximate — honesty beats artificial precision.',
+        },
+        {
+          title: 'Can I use Luna29 on hormonal birth control?',
+          body: 'Yes. Your map may look flatter because medication stabilizes hormone swings. Track how you feel on that steady baseline — sensitivity, sleep, mood, and stress still matter.',
+        },
+        {
+          title: 'When should I bring a report to a doctor?',
+          body: 'When you notice a persistent pattern that affects daily life, or when you need language for a visit. Luna29 prepares observation — your clinician provides medical judgment.',
+        },
+        {
+          title: 'What should I not use Luna29 for?',
+          body: 'Emergency decisions, self-diagnosis, medication changes, or replacing therapy or psychiatric care. If you may be in danger, contact local emergency services immediately.',
+        },
+        {
+          title: 'Why do I feel worse after learning about hormones?',
+          body: 'Naming patterns can feel exposing at first. Treat each state as weather passing through — not as identity. Reduce inputs for a few days if you feel overloaded; the system waits for you.',
+        },
+      ],
+    },
+    {
+      title: 'Daily Practice',
+      intro: 'How experienced members use Luna29 without turning it into another obligation.',
+      items: [
+        {
+          title: 'The 60-second check-in',
+          body: 'Once a day: energy (low–high), sleep (rough–rested), one word for mood. That is enough to build a rhythm map over time.',
+        },
+        {
+          title: 'Weekly review (10 minutes)',
+          body: 'Look at the week as a strip, not as individual failures. Ask: which phase was this? what repeated? what was context (work, travel, conflict, illness)?',
+        },
+        {
+          title: 'Voice before fix',
+          body: 'When you feel tangled, record a Voice Note before searching for solutions. Often the need is witness, not advice.',
+        },
+        {
+          title: 'Bridge before conflict',
+          body: 'If a conversation matters, open The Bridge and draft two calm sentences about your state. Share capacity, not blame.',
+        },
+        {
+          title: 'Export with intention',
+          body: 'Export data when preparing for a visit, a therapist session, or your own monthly reflection — not from anxiety. You control the file.',
+        },
+      ],
+    },
+  ],
+  pt: [
+    {
+      title: 'Core Terminology',
+      intro: 'These terms appear across Luna29 public pages, member tools, and reports. They describe patterns — not labels for who you are.',
+      items: [
+        {
+          title: 'Luna29 Balance',
+          body: 'The visual rhythm map at the center of the system. It connects cycle context, sensitivity states, and daily markers into one readable picture — like weather for your inner state.',
+        },
+        {
+          title: 'BioMath',
+          body: 'The underlying logic that links physiological signals to plain-language states. BioMath does not diagnose; it organizes what you observe into structured, repeatable patterns.',
+        },
+        {
+          title: 'Rhythm Map',
+          body: 'A day-by-day view of where you are in your internal cycle. It helps you see phase shifts, not just calendar dates.',
+        },
+        {
+          title: 'Phase / Internal Season',
+          body: 'Luna29 describes cycle segments as seasons: renewal, growth, peak expression, and integration. Each phase has a different baseline for energy, focus, and sensitivity.',
+        },
+        {
+          title: 'Sensitivity State',
+          body: 'A readable summary of how reactive or resourced your system feels today — for example Steady, Elevated, Strained, or Quiet. It is descriptive, not a grade.',
+        },
+        {
+          title: 'Marker',
+          body: 'Any signal you log or import: sleep quality, mood, energy, symptoms, lab values, or voice reflections. Markers become meaningful when seen across time.',
+        },
+        {
+          title: 'Weather Map',
+          body: 'A metaphor Luna29 uses for inner state: conditions change, all states are valid, and the goal is orientation — not control.',
+        },
+        {
+          title: 'Temporal Scrubber',
+          body: 'A tool to align the map with your real body timing when cycles are irregular, delayed, or affected by stress or medication.',
+        },
+        {
+          title: 'Voice Note',
+          body: 'A structured voice reflection. Speaking often captures nuance faster than typing; Luna29 listens for themes, not for clinical scoring.',
+        },
+        {
+          title: 'The Bridge',
+          body: 'A communication layer that helps you translate inner state into calm, respectful language for partners, family, or colleagues.',
+        },
+        {
+          title: 'Ritual Path',
+          body: 'A gentle daily rhythm — a path, not a checklist. It protects attention and keeps signal quality high over time.',
+        },
+        {
+          title: 'Reset Room',
+          body: 'A crisis-orientation space for overwhelm. It is not emergency care; it helps you pause, ground, and choose the next safe step.',
+        },
+        {
+          title: 'Local-First',
+          body: 'Core wellness records stay on your device when possible. Account, security, and selected features may use protected backend services.',
+        },
+        {
+          title: 'Health Report',
+          body: 'A structured export that organizes markers and observations into a clear document you can review yourself or share with a licensed professional.',
+        },
+      ],
+    },
+    {
+      title: 'Key Concepts',
+      intro: 'Ideas that shape how Luna29 reads your data and how you should read Luna29.',
+      items: [
+        {
+          title: 'Mirror, not coach',
+          body: 'Luna29 reflects patterns back to you. It does not command behavior, assign scores, or push optimization culture. The question is always: "What do I notice?" — not "Am I failing?"',
+        },
+        {
+          title: 'Network, not single hormone',
+          body: 'Energy and mood emerge from interactions — reproductive rhythm, stress load, metabolism, sleep, and context. Luna29 maps connections instead of isolating one number.',
+        },
+        {
+          title: 'Pattern over snapshot',
+          body: 'One hard day is data, not destiny. The system becomes useful when you compare weeks, phases, and seasons — not when you judge a single morning.',
+        },
+        {
+          title: 'Language before diagnosis',
+          body: 'Many users come to Luna29 because they lack words for their state. Clear language helps conversations with partners and clinicians — it does not replace clinicians.',
+        },
+        {
+          title: 'Consent and pace',
+          body: 'You choose what to log, export, or share. Luna29 is designed for sustainable attention: small honest inputs beat perfect daily compliance.',
+        },
+      ],
+    },
+    {
+      title: 'Important Questions',
+      intro: 'Questions users ask once they start taking the system seriously.',
+      items: [
+        {
+          title: 'What should I log first?',
+          body: 'Start with three anchors: sleep quality, energy, and one sentence of context ("what kind of day was this?"). Add cycle day if you know it. After one week, add voice notes or lab markers if they matter to you.',
+        },
+        {
+          title: 'What if my cycle is irregular?',
+          body: 'Use physical signs and the Temporal Scrubber instead of forcing a 28-day template. Luna29 remains useful when the map is approximate — honesty beats artificial precision.',
+        },
+        {
+          title: 'Can I use Luna29 on hormonal birth control?',
+          body: 'Yes. Your map may look flatter because medication stabilizes hormone swings. Track how you feel on that steady baseline — sensitivity, sleep, mood, and stress still matter.',
+        },
+        {
+          title: 'When should I bring a report to a doctor?',
+          body: 'When you notice a persistent pattern that affects daily life, or when you need language for a visit. Luna29 prepares observation — your clinician provides medical judgment.',
+        },
+        {
+          title: 'What should I not use Luna29 for?',
+          body: 'Emergency decisions, self-diagnosis, medication changes, or replacing therapy or psychiatric care. If you may be in danger, contact local emergency services immediately.',
+        },
+        {
+          title: 'Why do I feel worse after learning about hormones?',
+          body: 'Naming patterns can feel exposing at first. Treat each state as weather passing through — not as identity. Reduce inputs for a few days if you feel overloaded; the system waits for you.',
+        },
+      ],
+    },
+    {
+      title: 'Daily Practice',
+      intro: 'How experienced members use Luna29 without turning it into another obligation.',
+      items: [
+        {
+          title: 'The 60-second check-in',
+          body: 'Once a day: energy (low–high), sleep (rough–rested), one word for mood. That is enough to build a rhythm map over time.',
+        },
+        {
+          title: 'Weekly review (10 minutes)',
+          body: 'Look at the week as a strip, not as individual failures. Ask: which phase was this? what repeated? what was context (work, travel, conflict, illness)?',
+        },
+        {
+          title: 'Voice before fix',
+          body: 'When you feel tangled, record a Voice Note before searching for solutions. Often the need is witness, not advice.',
+        },
+        {
+          title: 'Bridge before conflict',
+          body: 'If a conversation matters, open The Bridge and draft two calm sentences about your state. Share capacity, not blame.',
+        },
+        {
+          title: 'Export with intention',
+          body: 'Export data when preparing for a visit, a therapist session, or your own monthly reflection — not from anxiety. You control the file.',
+        },
+      ],
+    },
+  ],
+  ar: [
+    {
+      title: 'Core Terminology',
+      intro: 'These terms appear across Luna29 public pages, member tools, and reports. They describe patterns — not labels for who you are.',
+      items: [
+        {
+          title: 'Luna29 Balance',
+          body: 'The visual rhythm map at the center of the system. It connects cycle context, sensitivity states, and daily markers into one readable picture — like weather for your inner state.',
+        },
+        {
+          title: 'BioMath',
+          body: 'The underlying logic that links physiological signals to plain-language states. BioMath does not diagnose; it organizes what you observe into structured, repeatable patterns.',
+        },
+        {
+          title: 'Rhythm Map',
+          body: 'A day-by-day view of where you are in your internal cycle. It helps you see phase shifts, not just calendar dates.',
+        },
+        {
+          title: 'Phase / Internal Season',
+          body: 'Luna29 describes cycle segments as seasons: renewal, growth, peak expression, and integration. Each phase has a different baseline for energy, focus, and sensitivity.',
+        },
+        {
+          title: 'Sensitivity State',
+          body: 'A readable summary of how reactive or resourced your system feels today — for example Steady, Elevated, Strained, or Quiet. It is descriptive, not a grade.',
+        },
+        {
+          title: 'Marker',
+          body: 'Any signal you log or import: sleep quality, mood, energy, symptoms, lab values, or voice reflections. Markers become meaningful when seen across time.',
+        },
+        {
+          title: 'Weather Map',
+          body: 'A metaphor Luna29 uses for inner state: conditions change, all states are valid, and the goal is orientation — not control.',
+        },
+        {
+          title: 'Temporal Scrubber',
+          body: 'A tool to align the map with your real body timing when cycles are irregular, delayed, or affected by stress or medication.',
+        },
+        {
+          title: 'Voice Note',
+          body: 'A structured voice reflection. Speaking often captures nuance faster than typing; Luna29 listens for themes, not for clinical scoring.',
+        },
+        {
+          title: 'The Bridge',
+          body: 'A communication layer that helps you translate inner state into calm, respectful language for partners, family, or colleagues.',
+        },
+        {
+          title: 'Ritual Path',
+          body: 'A gentle daily rhythm — a path, not a checklist. It protects attention and keeps signal quality high over time.',
+        },
+        {
+          title: 'Reset Room',
+          body: 'A crisis-orientation space for overwhelm. It is not emergency care; it helps you pause, ground, and choose the next safe step.',
+        },
+        {
+          title: 'Local-First',
+          body: 'Core wellness records stay on your device when possible. Account, security, and selected features may use protected backend services.',
+        },
+        {
+          title: 'Health Report',
+          body: 'A structured export that organizes markers and observations into a clear document you can review yourself or share with a licensed professional.',
+        },
+      ],
+    },
+    {
+      title: 'Key Concepts',
+      intro: 'Ideas that shape how Luna29 reads your data and how you should read Luna29.',
+      items: [
+        {
+          title: 'Mirror, not coach',
+          body: 'Luna29 reflects patterns back to you. It does not command behavior, assign scores, or push optimization culture. The question is always: "What do I notice?" — not "Am I failing?"',
+        },
+        {
+          title: 'Network, not single hormone',
+          body: 'Energy and mood emerge from interactions — reproductive rhythm, stress load, metabolism, sleep, and context. Luna29 maps connections instead of isolating one number.',
+        },
+        {
+          title: 'Pattern over snapshot',
+          body: 'One hard day is data, not destiny. The system becomes useful when you compare weeks, phases, and seasons — not when you judge a single morning.',
+        },
+        {
+          title: 'Language before diagnosis',
+          body: 'Many users come to Luna29 because they lack words for their state. Clear language helps conversations with partners and clinicians — it does not replace clinicians.',
+        },
+        {
+          title: 'Consent and pace',
+          body: 'You choose what to log, export, or share. Luna29 is designed for sustainable attention: small honest inputs beat perfect daily compliance.',
+        },
+      ],
+    },
+    {
+      title: 'Important Questions',
+      intro: 'Questions users ask once they start taking the system seriously.',
+      items: [
+        {
+          title: 'What should I log first?',
+          body: 'Start with three anchors: sleep quality, energy, and one sentence of context ("what kind of day was this?"). Add cycle day if you know it. After one week, add voice notes or lab markers if they matter to you.',
+        },
+        {
+          title: 'What if my cycle is irregular?',
+          body: 'Use physical signs and the Temporal Scrubber instead of forcing a 28-day template. Luna29 remains useful when the map is approximate — honesty beats artificial precision.',
+        },
+        {
+          title: 'Can I use Luna29 on hormonal birth control?',
+          body: 'Yes. Your map may look flatter because medication stabilizes hormone swings. Track how you feel on that steady baseline — sensitivity, sleep, mood, and stress still matter.',
+        },
+        {
+          title: 'When should I bring a report to a doctor?',
+          body: 'When you notice a persistent pattern that affects daily life, or when you need language for a visit. Luna29 prepares observation — your clinician provides medical judgment.',
+        },
+        {
+          title: 'What should I not use Luna29 for?',
+          body: 'Emergency decisions, self-diagnosis, medication changes, or replacing therapy or psychiatric care. If you may be in danger, contact local emergency services immediately.',
+        },
+        {
+          title: 'Why do I feel worse after learning about hormones?',
+          body: 'Naming patterns can feel exposing at first. Treat each state as weather passing through — not as identity. Reduce inputs for a few days if you feel overloaded; the system waits for you.',
+        },
+      ],
+    },
+    {
+      title: 'Daily Practice',
+      intro: 'How experienced members use Luna29 without turning it into another obligation.',
+      items: [
+        {
+          title: 'The 60-second check-in',
+          body: 'Once a day: energy (low–high), sleep (rough–rested), one word for mood. That is enough to build a rhythm map over time.',
+        },
+        {
+          title: 'Weekly review (10 minutes)',
+          body: 'Look at the week as a strip, not as individual failures. Ask: which phase was this? what repeated? what was context (work, travel, conflict, illness)?',
+        },
+        {
+          title: 'Voice before fix',
+          body: 'When you feel tangled, record a Voice Note before searching for solutions. Often the need is witness, not advice.',
+        },
+        {
+          title: 'Bridge before conflict',
+          body: 'If a conversation matters, open The Bridge and draft two calm sentences about your state. Share capacity, not blame.',
+        },
+        {
+          title: 'Export with intention',
+          body: 'Export data when preparing for a visit, a therapist session, or your own monthly reflection — not from anxiety. You control the file.',
+        },
+      ],
+    },
+  ],
+  he: [
+    {
+      title: 'Core Terminology',
+      intro: 'These terms appear across Luna29 public pages, member tools, and reports. They describe patterns — not labels for who you are.',
+      items: [
+        {
+          title: 'Luna29 Balance',
+          body: 'The visual rhythm map at the center of the system. It connects cycle context, sensitivity states, and daily markers into one readable picture — like weather for your inner state.',
+        },
+        {
+          title: 'BioMath',
+          body: 'The underlying logic that links physiological signals to plain-language states. BioMath does not diagnose; it organizes what you observe into structured, repeatable patterns.',
+        },
+        {
+          title: 'Rhythm Map',
+          body: 'A day-by-day view of where you are in your internal cycle. It helps you see phase shifts, not just calendar dates.',
+        },
+        {
+          title: 'Phase / Internal Season',
+          body: 'Luna29 describes cycle segments as seasons: renewal, growth, peak expression, and integration. Each phase has a different baseline for energy, focus, and sensitivity.',
+        },
+        {
+          title: 'Sensitivity State',
+          body: 'A readable summary of how reactive or resourced your system feels today — for example Steady, Elevated, Strained, or Quiet. It is descriptive, not a grade.',
+        },
+        {
+          title: 'Marker',
+          body: 'Any signal you log or import: sleep quality, mood, energy, symptoms, lab values, or voice reflections. Markers become meaningful when seen across time.',
+        },
+        {
+          title: 'Weather Map',
+          body: 'A metaphor Luna29 uses for inner state: conditions change, all states are valid, and the goal is orientation — not control.',
+        },
+        {
+          title: 'Temporal Scrubber',
+          body: 'A tool to align the map with your real body timing when cycles are irregular, delayed, or affected by stress or medication.',
+        },
+        {
+          title: 'Voice Note',
+          body: 'A structured voice reflection. Speaking often captures nuance faster than typing; Luna29 listens for themes, not for clinical scoring.',
+        },
+        {
+          title: 'The Bridge',
+          body: 'A communication layer that helps you translate inner state into calm, respectful language for partners, family, or colleagues.',
+        },
+        {
+          title: 'Ritual Path',
+          body: 'A gentle daily rhythm — a path, not a checklist. It protects attention and keeps signal quality high over time.',
+        },
+        {
+          title: 'Reset Room',
+          body: 'A crisis-orientation space for overwhelm. It is not emergency care; it helps you pause, ground, and choose the next safe step.',
+        },
+        {
+          title: 'Local-First',
+          body: 'Core wellness records stay on your device when possible. Account, security, and selected features may use protected backend services.',
+        },
+        {
+          title: 'Health Report',
+          body: 'A structured export that organizes markers and observations into a clear document you can review yourself or share with a licensed professional.',
+        },
+      ],
+    },
+    {
+      title: 'Key Concepts',
+      intro: 'Ideas that shape how Luna29 reads your data and how you should read Luna29.',
+      items: [
+        {
+          title: 'Mirror, not coach',
+          body: 'Luna29 reflects patterns back to you. It does not command behavior, assign scores, or push optimization culture. The question is always: "What do I notice?" — not "Am I failing?"',
+        },
+        {
+          title: 'Network, not single hormone',
+          body: 'Energy and mood emerge from interactions — reproductive rhythm, stress load, metabolism, sleep, and context. Luna29 maps connections instead of isolating one number.',
+        },
+        {
+          title: 'Pattern over snapshot',
+          body: 'One hard day is data, not destiny. The system becomes useful when you compare weeks, phases, and seasons — not when you judge a single morning.',
+        },
+        {
+          title: 'Language before diagnosis',
+          body: 'Many users come to Luna29 because they lack words for their state. Clear language helps conversations with partners and clinicians — it does not replace clinicians.',
+        },
+        {
+          title: 'Consent and pace',
+          body: 'You choose what to log, export, or share. Luna29 is designed for sustainable attention: small honest inputs beat perfect daily compliance.',
+        },
+      ],
+    },
+    {
+      title: 'Important Questions',
+      intro: 'Questions users ask once they start taking the system seriously.',
+      items: [
+        {
+          title: 'What should I log first?',
+          body: 'Start with three anchors: sleep quality, energy, and one sentence of context ("what kind of day was this?"). Add cycle day if you know it. After one week, add voice notes or lab markers if they matter to you.',
+        },
+        {
+          title: 'What if my cycle is irregular?',
+          body: 'Use physical signs and the Temporal Scrubber instead of forcing a 28-day template. Luna29 remains useful when the map is approximate — honesty beats artificial precision.',
+        },
+        {
+          title: 'Can I use Luna29 on hormonal birth control?',
+          body: 'Yes. Your map may look flatter because medication stabilizes hormone swings. Track how you feel on that steady baseline — sensitivity, sleep, mood, and stress still matter.',
+        },
+        {
+          title: 'When should I bring a report to a doctor?',
+          body: 'When you notice a persistent pattern that affects daily life, or when you need language for a visit. Luna29 prepares observation — your clinician provides medical judgment.',
+        },
+        {
+          title: 'What should I not use Luna29 for?',
+          body: 'Emergency decisions, self-diagnosis, medication changes, or replacing therapy or psychiatric care. If you may be in danger, contact local emergency services immediately.',
+        },
+        {
+          title: 'Why do I feel worse after learning about hormones?',
+          body: 'Naming patterns can feel exposing at first. Treat each state as weather passing through — not as identity. Reduce inputs for a few days if you feel overloaded; the system waits for you.',
+        },
+      ],
+    },
+    {
+      title: 'Daily Practice',
+      intro: 'How experienced members use Luna29 without turning it into another obligation.',
+      items: [
+        {
+          title: 'The 60-second check-in',
+          body: 'Once a day: energy (low–high), sleep (rough–rested), one word for mood. That is enough to build a rhythm map over time.',
+        },
+        {
+          title: 'Weekly review (10 minutes)',
+          body: 'Look at the week as a strip, not as individual failures. Ask: which phase was this? what repeated? what was context (work, travel, conflict, illness)?',
+        },
+        {
+          title: 'Voice before fix',
+          body: 'When you feel tangled, record a Voice Note before searching for solutions. Often the need is witness, not advice.',
+        },
+        {
+          title: 'Bridge before conflict',
+          body: 'If a conversation matters, open The Bridge and draft two calm sentences about your state. Share capacity, not blame.',
+        },
+        {
+          title: 'Export with intention',
+          body: 'Export data when preparing for a visit, a therapist session, or your own monthly reflection — not from anxiety. You control the file.',
         },
       ],
     },

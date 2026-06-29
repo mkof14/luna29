@@ -5,6 +5,7 @@ import { MobileScreenHeader } from '../components/MobileScreenHeader';
 import { SurfaceCard } from '../components/SurfaceCard';
 import { colors } from '../theme/tokens';
 import { BaseMobileLang, MobileLang, resolveLangBase } from '../i18n/mobileCopy';
+import { useMobileVoiceCapabilities } from '../hooks/useMobileVoiceCapabilities';
 
 const copyByLang: Record<BaseMobileLang, Record<string, string>> = {
   en: {
@@ -74,12 +75,19 @@ export function VoiceReflectionScreen({
 }) {
   const baseLang = resolveLangBase(lang);
   const copy = copyByLang[baseLang];
+  const mobileVoice = useMobileVoiceCapabilities();
   const [recording, setRecording] = useState(false);
   const [seconds, setSeconds] = useState(0);
   const [note, setNote] = useState('');
   const [selectedPrompt, setSelectedPrompt] = useState('');
 
   const promptSuggestions = promptsByLang[baseLang];
+
+  useEffect(() => {
+    if (mobileVoice.isMobile) {
+      mobileVoice.warmUpMicrophone().catch(() => undefined);
+    }
+  }, [mobileVoice.isMobile, mobileVoice.warmUpMicrophone]);
 
   useEffect(() => {
     if (!recording) return;

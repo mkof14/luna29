@@ -16,7 +16,8 @@ export const PrivacyPolicyView: React.FC<{ lang: Language; onBack: () => void }>
     zh: { back: '返回', manifest: '安全声明', title: '隐私架构', subtitle: '系统建立在一个前提上：你的生理数据只属于你。', compliance: '合规等级：高信任', quote: 'Luna29 被设计为数字保险库。我们优先保护你的生理自主性。' },
     ja: { back: '戻る', manifest: 'セキュリティ宣言', title: 'プライバシー設計', subtitle: 'あなたの生体情報はあなた自身のもの、という前提で設計されています。', compliance: 'コンプライアンス: 高信頼', quote: 'Luna29はデジタル保管庫として設計されています。生理的な自律性の保護を優先します。' },
     pt: { back: 'Voltar', manifest: 'Manifesto de segurança', title: 'Arquitetura de privacidade', subtitle: 'Um sistema construído na premissa de que sua biologia pertence somente a você.', compliance: 'Nível de conformidade: alto', quote: 'A Luna29 foi projetada como um cofre digital. Priorizamos sua autonomia fisiológica.' },
-  };
+  ar: { back: 'Back', manifest: 'Security Manifest', title: 'Privacy Architecture', subtitle: 'A system built on the premise that your biology belongs only to you.', compliance: 'Compliance Level: High-Trust', quote: 'Luna29 is designed to be a digital vault. We prioritize the preservation of your physiological autonomy over data convenience.' },
+  he: { back: 'Back', manifest: 'Security Manifest', title: 'Privacy Architecture', subtitle: 'A system built on the premise that your biology belongs only to you.', compliance: 'Compliance Level: High-Trust', quote: 'Luna29 is designed to be a digital vault. We prioritize the preservation of your physiological autonomy over data convenience.' },};
   const copy = getLang(copyByLang, lang);
   const sectionsByLang: LangCopy< Array<{ title: string; text: string }>> = {
     en: [
@@ -73,7 +74,18 @@ export const PrivacyPolicyView: React.FC<{ lang: Language; onBack: () => void }>
       { title: 'Serviços de terceiros', text: 'Usamos chamadas externas ao Google Gemini API apenas para síntese de alto nível, com minimização de identificadores.' },
       { title: 'Sem venda de identidade', text: 'Nosso modelo é por assinatura. Não vendemos padrões comportamentais ou fisiológicos.' }
     ],
-  };
+  ar: [
+      { title: 'Your Private Data', text: "Luna29 Balance follows our 'Privacy Promise'. Core reflections and wellness records are local-first on your device, while account/session and selected support flows may use secure backend storage to keep access stable." },
+      { title: 'Encryption & Exports', text: 'When you export your data, it is generated locally. We recommend keeping these files in a secure, encrypted location. Luna29 does not have a back-door to recover lost local data.' },
+      { title: 'Third-Party Foundations', text: 'We only use external calls to the Google Gemini API for high-level synthesis and image generation. These calls are alignment-stripped to maintain the highest possible level of anonymity.' },
+      { title: 'No Selling of Identity', text: 'Our business model is subscription-based. We do not, and will never, sell your behavioral or physiological patterns to advertisers or pharmaceutical entities.' }
+    ],
+  he: [
+      { title: 'Your Private Data', text: "Luna29 Balance follows our 'Privacy Promise'. Core reflections and wellness records are local-first on your device, while account/session and selected support flows may use secure backend storage to keep access stable." },
+      { title: 'Encryption & Exports', text: 'When you export your data, it is generated locally. We recommend keeping these files in a secure, encrypted location. Luna29 does not have a back-door to recover lost local data.' },
+      { title: 'Third-Party Foundations', text: 'We only use external calls to the Google Gemini API for high-level synthesis and image generation. These calls are alignment-stripped to maintain the highest possible level of anonymity.' },
+      { title: 'No Selling of Identity', text: 'Our business model is subscription-based. We do not, and will never, sell your behavioral or physiological patterns to advertisers or pharmaceutical entities.' }
+    ],};
   const sections = getLang(sectionsByLang, lang);
 
   return (

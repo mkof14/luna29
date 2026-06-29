@@ -10,9 +10,16 @@ declare global {
   }
 }
 
+import { readPrivacyConsent } from '../utils/privacyCompliance';
+
 declare const __LUNA_SENTRY_DSN__: string;
 declare const __LUNA_SENTRY_ENV__: string;
 declare const __LUNA_APP_RELEASE__: string;
+
+const hasMonitoringConsent = (): boolean => {
+  const consent = readPrivacyConsent();
+  return consent?.scopes.analytics === true;
+};
 
 const readEnv = () => {
   if (typeof window === 'undefined' || typeof __LUNA_SENTRY_DSN__ === 'undefined') {
@@ -47,7 +54,7 @@ const loadSentryScript = () =>
 
 export const initMonitoring = async () => {
   const { sentryDsn, sentryEnv, sentryRelease } = readEnv();
-  if (!sentryDsn || typeof window === 'undefined' || window.__lunaMonitoringInit) {
+  if (!sentryDsn || typeof window === 'undefined' || window.__lunaMonitoringInit || !hasMonitoringConsent()) {
     return;
   }
 
@@ -69,7 +76,7 @@ export const initMonitoring = async () => {
 
 export const captureAppError = (error: unknown) => {
   const { sentryDsn } = readEnv();
-  if (!sentryDsn || typeof window === 'undefined') return;
+  if (!sentryDsn || typeof window === 'undefined' || !hasMonitoringConsent()) return;
   try {
     window.Sentry?.captureException(error);
   } catch {

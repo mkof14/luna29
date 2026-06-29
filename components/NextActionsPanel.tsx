@@ -64,8 +64,19 @@ export const NextActionsPanel: React.FC<{ actions: Action[]; lang?: Language }> 
       balancedBody: 'Hoje seu corpo não requer solicitações especiais de observação.',
       observation: 'Observação',
       note: 'Isto não são tarefas, mas temas para seu diálogo interno.'
-    }
-  };
+    },
+  ar: {
+      balancedTitle: 'All systems are in balance',
+      balancedBody: 'Today your body does not require any special observation prompts.',
+      observation: 'Observation',
+      note: 'These are not tasks, but themes for your inner dialogue.'
+    },
+  he: {
+      balancedTitle: 'All systems are in balance',
+      balancedBody: 'Today your body does not require any special observation prompts.',
+      observation: 'Observation',
+      note: 'These are not tasks, but themes for your inner dialogue.'
+    },};
   const copy = getLang(copyByLang, lang);
 
   if (actions.length === 0) {

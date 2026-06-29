@@ -73,4 +73,17 @@ export const billingService = {
     }
     return { id: data.id, url: data.url };
   },
+
+  async startServerTrial(): Promise<{ trial: Record<string, unknown>; alreadyActive?: boolean }> {
+    const response = await fetch('/api/billing/trial/start', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const data = await parseJson<{ trial: Record<string, unknown>; alreadyActive?: boolean }>(response);
+    if (!response.ok) {
+      throw new Error(data.error || `Request failed (${response.status})`);
+    }
+    return data;
+  },
 };

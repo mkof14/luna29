@@ -38,11 +38,7 @@ const ROLE_PERMISSIONS: Record<AdminRole, AdminPermission[]> = {
   ],
 };
 
-const ADMIN_EMAIL_RULES: Array<{ pattern: RegExp; role: AdminRole }> = [
-  { pattern: /ops|support|service/i, role: 'operator' },
-  { pattern: /marketing|content|brand/i, role: 'content_manager' },
-  { pattern: /finance|billing|accounting/i, role: 'finance_manager' },
-];
+const ADMIN_EMAIL_RULES: Array<{ pattern: RegExp; role: AdminRole }> = [];
 
 type StoredUser = {
   email: string;
@@ -95,9 +91,6 @@ const normalizeName = (email: string, fallback = 'Luna29 Member'): string => {
 const resolveRole = (email: string): AdminRole => {
   const normalized = normalizeEmail(email);
   if (normalized === SUPER_ADMIN_EMAIL) return 'super_admin';
-  for (const rule of ADMIN_EMAIL_RULES) {
-    if (rule.pattern.test(normalized)) return rule.role;
-  }
   return 'viewer';
 };
 

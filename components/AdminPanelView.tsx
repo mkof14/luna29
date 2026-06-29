@@ -347,7 +347,52 @@ const ADMIN_UI_COPY = {
     previewHint: 'Pré-visualização de templates e campanhas está disponível em cada item.',
     noPreview: 'Nada selecionado ainda. Escolha Preview de um template ou campanha.',
   },
-};
+  ar: {
+    inviteTitle: 'Invitations & Role Access',
+    inviteHint: 'Send invite links and assign the starting admin role before first login.',
+    inviteEmailPlaceholder: 'Invite email',
+    inviteButton: 'Send invite',
+    invitePending: 'Pending',
+    inviteSent: 'Sent',
+    inviteAccepted: 'Accepted',
+    usersTitle: 'Users & Audience',
+    usersTotal: 'Total users',
+    usersActive: 'Active today',
+    usersNew7d: 'New in 7 days',
+    siteStatsTitle: 'Site Statistics',
+    dau: 'DAU',
+    wau: 'WAU',
+    mau: 'MAU',
+    conversion: 'Signup conversion',
+    growth: 'Weekly growth',
+    storageTitle: 'Storage Vault',
+    addFolder: 'Add Folder',
+    previewHint: 'Template preview and message preview are available below each item.',
+    noPreview: 'Nothing selected yet. Choose a template or campaign preview.',
+  },
+  he: {
+    inviteTitle: 'Invitations & Role Access',
+    inviteHint: 'Send invite links and assign the starting admin role before first login.',
+    inviteEmailPlaceholder: 'Invite email',
+    inviteButton: 'Send invite',
+    invitePending: 'Pending',
+    inviteSent: 'Sent',
+    inviteAccepted: 'Accepted',
+    usersTitle: 'Users & Audience',
+    usersTotal: 'Total users',
+    usersActive: 'Active today',
+    usersNew7d: 'New in 7 days',
+    siteStatsTitle: 'Site Statistics',
+    dau: 'DAU',
+    wau: 'WAU',
+    mau: 'MAU',
+    conversion: 'Signup conversion',
+    growth: 'Weekly growth',
+    storageTitle: 'Storage Vault',
+    addFolder: 'Add Folder',
+    previewHint: 'Template preview and message preview are available below each item.',
+    noPreview: 'Nothing selected yet. Choose a template or campaign preview.',
+  },};
 
 const STORAGE_STATE_KEY = 'luna_admin_storage_v1';
 const INVITES_STATE_KEY = 'luna_admin_invites_v1';
@@ -391,7 +436,8 @@ const CHANNELS_COPY = {
   zh: { title: '渠道与集成', socialTitle: '社交媒体管理', socialHint: '统一管理账号连接、同步状态与渠道表现。', emailTitle: 'Email 系统连接', emailHint: '管理邮件服务商、投递质量与队列健康状态。', connect: '连接', disconnect: '断开', syncNow: '立即同步', addChannel: '添加渠道', channelName: '渠道名称', handle: '账号', followers: '关注者', engagement: '互动率', statusConnected: '已连接', statusDisconnected: '未连接', provider: '服务商', fromEmail: '发件邮箱', domain: '域名', queue: '队列', sentToday: '今日发送', bounced: '退信', openRate: '打开率', testConnection: '测试连接', spf: 'SPF', dkim: 'DKIM', connectedNow: '渠道已连接。', disconnectedNow: '渠道已断开。' },
   ja: { title: 'チャネルと連携', socialTitle: 'SNS 管理', socialHint: 'アカウント接続、同期状況、チャネル成果を一元管理します。', emailTitle: 'メールシステム接続', emailHint: '配信プロバイダ、到達率、キュー状況を管理します。', connect: '接続', disconnect: '切断', syncNow: '今すぐ同期', addChannel: 'チャネル追加', channelName: 'チャネル名', handle: 'アカウント', followers: 'フォロワー', engagement: 'エンゲージ', statusConnected: '接続済み', statusDisconnected: '未接続', provider: 'プロバイダ', fromEmail: '送信元メール', domain: 'ドメイン', queue: 'キュー', sentToday: '本日送信', bounced: 'バウンス', openRate: '開封率', testConnection: '接続テスト', spf: 'SPF', dkim: 'DKIM', connectedNow: 'チャネルを接続しました。', disconnectedNow: 'チャネルを切断しました。' },
   pt: { title: 'Canais e integrações', socialTitle: 'Administração de redes sociais', socialHint: 'Conecte contas, acompanhe sincronização e desempenho dos canais em um painel.', emailTitle: 'Conexão do sistema de email', emailHint: 'Gerencie provedor, qualidade de entrega e saúde da fila de emails.', connect: 'Conectar', disconnect: 'Desconectar', syncNow: 'Sincronizar agora', addChannel: 'Adicionar canal', channelName: 'Nome do canal', handle: 'Conta', followers: 'Seguidores', engagement: 'Engajamento', statusConnected: 'Conectado', statusDisconnected: 'Desconectado', provider: 'Provedor', fromEmail: 'Email remetente', domain: 'Domínio', queue: 'Fila', sentToday: 'Enviados hoje', bounced: 'Rejeitados', openRate: 'Taxa de abertura', testConnection: 'Testar conexão', spf: 'SPF', dkim: 'DKIM', connectedNow: 'Canal conectado.', disconnectedNow: 'Canal desconectado.' },
-};
+  ar: { title: 'Channels & Integrations', socialTitle: 'Social Media Administration', socialHint: 'Connect accounts, monitor sync status, and keep channel performance in one place.', emailTitle: 'Email System Connection', emailHint: 'Control provider status, delivery quality, and queue health for system emails.', connect: 'Connect', disconnect: 'Disconnect', syncNow: 'Sync now', addChannel: 'Add channel', channelName: 'Channel name', handle: 'Handle', followers: 'Followers', engagement: 'Engagement', statusConnected: 'Connected', statusDisconnected: 'Disconnected', provider: 'Provider', fromEmail: 'From email', domain: 'Domain', queue: 'Queue', sentToday: 'Sent today', bounced: 'Bounced', openRate: 'Open rate', testConnection: 'Test connection', spf: 'SPF', dkim: 'DKIM', connectedNow: 'Channel connected.', disconnectedNow: 'Channel disconnected.' },
+  he: { title: 'Channels & Integrations', socialTitle: 'Social Media Administration', socialHint: 'Connect accounts, monitor sync status, and keep channel performance in one place.', emailTitle: 'Email System Connection', emailHint: 'Control provider status, delivery quality, and queue health for system emails.', connect: 'Connect', disconnect: 'Disconnect', syncNow: 'Sync now', addChannel: 'Add channel', channelName: 'Channel name', handle: 'Handle', followers: 'Followers', engagement: 'Engagement', statusConnected: 'Connected', statusDisconnected: 'Disconnected', provider: 'Provider', fromEmail: 'From email', domain: 'Domain', queue: 'Queue', sentToday: 'Sent today', bounced: 'Bounced', openRate: 'Open rate', testConnection: 'Test connection', spf: 'SPF', dkim: 'DKIM', connectedNow: 'Channel connected.', disconnectedNow: 'Channel disconnected.' },};
 
 const defaultMarketingBody = 'A calm Luna29 update for your rhythm. Gentle reminder with clear next action.';
 const defaultTemplateBody = 'You are in a safe Luna29 space. Observe your rhythm softly and stay connected with your body.';
@@ -1199,7 +1245,8 @@ export const AdminPanelView: React.FC<AdminPanelViewProps> = ({ session, lang, o
     zh: { viewer: '观察者', operator: '协调员', content_manager: '内容负责人', finance_manager: '财务负责人', super_admin: '超级管理员' },
     ja: { viewer: 'オブザーバー', operator: 'コーディネーター', content_manager: 'コンテンツ担当', finance_manager: '財務担当', super_admin: 'スーパー管理者' },
     pt: { viewer: 'Observador', operator: 'Coordenador', content_manager: 'Lider de conteudo', finance_manager: 'Lider financeiro', super_admin: 'Super Admin' },
-  };
+  ar: { viewer: 'Observer', operator: 'Coordinator', content_manager: 'Content Lead', finance_manager: 'Finance Lead', super_admin: 'Super Admin' },
+  he: { viewer: 'Observer', operator: 'Coordinator', content_manager: 'Content Lead', finance_manager: 'Finance Lead', super_admin: 'Super Admin' },};
   const roleLabel = (role: AdminRole) => (getLang(roleLabelByLang, lang) || roleLabelByLang.en)[role];
 
   const runTechChecks = async () => {

@@ -14,7 +14,8 @@ const channelLabelByLang: LangCopy< Record<Channel, string>> = {
   zh: { Email: '邮件', Push: '推送', Telegram: 'Telegram', Instagram: 'Instagram' },
   ja: { Email: 'メール', Push: 'プッシュ', Telegram: 'Telegram', Instagram: 'Instagram' },
   pt: { Email: 'Email', Push: 'Push', Telegram: 'Telegram', Instagram: 'Instagram' },
-};
+  ar: { Email: 'Email', Push: 'Push', Telegram: 'Telegram', Instagram: 'Instagram' },
+  he: { Email: 'Email', Push: 'Push', Telegram: 'Telegram', Instagram: 'Instagram' },};
 
 const campaignStatusByLang: LangCopy< Record<CampaignStatus, string>> = {
   en: { Draft: 'Draft', Approved: 'Approved', Scheduled: 'Scheduled' },
@@ -26,7 +27,8 @@ const campaignStatusByLang: LangCopy< Record<CampaignStatus, string>> = {
   zh: { Draft: '草稿', Approved: '已批准', Scheduled: '已排期' },
   ja: { Draft: '下書き', Approved: '承認済み', Scheduled: '予定済み' },
   pt: { Draft: 'Rascunho', Approved: 'Aprovado', Scheduled: 'Agendado' },
-};
+  ar: { Draft: 'Draft', Approved: 'Approved', Scheduled: 'Scheduled' },
+  he: { Draft: 'Draft', Approved: 'Approved', Scheduled: 'Scheduled' },};
 
 const statusLabelByLang: LangCopy< Record<ServiceStatus, string>> = {
   en: { Healthy: 'Healthy', Degraded: 'Degraded', Down: 'Down' },
@@ -38,7 +40,8 @@ const statusLabelByLang: LangCopy< Record<ServiceStatus, string>> = {
   zh: { Healthy: '正常', Degraded: '降级', Down: '中断' },
   ja: { Healthy: '正常', Degraded: '低下', Down: '停止' },
   pt: { Healthy: 'Estavel', Degraded: 'Degradado', Down: 'Indisponivel' },
-};
+  ar: { Healthy: 'Healthy', Degraded: 'Degraded', Down: 'Down' },
+  he: { Healthy: 'Healthy', Degraded: 'Degraded', Down: 'Down' },};
 
 const copyByLang: LangCopy< {
   dashboard: string;
@@ -165,7 +168,26 @@ const copyByLang: LangCopy< {
     feedbackCopied: 'Copiado.', feedbackShared: 'Compartilhado.', feedbackDownloaded: 'Arquivo baixado.', feedbackPrint: 'Janela de impressao aberta.', feedbackError: 'Acao indisponivel.',
     closePreview: 'Fechar', channel: 'Canal', status: 'Status', subject: 'Assunto', preheader: 'Preheader'
   },
-};
+  ar: {
+    dashboard: 'Home', logout: 'Logout', noSession: 'No session', role: 'Role',
+    campaignPlaceholder: 'New campaign name', campaignBodyPlaceholder: 'Campaign message/body',
+    templatePlaceholder: 'Template title', templateBodyPlaceholder: 'Template body',
+    triggerPlaceholder: 'Trigger (e.g. New signup)', subjectPlaceholder: 'Email subject', preheaderPlaceholder: 'Email preheader',
+    add: 'Add', create: 'Create', autoTranslating: 'Auto-translating...', trigger: 'Trigger', updatedBy: 'Updated by', onDate: 'on',
+    preview: 'Preview', copyAction: 'Copy', shareAction: 'Share', pdfAction: 'PDF', downloadAction: 'Download', printAction: 'Print',
+    feedbackCopied: 'Copied to clipboard.', feedbackShared: 'Shared successfully.', feedbackDownloaded: 'File downloaded.', feedbackPrint: 'Print window opened.', feedbackError: 'Action failed on this browser.',
+    closePreview: 'Close', channel: 'Channel', status: 'Status', subject: 'Subject', preheader: 'Preheader'
+  },
+  he: {
+    dashboard: 'Home', logout: 'Logout', noSession: 'No session', role: 'Role',
+    campaignPlaceholder: 'New campaign name', campaignBodyPlaceholder: 'Campaign message/body',
+    templatePlaceholder: 'Template title', templateBodyPlaceholder: 'Template body',
+    triggerPlaceholder: 'Trigger (e.g. New signup)', subjectPlaceholder: 'Email subject', preheaderPlaceholder: 'Email preheader',
+    add: 'Add', create: 'Create', autoTranslating: 'Auto-translating...', trigger: 'Trigger', updatedBy: 'Updated by', onDate: 'on',
+    preview: 'Preview', copyAction: 'Copy', shareAction: 'Share', pdfAction: 'PDF', downloadAction: 'Download', printAction: 'Print',
+    feedbackCopied: 'Copied to clipboard.', feedbackShared: 'Shared successfully.', feedbackDownloaded: 'File downloaded.', feedbackPrint: 'Print window opened.', feedbackError: 'Action failed on this browser.',
+    closePreview: 'Close', channel: 'Channel', status: 'Status', subject: 'Subject', preheader: 'Preheader'
+  },};
 
 
 export interface AdminPanelLabels {

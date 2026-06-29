@@ -18,7 +18,8 @@ export const HowItWorksView: React.FC<HowItWorksViewProps> = ({ lang, onBack }) 
     zh: '加载中...',
     ja: '読み込み中...',
     pt: 'Carregando...',
-  };
+  ar: 'Loading...',
+  he: 'Loading...',};
   const [activeStep, setActiveStep] = useState(0);
   const [content, setContent] = useState<{
     copy: LangCopy< Copy>;

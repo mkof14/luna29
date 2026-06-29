@@ -119,7 +119,8 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     zh: { title: 'Luna29 Mobile', appStore: 'App Store 下载', googlePlay: 'Google Play 获取', preview: '打开移动预览', soon: '发布后将启用商店链接。' },
     ja: { title: 'Luna29 Mobile', appStore: 'App Store で入手', googlePlay: 'Google Play で入手', preview: 'モバイルプレビューを開く', soon: 'リリース後にストアリンクを有効化します。' },
     pt: { title: 'Luna29 Mobile', appStore: 'Baixar na App Store', googlePlay: 'Disponível no Google Play', preview: 'Abrir prévia móvel', soon: 'Os links serão ativados após o lançamento.' },
-  };
+  ar: { title: 'Luna29 Mobile', appStore: 'Download on the App Store', googlePlay: 'Get it on Google Play', preview: 'Open Mobile Preview', soon: 'Store links will be active after release.' },
+  he: { title: 'Luna29 Mobile', appStore: 'Download on the App Store', googlePlay: 'Get it on Google Play', preview: 'Open Mobile Preview', soon: 'Store links will be active after release.' },};
   const storeBadges = getLang(storeBadgeCopyByLang, lang) || storeBadgeCopyByLang.en;
 
   const loadingLabelByLang: LangCopy< string> = {
@@ -132,7 +133,8 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     zh: '加载中',
     ja: '読み込み中',
     pt: 'Carregando',
-  };
+  ar: 'Loading',
+  he: 'Loading',};
   const lazyFallback = (
     <div className="min-h-[40vh] flex items-center justify-center text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
       {getLang(loadingLabelByLang, lang)}...
@@ -221,7 +223,24 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       androidStep2: 'Ou abra o menu do navegador e escolha Instalar app.',
       cta: 'Criar Conta',
     },
-  };
+  ar: {
+      title: 'Install Luna29 As App',
+      subtitle: 'Use Luna29 full-screen and open in one tap.',
+      iosStep1: 'Tap Share in Safari.',
+      iosStep2: 'Select Add to Home Screen.',
+      androidStep1: 'Tap Install when browser suggests it.',
+      androidStep2: 'Or open browser menu and choose Install App.',
+      cta: 'Create Account',
+    },
+  he: {
+      title: 'Install Luna29 As App',
+      subtitle: 'Use Luna29 full-screen and open in one tap.',
+      iosStep1: 'Tap Share in Safari.',
+      iosStep2: 'Select Add to Home Screen.',
+      androidStep1: 'Tap Install when browser suggests it.',
+      androidStep2: 'Or open browser menu and choose Install App.',
+      cta: 'Create Account',
+    },};
   const installGuide = getLang(installGuideByLang, lang) || installGuideByLang.en;
 
   useEffect(() => {
@@ -482,7 +501,58 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       trialUsedFeedback: 'O teste ja foi usado neste dispositivo.',
       trialStartedFeedback: 'Teste iniciado. Crie uma conta para continuar.',
     },
-  };
+  ar: {
+      monthToggle: 'Month',
+      yearToggle: 'Year',
+      trialBadge: 'Trial',
+      trialDaysLeft: '{days} days left',
+      flexibleBilling: 'Flexible billing',
+      planCompare: 'Plan Compare',
+      monthly: 'Monthly',
+      yearly: 'Yearly',
+      cancelAnyTime: 'Cancel any time',
+      bestValue: 'Best value • 25% off',
+      includes: 'Includes',
+      includesText: 'One account, full features, and all future core updates included.',
+      memberAccess: 'Luna29 Member Access',
+      featurePrivate: '✓ Health data stays on your device',
+      featureBodyMap: '✓ Body rhythm map and daily guidance',
+      featureBridge: '✓ Partner bridge and note tools',
+      featureAdmin: '✓ Admin-secured access and role logic',
+      continueTrial: 'Continue Trial',
+      startTrial: 'Start Trial • 7 Days',
+      freeTier: 'Free',
+      paidTier: 'Insights (Paid)',
+      trialActiveFeedback: 'Trial active: {days} days left.',
+      trialUsedFeedback: 'Trial already used on this device.',
+      trialStartedFeedback: 'Trial started. Create account to continue.',
+    },
+  he: {
+      monthToggle: 'Month',
+      yearToggle: 'Year',
+      trialBadge: 'Trial',
+      trialDaysLeft: '{days} days left',
+      flexibleBilling: 'Flexible billing',
+      planCompare: 'Plan Compare',
+      monthly: 'Monthly',
+      yearly: 'Yearly',
+      cancelAnyTime: 'Cancel any time',
+      bestValue: 'Best value • 25% off',
+      includes: 'Includes',
+      includesText: 'One account, full features, and all future core updates included.',
+      memberAccess: 'Luna29 Member Access',
+      featurePrivate: '✓ Health data stays on your device',
+      featureBodyMap: '✓ Body rhythm map and daily guidance',
+      featureBridge: '✓ Partner bridge and note tools',
+      featureAdmin: '✓ Admin-secured access and role logic',
+      continueTrial: 'Continue Trial',
+      startTrial: 'Start Trial • 7 Days',
+      freeTier: 'Free',
+      paidTier: 'Insights (Paid)',
+      trialActiveFeedback: 'Trial active: {days} days left.',
+      trialUsedFeedback: 'Trial already used on this device.',
+      trialStartedFeedback: 'Trial started. Create account to continue.',
+    },};
 
   const normalizeTrialState = (value: unknown): TrialState | null => {
     if (!value || typeof value !== 'object') return null;
@@ -575,7 +645,8 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     zh: '价格',
     ja: '料金',
     pt: 'Precos',
-  };
+  ar: 'Pricing',
+  he: 'Pricing',};
   const howItWorksLabelByLang: LangCopy< string> = {
     en: 'How It Works',
     ru: 'Как Это Работает',
@@ -586,7 +657,8 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     zh: '如何使用',
     ja: '使い方',
     pt: 'Como Funciona',
-  };
+  ar: 'How It Works',
+  he: 'How It Works',};
   const faqLabelByLang: LangCopy<string> = {
     en: 'FAQ',
     ru: 'FAQ',
@@ -597,7 +669,8 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     zh: '常见问题',
     ja: 'FAQ',
     pt: 'FAQ',
-  };
+  ar: 'FAQ',
+  he: 'FAQ',};
   const learningLabelByLang: LangCopy<string> = {
   en: 'Learning',
   ru: 'Обучение',
@@ -700,7 +773,8 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     zh: { explore: '页面', guides: '指南', legal: '法律', install: '安装 App', account: '账户' },
     ja: { explore: 'ページ', guides: 'ガイド', legal: '法務', install: 'App をインストール', account: 'アカウント' },
     pt: { explore: 'Secoes', guides: 'Guias', legal: 'Legal', install: 'Instalar App', account: 'Conta' },
-  };
+  ar: { explore: 'Explore', guides: 'Guides', legal: 'Legal', install: 'Install App', account: 'Account' },
+  he: { explore: 'Explore', guides: 'Guides', legal: 'Legal', install: 'Install App', account: 'Account' },};
 
   const legalLabelsByLang: LangCopy< { legal: string; privacy: string; terms: string; medical: string; cookies: string; dataRights: string }> = {
     en: { legal: 'Legal', privacy: 'Privacy Notice', terms: 'Terms', medical: 'Disclaimer', cookies: 'Cookies', dataRights: 'Data Rights' },
@@ -712,7 +786,8 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     zh: { legal: '法律', privacy: '隐私', terms: '条款', medical: '免责声明', cookies: 'Cookies', dataRights: '数据权利' },
     ja: { legal: '法務', privacy: 'プライバシー', terms: '利用規約', medical: '免責', cookies: 'Cookies', dataRights: 'データ権利' },
     pt: { legal: 'Legal', privacy: 'Privacidade', terms: 'Termos', medical: 'Aviso', cookies: 'Cookies', dataRights: 'Direitos de Dados' },
-  };
+  ar: { legal: 'Legal', privacy: 'Privacy Notice', terms: 'Terms', medical: 'Disclaimer', cookies: 'Cookies', dataRights: 'Data Rights' },
+  he: { legal: 'Legal', privacy: 'Privacy Notice', terms: 'Terms', medical: 'Disclaimer', cookies: 'Cookies', dataRights: 'Data Rights' },};
   const legalLabels = getLang(legalLabelsByLang, lang);
   const footerSectionTitles = getLang(footerSectionTitlesByLang, lang) || footerSectionTitlesByLang.en;
   const themeLabelByLang: LangCopy< string> = {
@@ -725,7 +800,8 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     zh: '主题',
     ja: 'テーマ',
     pt: 'Tema',
-  };
+  ar: 'Theme',
+  he: 'Theme',};
   const installActionsByLang = {
     en: {
       ios: 'iPhone Install',
@@ -871,7 +947,38 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       admin: 'Admin',
       social: 'Sociais',
     },
-  };
+  ar: {
+      ios: 'iPhone Install',
+      android: 'Android Install',
+      iosTip: 'Open Safari -> Share -> Add to Home Screen.',
+      androidTip: 'Use browser menu -> Install App.',
+      noPrompt: 'Install prompt is not available in this browser session.',
+      explainTitle: 'How Install Works',
+      explainBody: 'Install adds Luna29 to your home screen and opens full-screen like an app.',
+      stepPrefix: 'Step',
+      iosStep1: 'Open Luna29 in Safari.',
+      iosStep2: 'Tap Share and choose Add to Home Screen.',
+      androidStep1: 'Open Luna29 in Chrome/Edge.',
+      androidStep2: 'Tap browser menu and choose Install App.',
+      admin: 'Admin',
+      social: 'Social',
+    },
+  he: {
+      ios: 'iPhone Install',
+      android: 'Android Install',
+      iosTip: 'Open Safari -> Share -> Add to Home Screen.',
+      androidTip: 'Use browser menu -> Install App.',
+      noPrompt: 'Install prompt is not available in this browser session.',
+      explainTitle: 'How Install Works',
+      explainBody: 'Install adds Luna29 to your home screen and opens full-screen like an app.',
+      stepPrefix: 'Step',
+      iosStep1: 'Open Luna29 in Safari.',
+      iosStep2: 'Tap Share and choose Add to Home Screen.',
+      androidStep1: 'Open Luna29 in Chrome/Edge.',
+      androidStep2: 'Tap browser menu and choose Install App.',
+      admin: 'Admin',
+      social: 'Social',
+    },};
   const installActions = getLang(installActionsByLang, lang) || installActionsByLang.en;
   const installGuideModalByLang: Partial<
     Record<
@@ -967,7 +1074,8 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     zh: '关于',
     ja: '概要',
     pt: 'Sobre',
-  };
+  ar: 'About',
+  he: 'About',};
   const footerPageLinks: Array<{ id: PublicPage; label: string }> = [
     { id: 'home', label: ui.publicHome.tabs.home },
     { id: 'map', label: ui.publicHome.tabs.map },
@@ -994,7 +1102,8 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     zh: '关于 Luna29',
     ja: 'Luna29 について',
     pt: 'Sobre Luna29',
-  };
+  ar: 'About Luna29',
+  he: 'About Luna29',};
   const publicSharedByLang: Partial<
     Record<
       Language,
@@ -1421,8 +1530,89 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       resetHeading: 'Sala de reinício',
       resetTitle: 'Comece a observar seu ritmo.',
       resetCta: 'Criar seu espaco Luna29',
-    }
-  };
+    },
+  ar: {
+      heroTitle: 'Luna29 — The physiology of feeling.',
+      heroBody: 'A personal system that connects body rhythms, lived observations, and calm language for your inner state.',
+      heroCta: 'Try Luna29',
+      heroSub: 'Private. Calm. Personal.',
+      whyTitle: 'Why Luna29 exists',
+      whyIntro: 'In everyday life many states are difficult to read.',
+      whyPoint1: 'Fatigue.',
+      whyPoint2: 'Pressure.',
+      whyPoint3: 'Emotional overload.',
+      whyPoint4: 'Unclear signals from the body.',
+      whyOutro: 'Luna29 helps make these states clearer through observation, notes, and patterns that appear over time.',
+      bodyCardTitle: 'Your\nBody',
+      bodyCardText: 'physiological rhythms and markers',
+      sensesCardTitle: 'Your\nSenses',
+      sensesCardText: 'observations and voice notes',
+      wordsCardTitle: 'Your\nWords',
+      wordsCardText: 'clear and calm formulation of thought',
+      miniNote: 'Together this forms a clearer picture of your inner state.',
+      rhythmTitle: 'Your rhythm becomes visible',
+      previous: 'Previous',
+      today: 'Today',
+      nextPhase: 'Next phase',
+      patternsTitle: 'Patterns appear quietly over time',
+      patternLabel: 'Pattern noticed',
+      patternText1: 'Energy often drops two days before your cycle begins.',
+      patternText2: 'Short sleep tends to affect emotional sensitivity the next day.',
+      voiceTitle: 'Голосовая заметка',
+      voiceText1: 'Sometimes it is easier to speak than write.',
+      voiceText2: 'Record a short voice note about how you feel and what happened during your day.',
+      voiceText3: 'Over time these moments become part of your personal story.',
+      record: 'Record',
+      bridgeTitle: 'Мост',
+      bridgeText1: 'Sometimes it is difficult to explain how you feel.',
+      bridgeText2: 'Luna29 helps formulate calm and clear words for your state.',
+      bridgeText3: 'For yourself first.',
+      bridgeText4: 'And, if you choose, for someone close to you.',
+      resetHeading: 'Комната восстановления',
+      resetTitle: 'Begin observing your rhythm.',
+      resetCta: 'Create your Luna29 space',
+    },
+  he: {
+      heroTitle: 'Luna29 — The physiology of feeling.',
+      heroBody: 'A personal system that connects body rhythms, lived observations, and calm language for your inner state.',
+      heroCta: 'Try Luna29',
+      heroSub: 'Private. Calm. Personal.',
+      whyTitle: 'Why Luna29 exists',
+      whyIntro: 'In everyday life many states are difficult to read.',
+      whyPoint1: 'Fatigue.',
+      whyPoint2: 'Pressure.',
+      whyPoint3: 'Emotional overload.',
+      whyPoint4: 'Unclear signals from the body.',
+      whyOutro: 'Luna29 helps make these states clearer through observation, notes, and patterns that appear over time.',
+      bodyCardTitle: 'Your\nBody',
+      bodyCardText: 'physiological rhythms and markers',
+      sensesCardTitle: 'Your\nSenses',
+      sensesCardText: 'observations and voice notes',
+      wordsCardTitle: 'Your\nWords',
+      wordsCardText: 'clear and calm formulation of thought',
+      miniNote: 'Together this forms a clearer picture of your inner state.',
+      rhythmTitle: 'Your rhythm becomes visible',
+      previous: 'Previous',
+      today: 'Today',
+      nextPhase: 'Next phase',
+      patternsTitle: 'Patterns appear quietly over time',
+      patternLabel: 'Pattern noticed',
+      patternText1: 'Energy often drops two days before your cycle begins.',
+      patternText2: 'Short sleep tends to affect emotional sensitivity the next day.',
+      voiceTitle: 'Голосовая заметка',
+      voiceText1: 'Sometimes it is easier to speak than write.',
+      voiceText2: 'Record a short voice note about how you feel and what happened during your day.',
+      voiceText3: 'Over time these moments become part of your personal story.',
+      record: 'Record',
+      bridgeTitle: 'Мост',
+      bridgeText1: 'Sometimes it is difficult to explain how you feel.',
+      bridgeText2: 'Luna29 helps formulate calm and clear words for your state.',
+      bridgeText3: 'For yourself first.',
+      bridgeText4: 'And, if you choose, for someone close to you.',
+      resetHeading: 'Комната восстановления',
+      resetTitle: 'Begin observing your rhythm.',
+      resetCta: 'Create your Luna29 space',
+    },};
   const homeRefCopy = getLang(homeRefCopyByLang, lang)?.heroTitle ? getLang(homeRefCopyByLang, lang) : homeRefCopyByLang.en;
   const dailyCompanionByLang: Partial<Record<
     Language,
@@ -1893,7 +2083,8 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     zh: { home: '首页', ritual: '仪式路径', map: '身体地图', adminLogin: '管理员登录' },
     ja: { home: 'ホーム', ritual: 'リチュアルパス', map: 'ボディマップ', adminLogin: '管理者ログイン' },
     pt: { home: 'Inicio', ritual: 'Caminho ritual', map: 'Mapa corporal', adminLogin: 'Login Admin' },
-  };
+  ar: { home: 'Home', ritual: 'Ritual Path', map: 'Body Map', adminLogin: 'Admin Login' },
+  he: { home: 'Home', ritual: 'Ritual Path', map: 'Body Map', adminLogin: 'Admin Login' },};
   const publicHomeNavLabels = getLang(publicHomeNavLabelsByLang, lang) || publicHomeNavLabelsByLang.en;
   const pageTitle = useMemo(() => {
     if (activePage === 'home') return ui.publicHome.pageTitle.home;

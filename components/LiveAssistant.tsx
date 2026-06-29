@@ -217,10 +217,46 @@ const copyByLang: LangCopy< {
     initFailed: 'O assistente local não conseguiu inicializar.',
     restart: 'Reiniciar',
   },
+  ar: {
+    live: 'Live', micOn: 'On', micOff: 'Off', speakerLive: 'Live', speakerMuted: 'Muted',
+    placeholder: 'Share your reflection...',
+    localMode: '',
+    intro: 'I am here with you — voice or text. Share what feels most alive right now.',
+    unsupported: 'Voice recognition is not supported in this browser.',
+    micDenied: 'Microphone access denied. Check browser settings.',
+    noSpeech: "I could not catch speech. Please try again.",
+    syncInterrupted: 'Sync Interrupted',
+    initFailed: 'The assistant failed to initialize.',
+    restart: 'Restart',
+    thinking: 'Luna is listening…',
+  },
+  he: {
+    live: 'Live', micOn: 'On', micOff: 'Off', speakerLive: 'Live', speakerMuted: 'Muted',
+    placeholder: 'Share your reflection...',
+    localMode: '',
+    intro: 'I am here with you — voice or text. Share what feels most alive right now.',
+    unsupported: 'Voice recognition is not supported in this browser.',
+    micDenied: 'Microphone access denied. Check browser settings.',
+    noSpeech: "I could not catch speech. Please try again.",
+    syncInterrupted: 'Sync Interrupted',
+    initFailed: 'The assistant failed to initialize.',
+    restart: 'Restart',
+    thinking: 'Luna is listening…',
+  },
 };
 
 const recognitionLangByUi: LangCopy<string> = {
-  en: 'en-US', ru: 'ru-RU', uk: 'uk-UA', es: 'es-ES', fr: 'fr-FR', de: 'de-DE', zh: 'zh-CN', ja: 'ja-JP', pt: 'pt-PT', ar: 'ar-SA', he: 'he-IL',
+  en: 'en-US',
+  ru: 'ru-RU',
+  uk: 'uk-UA',
+  es: 'es-ES',
+  fr: 'fr-FR',
+  de: 'de-DE',
+  zh: 'zh-CN',
+  ja: 'ja-JP',
+  pt: 'pt-PT',
+  ar: 'ar-SA',
+  he: 'he-IL',
 };
 
 const buildLocalReply = (input: string, snapshot: string, lang: Language): string => {
@@ -311,7 +347,66 @@ const buildLocalReply = (input: string, snapshot: string, lang: Language): strin
     zh: { clarify: '为了得到准确建议，请提供3点：身体信号、情绪、当下场景。', crisis: '如有紧急危险，请立即联系当地急救服务。', section: { observe: '观察', step: '当前步骤', next: '下一次检查' }, stress: { observe: `当前压力负荷偏高。状态快照：“${snapshot}”。`, step: '接下来20分钟降低决策负担：只做一件事，一个计时器，不多任务。', next: '计时结束后复查脉搏、下颌紧张和呼吸节律。' }, sleep: { observe: `恢复信号偏低。状态快照：“${snapshot}”。`, step: '立即进入睡前协议：调暗光线、补水、减少刺激输入。', next: '设定固定睡眠窗口和起床时间。' }, relationship: { observe: '过载状态下，沟通冲突风险会上升。', step: '使用一句清晰表达：“我现在过载，需要20分钟恢复。”', next: '恢复后带着一个具体请求和一句感谢再沟通。' }, focus: { observe: '注意力带宽被分散。', step: '进行15分钟单任务专注，关闭不必要标签和提醒。', next: '记录清晰度、速度、错误率是否改善。' }, general: { observe: `我正在跟踪你的状态：“${snapshot}”。`, step: '为接下来10分钟选择一个最小但有效的动作。', next: '再检查身体、情绪、清晰度的变化。' } },
     ja: { clarify: '精度の高い回答のため、身体サイン・感情・状況の3点を共有してください。', crisis: '緊急の危険がある場合は、すぐに地域の緊急窓口へ連絡してください。', section: { observe: '観察', step: '今の一歩', next: '次のチェック' }, stress: { observe: `ストレス負荷が高い可能性があります。状態スナップショット:「${snapshot}」。`, step: '20分だけ意思決定負荷を下げます。1タスク・1タイマー・マルチタスクなし。', next: '終了後に脈拍、顎の緊張、呼吸リズムを再確認。' }, sleep: { observe: `回復シグナルが低下しています。状態スナップショット:「${snapshot}」。`, step: '就寝前プロトコルを開始：照明を落とし、水分補給、刺激入力を減らす。', next: '睡眠時間帯と起床時刻を固定する。' }, relationship: { observe: '過負荷時は会話の摩擦リスクが上がります。', step: '明確な一文:「いま過負荷なので、20分リセットしたいです。」', next: '戻るときは具体的な依頼1つと感謝1つ。' }, focus: { observe: '集中の帯域が分散しています。', step: '15分の単一集中ブロックへ。不要な通知とタブを止める。', next: '明瞭さ・速度・ミス率の変化を記録。' }, general: { observe: `現在の状態を追跡しています:「${snapshot}」。`, step: '次の10分で最小の有効アクションを1つ選ぶ。', next: '身体・気分・思考の明瞭さの変化を確認。' } },
     pt: { clarify: 'Para uma resposta precisa, compartilhe 3 pontos: sinal corporal, emoção e contexto.', crisis: 'Se houver perigo imediato, contate o serviço de emergência local agora.', section: { observe: 'Observação', step: 'Passo imediato', next: 'Próximo check-in' }, stress: { observe: `A carga de estresse parece alta. Estado atual: "${snapshot}".`, step: 'Reduza decisões por 20 minutos: uma tarefa, um timer, sem multitarefa.', next: 'Revise pulso, tensão mandibular e ritmo da respiração.' }, sleep: { observe: `O sinal de recuperação está baixo. Estado atual: "${snapshot}".`, step: 'Inicie protocolo noturno: menos luz, hidratação e menos estímulos.', next: 'Defina janela fixa de sono e horário de despertar.' }, relationship: { observe: 'Com sobrecarga, o risco de conflito na conversa aumenta.', step: 'Use uma frase clara: “Estou sobrecarregada e preciso de 20 minutos para me regular”.', next: 'Volte com um pedido concreto e uma apreciação.' }, focus: { observe: 'A atenção está fragmentada.', step: 'Faça um bloco de 15 minutos de foco único, sem alertas.', next: 'Registre melhora em clareza, velocidade ou erros.' }, general: { observe: `Estou acompanhando seu estado: "${snapshot}".`, step: 'Escolha a menor ação útil para os próximos 10 minutos.', next: 'Reavalie mudanças no corpo, humor e clareza.' } },
-  };
+  ar: {
+      clarify: 'To keep this useful, share 3 points: body signal, emotion, and context of the moment.',
+      crisis: 'If you are in immediate danger, contact local emergency services now. I can help you create one short safety step.',
+      section: { observe: 'Observation', step: 'Immediate step', next: 'Next check-in' },
+      stress: {
+        observe: `Stress load appears high. Current state snapshot: "${snapshot}".`,
+        step: 'Reduce decision load for 20 minutes: one task, one timer, no multitasking.',
+        next: 'Re-check pulse, jaw tension, and breath pace after the timer.',
+      },
+      sleep: {
+        observe: `Recovery signal looks low. Current state snapshot: "${snapshot}".`,
+        step: 'Start wind-down protocol now: lower light, hydrate, remove stimulating input.',
+        next: 'Set a fixed sleep window and keep wake time stable tomorrow.',
+      },
+      relationship: {
+        observe: 'Communication risk is elevated when state is overloaded.',
+        step: 'Use one clear sentence: “I am overloaded and need 20 minutes to reset.”',
+        next: 'Return with one concrete request and one appreciation.',
+      },
+      focus: {
+        observe: 'Focus bandwidth is fragmented.',
+        step: 'Switch to a 15-minute single-focus block and remove non-essential tabs/alerts.',
+        next: 'Log what improved: clarity, speed, or error rate.',
+      },
+      general: {
+        observe: `I am tracking your state snapshot: "${snapshot}".`,
+        step: 'Pick one smallest useful action for the next 10 minutes.',
+        next: 'Report what changed in body, mood, and clarity.',
+      },
+    },
+  he: {
+      clarify: 'To keep this useful, share 3 points: body signal, emotion, and context of the moment.',
+      crisis: 'If you are in immediate danger, contact local emergency services now. I can help you create one short safety step.',
+      section: { observe: 'Observation', step: 'Immediate step', next: 'Next check-in' },
+      stress: {
+        observe: `Stress load appears high. Current state snapshot: "${snapshot}".`,
+        step: 'Reduce decision load for 20 minutes: one task, one timer, no multitasking.',
+        next: 'Re-check pulse, jaw tension, and breath pace after the timer.',
+      },
+      sleep: {
+        observe: `Recovery signal looks low. Current state snapshot: "${snapshot}".`,
+        step: 'Start wind-down protocol now: lower light, hydrate, remove stimulating input.',
+        next: 'Set a fixed sleep window and keep wake time stable tomorrow.',
+      },
+      relationship: {
+        observe: 'Communication risk is elevated when state is overloaded.',
+        step: 'Use one clear sentence: “I am overloaded and need 20 minutes to reset.”',
+        next: 'Return with one concrete request and one appreciation.',
+      },
+      focus: {
+        observe: 'Focus bandwidth is fragmented.',
+        step: 'Switch to a 15-minute single-focus block and remove non-essential tabs/alerts.',
+        next: 'Log what improved: clarity, speed, or error rate.',
+      },
+      general: {
+        observe: `I am tracking your state snapshot: "${snapshot}".`,
+        step: 'Pick one smallest useful action for the next 10 minutes.',
+        next: 'Report what changed in body, mood, and clarity.',
+      },
+    },};
 
   const c = getLang(toneByLang, lang) || toneByLang.en;
   if (/(suicid|self-harm|kill myself|убью себя|не хочу жить|опасно|emergency)/i.test(text)) {

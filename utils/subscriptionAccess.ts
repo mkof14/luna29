@@ -87,3 +87,40 @@ export const getBridgeWeeklyLimit = (premium: boolean): number =>
 
 export const canUseBridgeReflection = (usageCount: number, premium: boolean): boolean =>
   usageCount < getBridgeWeeklyLimit(premium);
+
+const TRIAL_PENDING_KEY = 'luna_trial_pending_v1';
+
+export const markTrialPending = (): void => {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(TRIAL_PENDING_KEY, '1');
+};
+
+export const consumeTrialPending = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  try {
+    const pending = localStorage.getItem(TRIAL_PENDING_KEY);
+    if (!pending) return false;
+    localStorage.removeItem(TRIAL_PENDING_KEY);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+export const applyServerTrialToLocal = (payload: {
+  startedAt: string;
+  endsAt: string;
+  used?: boolean;
+}): TrialState | null => {
+  if (!payload?.startedAt || !payload?.endsAt) return null;
+  const next: TrialState = {
+    startedAt: payload.startedAt,
+    endsAt: payload.endsAt,
+    status: new Date(payload.endsAt).getTime() > Date.now() ? 'active' : 'expired',
+    used: Boolean(payload.used ?? true),
+  };
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(TRIAL_STORAGE_KEY, JSON.stringify(next));
+  }
+  return next;
+};

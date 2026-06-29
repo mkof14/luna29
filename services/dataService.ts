@@ -13,8 +13,11 @@ import {
   MedicationLogPayload,
   ProfileUpdatePayload,
 } from '../types';
+import { secureGetItem, secureSetItem } from './secureHealthStorage';
 
 const STORAGE_KEY = 'luna_event_log_v3';
+
+let logCache: HealthEvent[] | null = null;
 
 const DEFAULT_PROFILE: ProfileData = {
   name: '',
@@ -78,7 +81,23 @@ const isLabMarkerEntryPayload = (payload: EventPayload): payload is LabMarkerEnt
 const isProfileUpdatePayload = (payload: EventPayload): payload is ProfileUpdatePayload =>
   isRecord(payload);
 
+const parseLog = (raw: string | null): HealthEvent[] => {
+  if (!raw) return [];
+  if (raw.startsWith('enc:v1:')) return logCache || [];
+  try {
+    return JSON.parse(raw) as HealthEvent[];
+  } catch {
+    return [];
+  }
+};
+
 export const dataService = {
+  hydrateLog: async (): Promise<HealthEvent[]> => {
+    const raw = await secureGetItem(STORAGE_KEY);
+    logCache = parseLog(raw);
+    return logCache;
+  },
+
   logEvent: (type: EventType, payload: EventPayload): HealthEvent => {
     try {
       const log = dataService.getLog();
@@ -97,7 +116,8 @@ export const dataService = {
       };
       
       const updatedLog = [...log, newEvent];
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedLog));
+      logCache = updatedLog;
+      void secureSetItem(STORAGE_KEY, JSON.stringify(updatedLog));
       return newEvent;
     } catch (e) {
       console.error("Data sync failed", e);
@@ -106,9 +126,11 @@ export const dataService = {
   },
 
   getLog: (): HealthEvent[] => {
+    if (logCache) return logCache;
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : [];
+      logCache = parseLog(raw);
+      return logCache;
     } catch (e) {
       return [];
     }
