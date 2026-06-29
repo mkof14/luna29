@@ -83,7 +83,7 @@ const ADMIN_EMAIL_RULES = [
 
 const ALLOWED_ORIGINS = new Set(
   (process.env.AUTH_ALLOWED_ORIGINS
-    || 'http://localhost:3000,http://127.0.0.1:3000,http://localhost:4173,http://127.0.0.1:4173,https://luna29.vercel.app')
+    || 'http://localhost:3000,http://127.0.0.1:3000,http://localhost:4173,http://127.0.0.1:4173,https://luna29.vercel.app,https://luna29.com,https://www.luna29.com')
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean)

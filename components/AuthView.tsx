@@ -77,7 +77,13 @@ export const AuthView: React.FC<AuthViewProps> = ({ ui, onSuccess, initialMode =
       const session = await authService.loginWithGoogleCredential(response.credential);
       onSuccess(session);
     } catch (error) {
-      setAuthError(error instanceof Error ? error.message : 'Google sign-in failed.');
+      const message = error instanceof Error ? error.message : 'Google sign-in failed.';
+      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      setAuthError(
+        /origin|oauth|400/i.test(message) && origin
+          ? `Google sign-in failed for ${origin}. Add this exact URL to Authorized JavaScript origins in Google Cloud Console.`
+          : message
+      );
     } finally {
       setIsLoading(false);
     }

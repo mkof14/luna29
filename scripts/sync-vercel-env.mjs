@@ -33,7 +33,7 @@ const vars = {
   AUTH_GOOGLE_CLIENT_IDS: local.AUTH_GOOGLE_CLIENT_IDS,
   SUPER_ADMIN_EMAILS: local.SUPER_ADMIN_EMAILS || 'dnainform@gmail.com',
   SUPER_ADMIN_BOOTSTRAP_PASSWORD: local.SUPER_ADMIN_BOOTSTRAP_PASSWORD,
-  AUTH_ALLOWED_ORIGINS: 'https://luna29.vercel.app,http://localhost:3000,http://127.0.0.1:3000',
+  AUTH_ALLOWED_ORIGINS: 'https://www.luna29.com,https://luna29.com,https://luna29.vercel.app,http://localhost:3000,http://127.0.0.1:3000',
   AUTH_ALLOW_UNVERIFIED_GOOGLE: 'false',
   GEMINI_API_KEY: local.GEMINI_API_KEY,
   ELEVENLABS_API_KEY: local.ELEVENLABS_API_KEY,
@@ -42,7 +42,7 @@ const vars = {
   ELEVENLABS_VOICE_LUNA: local.ELEVENLABS_VOICE_LUNA,
   ELEVENLABS_VOICE_LUNA_SOFT: local.ELEVENLABS_VOICE_LUNA_SOFT,
   ELEVENLABS_VOICE_LUNA_CLEAR: local.ELEVENLABS_VOICE_LUNA_CLEAR,
-  VITE_SITE_URL: 'https://luna29.vercel.app',
+  VITE_SITE_URL: 'https://www.luna29.com',
 };
 
 const runVercel = (args, input) =>
