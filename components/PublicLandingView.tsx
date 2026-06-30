@@ -128,8 +128,6 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
   const appStoreUrl = normalizeExternalUrl(import.meta.env.VITE_APP_STORE_URL);
   const googlePlayUrl = normalizeExternalUrl(import.meta.env.VITE_GOOGLE_PLAY_URL);
   const expoPreviewUrl = normalizeExternalUrl(import.meta.env.VITE_EXPO_PREVIEW_URL || 'https://expo.dev/accounts/mkof14/projects/luna-mobile');
-  const appStoreHref = appStoreUrl || expoPreviewUrl || '#';
-  const googlePlayHref = googlePlayUrl || expoPreviewUrl || '#';
   const showPreviewLink = (!appStoreUrl || !googlePlayUrl) && Boolean(expoPreviewUrl);
 
   const storeBadgeCopyByLang: LangCopy< { title: string; appStore: string; googlePlay: string; preview: string; soon: string }> = {
@@ -832,8 +830,10 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     en: {
       ios: 'iPhone Install',
       android: 'Android Install',
+      desktop: 'Install on Desktop',
       iosTip: 'Open Safari -> Share -> Add to Home Screen.',
       androidTip: 'Use browser menu -> Install App.',
+      desktopTip: 'Use Chrome or Edge menu -> Install Luna29.',
       noPrompt: 'Install prompt is not available in this browser session.',
       explainTitle: 'How Install Works',
       explainBody: 'Install adds Luna29 to your home screen and opens full-screen like an app.',
@@ -848,8 +848,10 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     ru: {
       ios: 'Установить на iPhone',
       android: 'Установить на Android',
+      desktop: 'Установить на компьютер',
       iosTip: 'Откройте Safari -> Поделиться -> На экран Домой.',
       androidTip: 'Используйте меню браузера -> Установить приложение.',
+      desktopTip: 'Chrome или Edge -> меню -> Установить Luna29.',
       noPrompt: 'Системный install prompt сейчас недоступен в этом браузере.',
       explainTitle: 'Как работает установка',
       explainBody: 'После установки Luna29 появится на домашнем экране и будет открываться как приложение.',
@@ -1005,7 +1007,16 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       admin: 'אדמין',
       social: 'רשתות',
     },};
-  const installActions = getLang(installActionsByLang, lang) || installActionsByLang.en;
+  const installActions = { ...installActionsByLang.en, ...(getLang(installActionsByLang, lang) || {}) };
+  const runPublicInstall = async () => {
+    if (!publicInstallPrompt) {
+      setInstallFeedback(installActions.noPrompt);
+      return;
+    }
+    await publicInstallPrompt.prompt();
+    await publicInstallPrompt.userChoice;
+    setInstallFeedback(mobilePlatform === 'other' ? installActions.desktopTip : installActions.androidTip);
+  };
   const installGuideModalByLang: Partial<
     Record<
       Language,
@@ -1019,6 +1030,10 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
         iosStep2: string;
         androidStep1: string;
         androidStep2: string;
+        desktopTitle?: string;
+        desktopStep1?: string;
+        desktopStep2?: string;
+        openDesktopPrompt?: string;
         fallback: string;
         close: string;
         openPrompt: string;
@@ -1035,9 +1050,13 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       iosStep2: 'Step 2: Tap Share and choose Add to Home Screen.',
       androidStep1: 'Step 1: Open Luna29 in Chrome/Edge.',
       androidStep2: 'Step 2: Tap browser menu and choose Install App.',
+      desktopTitle: 'Desktop Install',
+      desktopStep1: 'Step 1: Open Luna29 in Chrome or Edge.',
+      desktopStep2: 'Step 2: Click Install in the address bar or browser menu.',
       fallback: 'Open Safari -> Share -> Add to Home Screen.',
       close: 'Close',
       openPrompt: 'Open Android Install',
+      openDesktopPrompt: 'Install Luna29 on Desktop',
     },
     ru: {
       title: 'Install App',
@@ -1049,9 +1068,13 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       iosStep2: 'Step 2: Tap Share and choose Add to Home Screen.',
       androidStep1: 'Step 1: Open Luna29 in Chrome/Edge.',
       androidStep2: 'Step 2: Tap browser menu and choose Install App.',
+      desktopTitle: 'Desktop Install',
+      desktopStep1: 'Шаг 1: Откройте Luna29 в Chrome или Edge.',
+      desktopStep2: 'Шаг 2: Нажмите «Установить» в адресной строке или меню браузера.',
       fallback: 'Open Safari -> Share -> Add to Home Screen.',
       close: 'Закрыть',
       openPrompt: 'Открыть Android Install',
+      openDesktopPrompt: 'Установить Luna29 на компьютер',
     },
     ar: {
       title: 'تثبيت التطبيق',
@@ -2127,12 +2150,55 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
                 >
                   <LunaMenuLabel text={installGuideModal.title} muted className="font-light" />
                 </button>
-                <a href={appStoreHref} target="_blank" rel="noreferrer" className="text-left text-[12px] font-semibold">
-                  <LunaMenuLabel text={storeBadges.appStore} muted className="font-semibold" />
-                </a>
-                <a href={googlePlayHref} target="_blank" rel="noreferrer" className="text-left text-[12px] font-semibold">
-                  <LunaMenuLabel text={storeBadges.googlePlay} muted className="font-semibold" />
-                </a>
+                {!isStandaloneMode && (
+                  <button
+                    type="button"
+                    onClick={() => void runPublicInstall()}
+                    className="text-left text-[12px] font-semibold"
+                  >
+                    <LunaMenuLabel
+                      text={mobilePlatform === 'other' ? installActions.desktop : installActions.android}
+                      muted
+                      className="font-semibold"
+                    />
+                  </button>
+                )}
+                {(appStoreUrl || (showPreviewLink && mobilePlatform === 'ios')) && (
+                  <a
+                    href={appStoreUrl || expoPreviewUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-left text-[12px] font-semibold"
+                  >
+                    <LunaMenuLabel
+                      text={appStoreUrl ? storeBadges.appStore : storeBadges.preview}
+                      muted
+                      className="font-semibold"
+                    />
+                  </a>
+                )}
+                {(googlePlayUrl || (showPreviewLink && mobilePlatform === 'android')) && (
+                  <a
+                    href={googlePlayUrl || expoPreviewUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-left text-[12px] font-semibold"
+                  >
+                    <LunaMenuLabel
+                      text={googlePlayUrl ? storeBadges.googlePlay : storeBadges.preview}
+                      muted
+                      className="font-semibold"
+                    />
+                  </a>
+                )}
+                {showPreviewLink && mobilePlatform === 'other' && (
+                  <a href={expoPreviewUrl} target="_blank" rel="noreferrer" className="text-left text-[12px] font-semibold">
+                    <LunaMenuLabel text={storeBadges.preview} muted className="font-semibold" />
+                  </a>
+                )}
+                {!appStoreUrl && !googlePlayUrl && !showPreviewLink && (
+                  <p className="text-[11px] font-light text-slate-500 dark:text-slate-400">{storeBadges.soon}</p>
+                )}
               </div>
               <div className="pt-4 border-t border-slate-300/70 dark:border-slate-700/70 space-y-3">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em]">
@@ -2198,7 +2264,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
             <p className="text-xs font-black uppercase tracking-[0.24em] text-luna-purple">{installGuideModal.title}</p>
             <p className="text-sm font-black uppercase tracking-[0.18em] text-slate-700 dark:text-slate-200">{installGuideModal.how}</p>
             <p className="text-sm font-semibold text-slate-600 dark:text-slate-300 leading-relaxed">{installGuideModal.intro}</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <article className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/90 dark:bg-slate-800/40 p-4 space-y-2">
                 <p className="text-[10px] font-black uppercase tracking-[0.16em] text-luna-purple">{installGuideModal.iosTitle}</p>
                 <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">{installGuideModal.iosStep1}</p>
@@ -2209,21 +2275,39 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
                 <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">{installGuideModal.androidStep1}</p>
                 <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">{installGuideModal.androidStep2}</p>
                 <button
-                  onClick={async () => {
-                    if (publicInstallPrompt) {
-                      await publicInstallPrompt.prompt();
-                      await publicInstallPrompt.userChoice;
-                      setInstallFeedback(installActions.androidTip);
-                      return;
-                    }
-                    setInstallFeedback(installActions.noPrompt);
-                  }}
+                  onClick={() => void runPublicInstall()}
                   className={`${PUBLIC_BTN_SECONDARY} mt-2 px-3 py-2 text-[10px] tracking-[0.14em] text-luna-purple`}
                 >
                   {installGuideModal.openPrompt}
                 </button>
               </article>
+              {mobilePlatform === 'other' && (
+                <article className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/90 dark:bg-slate-800/40 p-4 space-y-2">
+                  <p className="text-[10px] font-black uppercase tracking-[0.16em] text-luna-purple">
+                    {installGuideModal.desktopTitle || installActions.desktop}
+                  </p>
+                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    {installGuideModal.desktopStep1 || installActions.desktopTip}
+                  </p>
+                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    {installGuideModal.desktopStep2 || installActions.desktopTip}
+                  </p>
+                  {!isStandaloneMode && (
+                    <button
+                      onClick={() => void runPublicInstall()}
+                      className={`${PUBLIC_BTN_SECONDARY} mt-2 px-3 py-2 text-[10px] tracking-[0.14em] text-luna-purple`}
+                    >
+                      {installGuideModal.openDesktopPrompt || installActions.desktop}
+                    </button>
+                  )}
+                </article>
+              )}
             </div>
+            {showPreviewLink && (
+              <a href={expoPreviewUrl} target="_blank" rel="noreferrer" className="inline-flex text-sm font-semibold text-luna-purple underline underline-offset-4">
+                {storeBadges.preview}
+              </a>
+            )}
             <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">{installGuideModal.fallback}</p>
             {installFeedback && <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{installFeedback}</p>}
             <div className="pt-2">
