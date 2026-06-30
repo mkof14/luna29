@@ -70,6 +70,10 @@ const vars = {
   UPSTASH_REDIS_REST_URL: local.UPSTASH_REDIS_REST_URL,
   UPSTASH_REDIS_REST_TOKEN: local.UPSTASH_REDIS_REST_TOKEN,
 
+  // Calendar reminder emails (Resend)
+  RESEND_API_KEY: local.RESEND_API_KEY,
+  CALENDAR_REMINDER_FROM: local.CALENDAR_REMINDER_FROM || 'Luna29 <reminders@luna29.com>',
+
   // Stripe — keep billing off until live keys are ready
   STRIPE_BILLING_ENABLED: local.STRIPE_BILLING_ENABLED || 'false',
   STRIPE_SECRET_KEY: local.STRIPE_SECRET_KEY,

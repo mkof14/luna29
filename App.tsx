@@ -260,6 +260,26 @@ const App: React.FC = () => {
         <StandaloneWelcomeOverlay lang={lang} />
         <InstallAppPrompt lang={lang} />
         <PrivacyControls lang={lang} isAuthenticated={false} />
+        <LunaLiveButton onClick={() => setShowLive(true)} isActive={showLive} />
+        <Suspense fallback={null}>
+          <LiveAssistant
+            isOpen={showLive}
+            onClose={() => setShowLive(false)}
+            stateSnapshot="Public preview."
+            lang={lang}
+            accessMode="public"
+            onSignIn={() => {
+              setShowLive(false);
+              setAuthMode('signin');
+              setShowAuthModal(true);
+            }}
+            onSignUp={() => {
+              setShowLive(false);
+              setAuthMode('signup');
+              setShowAuthModal(true);
+            }}
+          />
+        </Suspense>
       </div>
     );
   }
@@ -340,7 +360,13 @@ const App: React.FC = () => {
 
       <LunaLiveButton onClick={() => setShowLive(true)} isActive={showLive} />
       <Suspense fallback={null}>
-        <LiveAssistant isOpen={showLive} onClose={() => setShowLive(false)} stateSnapshot={stateNarrative || "Presence."} lang={lang} />
+        <LiveAssistant
+          isOpen={showLive}
+          onClose={() => setShowLive(false)}
+          stateSnapshot={stateNarrative || 'Presence.'}
+          lang={lang}
+          accessMode="member"
+        />
         {selectedHormone && <HormoneDetail hormone={selectedHormone} lang={lang} onClose={() => setSelectedHormone(null)} />}
       </Suspense>
 

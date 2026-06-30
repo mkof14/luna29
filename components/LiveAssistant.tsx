@@ -106,6 +106,14 @@ const copyByLang: LangCopy< {
   initFailed: string;
   restart: string;
   thinking?: string;
+  previewBadge?: string;
+  previewIntro?: string;
+  previewNote?: string;
+  turnsLeft?: string;
+  limitReached?: string;
+  signInCta?: string;
+  signUpCta?: string;
+  memberOnlyVoice?: string;
 }> = {
   en: {
     live: 'Live', micOn: 'On', micOff: 'Off', speakerLive: 'Live', speakerMuted: 'Muted',
@@ -119,6 +127,14 @@ const copyByLang: LangCopy< {
     initFailed: 'The assistant failed to initialize.',
     restart: 'Restart',
     thinking: 'Luna is listening…',
+    previewBadge: 'Preview',
+    previewIntro: 'Welcome — this is a short Luna29 Live preview. Ask one question about how you feel today.',
+    previewNote: 'Full voice AI, Luna personas, and cycle-aware replies unlock in Member Zone.',
+    turnsLeft: '{n} preview messages left',
+    limitReached: 'Preview limit reached. Sign in for full Luna29 Live with AI voice and your rhythm data.',
+    signInCta: 'Sign in',
+    signUpCta: 'Create free account',
+    memberOnlyVoice: 'Premium Luna voice — members only',
   },
   ru: {
     live: 'Live', micOn: 'Вкл', micOff: 'Выкл', speakerLive: 'Звук', speakerMuted: 'Тихо',
@@ -132,6 +148,14 @@ const copyByLang: LangCopy< {
     initFailed: 'Ассистент не смог инициализироваться.',
     restart: 'Перезапустить',
     thinking: 'Luna слушает…',
+    previewBadge: 'Preview',
+    previewIntro: 'Это короткий preview Luna29 Live. Спросите, как вы себя чувствуете сегодня.',
+    previewNote: 'Полный AI-голос, персоны Luna и ответы с учётом цикла — в Member Zone после входа.',
+    turnsLeft: 'Осталось {n} сообщений preview',
+    limitReached: 'Лимит preview исчерпан. Войдите для полного Luna29 Live с AI-голосом и вашими данными.',
+    signInCta: 'Войти',
+    signUpCta: 'Создать аккаунт',
+    memberOnlyVoice: 'Голос Luna Premium — только для участников',
   },
   uk: {
     live: 'Live', micOn: 'Увiмк', micOff: 'Вимк', speakerLive: 'Звук', speakerMuted: 'Тихо',
@@ -425,7 +449,32 @@ const buildLocalReply = (input: string, snapshot: string, lang: Language): strin
   return `${c.section.observe}: ${selected.observe}\n${c.section.step}: ${selected.step}\n${c.section.next}: ${selected.next}`;
 };
 
-export const LiveAssistant: React.FC<{ isOpen: boolean; onClose: () => void; stateSnapshot: string; lang?: Language }> = ({ isOpen, onClose, stateSnapshot, lang = 'en' }) => {
+import {
+  consumePublicLiveTurn,
+  isPublicLiveLimitReached,
+  publicLiveTurnsLeft,
+} from '../utils/liveAssistantAccess';
+
+export type LiveAssistantAccessMode = 'member' | 'public';
+
+export const LiveAssistant: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  stateSnapshot: string;
+  lang?: Language;
+  accessMode?: LiveAssistantAccessMode;
+  onSignIn?: () => void;
+  onSignUp?: () => void;
+}> = ({
+  isOpen,
+  onClose,
+  stateSnapshot,
+  lang = 'en',
+  accessMode = 'member',
+  onSignIn,
+  onSignUp,
+}) => {
+  const isPublicPreview = accessMode === 'public';
   const idleBars = useMemo(() => Array.from({ length: 10 }, (_, i) => (i % 2 === 0 ? 8 : 10)), []);
   const [status, setStatus] = useState<ConnectionStatus>('IDLE');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -440,6 +489,8 @@ export const LiveAssistant: React.FC<{ isOpen: boolean; onClose: () => void; sta
   const [personaId, setPersonaId] = useState<LunaVoicePersonaId>(DEFAULT_LUNA_PERSONA_ID);
   const [voiceConfig, setVoiceConfig] = useState<VoiceServiceConfig | null>(null);
   const [isThinking, setIsThinking] = useState(false);
+  const [publicTurnsLeft, setPublicTurnsLeft] = useState(() => publicLiveTurnsLeft());
+  const publicLimitReached = isPublicPreview && publicTurnsLeft <= 0;
   const scrollRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const recognitionActiveRef = useRef(false);
@@ -592,6 +643,11 @@ export const LiveAssistant: React.FC<{ isOpen: boolean; onClose: () => void; sta
     const msg = raw.trim();
     if (!msg || status !== 'CONNECTED' || isThinking) return;
 
+    if (isPublicPreview && isPublicLiveLimitReached()) {
+      setMessages((prev) => [...prev, { role: 'system', text: copy.limitReached || copy.previewNote || '' }]);
+      return;
+    }
+
     setMessages((prev) => [...prev, { role: 'user', text: msg }]);
     setTextInput('');
     setInterimText('');
@@ -603,7 +659,18 @@ export const LiveAssistant: React.FC<{ isOpen: boolean; onClose: () => void; sta
       .map((m) => ({ role: m.role === 'luna' ? 'assistant' as const : 'user' as const, text: m.text }));
 
     try {
-      if (isVoiceAiEnabled() && (voiceConfig?.enabled || voiceConfig?.ttsEnabled)) {
+      if (isPublicPreview) {
+        consumePublicLiveTurn();
+        const left = publicLiveTurnsLeft();
+        setPublicTurnsLeft(left);
+        if (left <= 0) {
+          stopListening();
+          setIsMicMuted(true);
+        }
+        const reply = buildLocalReply(msg, stateSnapshot, lang);
+        setMessages((prev) => [...prev, { role: 'luna', text: reply }]);
+        speakReply(reply);
+      } else if (isVoiceAiEnabled() && (voiceConfig?.enabled || voiceConfig?.ttsEnabled)) {
         const result = await requestLunaVoiceResponse({
           transcript: msg,
           lang,
@@ -627,10 +694,11 @@ export const LiveAssistant: React.FC<{ isOpen: boolean; onClose: () => void; sta
     } finally {
       setIsThinking(false);
     }
-  }, [isSpeakerMuted, isThinking, lang, messages, personaId, stateSnapshot, status, voiceConfig?.enabled, voiceConfig?.ttsEnabled]);
+  }, [copy.limitReached, copy.previewNote, isPublicPreview, isSpeakerMuted, isThinking, lang, messages, personaId, stateSnapshot, status, voiceConfig?.enabled, voiceConfig?.ttsEnabled]);
 
   const startListening = () => {
     if (isMicMuted || status !== 'CONNECTED') return;
+    if (isPublicPreview && isPublicLiveLimitReached()) return;
     const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognitionCtor) {
       setMessages((prev) => [...prev, { role: 'system', text: copy.unsupported }]);
@@ -749,19 +817,35 @@ export const LiveAssistant: React.FC<{ isOpen: boolean; onClose: () => void; sta
   }, [copy.intro, lang, personaId]);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || isPublicPreview) return;
     void fetchVoiceServiceConfig().then(setVoiceConfig);
-  }, [isOpen]);
+  }, [isOpen, isPublicPreview]);
 
   const startSession = () => {
     if (status !== 'IDLE') return;
     setStatus('CONNECTING');
+    if (isPublicPreview) {
+      setPublicTurnsLeft(publicLiveTurnsLeft());
+    }
 
     setTimeout(() => {
       setStatus('CONNECTED');
-      const opening: ChatMessage[] = [{ role: 'luna', text: introForPersona }];
-      if (!isVoiceAiEnabled() || !(voiceConfig?.enabled || voiceConfig?.ttsEnabled)) {
+      if (isPublicPreview) {
+        setIsMicMuted(true);
+      }
+      const opening: ChatMessage[] = [
+        {
+          role: 'luna',
+          text: isPublicPreview ? copy.previewIntro || copy.intro : introForPersona,
+        },
+      ];
+      if (isPublicPreview) {
+        opening.unshift({ role: 'system', text: copy.previewNote || '' });
+      } else if (!isVoiceAiEnabled() || !(voiceConfig?.enabled || voiceConfig?.ttsEnabled)) {
         opening.unshift({ role: 'system', text: copy.localMode || copy.intro });
+      }
+      if (isPublicPreview && isPublicLiveLimitReached()) {
+        opening.push({ role: 'system', text: copy.limitReached || '' });
       }
       setMessages(opening);
     }, 280);
@@ -816,7 +900,10 @@ export const LiveAssistant: React.FC<{ isOpen: boolean; onClose: () => void; sta
                 <div className={`w-2.5 h-2.5 rounded-full ${status === 'CONNECTED' ? 'bg-emerald-500 shadow-[0_0_10px_#10b981] animate-pulse' : status === 'CONNECTING' ? 'bg-amber-500 animate-pulse' : 'bg-slate-500'}`} />
                 <Logo size="sm" className="!text-[2rem] !leading-none !pt-0 pointer-events-none" />
                 <span className="mb-1 text-[10px] font-black uppercase tracking-widest opacity-60">{copy.live}</span>
-                {voiceConfig?.ttsEnabled && (
+                {isPublicPreview && (
+                  <span className="mb-1 text-[8px] font-black uppercase tracking-widest text-amber-500/90">{copy.previewBadge}</span>
+                )}
+                {!isPublicPreview && voiceConfig?.ttsEnabled && (
                   <span className="mb-1 text-[8px] font-bold uppercase tracking-widest text-violet-400/90">ElevenLabs</span>
                 )}
                 <span className="mb-1 ml-1 flex items-end gap-[2px] h-3">
@@ -891,6 +978,12 @@ export const LiveAssistant: React.FC<{ isOpen: boolean; onClose: () => void; sta
             </div>
           </nav>
 
+          {isPublicPreview && status === 'CONNECTED' && !publicLimitReached && (
+            <p className="relative z-20 px-6 py-2 text-[9px] font-black uppercase tracking-[0.18em] text-center text-amber-600 dark:text-amber-300 bg-amber-500/10 border-b border-amber-500/20">
+              {(copy.turnsLeft || '{n} left').replace('{n}', String(publicTurnsLeft))}
+            </p>
+          )}
+
           <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 no-scrollbar relative z-20" ref={scrollRef}>
             {messages.map((m, i) => (
               <div key={i} className={`flex flex-col ${m.role === 'user' ? 'items-end' : m.role === 'system' ? 'items-center' : 'items-start'} animate-in fade-in slide-in-from-bottom-2`}>
@@ -909,7 +1002,7 @@ export const LiveAssistant: React.FC<{ isOpen: boolean; onClose: () => void; sta
 
           {status === 'CONNECTED' && (
             <footer className="relative p-6 border-t border-inherit bg-inherit/40 backdrop-blur-md z-20 space-y-3">
-              {(voiceConfig?.personas?.length ?? 0) > 1 && (
+              {!isPublicPreview && (voiceConfig?.personas?.length ?? 0) > 1 && (
                 <div className="flex flex-wrap gap-2 justify-center">
                   {voiceConfig!.personas.map((persona) => (
                     <button
@@ -927,6 +1020,24 @@ export const LiveAssistant: React.FC<{ isOpen: boolean; onClose: () => void; sta
                   ))}
                 </div>
               )}
+              {publicLimitReached ? (
+                <div className="space-y-3 text-center">
+                  <p className="text-sm font-medium opacity-80">{copy.limitReached}</p>
+                  <div className="flex flex-wrap gap-2 justify-center">
+                    {onSignIn && (
+                      <button type="button" onClick={onSignIn} className="px-5 py-2.5 rounded-full border border-luna-purple/40 text-[10px] font-black uppercase tracking-[0.14em] text-luna-purple">
+                        {copy.signInCta}
+                      </button>
+                    )}
+                    {onSignUp && (
+                      <button type="button" onClick={onSignUp} className="px-5 py-2.5 rounded-full bg-luna-purple text-white text-[10px] font-black uppercase tracking-[0.14em]">
+                        {copy.signUpCta}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ) : (
+              <>
               {isThinking && (
                 <p className="text-center text-[10px] font-semibold uppercase tracking-widest opacity-60">{copy.thinking || 'Luna is listening…'}</p>
               )}
@@ -949,6 +1060,11 @@ export const LiveAssistant: React.FC<{ isOpen: boolean; onClose: () => void; sta
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                 </button>
               </div>
+              {isPublicPreview && (
+                <p className="text-[9px] font-semibold text-center opacity-60">{copy.memberOnlyVoice}</p>
+              )}
+              </>
+              )}
             </footer>
           )}
 
