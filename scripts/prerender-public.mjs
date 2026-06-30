@@ -53,6 +53,11 @@ const routeToFile = (route) => {
 };
 
 const run = async () => {
+  if (process.env.SKIP_PRERENDER === '1' || (process.env.VERCEL === '1' && process.env.PRERENDER_ON_VERCEL !== '1')) {
+    console.log('[prerender] skipped on Vercel (set PRERENDER_ON_VERCEL=1 to enable)');
+    return;
+  }
+
   if (!(await fs.stat(distDir).catch(() => null))) {
     console.warn('[prerender] dist/ missing — skip');
     return;
