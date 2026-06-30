@@ -1,11 +1,17 @@
 const memoryStore = new Map();
 
-const upstashEnabled = () =>
-  Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+export const getUpstashRestUrl = () =>
+  String(process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL || '').trim();
+
+export const getUpstashRestToken = () =>
+  String(process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN || '').trim();
+
+export const isUpstashRateLimitEnabled = () =>
+  Boolean(getUpstashRestUrl() && getUpstashRestToken());
 
 const upstashIncr = async (key, windowMs) => {
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  const url = getUpstashRestUrl();
+  const token = getUpstashRestToken();
   const ttlSec = Math.max(1, Math.ceil(windowMs / 1000));
   const response = await fetch(`${url}/pipeline`, {
     method: 'POST',
@@ -23,7 +29,7 @@ const upstashIncr = async (key, windowMs) => {
 
 export const createRateLimiter = () => {
   const check = async (key, limit, windowMs) => {
-    if (upstashEnabled()) {
+    if (isUpstashRateLimitEnabled()) {
       try {
         const count = await upstashIncr(`luna:rl:${key}`, windowMs);
         if (count !== null) return count <= limit;

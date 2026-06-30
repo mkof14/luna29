@@ -22,11 +22,20 @@ const RECOMMENDED = [
   'DATABASE_URL',
   'RESEND_API_KEY',
   'CALENDAR_REMINDER_FROM',
-  'UPSTASH_REDIS_REST_URL',
-  'UPSTASH_REDIS_REST_TOKEN',
   'VITE_SENTRY_DSN',
   'VITE_GA4_MEASUREMENT_ID',
 ];
+
+const RATE_LIMIT_KEYS = [
+  'UPSTASH_REDIS_REST_URL',
+  'UPSTASH_REDIS_REST_TOKEN',
+  'KV_REST_API_URL',
+  'KV_REST_API_TOKEN',
+];
+
+const hasRateLimitStore = (present) =>
+  (present.has('UPSTASH_REDIS_REST_URL') && present.has('UPSTASH_REDIS_REST_TOKEN')) ||
+  (present.has('KV_REST_API_URL') && present.has('KV_REST_API_TOKEN'));
 
 const STRIPE_KEYS = [
   'STRIPE_BILLING_ENABLED',
@@ -71,6 +80,11 @@ const reportGroup = (title, keys, present) => {
 const vercelEnv = listVercelEnv();
 reportGroup('Required (production)', REQUIRED_ALWAYS, vercelEnv);
 reportGroup('Recommended (persistence, analytics, monitoring)', RECOMMENDED, vercelEnv);
+console.log('\nRate limits (Upstash or Vercel KV)');
+for (const key of RATE_LIMIT_KEYS) {
+  console.log(`${vercelEnv.has(key) ? 'OK' : 'MISSING'}  ${key}`);
+}
+console.log(hasRateLimitStore(vercelEnv) ? 'OK  rate-limit backend configured' : 'MISSING  rate-limit backend (in-memory fallback)');
 reportGroup('Stripe (required when STRIPE_BILLING_ENABLED=true)', STRIPE_KEYS, vercelEnv);
 
 let health;
@@ -95,8 +109,11 @@ if (health?.checks?.storage !== 'ok') {
 if (!vercelEnv.has('DATABASE_URL')) {
   warnings.push('DATABASE_URL not in Vercel — auth/billing state uses ephemeral /tmp on serverless.');
 }
-if (!vercelEnv.has('UPSTASH_REDIS_REST_URL')) {
-  warnings.push('Upstash not configured — rate limits fall back to in-memory per instance.');
+if (!hasRateLimitStore(vercelEnv)) {
+  warnings.push('Upstash/Vercel KV not configured — rate limits fall back to in-memory per instance.');
+}
+if (health?.checks?.rateLimit === 'memory') {
+  warnings.push('Production API still reports in-memory rate limits — redeploy after KV/Upstash is linked.');
 }
 
 if (warnings.length) {

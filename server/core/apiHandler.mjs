@@ -10,6 +10,7 @@ import { resolveRole as resolveRoleSafe, ROLE_PERMISSIONS as CORE_ROLE_PERMISSIO
 import { buildTrialRecord } from './billingTrial.mjs';
 import { sendCalendarReminderEmail, isCalendarEmailEnabled } from './calendarEmail.mjs';
 import { dispatchDueEmailReminders } from './calendarReminders.mjs';
+import { createRateLimiter, isUpstashRateLimitEnabled } from './rateLimit.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -96,7 +97,7 @@ const ALLOWED_ORIGINS = new Set(
     .filter(Boolean)
 );
 
-const rateLimits = new Map();
+const rateLimit = createRateLimiter();
 const sessions = new Map();
 let lastSessionPurgeAt = 0;
 
@@ -411,9 +412,7 @@ const buildHealthPayload = async ({ verbose = false } = {}) => {
   const googleAuthConfigured = GOOGLE_CLIENT_IDS.size > 0;
   const aiScanEnabled = Boolean(GEMINI_API_KEY);
   const databaseConfigured = Boolean(String(process.env.DATABASE_URL || '').trim());
-  const rateLimitBackend = Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)
-    ? 'upstash'
-    : 'memory';
+  const rateLimitBackend = isUpstashRateLimitEnabled() ? 'upstash' : 'memory';
   const ok = storageWritable && (!BILLING_ENABLED || stripeConfigReady);
   const warnings = [];
 
@@ -656,18 +655,6 @@ const getClientIp = (req) => {
   const forwarded = req.headers['x-forwarded-for'];
   if (typeof forwarded === 'string' && forwarded.length > 0) return forwarded.split(',')[0].trim();
   return req.socket.remoteAddress || 'unknown';
-};
-
-const rateLimit = (key, limit, windowMs) => {
-  const now = Date.now();
-  const state = rateLimits.get(key);
-  if (!state || state.resetAt < now) {
-    rateLimits.set(key, { count: 1, resetAt: now + windowMs });
-    return true;
-  }
-  if (state.count >= limit) return false;
-  state.count += 1;
-  return true;
 };
 
 const hasAnyPermission = (sessionPayload, permissions) => permissions.some((item) => sessionPayload.permissions.includes(item));
@@ -1207,7 +1194,7 @@ const start = async () => {
     }
 
     if (method === 'POST' && url.pathname === '/api/mobile/auth/signup') {
-      if (!rateLimit(`mobile-signup:${ip}`, 12, 60_000)) {
+      if (!(await rateLimit(`mobile-signup:${ip}`, 12, 60_000))) {
         send(res, 429, { error: 'Too many signup attempts. Try again in a minute.' }, headers);
         return;
       }
@@ -1254,7 +1241,7 @@ const start = async () => {
     }
 
     if (method === 'POST' && url.pathname === '/api/mobile/auth/signin') {
-      if (!rateLimit(`mobile-signin:${ip}`, 24, 60_000)) {
+      if (!(await rateLimit(`mobile-signin:${ip}`, 24, 60_000))) {
         send(res, 429, { error: 'Too many login attempts. Try again in a minute.' }, headers);
         return;
       }
@@ -1358,7 +1345,7 @@ const start = async () => {
     }
 
     if (method === 'POST' && url.pathname === '/api/mobile/reflection') {
-      if (!rateLimit(`mobile-reflection:${ip}`, 40, 60_000)) {
+      if (!(await rateLimit(`mobile-reflection:${ip}`, 40, 60_000))) {
         send(res, 429, { error: 'Too many reflection updates. Try again in a minute.' }, headers);
         return;
       }
@@ -1407,7 +1394,7 @@ const start = async () => {
     }
 
     if (method === 'POST' && url.pathname === '/api/mobile/reports/generate') {
-      if (!rateLimit(`mobile-reports-generate:${ip}`, 24, 60_000)) {
+      if (!(await rateLimit(`mobile-reports-generate:${ip}`, 24, 60_000))) {
         send(res, 429, { error: 'Too many report generations. Try again in a minute.' }, headers);
         return;
       }
@@ -1621,7 +1608,7 @@ const start = async () => {
     if (method === 'POST' && url.pathname === '/api/labs/extract-image') {
       const auth = await requireSessionAndAi(req, res, headers);
       if (!auth) return;
-      if (!rateLimit(`labs-scan:${ip}:${auth.current.user.id}`, 20, 60_000)) {
+      if (!(await rateLimit(`labs-scan:${ip}:${auth.current.user.id}`, 20, 60_000))) {
         send(res, 429, { error: 'Too many image scan attempts. Try again in a minute.' }, headers);
         return;
       }
@@ -1640,7 +1627,7 @@ const start = async () => {
     if (method === 'POST' && url.pathname === '/api/labs/extract-pdf') {
       const auth = await requireSessionAndAi(req, res, headers);
       if (!auth) return;
-      if (!rateLimit(`labs-pdf:${ip}:${auth.current.user.id}`, 12, 60_000)) {
+      if (!(await rateLimit(`labs-pdf:${ip}:${auth.current.user.id}`, 12, 60_000))) {
         send(res, 429, { error: 'Too many PDF scan attempts. Try again in a minute.' }, headers);
         return;
       }
@@ -1674,7 +1661,7 @@ const start = async () => {
     if (method === 'POST' && url.pathname === '/api/voice/respond') {
       const auth = await requireSessionAndAi(req, res, headers);
       if (!auth) return;
-      if (!rateLimit(`voice-respond:${ip}:${auth.current.user.id}`, 30, 60_000)) {
+      if (!(await rateLimit(`voice-respond:${ip}:${auth.current.user.id}`, 30, 60_000))) {
         send(res, 429, { error: 'Too many voice requests. Try again in a minute.' }, headers);
         return;
       }
@@ -1691,7 +1678,7 @@ const start = async () => {
     if (method === 'POST' && url.pathname === '/api/voice/extract') {
       const auth = await requireSessionAndAi(req, res, headers);
       if (!auth) return;
-      if (!rateLimit(`voice-extract:${ip}:${auth.current.user.id}`, 40, 60_000)) {
+      if (!(await rateLimit(`voice-extract:${ip}:${auth.current.user.id}`, 40, 60_000))) {
         send(res, 429, { error: 'Too many voice extract requests. Try again in a minute.' }, headers);
         return;
       }
@@ -1726,7 +1713,7 @@ const start = async () => {
     }
 
     if (method === 'POST' && url.pathname === '/api/auth/signup') {
-      if (!rateLimit(`signup:${ip}`, 10, 60_000)) {
+      if (!(await rateLimit(`signup:${ip}`, 10, 60_000))) {
         send(res, 429, { error: 'Too many signup attempts. Try again in a minute.' }, headers);
         return;
       }
@@ -1775,7 +1762,7 @@ const start = async () => {
     }
 
     if (method === 'POST' && url.pathname === '/api/auth/signin') {
-      if (!rateLimit(`signin:${ip}`, 20, 60_000)) {
+      if (!(await rateLimit(`signin:${ip}`, 20, 60_000))) {
         send(res, 429, { error: 'Too many login attempts. Try again in a minute.' }, headers);
         return;
       }
@@ -1842,7 +1829,7 @@ const start = async () => {
     }
 
     if (method === 'POST' && url.pathname === '/api/auth/emergency-admin-reset') {
-      if (!rateLimit(`emergency-reset:${ip}`, 5, 60_000)) {
+      if (!(await rateLimit(`emergency-reset:${ip}`, 5, 60_000))) {
         send(res, 429, { error: 'Too many reset attempts. Try again in a minute.' }, headers);
         return;
       }
@@ -1896,7 +1883,7 @@ const start = async () => {
     }
 
     if (method === 'POST' && url.pathname === '/api/auth/google') {
-      if (!rateLimit(`google:${ip}`, 20, 60_000)) {
+      if (!(await rateLimit(`google:${ip}`, 20, 60_000))) {
         send(res, 429, { error: 'Too many authorization attempts. Try again in a minute.' }, headers);
         return;
       }
@@ -2737,7 +2724,7 @@ const start = async () => {
     }
 
     if (method === 'POST' && url.pathname === '/api/public/contact') {
-      if (!rateLimit(`contact:${ip}`, 8, 60_000)) {
+      if (!(await rateLimit(`contact:${ip}`, 8, 60_000))) {
         send(res, 429, { error: 'Too many contact submissions. Please try again later.' }, headers);
         return;
       }
