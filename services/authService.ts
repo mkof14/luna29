@@ -520,4 +520,23 @@ export const authService = {
       : ROLE_PERMISSIONS[role];
     return permissions.includes(permission);
   },
+
+  canAccessAdminWorkspace(session: AuthSession | null): boolean {
+    if (!session) return false;
+    const gates: AdminPermission[] = [
+      'manage_admin_roles',
+      'manage_services',
+      'manage_marketing',
+      'manage_email_templates',
+      'view_financials',
+      'view_technical_metrics',
+    ];
+    return gates.some((permission) => {
+      const role = resolveRole(session.email);
+      const permissions = Array.isArray(session.permissions) && session.permissions.length > 0
+        ? session.permissions
+        : ROLE_PERMISSIONS[role];
+      return permissions.includes(permission);
+    });
+  },
 };
