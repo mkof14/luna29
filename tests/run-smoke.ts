@@ -571,7 +571,7 @@ const testDetailedReportBuilders = () => {
   assert.equal(payload.patientIdValue, 'Report ID: LUNA29-TEST', 'payload should keep selected report identity');
   assert.equal(payload.totalMarkers, 2, 'payload should count parsed markers');
   assert.equal(payload.disclaimerTitle, 'MEDICAL DISCLAIMER', 'payload should expose medical disclaimer title');
-  assert.equal(payload.logoUrl, 'https://example.test/images/Luna%20logo3.png', 'payload should build branded logo URL from origin');
+  assert.equal(payload.logoUrl, 'https://example.test/brand/luna-lockup.png', 'payload should build branded logo URL from origin');
 
   const html = buildDetailedReportHtml(payload);
   assert.equal(html.includes('Luna29 Clinical Report'), true, 'html should include report title');

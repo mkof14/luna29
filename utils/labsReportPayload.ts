@@ -157,7 +157,7 @@ export const buildDetailedReportPayload = (input: BuildDetailedReportPayloadInpu
 
   const origin =
     reportOrigin || (typeof window !== 'undefined' && window.location?.origin ? window.location.origin : 'https://luna.local');
-  const logoUrl = `${origin}/images/Luna%20logo3.png`;
+  const logoUrl = `${origin}/brand/luna-lockup.png`;
   const signatureLogoUrl = `${origin}/images/Luna%20L%2044.png`;
   const phaseArcImageUrl = `${origin}/images/moon_phases_arc.webp`;
   const totals = parsedValues.reduce(

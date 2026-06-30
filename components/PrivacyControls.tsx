@@ -1,5 +1,7 @@
 import React, { useMemo, useState } from 'react';
+import { Shield } from 'lucide-react';
 import {Language, LangCopy } from '../constants';
+import { getLegalHubLabel, getLegalNavLabels } from '../utils/legal';
 import {
   acceptAllPrivacyScopes,
   acceptEssentialOnly,
@@ -31,6 +33,7 @@ type Copy = {
   deleteAll: string;
   done: string;
   caution: string;
+  legalDocsTitle: string;
 };
 
 const COPY_BY_LANG: LangCopy< Copy> = {
@@ -55,6 +58,7 @@ const COPY_BY_LANG: LangCopy< Copy> = {
     deleteAll: 'Delete All Local Data',
     done: 'Done',
     caution: 'Local deletion cannot be undone.',
+    legalDocsTitle: 'Legal & privacy documents',
   },
   ru: {
     bannerTitle: 'Контроль Приватности',
@@ -77,6 +81,7 @@ const COPY_BY_LANG: LangCopy< Copy> = {
     deleteAll: 'Удалить Все Локальные Данные',
     done: 'Готово',
     caution: 'Локальное удаление нельзя отменить.',
+    legalDocsTitle: 'Юридические документы и приватность',
   },
   uk: {
     bannerTitle: 'Контроль Приватності',
@@ -99,6 +104,7 @@ const COPY_BY_LANG: LangCopy< Copy> = {
     deleteAll: 'Видалити Усі Локальні Дані',
     done: 'Готово',
     caution: 'Локальне видалення неможливо скасувати.',
+    legalDocsTitle: 'Юридичні документи та приватність',
   },
   es: {
     bannerTitle: 'Controles de Privacidad',
@@ -121,6 +127,7 @@ const COPY_BY_LANG: LangCopy< Copy> = {
     deleteAll: 'Eliminar Todos Los Datos Locales',
     done: 'Listo',
     caution: 'La eliminación local no se puede deshacer.',
+    legalDocsTitle: 'Documentos legales y privacidad',
   },
   fr: {
     bannerTitle: 'Contrôles de Confidentialité',
@@ -143,6 +150,7 @@ const COPY_BY_LANG: LangCopy< Copy> = {
     deleteAll: 'Supprimer Toutes Les Données Locales',
     done: 'Terminé',
     caution: 'La suppression locale est irréversible.',
+    legalDocsTitle: 'Documents juridiques et confidentialité',
   },
   de: {
     bannerTitle: 'Datenschutz-Steuerung',
@@ -165,6 +173,7 @@ const COPY_BY_LANG: LangCopy< Copy> = {
     deleteAll: 'Alle Lokalen Daten Löschen',
     done: 'Fertig',
     caution: 'Lokales Löschen kann nicht rückgängig gemacht werden.',
+    legalDocsTitle: 'Rechtliche Dokumente & Datenschutz',
   },
   zh: {
     bannerTitle: '隐私控制',
@@ -187,6 +196,7 @@ const COPY_BY_LANG: LangCopy< Copy> = {
     deleteAll: '删除所有本地数据',
     done: '完成',
     caution: '本地删除无法撤销。',
+    legalDocsTitle: '法律与隐私文件',
   },
   ja: {
     bannerTitle: 'プライバシー設定',
@@ -209,6 +219,7 @@ const COPY_BY_LANG: LangCopy< Copy> = {
     deleteAll: 'すべてのローカルデータを削除',
     done: '完了',
     caution: 'ローカル削除は元に戻せません。',
+    legalDocsTitle: '法務・プライバシー文書',
   },
   pt: {
     bannerTitle: 'Controles de Privacidade',
@@ -231,6 +242,7 @@ const COPY_BY_LANG: LangCopy< Copy> = {
     deleteAll: 'Excluir Todos os Dados Locais',
     done: 'Concluído',
     caution: 'A exclusão local não pode ser desfeita.',
+    legalDocsTitle: 'Documentos legais e privacidade',
   },
   ar: {
     bannerTitle: 'إعدادات الخصوصية',
@@ -253,6 +265,7 @@ const COPY_BY_LANG: LangCopy< Copy> = {
     deleteAll: 'حذف كل البيانات المحلية',
     done: 'تم',
     caution: 'لا يمكن التراجع عن الحذف المحلي.',
+    legalDocsTitle: 'المستندات القانونية والخصوصية',
   },
   he: {
     bannerTitle: 'בקרת פרטיות',
@@ -275,15 +288,39 @@ const COPY_BY_LANG: LangCopy< Copy> = {
     deleteAll: 'מחיקת כל הנתונים המקומיים',
     done: 'בוצע',
     caution: 'לא ניתן לבטל מחיקה מקומית.',
-  },};
+    legalDocsTitle: 'מסמכים משפטיים ופרטיות',
+  },
+};
 
 const fallbackCopy = COPY_BY_LANG.en;
+
+const LEGAL_LINKS = [
+  { href: '/legal', labelKey: 'hub' as const },
+  { href: '/privacy', labelKey: 'privacy' as const },
+  { href: '/terms', labelKey: 'terms' as const },
+  { href: '/disclaimer', labelKey: 'medical' as const },
+  { href: '/cookies', labelKey: 'cookies' as const },
+  { href: '/data-rights', labelKey: 'data_rights' as const },
+];
 
 export const PrivacyControls: React.FC<{ lang: Language; isAuthenticated: boolean }> = ({ lang, isAuthenticated }) => {
   const copy = useMemo(() => {
     const byLang = COPY_BY_LANG[lang];
     return byLang?.bannerTitle ? byLang : fallbackCopy;
   }, [lang]);
+
+  const legalNav = getLegalNavLabels(lang);
+  const legalLinkLabels = useMemo(
+    () => ({
+      hub: getLegalHubLabel(lang),
+      privacy: legalNav.privacy,
+      terms: legalNav.terms,
+      medical: legalNav.medical,
+      cookies: legalNav.cookies,
+      data_rights: legalNav.data_rights,
+    }),
+    [lang, legalNav],
+  );
 
   const initialConsent = readPrivacyConsent();
   const [showBanner, setShowBanner] = useState(!initialConsent);
@@ -357,17 +394,46 @@ export const PrivacyControls: React.FC<{ lang: Language; isAuthenticated: boolea
       )}
 
       <button
+        type="button"
         onClick={() => setShowPanel(true)}
-        className="fixed bottom-4 right-4 z-[110] px-4 py-2 rounded-full border border-slate-300/70 dark:border-slate-700/70 bg-white/95 dark:bg-slate-900/95 text-xs font-black uppercase tracking-[0.12em] text-slate-700 dark:text-slate-200"
+        aria-label={copy.controls}
+        title={copy.controls}
+        className="fixed bottom-4 left-4 z-[110] inline-flex items-center justify-center w-11 h-11 rounded-full border border-slate-300/70 dark:border-slate-700/70 bg-white/95 dark:bg-slate-900/95 text-luna-purple shadow-lg hover:border-luna-purple/45 hover:scale-105 transition-all"
       >
-        {copy.controls}
+        <Shield size={18} aria-hidden="true" />
       </button>
 
       {showPanel && (
         <div className="fixed inset-0 z-[130] bg-slate-950/55 backdrop-blur-sm p-4 md:p-8 flex items-end md:items-center justify-center">
-          <div className="w-full max-w-2xl rounded-[2rem] border border-slate-300/70 dark:border-slate-700/70 bg-white dark:bg-slate-900 p-6 md:p-7 shadow-2xl space-y-5">
-            <p className="text-base md:text-lg font-black uppercase tracking-[0.14em] text-luna-purple">{copy.panelTitle}</p>
+          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-[2rem] border border-slate-300/70 dark:border-slate-700/70 bg-white dark:bg-slate-900 p-6 md:p-7 shadow-2xl space-y-5">
+            <div className="flex items-start justify-between gap-4">
+              <p className="text-base md:text-lg font-black uppercase tracking-[0.14em] text-luna-purple">{copy.panelTitle}</p>
+              <button
+                type="button"
+                onClick={() => setShowPanel(false)}
+                aria-label={copy.close}
+                className="w-9 h-9 shrink-0 rounded-full border border-slate-300 dark:border-slate-700 text-slate-500 hover:text-luna-purple transition-colors"
+              >
+                ×
+              </button>
+            </div>
             <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">{copy.panelBody}</p>
+
+            <div className="space-y-2">
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{copy.legalDocsTitle}</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {LEGAL_LINKS.map((link) => (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setShowPanel(false)}
+                    className="px-3 py-2 rounded-xl border border-slate-200/80 dark:border-slate-700/70 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:border-luna-purple/40 hover:text-luna-purple transition-colors"
+                  >
+                    {legalLinkLabels[link.labelKey]}
+                  </a>
+                ))}
+              </div>
+            </div>
 
             <div className="space-y-3">
               <label className="flex items-center justify-between rounded-xl border border-slate-200/80 dark:border-slate-700/70 p-3">

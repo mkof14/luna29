@@ -25,6 +25,7 @@ const routes = [
   '/how-it-works',
   '/faq',
   '/learning',
+  '/legal',
   '/privacy',
   '/terms',
   '/disclaimer',

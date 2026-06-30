@@ -24,9 +24,11 @@ Updated: 2026-06-28
 - First insight teaser before entering Today.
 - Onboarding flow extended to 7 steps.
 
-### Privacy / DSAR
+### Privacy / DSAR / Legal
 - Server export response includes `exportVersion`, `audit`, and stable `requestId` filename.
 - Local + server export paths preserved in Data Rights UI.
+- **Legal substance localized in 11 languages** — see `utils/legal/*` and `docs/LEGAL_COUNSEL_REVIEW.md`.
+- Effective date: June 29, 2026.
 
 ## Launch Channel Decision
 
@@ -39,7 +41,7 @@ Updated: 2026-06-28
 ### P0 (Must)
 - [ ] Configure Vercel production env (auth, Stripe, Sentry, GA4).
 - [ ] Stripe live products/prices + webhook in production.
-- [ ] Legal counsel review: Terms, Privacy, Disclaimer, Cookies.
+- [ ] Legal counsel review: Terms, Privacy, Disclaimer, Cookies — **package ready** in `docs/LEGAL_COUNSEL_REVIEW.md`; awaiting sign-off.
 - [ ] Assign release owner + rollback owner.
 - [ ] Run production smoke: `SMOKE_BASE_URL=https://<domain> npm run smoke:deploy`
 
@@ -67,7 +69,9 @@ Expected: lint, smoke, build, perf budget, E2E strict — all PASS.
 
 ## Next Step
 
-1. Deploy to staging/production with env checklist from `docs/GO_LIVE_CHECKLIST.md`.
-2. Run commercial smoke runbook (`docs/COMMERCIAL_SMOKE_RUNBOOK.md`).
-3. Soft launch to 20–50 users.
-4. Measure D7 retention and Bridge/report usage before mobile store push.
+1. Send legal package to counsel (`docs/LEGAL_COUNSEL_REVIEW.md`).
+2. Execute 2-week plan (`docs/GO_NO_GO_2WEEK.md`) — assign owners Day 1.
+3. Deploy to staging/production with env checklist from `docs/GO_LIVE_CHECKLIST.md`.
+4. Run commercial smoke runbook (`docs/COMMERCIAL_SMOKE_RUNBOOK.md`).
+5. Soft launch to 20–50 users.
+6. Measure D7 retention and Bridge/report usage before mobile store push.
