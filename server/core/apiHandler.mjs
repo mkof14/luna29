@@ -3,6 +3,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { GoogleGenAI } from '@google/genai';
+import { OAuth2Client } from 'google-auth-library';
 import { getPublicVoiceConfig, handleVoiceConversation, listElevenLabsVoices, extractVoiceStructure } from '../voiceConversation.mjs';
 import { buildApiSecurityHeaders } from './securityHeaders.mjs';
 import { readBodyWithLimit, hasAiProcessingConsent } from './httpUtils.mjs';
@@ -486,38 +487,39 @@ const decodeGoogleJwt = (credential) => {
 };
 
 const verifyGoogleCredential = async (credential) => {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 5000);
-  try {
-    const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`, {
-      method: 'GET',
-      signal: controller.signal,
-    });
-    if (!response.ok) {
-      throw new Error('Google token verification failed.');
-    }
-    const claims = await response.json();
-    const email = typeof claims.email === 'string' ? claims.email.trim().toLowerCase() : '';
-    const emailVerified = String(claims.email_verified || '').toLowerCase() === 'true';
-    const audience = typeof claims.aud === 'string' ? claims.aud.trim() : '';
-    const issuer = typeof claims.iss === 'string' ? claims.iss : '';
-    const issuedByGoogle = issuer === 'accounts.google.com' || issuer === 'https://accounts.google.com';
-
-    if (!email || !emailVerified || !issuedByGoogle) {
-      throw new Error('Google token is invalid or email is not verified.');
-    }
-    if (GOOGLE_CLIENT_IDS.size > 0 && !GOOGLE_CLIENT_IDS.has(audience)) {
-      throw new Error('Google token audience mismatch.');
-    }
-
-    return {
-      email,
-      name: typeof claims.name === 'string' ? claims.name : undefined,
-      picture: typeof claims.picture === 'string' ? claims.picture : undefined,
-    };
-  } finally {
-    clearTimeout(timer);
+  const audiences = GOOGLE_CLIENT_IDS.size > 0 ? [...GOOGLE_CLIENT_IDS] : [];
+  if (audiences.length === 0) {
+    throw new Error('Google OAuth is not configured on the server.');
   }
+
+  const client = new OAuth2Client(audiences[0]);
+  const ticket = await client.verifyIdToken({
+    idToken: credential,
+    audience: audiences,
+  });
+  const claims = ticket.getPayload();
+  if (!claims) {
+    throw new Error('Google token verification failed.');
+  }
+
+  const email = typeof claims.email === 'string' ? claims.email.trim().toLowerCase() : '';
+  const emailVerified = claims.email_verified === true;
+  const audience = typeof claims.aud === 'string' ? claims.aud.trim() : '';
+  const issuer = typeof claims.iss === 'string' ? claims.iss : '';
+  const issuedByGoogle = issuer === 'accounts.google.com' || issuer === 'https://accounts.google.com';
+
+  if (!email || !emailVerified || !issuedByGoogle) {
+    throw new Error('Google token is invalid or email is not verified.');
+  }
+  if (GOOGLE_CLIENT_IDS.size > 0 && audience && !GOOGLE_CLIENT_IDS.has(audience)) {
+    throw new Error('Google token audience mismatch.');
+  }
+
+  return {
+    email,
+    name: typeof claims.name === 'string' ? claims.name : undefined,
+    picture: typeof claims.picture === 'string' ? claims.picture : undefined,
+  };
 };
 
 const resolveRole = (email, roleOverride = null) =>
