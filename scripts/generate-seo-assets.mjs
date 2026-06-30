@@ -4,7 +4,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
 const root = process.cwd();
-const siteUrl = String(process.env.VITE_SITE_URL || 'https://luna29.vercel.app').trim().replace(/\/+$/, '');
+const siteUrl = String(process.env.VITE_SITE_URL || 'https://www.luna29.com').trim().replace(/\/+$/, '');
 
 const paths = [
   '/',

@@ -16,6 +16,8 @@
     "ci:check": "npm run audit:i18n && npm run lint && npm run test:unit && node scripts/check-api-parity.mjs && npm run test:smoke && npm run build && npm run perf:bundle",
     "test:unit": "vitest run",
     "test:e2e": "playwright test",
+    "test:e2e:prod": "playwright test -c playwright.prod.config.mjs",
+    "test:resend": "node --env-file-if-exists=.env.local scripts/test-resend.mjs",
     "test:e2e:ui": "playwright test --ui",
     "smoke:deploy": "node scripts/post-deploy-smoke.mjs",
     "perf:bundle": "node scripts/perf-budget.mjs",
