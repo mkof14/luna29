@@ -24,7 +24,8 @@
     "release:ready": "node scripts/release-ready.mjs",
     "auth:check": "node scripts/check-auth-setup.mjs",
     "vercel:env": "node scripts/sync-vercel-env.mjs",
-    "verify:prod": "node scripts/verify-production-env.mjs"
+    "verify:prod": "node scripts/verify-production-env.mjs",
+    "status:prod": "node scripts/verify-production-env.mjs && SMOKE_BASE_URL=https://www.luna29.com node scripts/post-deploy-smoke.mjs"
   },
   "dependencies": {
     "@google/genai": "^1.40.0",

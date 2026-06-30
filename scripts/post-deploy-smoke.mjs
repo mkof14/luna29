@@ -9,11 +9,13 @@ if (!baseUrl) {
 
 const checks = [
   { name: 'Public Home', path: '/', type: 'html' },
+  { name: 'Rhythm Calendar', path: '/rhythm-calendar', type: 'html' },
   { name: 'Pricing', path: '/pricing', type: 'html' },
   { name: 'How It Works', path: '/how-it-works', type: 'html' },
   { name: 'About', path: '/about', type: 'html' },
   { name: 'Session API', path: '/api/auth/session', type: 'json-session' },
   { name: 'Health API', path: '/api/health', type: 'json-health' },
+  { name: 'Health verbose', path: '/api/health?verbose=1', type: 'json-health-verbose' },
 ];
 
 const failures = [];
@@ -48,6 +50,17 @@ for (const check of checks) {
     if (check.type === 'json-health') {
       if (body?.ok !== true) {
         failures.push(`${check.name}: Expected { ok: true } in ${url}`);
+      }
+      continue;
+    }
+
+    if (check.type === 'json-health-verbose') {
+      if (body?.ok !== true) {
+        failures.push(`${check.name}: Expected { ok: true } in ${url}`);
+      } else if (body?.checks?.database !== 'postgres') {
+        failures.push(`${check.name}: Expected database=postgres in ${url}`);
+      } else if (body?.checks?.rateLimit !== 'upstash') {
+        failures.push(`${check.name}: Expected rateLimit=upstash in ${url}`);
       }
     }
   } catch (error) {
