@@ -612,12 +612,16 @@ input[type='range'] {
 /* Public pages baseline: align non-Home public pages to Home visual system */
 .luna-public-baseline .luna-page-shell {
   border-radius: 2.2rem;
-  border: 1px solid rgba(188, 178, 208, 0.32);
+  border: 1px solid rgba(168, 132, 206, 0.34);
   background:
-    radial-gradient(120% 90% at 84% 10%, rgba(205, 188, 229, 0.28), transparent 58%),
-    radial-gradient(95% 80% at 12% 88%, rgba(221, 214, 239, 0.26), transparent 58%),
-    linear-gradient(165deg, rgba(250, 248, 253, 0.88), rgba(242, 238, 248, 0.84));
-  box-shadow: 0 16px 34px rgba(108, 94, 139, 0.12), 0 2px 0 rgba(255, 255, 255, 0.56) inset;
+    radial-gradient(120% 90% at 84% 8%, rgba(214, 176, 238, 0.34), transparent 58%),
+    radial-gradient(95% 80% at 10% 92%, rgba(164, 208, 228, 0.28), transparent 58%),
+    radial-gradient(70% 55% at 50% 100%, rgba(248, 196, 220, 0.18), transparent 62%),
+    linear-gradient(165deg, rgba(255, 252, 254, 0.94), rgba(244, 236, 252, 0.9), rgba(232, 240, 252, 0.88));
+  box-shadow:
+    0 18px 40px rgba(98, 72, 138, 0.14),
+    0 2px 0 rgba(255, 255, 255, 0.72) inset,
+    0 0 0 1px rgba(255, 255, 255, 0.35) inset;
 }
 
 .luna-public-baseline .luna-page-shell::after {
@@ -632,15 +636,49 @@ input[type='range'] {
 .luna-public-baseline .luna-vivid-card-alt-2,
 .luna-public-baseline .luna-vivid-card-alt-3,
 .luna-public-baseline .luna-vivid-card-alt-4 {
-  border: 1px solid rgba(191, 182, 211, 0.3);
+  border: 1px solid rgba(175, 148, 210, 0.38);
+  box-shadow:
+    0 12px 28px rgba(98, 72, 138, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62),
+    inset 0 -1px 0 rgba(186, 156, 220, 0.12);
+}
+
+.luna-public-baseline .luna-vivid-card,
+.luna-public-baseline .luna-vivid-card-soft,
+.luna-public-baseline .luna-vivid-surface {
   background:
-    linear-gradient(160deg, rgba(252, 251, 254, 0.9), rgba(244, 240, 249, 0.86));
-  box-shadow: 0 12px 26px rgba(109, 95, 138, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.48);
+    linear-gradient(162deg, rgba(255, 252, 254, 0.96), rgba(246, 238, 252, 0.92));
+}
+
+.luna-public-baseline .luna-vivid-card-alt-1 {
+  background:
+    linear-gradient(162deg, rgba(255, 241, 247, 0.97), rgba(244, 228, 248, 0.94), rgba(232, 224, 248, 0.9));
+  border-color: rgba(196, 132, 186, 0.42);
+}
+
+.luna-public-baseline .luna-vivid-card-alt-2 {
+  background:
+    linear-gradient(162deg, rgba(255, 244, 236, 0.97), rgba(248, 232, 244, 0.94), rgba(224, 236, 252, 0.9));
+  border-color: rgba(214, 154, 132, 0.38);
+}
+
+.luna-public-baseline .luna-vivid-card-alt-3 {
+  background:
+    linear-gradient(162deg, rgba(232, 248, 242, 0.97), rgba(226, 241, 248, 0.94), rgba(216, 228, 252, 0.9));
+  border-color: rgba(108, 176, 158, 0.4);
+}
+
+.luna-public-baseline .luna-vivid-card-alt-4 {
+  background:
+    linear-gradient(162deg, rgba(244, 236, 252, 0.97), rgba(236, 228, 250, 0.94), rgba(224, 236, 255, 0.9));
+  border-color: rgba(148, 124, 210, 0.42);
 }
 
 .luna-public-baseline .luna-vivid-chip {
-  background: linear-gradient(140deg, rgba(255, 255, 255, 0.78), rgba(245, 239, 250, 0.76));
-  border-color: rgba(189, 180, 209, 0.36);
+  background: linear-gradient(140deg, rgba(255, 255, 255, 0.92), rgba(248, 236, 252, 0.88));
+  border-color: rgba(168, 132, 206, 0.45);
+  color: #5f3d88;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
 }
 
 .luna-public-baseline .luna-page-shell h1,
@@ -653,15 +691,32 @@ input[type='range'] {
 }
 
 .luna-public-baseline .luna-page-shell h1 {
-  font-size: clamp(2.1rem, 4.3vw, 3.3rem) !important;
+  font-size: clamp(1.75rem, 3.8vw, 3.1rem) !important;
+  line-height: 1.12 !important;
 }
 
 .luna-public-baseline .luna-page-shell h2 {
-  font-size: clamp(1.45rem, 2.8vw, 2.2rem) !important;
+  font-size: clamp(1.35rem, 2.6vw, 2.15rem) !important;
+  line-height: 1.18 !important;
 }
 
 .luna-public-baseline .luna-page-shell h3 {
-  font-size: clamp(1.1rem, 1.8vw, 1.5rem) !important;
+  font-size: clamp(0.95rem, 1.6vw, 1.35rem) !important;
+  line-height: 1.25 !important;
+}
+
+/* Keep compact labels on public pages — global shell rules inflate them */
+.luna-public-baseline .luna-page-shell :where([class*='text-[10px]'][class*='font-black'][class*='uppercase']) {
+  font-size: 0.625rem !important;
+  letter-spacing: 0.2em !important;
+}
+
+.luna-public-baseline .luna-page-shell :where([class*='text-[11px]'][class*='font-black'][class*='uppercase']) {
+  font-size: 0.6875rem !important;
+}
+
+.luna-public-baseline .luna-page-shell :where([class*='text-xs'][class*='font-black']) {
+  font-size: 0.75rem !important;
 }
 
 .luna-public-baseline .luna-page-shell :where(p, li, span, button) {
@@ -702,7 +757,57 @@ input[type='range'] {
 }
 
 .luna-public-baseline .luna-page-shell :where(p, li) {
-  color: rgba(69, 60, 88, 0.92);
+  color: rgba(55, 45, 74, 0.94);
+}
+
+.luna-public-baseline .luna-page-shell :where(.text-luna-purple, [class*='text-luna-purple']) {
+  color: #6b3d9a !important;
+}
+
+.luna-public-baseline .luna-page-shell article {
+  min-width: 0;
+}
+
+.luna-public-baseline .luna-page-shell .grid > *,
+.luna-public-baseline .luna-page-shell .flex > * {
+  min-width: 0;
+}
+
+.luna-public-baseline .luna-page-focus::before {
+  inset: 0;
+  opacity: 0.72;
+}
+
+@media (max-width: 1023px) {
+  .luna-public-baseline .luna-page-shell {
+    border-radius: 1.55rem;
+  }
+}
+
+@media (max-width: 639px) {
+  .luna-public-baseline .luna-page-shell h1 {
+    font-size: clamp(1.55rem, 7vw, 2rem) !important;
+  }
+
+  .luna-public-baseline .luna-page-shell h2 {
+    font-size: clamp(1.25rem, 5.5vw, 1.65rem) !important;
+  }
+
+  .luna-public-baseline .luna-vivid-hover:hover {
+    transform: none;
+    filter: none;
+  }
+
+  .luna-public-baseline .luna-page-shell button[class*='rounded-full']:hover {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .luna-public-baseline .luna-vivid-hover:hover,
+  .luna-public-baseline .luna-page-shell button[class*='rounded-full']:hover {
+    transform: none;
+  }
 }
 
 .dark .luna-public-baseline .luna-page-shell :where(p, li) {
@@ -774,6 +879,26 @@ input[type='range'] {
 
 .dark .luna-soft-glow {
   animation: luna-soft-glow 3.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-color-shift-luna,
+  .animate-color-shift-luna-suffix {
+    animation: none !important;
+    color: #6d28d9;
+  }
+
+  .animate-color-shift-luna-suffix {
+    color: #f59e0b;
+  }
+
+  .dark .animate-color-shift-luna {
+    color: #ddd6fe;
+  }
+
+  .dark .animate-color-shift-luna-suffix {
+    color: #fde68a;
+  }
 }
 
 /* RTL (Arabic / Hebrew) — html[dir] set in useAppPreferences */

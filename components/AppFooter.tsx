@@ -1,6 +1,7 @@
 import React from 'react';
 import { Facebook, Instagram, Music2, Youtube } from 'lucide-react';
 import { Logo } from './Logo';
+import { LunaMenuLabel, LunaShimmerText, SmoothLangText } from './SmoothLangText';
 import { TabType } from '../utils/navigation';
 import { getMemberNavCopy } from '../utils/memberNavLabels';
 import { Language, TranslationSchema, LangCopy, getLang } from '../constants';
@@ -13,7 +14,7 @@ interface AppFooterProps {
 }
 
 export const AppFooter: React.FC<AppFooterProps> = ({ ui, lang, navigateTo, canAccessAdmin }) => {
-  const footerLinkClass = 'text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-luna-purple transition-colors';
+  const footerLinkClass = 'text-sm text-left transition-opacity';
 
   const footerCopyByLang: LangCopy< { sanctuary: string; terms: string; about: string; privacy: string; medical: string; cookies: string; dataRights: string; howItWorks: string; faq: string; learning: string; relationships: string; ritualPath: string; pricing: string; slogan: string; disclaimerLabel: string }> = {
     en: {
@@ -319,8 +320,8 @@ export const AppFooter: React.FC<AppFooterProps> = ({ ui, lang, navigateTo, canA
       <div className="max-w-7xl mx-auto space-y-8 relative z-10">
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
           <div className="space-y-3">
-            <div className="flex items-center gap-0.5">
-              <img src="/images/luna-logo-transparent.webp" alt="" aria-hidden="true" className="h-16 w-auto md:h-20 object-contain select-none pointer-events-none" />
+            <div className="flex items-center gap-0.5 origin-left scale-[1.12]">
+              <img src="/brand/luna-lockup.png" alt="" aria-hidden="true" className="h-[4.5rem] w-auto md:h-[5.25rem] object-contain select-none pointer-events-none" />
               <Logo size="md" className="text-7xl leading-none" />
             </div>
             <p className="text-base font-bold text-slate-700 dark:text-slate-400 italic">{footerCopy.slogan}</p>
@@ -350,16 +351,22 @@ export const AppFooter: React.FC<AppFooterProps> = ({ ui, lang, navigateTo, canA
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-6">
             {memberCategoryLinks.map((group) => (
               <div key={group.title} className="space-y-2">
-                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500 dark:text-slate-300">{group.title}</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.18em]">
+                  <LunaShimmerText text={group.title} className="opacity-90 font-black" />
+                </p>
                 <div className="flex flex-col items-start gap-1.5">
                   {group.items.map((item) => (
                     <button
                       key={item.id}
                       data-testid={`footer-nav-${item.id}`}
                       onClick={() => navigateTo(item.id)}
-                      className={`${footerLinkClass} text-left ${item.danger ? 'text-rose-600 hover:text-rose-700' : ''}`}
+                      className={footerLinkClass}
                     >
-                      {item.label}
+                      {item.danger ? (
+                        <SmoothLangText text={item.label} className="font-semibold text-rose-600 dark:text-rose-400" />
+                      ) : (
+                        <LunaMenuLabel text={item.label} muted className="font-semibold" />
+                      )}
                     </button>
                   ))}
                 </div>
@@ -367,25 +374,34 @@ export const AppFooter: React.FC<AppFooterProps> = ({ ui, lang, navigateTo, canA
             ))}
 
             <div className="space-y-2">
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500 dark:text-slate-300">{category.public}</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.18em]">
+                <LunaShimmerText text={category.public} className="opacity-90 font-black" />
+              </p>
               <div className="flex flex-col items-start gap-1.5">
                 {publicLinks.map((item) => (
-                  <a key={item.href} href={item.href} className={`${footerLinkClass} text-left`}>
-                    {item.label}
+                  <a key={item.href} href={item.href} className={footerLinkClass}>
+                    <LunaMenuLabel text={item.label} muted className="font-semibold" />
                   </a>
                 ))}
               </div>
             </div>
 
             <div className="space-y-2">
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500 dark:text-slate-300">{category.account}</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.18em]">
+                <LunaShimmerText text={category.account} className="opacity-90 font-black" />
+              </p>
               <div className="flex flex-col items-start gap-1.5">
                 <button
                   data-testid="footer-nav-admin"
                   onClick={() => navigateTo('admin')}
-                  className={`${footerLinkClass} text-left ${canAccessAdmin ? 'text-luna-purple' : 'text-slate-400 hover:text-slate-500'}`}
+                  className={footerLinkClass}
                 >
-                  {ui.navigation.admin || 'Admin'}
+                  <LunaMenuLabel
+                    text={ui.navigation.admin || 'Admin'}
+                    active={canAccessAdmin}
+                    muted={!canAccessAdmin}
+                    className="font-semibold"
+                  />
                 </button>
               </div>
             </div>

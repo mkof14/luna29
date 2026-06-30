@@ -1,10 +1,12 @@
 import React from 'react';
 import ThemeToggle from './ThemeToggle';
 import LanguageSelector from './LanguageSelector';
+import { LunaMenuLabel, LunaShimmerText } from './SmoothLangText';
 import { Logo } from './Logo';
 import { Language, getLang } from '../constants';
 import { TabType } from '../utils/navigation';
 import { langMap } from '../utils/languages';
+import { LUNA_BRAND_PATHS } from '../utils/lunaBrandAssets';
 
 type NavItem = {
   id: TabType;
@@ -145,7 +147,7 @@ export const AppShellNav: React.FC<AppShellNavProps> = ({
         <div className={`absolute left-0 top-0 h-full w-[340px] bg-slate-700/88 dark:bg-[#111c33]/86 backdrop-blur-xl border-r border-white/20 dark:border-white/10 shadow-luna-deep transition-transform duration-500 ease-out p-8 flex flex-col overflow-y-auto no-scrollbar ${showSidebar ? 'translate-x-0' : '-translate-x-full'}`} onClick={e => e.stopPropagation()}>
           <header className="flex justify-between items-center mb-12">
             <div className="flex items-center gap-0.5">
-              <img src="/images/luna-logo-transparent.webp" alt="" aria-hidden="true" className="h-16 w-auto md:h-20 object-contain select-none pointer-events-none" />
+              <img src={LUNA_BRAND_PATHS.icon} alt="" aria-hidden="true" className="h-16 w-auto md:h-20 object-contain select-none pointer-events-none" />
               <Logo size="sm" className="text-5xl leading-none" />
             </div>
             <button onClick={() => setShowSidebar(false)} className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 text-2xl font-light">×</button>
@@ -154,7 +156,9 @@ export const AppShellNav: React.FC<AppShellNavProps> = ({
           <div className="flex flex-col gap-10">
             {sidebarGroups.map((group, idx) => (
               <div key={idx} className="space-y-4">
-                <h4 className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-200 dark:text-slate-200 px-4">{group.title}</h4>
+                <h4 className="text-[9px] font-black uppercase tracking-[0.4em] px-4">
+                  <LunaShimmerText text={group.title} className="opacity-90 font-black" />
+                </h4>
                 <div className="flex flex-col gap-1">
                   {group.items.map((item) => (
                     <button
@@ -163,7 +167,11 @@ export const AppShellNav: React.FC<AppShellNavProps> = ({
                       onClick={() => navigateTo(item.id)}
                       className={`flex items-center p-4 rounded-2xl transition-all group ${activeTab === item.id ? 'bg-luna-purple/18 text-white font-bold shadow-sm' : 'hover:bg-white/12 dark:hover:bg-slate-800 text-white/95 dark:text-white'}`}
                     >
-                      <span className="text-[11px] font-black uppercase tracking-[0.2em]">{item.label}</span>
+                      <LunaMenuLabel
+                        text={item.label}
+                        active={activeTab === item.id}
+                        className="text-[11px] font-black uppercase tracking-[0.2em]"
+                      />
                     </button>
                   ))}
                 </div>
@@ -173,9 +181,9 @@ export const AppShellNav: React.FC<AppShellNavProps> = ({
           <div className="mt-10 pt-6 border-t border-slate-200 dark:border-slate-800">
             <button
               onClick={onLogout}
-              className="w-full px-4 py-3 rounded-2xl border border-white/30 dark:border-slate-700 text-[10px] font-black uppercase tracking-[0.2em] text-white/95 dark:text-slate-300 hover:text-white hover:border-luna-purple/60 transition-colors"
+              className="w-full px-4 py-3 rounded-2xl border border-white/30 dark:border-slate-700 text-[10px] font-black uppercase tracking-[0.2em] hover:border-luna-purple/60 transition-colors"
             >
-              {copy.logout}
+              <LunaMenuLabel text={copy.logout} muted className="opacity-95" />
             </button>
           </div>
         </div>
@@ -190,9 +198,9 @@ export const AppShellNav: React.FC<AppShellNavProps> = ({
             <button
               data-testid="nav-logo-dashboard"
               onClick={() => navigateTo('today_mirror')}
-              className="flex items-center gap-0.5 hover:scale-105 active:scale-95 transition-transform"
+              className="flex items-center gap-0.5 origin-left scale-[1.12] hover:scale-[1.16] active:scale-[1.08] transition-transform"
             >
-              <img src="/images/luna-logo-transparent.webp" alt="" aria-hidden="true" className="h-16 w-auto md:h-20 object-contain select-none pointer-events-none" />
+              <img src={LUNA_BRAND_PATHS.icon} alt="" aria-hidden="true" className="h-16 w-auto md:h-20 object-contain select-none pointer-events-none" />
               <Logo size="sm" className="text-5xl leading-none" />
             </button>
           </div>
@@ -203,18 +211,26 @@ export const AppShellNav: React.FC<AppShellNavProps> = ({
                 key={item.id}
                 data-testid={`top-nav-${item.id}`}
                 onClick={() => navigateTo(item.id)}
-                className={`px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === item.id ? 'bg-luna-purple/10 text-luna-purple shadow-sm' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                className={`px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+                  activeTab === item.id
+                    ? 'bg-luna-purple/10 shadow-sm'
+                    : 'hover:bg-slate-100 dark:hover:bg-slate-800 opacity-80 hover:opacity-100'
+                }`}
               >
-                <span className="hidden sm:inline">{item.label}</span>
+                <span className="hidden sm:inline">
+                  <LunaMenuLabel text={item.label} active={activeTab === item.id} />
+                </span>
               </button>
             ))}
             <button
               data-testid="top-nav-more"
               onClick={() => setShowSidebar(true)}
-              className="px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all whitespace-nowrap flex items-center gap-2"
+              className="px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex items-center gap-2 opacity-80 hover:opacity-100"
             >
-              <span className="text-sm">➕</span>
-              <span className="hidden sm:inline">{copy.more}</span>
+              <span className="text-sm animate-color-shift-luna-suffix">➕</span>
+              <span className="hidden sm:inline">
+                <LunaMenuLabel text={copy.more} muted />
+              </span>
             </button>
           </nav>
 

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://luna29.vercel.app/sitemap.xml
+Sitemap: https://www.luna29.com/sitemap.xml

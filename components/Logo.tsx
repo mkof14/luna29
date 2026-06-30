@@ -170,9 +170,9 @@ export const Logo: React.FC<LogoProps> = ({ className = "", size = "md", variant
   }
 
   return (
-    <span className={`font-brand leading-none pt-1 select-none transition-all hover:scale-105 active:scale-95 cursor-pointer inline-flex items-baseline drop-shadow-sm ${sizeClasses[size]} ${className}`}>
-      <span className="animate-color-shift-luna">Luna</span>
-      <span className="text-[0.58em] font-black tracking-tight leading-none translate-y-[0.04em] animate-color-shift-luna-suffix">29</span>
+    <span className={`font-brand leading-none pt-1 select-none transition-all hover:scale-105 active:scale-95 cursor-pointer inline-flex items-baseline gap-[0.14em] drop-shadow-sm ${sizeClasses[size]} ${className}`}>
+      <span className="animate-color-shift-luna shrink-0">Luna</span>
+      <span className="text-[0.58em] font-black tracking-tight leading-none translate-y-[0.04em] ml-[0.06em] shrink-0 animate-color-shift-luna-suffix">29</span>
     </span>
   );
 };

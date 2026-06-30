@@ -1,7 +1,7 @@
 {
-  "name": "Luna29 Balance",
-  "short_name": "Luna29",
-  "description": "Women health understanding system",
+  "name": "Luna29",
+  "short_name": "Luna",
+  "description": "Private rhythm awareness and care",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -10,13 +10,13 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/images/luna_home.png",
+      "src": "/brand/luna-app-icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/images/luna_home.png",
+      "src": "/brand/luna-app-icon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

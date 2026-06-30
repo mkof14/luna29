@@ -188,7 +188,7 @@ export const MainContentRouter: React.FC<MainContentRouterProps> = ({
   onRoleChange,
   onLogout,
 }) => {
-  const canAccessAdmin = authService.hasPermission(session, 'manage_services') || authService.hasPermission(session, 'manage_admin_roles');
+  const canAccessAdmin = authService.canAccessAdminWorkspace(session);
   const copyByLang: LangCopy< { accessRestricted: string; permissionRequired: string; permissionBody: string; backHome: string }> = {
     en: {
       accessRestricted: 'Access Restricted',
