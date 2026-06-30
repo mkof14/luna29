@@ -2,6 +2,7 @@ import React from 'react';
 import { Facebook, Instagram, Music2, Youtube } from 'lucide-react';
 import { Logo } from './Logo';
 import { TabType } from '../utils/navigation';
+import { getMemberNavCopy } from '../utils/memberNavLabels';
 import { Language, TranslationSchema, LangCopy, getLang } from '../constants';
 
 interface AppFooterProps {
@@ -236,6 +237,7 @@ export const AppFooter: React.FC<AppFooterProps> = ({ ui, lang, navigateTo, canA
   const publicLinks = [
     { href: '/', label: ui.publicHome.tabs.home },
     { href: '/luna-balance', label: ui.publicHome.tabs.map },
+    { href: '/rhythm-calendar', label: getMemberNavCopy(lang).rhythmCalendar },
     { href: '/ritual-path', label: footerCopy.ritualPath },
     { href: '/the-bridge', label: ui.navigation.bridge || 'The Bridge' },
     { href: '/pricing', label: footerCopy.pricing },

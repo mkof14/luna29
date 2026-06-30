@@ -23,7 +23,8 @@
     "qa:beta:strict": "node scripts/qa-beta.mjs --strict",
     "release:ready": "node scripts/release-ready.mjs",
     "auth:check": "node scripts/check-auth-setup.mjs",
-    "vercel:env": "node scripts/sync-vercel-env.mjs"
+    "vercel:env": "node scripts/sync-vercel-env.mjs",
+    "verify:prod": "node scripts/verify-production-env.mjs"
   },
   "dependencies": {
     "@google/genai": "^1.40.0",

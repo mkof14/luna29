@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Language, getLang } from '../constants';
 import { CyclePhase, HealthEvent } from '../types';
@@ -18,8 +18,10 @@ import {
   getDayJournal,
   hasJournalContent,
   journalSnippet,
-  loadCalendarJournal,
-} from '../utils/calendarJournalStorage';
+  loadCalendarData,
+} from '../utils/calendarStore';
+import { getEventsForDate, kindIndicatorClass } from '../utils/calendarReminders';
+import { syncCalendarData } from '../services/calendarSyncService';
 import { buildIcsCalendar, downloadIcsFile } from '../utils/calendarIcs';
 import { buildMonthPrintHtml, buildYearPrintHtml, openPrintHtml } from '../utils/calendarPrintHtml';
 import { CalendarDayDrawer } from './calendar/CalendarDayDrawer';
@@ -32,6 +34,8 @@ interface LunaRhythmCalendarProps {
   cycleLength: number;
   mode?: 'page';
   onBack?: () => void;
+  memberEmail?: string;
+  syncEnabled?: boolean;
 }
 
 type ViewScope = 'month' | 'year';
@@ -52,6 +56,7 @@ type MonthBlockProps = {
   copy: (typeof CALENDAR_MAIN_COPY)['en'];
   compact?: boolean;
   journal: CalendarJournalStore;
+  events: import('../utils/calendarStore').CalendarEvent[];
   onDayClick: (day: CalendarDay) => void;
 };
 
@@ -99,7 +104,7 @@ const CalendarMonthHero: React.FC<{ monthData: CalendarMonthData; heroSize?: 'mo
   </div>
 );
 
-const CalendarMonthGrid: React.FC<MonthBlockProps> = ({ monthData, weekdays, copy, compact, journal, onDayClick }) => (
+const CalendarMonthGrid: React.FC<MonthBlockProps> = ({ monthData, weekdays, copy, compact, journal, events, onDayClick }) => (
   <div className={`space-y-3 ${compact ? 'p-4 md:p-5' : 'p-5 md:p-8'}`}>
     <div className="luna-rhythm-calendar__grid">
       <div className="grid grid-cols-7 gap-1 mb-2">
@@ -119,6 +124,7 @@ const CalendarMonthGrid: React.FC<MonthBlockProps> = ({ monthData, weekdays, cop
           const entry = journal[day.iso];
           const snippet = journalSnippet(entry);
           const hasNote = hasJournalContent(entry);
+          const dayEvents = getEventsForDate(events, day.iso);
           return (
             <button
               type="button"
@@ -152,6 +158,13 @@ const CalendarMonthGrid: React.FC<MonthBlockProps> = ({ monthData, weekdays, cop
               {day.inMonth && hasNote && (
                 <span className="absolute top-1.5 right-2 w-1.5 h-1.5 rounded-full bg-amber-500/90" aria-hidden />
               )}
+              {day.inMonth && dayEvents.length > 0 && (
+                <span className="absolute top-1.5 right-5 flex gap-0.5" aria-hidden>
+                  {dayEvents.slice(0, 3).map((event) => (
+                    <span key={event.id} className={`w-1.5 h-1.5 rounded-full ${kindIndicatorClass(event.kind)}`} />
+                  ))}
+                </span>
+              )}
               {day.inMonth && day.marker.checkin && (
                 <span className="absolute bottom-2 left-2 w-1.5 h-1.5 rounded-full bg-luna-purple" aria-hidden />
               )}
@@ -175,6 +188,7 @@ const CalendarMonthBlock: React.FC<MonthBlockProps & { showHero?: boolean; heroS
   copy,
   compact,
   journal,
+  events,
   onDayClick,
   showHero = true,
   heroSize = 'month',
@@ -187,6 +201,7 @@ const CalendarMonthBlock: React.FC<MonthBlockProps & { showHero?: boolean; heroS
       copy={copy}
       compact={compact}
       journal={journal}
+      events={events}
       onDayClick={onDayClick}
     />
   </div>
@@ -198,6 +213,8 @@ export const LunaRhythmCalendar: React.FC<LunaRhythmCalendarProps> = ({
   currentCycleDay,
   cycleLength,
   onBack,
+  memberEmail,
+  syncEnabled = false,
 }) => {
   const now = new Date();
   const [viewYear, setViewYear] = useState(now.getFullYear());
@@ -205,9 +222,19 @@ export const LunaRhythmCalendar: React.FC<LunaRhythmCalendarProps> = ({
   const [scope, setScope] = useState<ViewScope>('month');
   const [status, setStatus] = useState('');
   const [printYearMode, setPrintYearMode] = useState(false);
-  const [journal, setJournal] = useState<CalendarJournalStore>(() => loadCalendarJournal());
+  const [calendarRevision, setCalendarRevision] = useState(0);
+  const calendarBundle = useMemo(() => loadCalendarData(), [calendarRevision]);
+  const journal = calendarBundle.journal;
+  const events = calendarBundle.events;
   const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
+
+  const reloadCalendar = () => setCalendarRevision((value) => value + 1);
+
+  useEffect(() => {
+    if (!syncEnabled) return;
+    void syncCalendarData().then(() => reloadCalendar());
+  }, [syncEnabled]);
 
   const copy = getLang(CALENDAR_MAIN_COPY, lang);
   const weekdays = getLang(CALENDAR_WEEKDAYS, lang);
@@ -335,7 +362,10 @@ export const LunaRhythmCalendar: React.FC<LunaRhythmCalendarProps> = ({
         onDownloadMonthIcs={handleDownloadMonth}
         onDownloadYearIcs={handleDownloadYearIcs}
         onSend={handleSend}
-        onImported={() => setJournal(loadCalendarJournal())}
+        onImported={reloadCalendar}
+        memberEmail={memberEmail}
+        syncEnabled={syncEnabled}
+        onCalendarChanged={reloadCalendar}
       />
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
@@ -455,6 +485,7 @@ export const LunaRhythmCalendar: React.FC<LunaRhythmCalendarProps> = ({
                 heroSize="year"
                 showHero
                 journal={journal}
+                events={events}
                 onDayClick={openDay}
               />
             ))}
@@ -468,6 +499,7 @@ export const LunaRhythmCalendar: React.FC<LunaRhythmCalendarProps> = ({
               copy={copy}
               showHero
               journal={journal}
+              events={events}
               onDayClick={openDay}
             />
             {footerBlock}
@@ -485,7 +517,8 @@ export const LunaRhythmCalendar: React.FC<LunaRhythmCalendarProps> = ({
         currentCycleDay={currentCycleDay}
         cycleLength={cycleLength}
         onClose={() => setSelectedDay(null)}
-        onSaved={() => setJournal(loadCalendarJournal())}
+        onSaved={reloadCalendar}
+        events={events}
       />
     )}
     </>

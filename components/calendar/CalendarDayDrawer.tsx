@@ -3,7 +3,8 @@ import { Download, Mail, Printer, Share2, X } from 'lucide-react';
 import { Language, getLang } from '../../constants';
 import { HealthEvent } from '../../types';
 import { CalendarDay, PHASE_CALENDAR_COLORS } from '../../utils/lunaCalendar';
-import { CalendarDayJournal, upsertDayJournal } from '../../utils/calendarJournalStorage';
+import { CalendarDayJournal, CalendarEvent, upsertDayJournal } from '../../utils/calendarStore';
+import { CalendarEventEditor } from './CalendarEventEditor';
 import { buildDayIcs, downloadIcsFile } from '../../utils/calendarIcs';
 import { CALENDAR_DAY_DRAWER_COPY } from '../../utils/calendarI18n';
 import { shareTextSafely } from '../../utils/share';
@@ -18,6 +19,7 @@ type Props = {
   log: HealthEvent[];
   currentCycleDay: number;
   cycleLength: number;
+  events: CalendarEvent[];
   onClose: () => void;
   onSaved: () => void;
 };
@@ -29,6 +31,7 @@ export const CalendarDayDrawer: React.FC<Props> = ({
   log,
   currentCycleDay,
   cycleLength,
+  events,
   onClose,
   onSaved,
 }) => {
@@ -151,6 +154,13 @@ export const CalendarDayDrawer: React.FC<Props> = ({
             <button type="button" onClick={handleSend} className={actionBtn}><Mail size={13} /> {copy.send}</button>
           </div>
           {status && <p className="text-[10px] font-black uppercase tracking-widest text-luna-purple">{status}</p>}
+
+          <CalendarEventEditor
+            lang={lang}
+            iso={day.iso}
+            events={events}
+            onChanged={onSaved}
+          />
         </div>
       </div>
     </div>

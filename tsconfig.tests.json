@@ -16,5 +16,5 @@
     "types.ts",
     "constants.tsx"
   ],
-  "exclude": ["node_modules", "dist", "services/authService.ts", "services/voiceConversationService.ts"]
+  "exclude": ["node_modules", "dist", "services/authService.ts", "services/voiceConversationService.ts", "services/calendarSyncService.ts", "hooks/useCalendarReminders.ts"]
 }

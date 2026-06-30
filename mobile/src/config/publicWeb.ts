@@ -13,6 +13,7 @@ export const PUBLIC_WEB_PATHS = {
   home: '/',
   ritual: '/ritual-path',
   body: '/luna-balance',
+  calendar: '/rhythm-calendar',
   bridge: '/the-bridge',
   pricing: '/pricing',
   faq: '/faq',

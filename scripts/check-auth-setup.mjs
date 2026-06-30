@@ -21,6 +21,7 @@ const GOOGLE_OAUTH_ORIGINS = [
   'http://127.0.0.1:3000',
 ];
 
+const checks = [
   ['SUPER_ADMIN_BOOTSTRAP_PASSWORD', env.SUPER_ADMIN_BOOTSTRAP_PASSWORD, 'Email login for dnainform@gmail.com'],
   ['VITE_GOOGLE_CLIENT_ID', env.VITE_GOOGLE_CLIENT_ID, 'Google button in browser'],
   ['AUTH_GOOGLE_CLIENT_IDS', env.AUTH_GOOGLE_CLIENT_IDS || env.VITE_GOOGLE_CLIENT_ID, 'Google token verification on server'],

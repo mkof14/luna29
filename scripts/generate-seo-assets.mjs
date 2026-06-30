@@ -9,6 +9,7 @@ const siteUrl = String(process.env.VITE_SITE_URL || 'https://luna29.vercel.app')
 const paths = [
   '/',
   '/luna-balance',
+  '/rhythm-calendar',
   '/ritual-path',
   '/the-bridge',
   '/pricing',

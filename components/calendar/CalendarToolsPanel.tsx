@@ -22,6 +22,7 @@ import {
   googleCalendarImportHint,
 } from '../../utils/calendarI18n';
 import { mergeImportedJournal, parseIcsNotes } from '../../utils/calendarIcs';
+import { CalendarReminderPanel } from './CalendarReminderPanel';
 
 const btn =
   'w-full flex items-center gap-2 px-3 py-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700/60 bg-white/70 dark:bg-slate-900/45 text-[10px] font-black uppercase tracking-[0.12em] text-slate-600 dark:text-slate-200 hover:border-luna-purple/45 hover:text-luna-purple transition-all text-left';
@@ -42,6 +43,9 @@ type Props = {
   onDownloadYearIcs: () => void;
   onSend: () => void;
   onImported: () => void;
+  memberEmail?: string;
+  syncEnabled?: boolean;
+  onCalendarChanged: () => void;
 };
 
 export const CalendarToolsPanel: React.FC<Props> = ({
@@ -55,6 +59,9 @@ export const CalendarToolsPanel: React.FC<Props> = ({
   onDownloadYearIcs,
   onSend,
   onImported,
+  memberEmail,
+  syncEnabled,
+  onCalendarChanged,
 }) => {
   const copy = getLang(CALENDAR_TOOLS_COPY, lang);
   const deviceLabels = getLang(CALENDAR_DEVICE_LABELS, lang);
@@ -112,6 +119,8 @@ export const CalendarToolsPanel: React.FC<Props> = ({
           </div>
 
           <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 leading-relaxed">{copy.pdfHint}</p>
+
+          <CalendarReminderPanel lang={lang} memberEmail={memberEmail} onChanged={onCalendarChanged} />
 
           <div className="rounded-xl border border-slate-200/70 dark:border-slate-700/60 overflow-hidden">
             <p className="px-3 py-2 text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 bg-slate-50/80 dark:bg-slate-900/40">

@@ -18,6 +18,7 @@ import { initAnalytics, trackPageView } from './services/analyticsService';
 import { conversionEvents } from './utils/conversionEvents';
 import { billingService } from './services/billingService';
 import { applyServerTrialToLocal, consumeTrialPending, markTrialPending } from './utils/subscriptionAccess';
+import { useCalendarReminderLoop } from './hooks/useCalendarReminders';
 import { InstallAppPrompt } from './components/InstallAppPrompt';
 import { StandaloneWelcomeOverlay } from './components/StandaloneWelcomeOverlay';
 import { StandaloneLaunchSplash } from './components/StandaloneLaunchSplash';
@@ -174,6 +175,8 @@ const App: React.FC = () => {
         console.error('Role update failed', error);
       });
   }, [session]);
+
+  useCalendarReminderLoop(Boolean(session?.id));
 
   const handleLogout = useCallback(() => {
     authService

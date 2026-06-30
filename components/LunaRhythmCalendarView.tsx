@@ -9,6 +9,8 @@ interface LunaRhythmCalendarViewProps {
   currentCycleDay: number;
   cycleLength: number;
   onBack?: () => void;
+  memberEmail?: string;
+  syncEnabled?: boolean;
 }
 
 export const LunaRhythmCalendarView: React.FC<LunaRhythmCalendarViewProps> = (props) => (

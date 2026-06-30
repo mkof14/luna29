@@ -1,6 +1,7 @@
 import { Language, getLang } from '../constants';
 import { HealthEvent } from '../types';
-import { CalendarDayJournal, CalendarJournalStore, loadCalendarJournal } from './calendarJournalStorage';
+import { CalendarDayJournal, CalendarJournalStore, loadCalendarData, loadCalendarJournal } from './calendarStore';
+import { eventOccursOn } from './calendarReminders';
 import { buildCalendarMonth, buildCalendarYear, getCycleAnchor, predictCycleDay, toIsoDate } from './lunaCalendar';
 import { getCyclePhaseByDay } from './cycle';
 import { CALENDAR_GOOGLE_HINT } from './calendarI18n';
@@ -98,6 +99,39 @@ export const buildIcsCalendar = ({
           'END:VEVENT',
         ].join('\r\n'),
       );
+    }
+  }
+
+  const customEvents = loadCalendarData().events;
+  for (const event of customEvents) {
+    const cursor = new Date(`${year}-01-01T00:00:00`);
+    const end = typeof month === 'number'
+      ? new Date(year, month + 1, 0)
+      : new Date(`${year}-12-31T23:59:59`);
+    while (cursor <= end) {
+      const iso = cursor.toISOString().slice(0, 10);
+      if (eventOccursOn(event, iso)) {
+        const uid = `luna29-evt-${event.id}-${iso}@luna29.app`;
+        const summary = foldIcs(event.title);
+        const description = foldIcs([event.note || '', event.kind, event.recurrence].filter(Boolean).join('\n'));
+        const lines = [
+          'BEGIN:VEVENT',
+          `UID:${uid}`,
+          `DTSTAMP:${formatIcsStamp()}`,
+          `DTSTART;VALUE=DATE:${formatIcsDate(iso)}`,
+          `DTEND;VALUE=DATE:${formatIcsDate(iso)}`,
+          `SUMMARY:${summary}`,
+          `DESCRIPTION:${description}`,
+          'TRANSP:TRANSPARENT',
+        ];
+        if (event.recurrence === 'yearly') lines.splice(5, 0, 'RRULE:FREQ=YEARLY');
+        if (event.recurrence === 'monthly') lines.splice(5, 0, 'RRULE:FREQ=MONTHLY');
+        if (event.recurrence === 'weekly') lines.splice(5, 0, 'RRULE:FREQ=WEEKLY');
+        if (event.recurrence === 'daily') lines.splice(5, 0, 'RRULE:FREQ=DAILY');
+        lines.push('END:VEVENT');
+        events.push(lines.join('\r\n'));
+      }
+      cursor.setDate(cursor.getDate() + 1);
     }
   }
 

@@ -1,10 +1,11 @@
 import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react';
-import { Facebook, Heart, Instagram, Lock, MapPin, Mic, Music2, Sparkles, Youtube } from 'lucide-react';
+import { Facebook, Heart, Instagram, Lock, MapPin, Mic, Music2, Sparkles, Youtube, Calendar } from 'lucide-react';
 import { Logo } from './Logo';
 import { Language, TranslationSchema, LangCopy, getLang } from '../constants';
 import LanguageSelector from './LanguageSelector';
 import ThemeToggle from './ThemeToggle';
 import { PUBLIC_BTN_PRIMARY, PUBLIC_BTN_PRIMARY_GLOW, PUBLIC_BTN_SECONDARY } from './public/publicButtonStyles';
+import { getMemberNavCopy } from '../utils/memberNavLabels';
 
 const HowItWorksView = lazy(() => import('./HowItWorksView').then((m) => ({ default: m.HowItWorksView })));
 const FAQView = lazy(() => import('./FAQView').then((m) => ({ default: m.FAQView })));
@@ -15,6 +16,7 @@ const PublicMapSection = lazy(() => import('./public/PublicMapSection').then((m)
 const PublicRitualSection = lazy(() => import('./public/PublicRitualSection').then((m) => ({ default: m.PublicRitualSection })));
 const PublicBridgeSection = lazy(() => import('./public/PublicBridgeSection').then((m) => ({ default: m.PublicBridgeSection })));
 const PublicPricingSection = lazy(() => import('./public/PublicPricingSection').then((m) => ({ default: m.PublicPricingSection })));
+const PublicCalendarSection = lazy(() => import('./public/PublicCalendarSection').then((m) => ({ default: m.PublicCalendarSection })));
 
 interface PublicLandingViewProps {
   onSignIn: () => void;
@@ -32,7 +34,7 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, onSignUp, lang, setLang, theme, setTheme, ui }) => {
-  type PublicPage = 'home' | 'map' | 'ritual' | 'bridge' | 'pricing' | 'about' | 'how_it_works' | 'faq' | 'learning' | 'privacy' | 'terms' | 'medical' | 'cookies' | 'data_rights';
+  type PublicPage = 'home' | 'map' | 'ritual' | 'bridge' | 'pricing' | 'about' | 'how_it_works' | 'faq' | 'learning' | 'privacy' | 'terms' | 'medical' | 'cookies' | 'data_rights' | 'calendar';
   type TrialState = {
     startedAt: string;
     endsAt: string;
@@ -58,6 +60,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     if (pathname === '/cookies') return 'cookies';
     if (pathname === '/data-rights') return 'data_rights';
     if (pathname === '/luna-balance') return 'map';
+    if (pathname === '/rhythm-calendar') return 'calendar';
     return 'home';
   };
   const resolvePathFromPage = (page: PublicPage): string => {
@@ -74,6 +77,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     if (page === 'cookies') return '/cookies';
     if (page === 'data_rights') return '/data-rights';
     if (page === 'map') return '/luna-balance';
+    if (page === 'calendar') return '/rhythm-calendar';
     return '/';
   };
 
@@ -1104,9 +1108,51 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     pt: 'Sobre',
   ar: 'حول',
   he: 'אודות',};
+  const memberNav = getMemberNavCopy(lang);
+  const calendarSeoTitleByLang: LangCopy<string> = {
+    en: 'Rhythm Calendar | Luna29',
+    ru: 'Календарь ритма | Luna29',
+    uk: 'Календар ритму | Luna29',
+    es: 'Calendario de ritmo | Luna29',
+    fr: 'Calendrier du rythme | Luna29',
+    de: 'Rhythmus-Kalender | Luna29',
+    zh: '节律日历 | Luna29',
+    ja: 'リズムカレンダー | Luna29',
+    pt: 'Calendário de ritmo | Luna29',
+    ar: 'تقويم الإيقاع | Luna29',
+    he: 'לוח קצב | Luna29',
+  };
+  const calendarSeoDescriptionByLang: LangCopy<string> = {
+    en: 'Preview Luna29 Rhythm Calendar: editorial month and year views, daily notes, print, share, and calendar sync.',
+    ru: 'Preview календаря ритма Luna29: editorial месяц и год, записи на каждый день, печать, обмен и синхронизация.',
+    uk: 'Preview календаря ритму Luna29: editorial місяць і рік, щоденні записи, друк, обмін і синхронізація.',
+    es: 'Vista previa del calendario de ritmo Luna29: vistas editoriales, notas diarias, impresión, compartir y sync.',
+    fr: 'Aperçu du calendrier du rythme Luna29: vues éditoriales, notes quotidiennes, impression, partage et sync.',
+    de: 'Vorschau des Luna29 Rhythmus-Kalenders: Editorial-Ansichten, Tagesnotizen, Druck, Teilen und Sync.',
+    zh: '预览 Luna29 节律日历：编辑式月年视图、每日记录、打印、分享与同步。',
+    ja: 'Luna29リズムカレンダーのプレビュー：エディトリアル表示、日次メモ、印刷・共有・同期。',
+    pt: 'Prévia do calendário de ritmo Luna29: visões editoriais, notas diárias, impressão, compartilhamento e sync.',
+    ar: 'معاينة تقويم الإيقاع Luna29: عروض تحريرية شهرية وسنوية، ملاحظات يومية، طباعة ومشاركة ومزامنة.',
+    he: 'תצוגה מקדימה של לוח הקצב Luna29: תצוגות עריכה, הערות יומיות, הדפסה, שיתוף וסנכרון.',
+  };
+  const calendarHomeServiceByLang: LangCopy<{ title: string; body: string }> = {
+    en: { title: 'Rhythm Calendar', body: 'Editorial month and year views with daily notes, print, and sync.' },
+    ru: { title: 'Календарь ритма', body: 'Editorial месяц и год с записями на каждый день, печатью и синхронизацией.' },
+    uk: { title: 'Календар ритму', body: 'Editorial місяць і рік з щоденними записами, друком і синхронізацією.' },
+    es: { title: 'Calendario de ritmo', body: 'Vistas editoriales mensuales y anuales con notas diarias, impresión y sync.' },
+    fr: { title: 'Calendrier du rythme', body: 'Vues éditoriales mois et année avec notes quotidiennes, impression et sync.' },
+    de: { title: 'Rhythmus-Kalender', body: 'Editorial Monats- und Jahresansicht mit Tagesnotizen, Druck und Sync.' },
+    zh: { title: '节律日历', body: '编辑式月年视图，含每日记录、打印与同步。' },
+    ja: { title: 'リズムカレンダー', body: '日次メモ・印刷・同期付きのエディトリアル月/年ビュー。' },
+    pt: { title: 'Calendário de ritmo', body: 'Visões editoriais mensais e anuais com notas diárias, impressão e sync.' },
+    ar: { title: 'تقويم الإيقاع', body: 'عرض شهري وسنوي تحريري مع ملاحظات يومية وطباعة ومزامنة.' },
+    he: { title: 'לוח קצב', body: 'תצוגות חודש ושנה עריכתיות עם הערות יומיות, הדפסה וסנכרון.' },
+  };
+  const calendarHomeService = getLang(calendarHomeServiceByLang, lang) || calendarHomeServiceByLang.en;
   const footerPageLinks: Array<{ id: PublicPage; label: string }> = [
     { id: 'home', label: ui.publicHome.tabs.home },
     { id: 'map', label: ui.publicHome.tabs.map },
+    { id: 'calendar', label: memberNav.rhythmCalendar },
     { id: 'ritual', label: 'Ritual Path' },
     { id: 'bridge', label: ui.navigation.bridge || 'The Bridge' },
     { id: 'pricing', label: getLang(pricingLabelByLang, lang) || 'Pricing' },
@@ -2207,6 +2253,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
   const pageTitle = useMemo(() => {
     if (activePage === 'home') return ui.publicHome.pageTitle.home;
     if (activePage === 'map') return ui.publicHome.pageTitle.map;
+    if (activePage === 'calendar') return memberNav.rhythmCalendar;
     if (activePage === 'ritual') return ui.publicHome.pageTitle.ritual;
     if (activePage === 'bridge') return ui.navigation.bridge || 'The Bridge';
     if (activePage === 'pricing') return getLang(pricingLabelByLang, lang) || 'Pricing';
@@ -2227,7 +2274,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       window.history.pushState({}, '', path);
     }
 
-    const titleByPageByLang: LangCopy< Record<PublicPage, string>> = {
+    const titleByPageByLang: LangCopy< Record<Exclude<PublicPage, 'calendar'>, string>> = {
       en: { home: 'Luna29 | Public Home', map: 'Luna29 Balance | Visual Rhythm Map', ritual: 'Ritual Path | Luna29', bridge: 'The Bridge | Luna29', pricing: 'Pricing | Luna29', about: 'About Luna29', how_it_works: 'How It Works | Luna29', faq: 'FAQ | Luna29', learning: 'Learning | Luna29', privacy: 'Privacy Notice | Luna29', terms: 'Terms | Luna29', medical: 'Disclaimer | Luna29', cookies: 'Cookies Notice | Luna29', data_rights: 'Data Rights | Luna29' },
       ru: { home: 'Luna29 | Публичная Главная', map: 'Luna29 Balance | Карта ритма', ritual: 'Ритуальный путь | Luna29', bridge: 'Мост | Luna29', pricing: 'Тарифы | Luna29', about: 'О Luna29', how_it_works: 'Как это работает | Luna29', faq: 'FAQ | Luna29', learning: 'Обучение | Luna29', privacy: 'Уведомление о приватности | Luna29', terms: 'Условия | Luna29', medical: 'Дисклеймер | Luna29', cookies: 'Уведомление о cookies | Luna29', data_rights: 'Права на данные | Luna29' },
       uk: { home: 'Luna29 | Публічна Головна', map: 'Luna29 Balance | Мапа ритму', ritual: 'Ритуальний шлях | Luna29', bridge: 'Міст | Luna29', pricing: 'Тарифи | Luna29', about: 'Про Luna29', how_it_works: 'Як це працює | Luna29', faq: 'FAQ | Luna29', learning: 'Навчання | Luna29', privacy: 'Повідомлення про приватність | Luna29', terms: 'Умови | Luna29', medical: 'Дисклеймер | Luna29', cookies: 'Повідомлення про cookies | Luna29', data_rights: 'Права на дані | Luna29' },
@@ -2240,7 +2287,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       ar: { home: 'Luna29 | الصفحة العامة', map: 'Luna29 Balance | خريطة الإيقاع', ritual: 'المسار الطقسي | Luna29', bridge: 'الجسر | Luna29', pricing: 'الأسعار | Luna29', about: 'حول Luna29', how_it_works: 'كيف يعمل | Luna29', faq: 'الأسئلة الشائعة | Luna29', learning: 'التعلّم | Luna29', privacy: 'إشعار الخصوصية | Luna29', terms: 'الشروط | Luna29', medical: 'إخلاء المسؤولية | Luna29', cookies: 'إشعار cookies | Luna29', data_rights: 'حقوق البيانات | Luna29' },
       he: { home: 'Luna29 | דף ציבורי', map: 'Luna29 Balance | מפת קצב ויזואלית', ritual: 'נתיב טקסי | Luna29', bridge: 'הגשר | Luna29', pricing: 'מחירים | Luna29', about: 'אודות Luna29', how_it_works: 'איך זה עובד | Luna29', faq: 'שאלות נפוצות | Luna29', learning: 'לימוד | Luna29', privacy: 'הודעת פרטיות | Luna29', terms: 'תנאים | Luna29', medical: 'הצהרת אחריות | Luna29', cookies: 'הודעת cookies | Luna29', data_rights: 'זכויות נתונים | Luna29' },
     };
-    const descriptionByPageByLang: LangCopy< Record<PublicPage, string>> = {
+    const descriptionByPageByLang: LangCopy< Record<Exclude<PublicPage, 'calendar'>, string>> = {
       en: { home: 'Luna29 public home. Calm orientation and access to member tools.', map: 'Luna29 Balance visualizes physiological rhythms and inner dynamics.', ritual: 'Ritual Path by Luna29: a path, not a checklist. A simple daily rhythm that protects attention and preserves signal.', bridge: 'The Bridge by Luna29 helps formulate state, explain calmly, and preserve respect in conversations.', pricing: 'Luna29 member access pricing and trial options.', about: 'About Luna29 and the BioMath origin.', how_it_works: 'How Luna29 works in practice.', faq: 'Detailed FAQ about Luna29 Balance, privacy, safety, and daily use.', learning: 'Luna29 Learning: terminology, concepts, and practical guidance.', privacy: 'Luna29 privacy notice.', terms: 'Luna29 terms of service.', medical: 'Luna29 disclaimer information.', cookies: 'Luna29 cookies notice.', data_rights: 'Luna29 data rights information.' },
       ru: { home: 'Публичная главная страница Luna29: спокойная навигация и доступ к инструментам участника.', map: 'Luna29 Balance визуализирует физиологические ритмы и внутреннюю динамику.', ritual: 'Ритуальный путь Luna29: путь, а не чеклист. Ежедневный ритм, который бережет внимание.', bridge: 'Мост Luna29 помогает ясно формулировать состояние и сохранять уважение в разговоре.', pricing: 'Тарифы и пробный доступ Luna29.', about: 'О Luna29 и происхождении BioMath.', how_it_works: 'Как Luna29 работает на практике.', faq: 'Подробный FAQ о Luna29 Balance, приватности, безопасности и ежедневном использовании.', learning: 'Обучение Luna29: терминология, идеи и практические рекомендации.', privacy: 'Уведомление о приватности Luna29.', terms: 'Условия использования Luna29.', medical: 'Дисклеймер Luna29.', cookies: 'Уведомление о cookies Luna29.', data_rights: 'Информация о правах на данные в Luna29.' },
       uk: { home: 'Публічна головна сторінка Luna29: спокійна орієнтація і доступ до інструментів учасника.', map: 'Luna29 Balance візуалізує фізіологічні ритми та внутрішню динаміку.', ritual: 'Ритуальний шлях Luna29: шлях, а не чеклист. Простий ритм, що береже увагу.', bridge: 'Міст Luna29 допомагає чітко формулювати стан і зберігати повагу в розмові.', pricing: 'Тарифи та пробний доступ Luna29.', about: 'Про Luna29 і походження BioMath.', how_it_works: 'Як Luna29 працює на практиці.', faq: 'Детальний FAQ про Luna29 Balance, приватність і безпеку.', learning: 'Навчання Luna29: термінологія, ідеї та практичні поради.', privacy: 'Повідомлення про приватність Luna29.', terms: 'Умови використання Luna29.', medical: 'Дисклеймер Luna29.', cookies: 'Повідомлення про cookies Luna29.', data_rights: 'Інформація про права на дані в Luna29.' },
@@ -2256,12 +2303,20 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     const titleByPage = getLang(titleByPageByLang, lang) || titleByPageByLang.en;
     const descriptionByPage = getLang(descriptionByPageByLang, lang) || descriptionByPageByLang.en;
 
-    document.title = titleByPage[activePage];
+    document.title =
+      activePage === 'calendar'
+        ? getLang(calendarSeoTitleByLang, lang) || calendarSeoTitleByLang.en
+        : titleByPage[activePage];
     const descriptionEl = document.querySelector('meta[name="description"]');
     if (descriptionEl) {
-      descriptionEl.setAttribute('content', descriptionByPage[activePage]);
+      descriptionEl.setAttribute(
+        'content',
+        activePage === 'calendar'
+          ? getLang(calendarSeoDescriptionByLang, lang) || calendarSeoDescriptionByLang.en
+          : descriptionByPage[activePage],
+      );
     }
-  }, [activePage, lang]);
+  }, [activePage, calendarSeoDescriptionByLang, calendarSeoTitleByLang, lang]);
 
   useEffect(() => {
     if (activePage !== 'home') {
@@ -2329,6 +2384,8 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
             <button onClick={() => setActivePage('ritual')} className={`text-[1.02rem] transition-colors ${theme === 'dark' ? (activePage === 'ritual' ? 'text-violet-100' : 'text-violet-100/70 hover:text-violet-100') : (activePage === 'ritual' ? 'text-slate-900' : 'text-slate-600 hover:text-slate-900')}`}>{publicHomeNavLabels.ritual}</button>
             <span className={`${theme === 'dark' ? 'text-violet-100/35' : 'text-slate-400'}`}>·</span>
             <button onClick={() => setActivePage('map')} className={`text-[1.02rem] transition-colors ${theme === 'dark' ? (activePage === 'map' ? 'text-violet-100' : 'text-violet-100/70 hover:text-violet-100') : (activePage === 'map' ? 'text-slate-900' : 'text-slate-600 hover:text-slate-900')}`}>{publicHomeNavLabels.map}</button>
+            <span className={`${theme === 'dark' ? 'text-violet-100/35' : 'text-slate-400'}`}>·</span>
+            <button onClick={() => setActivePage('calendar')} className={`text-[1.02rem] transition-colors ${theme === 'dark' ? (activePage === 'calendar' ? 'text-violet-100' : 'text-violet-100/70 hover:text-violet-100') : (activePage === 'calendar' ? 'text-slate-900' : 'text-slate-600 hover:text-slate-900')}`}>{memberNav.rhythmCalendar}</button>
             <span className={`${theme === 'dark' ? 'text-violet-100/35' : 'text-slate-400'}`}>·</span>
             <button onClick={() => setActivePage('pricing')} className={`text-[1.02rem] transition-colors ${theme === 'dark' ? (activePage === 'pricing' ? 'text-violet-100' : 'text-violet-100/70 hover:text-violet-100') : (activePage === 'pricing' ? 'text-slate-900' : 'text-slate-600 hover:text-slate-900')}`}>{getLang(pricingLabelByLang, lang) || 'Pricing'}</button>
           </nav>
@@ -2577,28 +2634,32 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
               <h2 className="text-[1.7rem] md:text-[2rem] font-black tracking-tight text-slate-900 dark:text-slate-100">{homeActionCopy.servicesTitle}</h2>
               <p className="mt-1 text-[0.95rem] font-semibold text-slate-700 dark:text-slate-300">{homeActionCopy.servicesSubtitle}</p>
               <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-3">
-                {homeActionCopy.services.map((service, index) => (
-                  <article
+                {[...homeActionCopy.services, calendarHomeService].map((service, index) => {
+                  const isCalendar = index === homeActionCopy.services.length;
+                  const CardTag = isCalendar ? 'button' : 'article';
+                  return (
+                  <CardTag
                     key={service.title}
-                    className={`rounded-[1.2rem] border border-white/55 dark:border-white/12 p-4 shadow-[0_10px_24px_rgba(147,107,187,0.16)] dark:shadow-[0_12px_24px_rgba(13,22,48,0.38)] ${
+                    type={isCalendar ? 'button' : undefined}
+                    onClick={isCalendar ? () => setActivePage('calendar') : undefined}
+                    className={`rounded-[1.2rem] border border-white/55 dark:border-white/12 p-4 shadow-[0_10px_24px_rgba(147,107,187,0.16)] dark:shadow-[0_12px_24px_rgba(13,22,48,0.38)] text-left w-full ${
+                      isCalendar ? 'hover:-translate-y-0.5 transition-all cursor-pointer' : ''
+                    } ${
                       index % 2 === 0
                         ? 'bg-[linear-gradient(160deg,rgba(255,255,255,0.88),rgba(246,238,255,0.72))] dark:bg-[linear-gradient(160deg,rgba(28,46,86,0.68),rgba(21,39,76,0.56))]'
                         : 'bg-[linear-gradient(160deg,rgba(255,249,253,0.88),rgba(240,241,255,0.72))] dark:bg-[linear-gradient(160deg,rgba(32,44,82,0.7),rgba(20,37,72,0.56))]'
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
-                      {[
-                        { icon: Mic, iconTone: 'from-[#ffe0ef] to-[#eddcff] dark:from-[#6a4f89] dark:to-[#5a5a97]', titleTone: 'text-[#9a397a] dark:text-[#f0b7dc]' },
-                        { icon: Heart, iconTone: 'from-[#ffe8e9] to-[#f0e1ff] dark:from-[#6d4c7b] dark:to-[#5d5b99]', titleTone: 'text-[#7f4eb2] dark:text-[#cdc1ff]' },
-                        { icon: Sparkles, iconTone: 'from-[#f7e4ff] to-[#e2ecff] dark:from-[#624c8b] dark:to-[#4f659f]', titleTone: 'text-[#5f54b5] dark:text-[#bac7ff]' },
-                        { icon: MapPin, iconTone: 'from-[#ffeaf4] to-[#ece7ff] dark:from-[#6f4d84] dark:to-[#5b5d95]', titleTone: 'text-[#a14f7e] dark:text-[#efbdd8]' },
-                      ][index] && (() => {
-                        const iconMeta = [
+                      {(() => {
+                        const iconMetaList = [
                           { icon: Mic, iconTone: 'from-[#ffe0ef] to-[#eddcff] dark:from-[#6a4f89] dark:to-[#5a5a97]', titleTone: 'text-[#9a397a] dark:text-[#f0b7dc]' },
                           { icon: Heart, iconTone: 'from-[#ffe8e9] to-[#f0e1ff] dark:from-[#6d4c7b] dark:to-[#5d5b99]', titleTone: 'text-[#7f4eb2] dark:text-[#cdc1ff]' },
                           { icon: Sparkles, iconTone: 'from-[#f7e4ff] to-[#e2ecff] dark:from-[#624c8b] dark:to-[#4f659f]', titleTone: 'text-[#5f54b5] dark:text-[#bac7ff]' },
                           { icon: MapPin, iconTone: 'from-[#ffeaf4] to-[#ece7ff] dark:from-[#6f4d84] dark:to-[#5b5d95]', titleTone: 'text-[#a14f7e] dark:text-[#efbdd8]' },
-                        ][index];
+                          { icon: Calendar, iconTone: 'from-[#ffe8f3] to-[#e8e4ff] dark:from-[#6a5088] dark:to-[#525a96]', titleTone: 'text-[#7a4fa8] dark:text-[#d4c4ff]' },
+                        ];
+                        const iconMeta = iconMetaList[index] ?? iconMetaList[0];
                         const Icon = iconMeta.icon;
                         return (
                           <>
@@ -2611,8 +2672,9 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
                       })()}
                     </div>
                     <p className="mt-2 text-[0.95rem] font-medium leading-relaxed text-slate-700 dark:text-slate-200">{service.body}</p>
-                  </article>
-                ))}
+                  </CardTag>
+                  );
+                })}
               </div>
               </div>
             </section>
@@ -2664,6 +2726,17 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
             <PublicBridgeSection
               onSignIn={onSignIn}
               lang={lang}
+            />
+          </Suspense>
+        )}
+
+        {activePage === 'calendar' && (
+          <Suspense fallback={lazyFallback}>
+            <PublicCalendarSection
+              lang={lang}
+              onSignIn={onSignIn}
+              onSignUp={onSignUp}
+              onBackHome={() => setActivePage('home')}
             />
           </Suspense>
         )}

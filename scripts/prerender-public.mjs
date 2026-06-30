@@ -17,6 +17,7 @@ const previewUrl = `http://127.0.0.1:${previewPort}`;
 const routes = [
   '/',
   '/luna-balance',
+  '/rhythm-calendar',
   '/ritual-path',
   '/the-bridge',
   '/pricing',

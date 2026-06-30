@@ -3,6 +3,7 @@ import { chromium } from '@playwright/test';
 const PUBLIC_PATHS = [
   '/',
   '/luna-balance',
+  '/rhythm-calendar',
   '/ritual-path',
   '/the-bridge',
   '/pricing',

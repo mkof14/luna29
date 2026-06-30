@@ -319,6 +319,8 @@ export const MainContentRouter: React.FC<MainContentRouterProps> = ({
             currentCycleDay={systemState.currentDay}
             cycleLength={systemState.cycleLength}
             onBack={() => navigateTo('today_mirror')}
+            memberEmail={session?.email}
+            syncEnabled={Boolean(session?.id)}
           />
         )}
         {activeTab === 'about' && <AboutLunaView lang={lang} mode="member" onBack={() => navigateTo('today_mirror')} />}

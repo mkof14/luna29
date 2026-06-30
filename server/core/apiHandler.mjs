@@ -8,6 +8,8 @@ import { buildApiSecurityHeaders } from './securityHeaders.mjs';
 import { readBodyWithLimit, hasAiProcessingConsent } from './httpUtils.mjs';
 import { resolveRole as resolveRoleSafe, ROLE_PERMISSIONS as CORE_ROLE_PERMISSIONS } from './authRoles.mjs';
 import { buildTrialRecord } from './billingTrial.mjs';
+import { sendCalendarReminderEmail, isCalendarEmailEnabled } from './calendarEmail.mjs';
+import { dispatchDueEmailReminders } from './calendarReminders.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,6 +26,7 @@ let MOBILE_REFLECTIONS_FILE = path.join(DATA_DIR, 'mobile-reflections.json');
 let MOBILE_REPORTS_FILE = path.join(DATA_DIR, 'mobile-reports.json');
 let MOBILE_STATE_FILE = path.join(DATA_DIR, 'mobile-state.json');
 let MOBILE_PUSH_FILE = path.join(DATA_DIR, 'mobile-push.json');
+let CALENDAR_DATA_FILE = path.join(DATA_DIR, 'calendar-data.json');
 
 const configureStoragePaths = (dataDir, environment) => {
   DATA_DIR = dataDir;
@@ -38,6 +41,7 @@ const configureStoragePaths = (dataDir, environment) => {
   MOBILE_REPORTS_FILE = path.join(DATA_DIR, 'mobile-reports.json');
   MOBILE_STATE_FILE = path.join(DATA_DIR, 'mobile-state.json');
   MOBILE_PUSH_FILE = path.join(DATA_DIR, 'mobile-push.json');
+  CALENDAR_DATA_FILE = path.join(DATA_DIR, 'calendar-data.json');
 };
 
 const SESSION_COOKIE = 'luna_sid';
@@ -406,10 +410,16 @@ const buildHealthPayload = async ({ verbose = false } = {}) => {
   const billingStatus = !BILLING_ENABLED ? 'disabled' : stripeConfigReady ? 'ready' : 'misconfigured';
   const googleAuthConfigured = GOOGLE_CLIENT_IDS.size > 0;
   const aiScanEnabled = Boolean(GEMINI_API_KEY);
+  const databaseConfigured = Boolean(String(process.env.DATABASE_URL || '').trim());
+  const rateLimitBackend = Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)
+    ? 'upstash'
+    : 'memory';
   const ok = storageWritable && (!BILLING_ENABLED || stripeConfigReady);
   const warnings = [];
 
   if (!storageWritable) warnings.push('Storage is not writable.');
+  if (!databaseConfigured) warnings.push('DATABASE_URL is not set — server state uses ephemeral JSON storage on serverless.');
+  if (rateLimitBackend === 'memory') warnings.push('Upstash Redis is not configured — rate limits are in-memory per instance.');
   if (BILLING_ENABLED && !stripeConfigReady) warnings.push('Stripe billing is enabled but required env vars are missing.');
   if (!googleAuthConfigured) warnings.push('Google OAuth client IDs are not configured.');
   if (!aiScanEnabled) warnings.push('AI scan-to-text is disabled (set GEMINI_API_KEY to enable).');
@@ -422,6 +432,8 @@ const buildHealthPayload = async ({ verbose = false } = {}) => {
     environment: runtimeEnvironment,
     checks: {
       storage: storageWritable ? 'ok' : 'error',
+      database: databaseConfigured ? 'postgres' : 'json-fallback',
+      rateLimit: rateLimitBackend,
       billing: billingStatus,
       googleAuth: googleAuthConfigured ? 'configured' : 'missing',
       aiScan: aiScanEnabled ? 'enabled' : 'disabled',
@@ -437,6 +449,8 @@ const buildHealthPayload = async ({ verbose = false } = {}) => {
       emergencyResetConfigured: Boolean(ADMIN_EMERGENCY_RESET_KEY),
       billingEnabled: BILLING_ENABLED,
       stripeConfigReady,
+      databaseConfigured,
+      rateLimitBackend,
       googleClientIds: GOOGLE_CLIENT_IDS.size,
       aiScanEnabled,
     };
@@ -962,6 +976,8 @@ const start = async () => {
   let mobileReports = sanitizeMobileReportsState(await readJson(MOBILE_REPORTS_FILE, { profiles: {} }));
   let mobileStateStore = sanitizeMobileStateStore(await readJson(MOBILE_STATE_FILE, { profiles: {} }));
   let mobilePushStore = sanitizeMobilePushStore(await readJson(MOBILE_PUSH_FILE, { profiles: {} }));
+  let calendarStore = await readJson(CALENDAR_DATA_FILE, {});
+  if (!calendarStore || typeof calendarStore !== 'object') calendarStore = {};
   const storedSessions = parseStoredSessions(await readJson(SESSIONS_FILE, []));
   for (const item of storedSessions) {
     sessions.set(item.token, { userId: item.userId, expiresAt: item.expiresAt });
@@ -978,6 +994,69 @@ const start = async () => {
   const saveMobileReports = async () => writeJson(MOBILE_REPORTS_FILE, mobileReports);
   const saveMobileStateStore = async () => writeJson(MOBILE_STATE_FILE, mobileStateStore);
   const saveMobilePushStore = async () => writeJson(MOBILE_PUSH_FILE, mobilePushStore);
+  const saveCalendarStore = async () => writeJson(CALENDAR_DATA_FILE, calendarStore);
+
+  const sanitizeCalendarBundle = (raw) => {
+    if (!raw || typeof raw !== 'object') return null;
+    return {
+      version: 2,
+      journal: raw.journal && typeof raw.journal === 'object' ? raw.journal : {},
+      events: Array.isArray(raw.events) ? raw.events.slice(0, 500) : [],
+      preferences:
+        raw.preferences && typeof raw.preferences === 'object'
+          ? {
+              browserNotifications: raw.preferences.browserNotifications !== false,
+              emailReminders: raw.preferences.emailReminders === true,
+              reminderEmail: safeText(raw.preferences.reminderEmail, 160),
+              sentReminderKeys: Array.isArray(raw.preferences.sentReminderKeys)
+                ? raw.preferences.sentReminderKeys.slice(-500)
+                : [],
+              lastSyncAt: safeText(raw.preferences.lastSyncAt, 40),
+              serverRevision: safeText(raw.preferences.serverRevision, 40),
+            }
+          : {
+              browserNotifications: true,
+              emailReminders: false,
+              reminderEmail: '',
+              sentReminderKeys: [],
+            },
+      updatedAt: safeText(raw.updatedAt, 40) || new Date().toISOString(),
+    };
+  };
+
+  const mergeCalendarBundlesServer = (local, remote) => {
+    const journal = { ...remote.journal };
+    for (const [iso, entry] of Object.entries(local.journal || {})) {
+      const remoteEntry = journal[iso];
+      if (!remoteEntry || new Date(entry.updatedAt).getTime() >= new Date(remoteEntry.updatedAt).getTime()) {
+        journal[iso] = entry;
+      }
+    }
+    const eventsById = new Map();
+    for (const event of remote.events || []) eventsById.set(event.id, event);
+    for (const event of local.events || []) {
+      const prev = eventsById.get(event.id);
+      if (!prev || new Date(event.updatedAt).getTime() >= new Date(prev.updatedAt).getTime()) {
+        eventsById.set(event.id, event);
+      }
+    }
+    return {
+      version: 2,
+      journal,
+      events: Array.from(eventsById.values()),
+      preferences: {
+        ...remote.preferences,
+        browserNotifications: local.preferences?.browserNotifications !== false,
+        emailReminders: local.preferences?.emailReminders === true,
+        reminderEmail: safeText(local.preferences?.reminderEmail, 160) || remote.preferences?.reminderEmail || '',
+        sentReminderKeys: Array.from(
+          new Set([...(remote.preferences?.sentReminderKeys || []), ...(local.preferences?.sentReminderKeys || [])]),
+        ).slice(-500),
+        lastSyncAt: new Date().toISOString(),
+      },
+      updatedAt: new Date().toISOString(),
+    };
+  };
 
   const resolveMobileProfile = async (req, ip) => {
     const cookieSession = await getSessionUser(req, users);
@@ -1882,6 +1961,74 @@ const start = async () => {
       if (token) sessions.delete(token);
       await saveSessions();
       send(res, 200, { ok: true }, { ...headers, 'Set-Cookie': clearSessionCookie() });
+      return;
+    }
+
+    if (method === 'GET' && url.pathname === '/api/calendar/data') {
+      const auth = await requireSession(req, res, headers);
+      if (!auth) return;
+      const key = auth.current.user.id;
+      const data = sanitizeCalendarBundle(calendarStore[key]) || sanitizeCalendarBundle({
+        version: 2,
+        journal: {},
+        events: [],
+        preferences: { browserNotifications: true, emailReminders: false, reminderEmail: auth.sessionPayload.email, sentReminderKeys: [] },
+        updatedAt: new Date().toISOString(),
+      });
+      send(res, 200, { data, updatedAt: data.updatedAt, emailConfigured: isCalendarEmailEnabled() }, headers);
+      return;
+    }
+
+    if (method === 'PUT' && url.pathname === '/api/calendar/data') {
+      const auth = await requireSession(req, res, headers);
+      if (!auth) return;
+      try {
+        const body = await readBody(req);
+        const incoming = sanitizeCalendarBundle(body.data);
+        if (!incoming) {
+          send(res, 400, { error: 'Invalid calendar payload.' }, headers);
+          return;
+        }
+        const key = auth.current.user.id;
+        const existing = sanitizeCalendarBundle(calendarStore[key]);
+        const merged = existing ? mergeCalendarBundlesServer(incoming, existing) : incoming;
+        calendarStore[key] = merged;
+        await saveCalendarStore();
+        send(res, 200, { ok: true, data: merged, updatedAt: merged.updatedAt }, headers);
+      } catch (error) {
+        send(res, 400, { error: error instanceof Error ? error.message : 'Could not save calendar.' }, headers);
+      }
+      return;
+    }
+
+    if (method === 'POST' && url.pathname === '/api/calendar/reminders/dispatch') {
+      const auth = await requireSession(req, res, headers);
+      if (!auth) return;
+      const key = auth.current.user.id;
+      const bundle = sanitizeCalendarBundle(calendarStore[key]);
+      if (!bundle) {
+        send(res, 200, { fired: 0, skipped: 'empty' }, headers);
+        return;
+      }
+      const result = await dispatchDueEmailReminders({
+        bundle,
+        userEmail: auth.sessionPayload.email,
+        sendEmail: sendCalendarReminderEmail,
+      });
+      if (result.bundle) {
+        calendarStore[key] = sanitizeCalendarBundle(result.bundle);
+        await saveCalendarStore();
+      }
+      send(
+        res,
+        200,
+        {
+          fired: result.fired,
+          skipped: result.skipped,
+          emailConfigured: isCalendarEmailEnabled(),
+        },
+        headers,
+      );
       return;
     }
 
