@@ -2,6 +2,7 @@ import React from 'react';
 import { Clock, Heart, Mic, Moon, PenLine, Shield, Sparkles, Sun, Sunrise, Sunset } from 'lucide-react';
 import { Language, LangCopy, getLang } from '../../constants';
 import { PUBLIC_BTN_PRIMARY, PUBLIC_BTN_PRIMARY_GLOW } from './publicButtonStyles';
+import { PUBLIC_PAGE_ART } from '../../utils/publicPageArt';
 import {
   PUBLIC_BODY,
   PUBLIC_CARD,
@@ -511,7 +512,7 @@ export const PublicRitualSection: React.FC<PublicRitualSectionProps> = ({ onSign
 
           <div className={`${PUBLIC_HERO_FRAME} h-56 md:h-72 lg:h-80`}>
             <img
-              src="/images/heroes/my_day.webp"
+              src={PUBLIC_PAGE_ART.ritual}
               alt="My Day with Luna29"
               loading="eager"
               decoding="async"

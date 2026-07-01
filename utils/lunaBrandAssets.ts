@@ -1,3 +1,5 @@
+import { versionedAbsoluteAsset } from './staticAssetUrl';
+
 const CANONICAL_SITE_URL = 'https://www.luna29.com';
 
 const readEnvSiteUrl = (): string | null => {
@@ -56,17 +58,14 @@ export type LunaBrandUrls = {
   heroWide: string;
 };
 
-export const buildLunaBrandUrls = (baseUrl = resolveLunaAssetBaseUrl()): LunaBrandUrls => {
-  const base = baseUrl.replace(/\/$/, '');
-  return {
-    icon: `${base}${LUNA_BRAND_PATHS.icon}`,
-    iconEmail: `${base}${LUNA_BRAND_PATHS.iconEmail}`,
-    wordmark: `${base}${LUNA_BRAND_PATHS.wordmark}`,
-    lockup: `${base}${LUNA_BRAND_PATHS.lockup}`,
-    hero: `${base}${LUNA_BRAND_PATHS.hero}`,
-    heroWide: `${base}${LUNA_BRAND_PATHS.heroWide}`,
-  };
-};
+export const buildLunaBrandUrls = (baseUrl = resolveLunaAssetBaseUrl()): LunaBrandUrls => ({
+  icon: versionedAbsoluteAsset(baseUrl, LUNA_BRAND_PATHS.icon),
+  iconEmail: versionedAbsoluteAsset(baseUrl, LUNA_BRAND_PATHS.iconEmail),
+  wordmark: versionedAbsoluteAsset(baseUrl, LUNA_BRAND_PATHS.wordmark),
+  lockup: versionedAbsoluteAsset(baseUrl, LUNA_BRAND_PATHS.lockup),
+  hero: versionedAbsoluteAsset(baseUrl, LUNA_BRAND_PATHS.hero),
+  heroWide: versionedAbsoluteAsset(baseUrl, LUNA_BRAND_PATHS.heroWide),
+});
 
 export const LUNA_SITE_URL = resolveLunaSiteUrl();
 export const LUNA_BRAND_URLS = buildLunaBrandUrls();

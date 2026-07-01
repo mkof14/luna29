@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { Language, LangCopy, getLang } from '../../constants';
 import { DEFAULT_CYCLE_LENGTH } from '../../constants/appDefaults';
 import { LunaRhythmCalendar } from '../LunaRhythmCalendar';
+import { PUBLIC_PAGE_ART } from '../../utils/publicPageArt';
 import { PUBLIC_BTN_PRIMARY, PUBLIC_BTN_PRIMARY_GLOW, PUBLIC_BTN_SECONDARY } from './publicButtonStyles';
 import {
   PUBLIC_BODY,
@@ -183,7 +184,7 @@ export const PublicCalendarSection: React.FC<PublicCalendarSectionProps> = ({
             eyebrow={copy.eyebrow}
             title={copy.title}
             subtitle={copy.subtitle}
-            image="/images/heroes/cycle.webp"
+            image={PUBLIC_PAGE_ART.calendar}
             imageAlt="Rhythm calendar"
             imagePosition="center 32%"
             chip={<span className={PUBLIC_CHIP}>{copy.previewBadge}</span>}

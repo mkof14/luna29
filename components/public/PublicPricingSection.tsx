@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { PUBLIC_BTN_PRIMARY, PUBLIC_BTN_PRIMARY_GLOW, PUBLIC_BTN_SECONDARY } from './publicButtonStyles';
 import { PublicHeroBlock } from './PublicHeroBlock';
+import { PUBLIC_PAGE_ART } from '../../utils/publicPageArt';
 import {
   PUBLIC_BODY,
   PUBLIC_CARD,
@@ -103,7 +104,7 @@ export const PublicPricingSection: React.FC<PublicPricingSectionProps> = ({
             eyebrow={pricingLabel}
             title={pricingCopy.title}
             subtitle={pricingCopy.subtitle}
-            image="/images/heroes/insights_paywall.webp"
+            image={PUBLIC_PAGE_ART.pricing}
             imageAlt="Luna29 pricing"
             imagePosition="center 30%"
             caption={pricingCopy.recommended}

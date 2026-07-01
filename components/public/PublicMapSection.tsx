@@ -2,6 +2,7 @@ import React from 'react';
 import { Heart, Sparkles, Zap } from 'lucide-react';
 import { Language, LangCopy, getLang } from '../../constants';
 import { PublicHeroBlock } from './PublicHeroBlock';
+import { versionedStaticAsset } from '../../utils/staticAssetUrl';
 import {
   PUBLIC_BODY,
   PUBLIC_CARD,
@@ -99,7 +100,7 @@ export const PublicMapSection: React.FC<PublicMapSectionProps> = ({
             eyebrow={eyebrow}
             title={lunaBalanceVision.title}
             subtitle={lunaBalanceVision.subtitle}
-            image="/images/f5.webp"
+            image={versionedStaticAsset('/images/f5.webp')}
             imageAlt="Body map visual"
             imagePosition="50% 44%"
             caption={lunaBalanceVision.ending}

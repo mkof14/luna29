@@ -3,6 +3,7 @@ import { analyzeLabResults } from '../services/geminiService';
 import { dataService } from '../services/dataService';
 import { HealthEvent } from '../types';
 import { Logo } from './Logo';
+import { versionedAbsoluteAsset, versionedStaticAsset } from '../utils/staticAssetUrl';
 import { isSupportedLabFile } from '../utils/runtimeGuards';
 import { copyTextSafely, shareTextSafely } from '../utils/share';
 import { Language } from '../constants';
@@ -741,8 +742,8 @@ export const LabsView: React.FC<{ day: number; age: number; lang: Language; user
 
   const handleSampleDownload = async () => {
     const { buildLocalizedSampleReportHtml } = await import('../utils/reportSampleTemplate');
-    const logoUrl = `${window.location.origin}/images/Luna%20logo3.png`;
-    const phaseArcImageUrl = `${window.location.origin}/images/moon_phases_arc.webp`;
+    const logoUrl = versionedAbsoluteAsset(window.location.origin, '/images/Luna%20logo3.png');
+    const phaseArcImageUrl = versionedAbsoluteAsset(window.location.origin, '/images/moon_phases_arc.webp');
     const sampleRows = [
       { marker: 'Estradiol (E2)', value: '148 pg/mL', reference: '30-400', status: 'normal', category: markerCategory('Estradiol (E2)'), explanation: detailedUi.statusNormal, accent: hormoneTopic('Estradiol (E2)').accent },
       { marker: 'Progesterone', value: '8.1 ng/mL', reference: '0.2-25', status: 'normal', category: markerCategory('Progesterone'), explanation: detailedUi.statusNormal, accent: hormoneTopic('Progesterone').accent },
@@ -1163,7 +1164,7 @@ export const LabsView: React.FC<{ day: number; age: number; lang: Language; user
           <article className="rounded-[2rem] border border-slate-200/80 dark:border-slate-700/70 bg-gradient-to-br from-[#e8e6f8]/90 via-[#e7f2fb]/88 to-[#e6f7f3]/86 dark:from-[#0d1f3f]/92 dark:via-[#12294b]/90 dark:to-[#133651]/88 p-6 space-y-4 shadow-luna-rich">
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm md:text-base font-black uppercase tracking-[0.14em] text-luna-purple">{reportsUi.hormoneInfographic}</p>
-              <img src="/images/moon_phases_arc.webp" alt="Cycle visual" className="h-10 w-24 object-cover rounded-lg border border-white/60 dark:border-slate-700/60" />
+              <img src={versionedStaticAsset('/images/moon_phases_arc.webp')} alt="Cycle visual" className="h-10 w-24 object-cover rounded-lg border border-white/60 dark:border-slate-700/60" />
             </div>
             <div className="space-y-2">
               {hormoneTopicStats.length > 0 ? hormoneTopicStats.map((entry) => (
@@ -1184,7 +1185,7 @@ export const LabsView: React.FC<{ day: number; age: number; lang: Language; user
 
           <article ref={reportSectionRef} className="rounded-[2rem] border border-slate-200/80 dark:border-slate-700/70 bg-gradient-to-br from-[#f3e5f4]/95 via-[#eee8fb]/92 to-[#e3edf9]/90 dark:from-[#0d1f3f]/95 dark:via-[#132a50]/93 dark:to-[#17345f]/92 p-6 shadow-luna-rich space-y-4">
             <div className="flex items-center gap-3">
-              <img src="/images/Luna%20logo3.png" alt="Luna29 symbol" className="h-10 w-10 object-contain" />
+              <img src={versionedStaticAsset('/images/Luna%20logo3.png')} alt="Luna29 symbol" className="h-10 w-10 object-contain" />
               <div>
                 <p className="text-sm md:text-base font-black uppercase tracking-[0.14em] text-luna-purple">{reportUi.reportTitle}</p>
                 <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">{reportUi.reportSubtitle}</p>

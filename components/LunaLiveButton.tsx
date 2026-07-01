@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { versionedStaticAsset } from '../utils/staticAssetUrl';
 
 interface LunaLiveButtonProps {
   onClick: () => void;
@@ -23,7 +24,7 @@ export const LunaLiveButton: React.FC<LunaLiveButtonProps> = ({ onClick, isActiv
         <div className="relative flex items-center justify-center">
           <span className={`absolute rounded-full bg-luna-purple/25 blur-md ${isActive ? 'inset-[-10px] animate-pulse' : 'inset-[-8px] animate-pulse'}`} />
           <img
-            src="/images/luna-logo-transparent.webp"
+            src={versionedStaticAsset('/images/luna-logo-transparent.webp')}
             alt="Luna29 Live"
             className={`relative object-contain transition-transform duration-700 ${isActive ? 'h-[74px] w-[74px] md:h-[84px] md:w-[84px] scale-110' : 'h-[68px] w-[68px] md:h-[78px] md:w-[78px] group-hover:scale-110'}`}
           />

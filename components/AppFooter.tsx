@@ -4,6 +4,7 @@ import { Logo } from './Logo';
 import { LunaMenuLabel, LunaShimmerText, SmoothLangText } from './SmoothLangText';
 import { TabType } from '../utils/navigation';
 import { getMemberNavCopy } from '../utils/memberNavLabels';
+import { versionedStaticAsset } from '../utils/staticAssetUrl';
 import { Language, TranslationSchema, LangCopy, getLang } from '../constants';
 
 interface AppFooterProps {
@@ -321,7 +322,7 @@ export const AppFooter: React.FC<AppFooterProps> = ({ ui, lang, navigateTo, canA
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
           <div className="space-y-3">
             <div className="flex items-center gap-0.5 origin-left scale-[1.12]">
-              <img src="/brand/luna-lockup.png" alt="" aria-hidden="true" className="h-[4.5rem] w-auto md:h-[5.25rem] object-contain select-none pointer-events-none" />
+              <img src={versionedStaticAsset('/brand/luna-lockup.png')} alt="" aria-hidden="true" className="h-[4.5rem] w-auto md:h-[5.25rem] object-contain select-none pointer-events-none" />
               <Logo size="md" className="text-7xl leading-none" />
             </div>
             <p className="text-base font-bold text-slate-700 dark:text-slate-400 italic">{footerCopy.slogan}</p>

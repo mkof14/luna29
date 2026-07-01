@@ -3,6 +3,7 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { CyclePhase } from '../types';
 import { PHASE_INFO, LangCopy, getLang } from '../constants';
+import { versionedStaticAsset } from '../utils/staticAssetUrl';
 import { Language } from '../constants';
 import PhaseIndicator from './PhaseIndicator';
 import { JourneyProgress } from './JourneyProgress';
@@ -108,7 +109,7 @@ const CycleTimeline: React.FC<CycleTimelineProps> = ({ currentDay, onDayChange, 
               key={point}
               className="relative overflow-hidden rounded-2xl border border-slate-200/80 dark:border-slate-700/70 p-4 text-center shadow-[0_12px_28px_rgba(94,76,136,0.2)] dark:shadow-[0_10px_24px_rgba(0,0,0,0.36)]"
               style={{
-                backgroundImage: "url('/images/voice-journal-bg.webp')",
+                backgroundImage: `url('${versionedStaticAsset('/images/voice-journal-bg.webp')}')`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
               }}

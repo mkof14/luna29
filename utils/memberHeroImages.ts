@@ -1,7 +1,8 @@
 import { TabType } from '../utils/navigation';
+import { versionedStaticAsset } from './staticAssetUrl';
 
 /** Raster hero art — traditional watercolor / editorial illustrations */
-export const MEMBER_HERO_IMAGES: Partial<Record<TabType, string>> = {
+const RAW_MEMBER_HERO_IMAGES: Partial<Record<TabType, string>> = {
   today_mirror: '/images/heroes/today_mirror.webp',
   history: '/images/heroes/history.webp',
   cycle: '/images/heroes/cycle.webp',
@@ -31,7 +32,12 @@ export const MEMBER_HERO_IMAGES: Partial<Record<TabType, string>> = {
   medical: '/images/heroes/crisis.webp',
   cookies: '/images/heroes/privacy.webp',
   data_rights: '/images/heroes/privacy.webp',
-  rhythm_calendar: '/images/heroes/monthly_reflection.webp'};
+  rhythm_calendar: '/images/heroes/cycle.webp',
+};
+
+export const MEMBER_HERO_IMAGES = Object.fromEntries(
+  Object.entries(RAW_MEMBER_HERO_IMAGES).map(([tab, path]) => [tab, versionedStaticAsset(path)]),
+) as Partial<Record<TabType, string>>;
 
 export const getMemberHeroImage = (tab: TabType): string =>
-  MEMBER_HERO_IMAGES[tab] ?? '/images/heroes/dashboard.webp';
+  MEMBER_HERO_IMAGES[tab] ?? versionedStaticAsset('/images/heroes/dashboard.webp');

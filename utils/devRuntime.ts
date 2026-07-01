@@ -1,3 +1,5 @@
+declare const __LUNA_VITE_DEV__: boolean;
+
 const DEV_BOOT_RESET_KEY = 'luna_dev_boot_reset_v1';
 
 export const isLocalRuntimeHost = (): boolean => {
@@ -7,7 +9,7 @@ export const isLocalRuntimeHost = (): boolean => {
 };
 
 export const shouldBypassServiceWorker = (): boolean =>
-  import.meta.env.DEV || isLocalRuntimeHost();
+  (typeof __LUNA_VITE_DEV__ !== 'undefined' && __LUNA_VITE_DEV__) || isLocalRuntimeHost();
 
 export const purgeServiceWorkerCaches = async (): Promise<void> => {
   if (!('serviceWorker' in navigator)) return;

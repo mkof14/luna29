@@ -3,6 +3,7 @@ import { HelpCircle, MessageCircle, Shield } from 'lucide-react';
 import { Language, LangCopy, TRANSLATIONS, getLang } from '../../constants';
 import { PUBLIC_BTN_PRIMARY, PUBLIC_BTN_PRIMARY_GLOW, PUBLIC_BTN_SECONDARY } from './publicButtonStyles';
 import { PublicHeroBlock } from './PublicHeroBlock';
+import { PUBLIC_PAGE_ART } from '../../utils/publicPageArt';
 import {
   PUBLIC_BODY,
   PUBLIC_CARD,
@@ -92,7 +93,7 @@ export const PublicBridgeSection: React.FC<PublicBridgeSectionProps> = ({ onSign
           <PublicHeroBlock
             eyebrow={bridgePublic.eyebrow}
             title={bridgePublic.title}
-            image="/images/heroes/bridge.webp"
+            image={PUBLIC_PAGE_ART.bridge}
             imageAlt="The Bridge"
             imagePosition="50% 38%"
           />

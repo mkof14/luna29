@@ -1,4 +1,6 @@
 import { DetailedReportTemplateInput } from './reportHtmlTemplate';
+import { LUNA_BRAND_PATHS } from './lunaBrandAssets';
+import { versionedAbsoluteAsset } from './staticAssetUrl';
 
 type MarkerStatus = 'low' | 'normal' | 'high' | 'unknown';
 
@@ -157,9 +159,9 @@ export const buildDetailedReportPayload = (input: BuildDetailedReportPayloadInpu
 
   const origin =
     reportOrigin || (typeof window !== 'undefined' && window.location?.origin ? window.location.origin : 'https://luna.local');
-  const logoUrl = `${origin}/brand/luna-lockup.png`;
-  const signatureLogoUrl = `${origin}/images/Luna%20L%2044.png`;
-  const phaseArcImageUrl = `${origin}/images/moon_phases_arc.webp`;
+  const logoUrl = versionedAbsoluteAsset(origin, LUNA_BRAND_PATHS.lockup);
+  const signatureLogoUrl = versionedAbsoluteAsset(origin, '/images/Luna%20L%2044.png');
+  const phaseArcImageUrl = versionedAbsoluteAsset(origin, '/images/moon_phases_arc.webp');
   const totals = parsedValues.reduce(
     (acc, item) => {
       const status = inferStatus(item.value, item.referenceMin, item.referenceMax);

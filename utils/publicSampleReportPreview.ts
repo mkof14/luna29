@@ -1,6 +1,8 @@
 import { Language } from '../constants';
 import { getLabsViewLocalizedContent } from './labsViewContent';
 import { buildLocalizedSampleReportHtml } from './reportSampleTemplate';
+import { LUNA_BRAND_PATHS } from './lunaBrandAssets';
+import { versionedAbsoluteAsset } from './staticAssetUrl';
 
 const SAMPLE_ACCENTS = ['#7c3aed', '#db2777', '#ea580c', '#0891b2'];
 
@@ -39,8 +41,8 @@ export async function buildPublicSampleReportHtml(lang: Language): Promise<strin
   ];
 
   return buildLocalizedSampleReportHtml({
-    logoUrl: `${origin}/brand/luna-lockup.png`,
-    phaseArcImageUrl: `${origin}/images/moon_phases_arc.webp`,
+    logoUrl: versionedAbsoluteAsset(origin, LUNA_BRAND_PATHS.lockup),
+    phaseArcImageUrl: versionedAbsoluteAsset(origin, '/images/moon_phases_arc.webp'),
     reportTitle: reportUi.reportTitle,
     sampleTitle: reportUi.sampleTitle,
     subtitle: detailedUi.subtitle,

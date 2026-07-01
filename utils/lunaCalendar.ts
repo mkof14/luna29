@@ -1,5 +1,6 @@
 import { CyclePhase, HealthEvent } from '../types';
 import { getCyclePhaseByDay } from './cycle';
+import { versionedStaticAsset } from './staticAssetUrl';
 
 export type CalendarDayMarker = {
   checkin: boolean;
@@ -63,7 +64,7 @@ const MONTH_HERO_IMAGES = [
 ] as const;
 
 export const getCalendarMonthHeroImage = (month: number): string =>
-  MONTH_HERO_IMAGES[month % MONTH_HERO_IMAGES.length];
+  versionedStaticAsset(MONTH_HERO_IMAGES[month % MONTH_HERO_IMAGES.length]);
 
 const pad = (n: number) => String(n).padStart(2, '0');
 

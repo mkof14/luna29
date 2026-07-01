@@ -1,3 +1,5 @@
+import { versionedStaticAsset } from './staticAssetUrl';
+
 export type PublicArtPage =
   | 'home'
   | 'map'
@@ -16,11 +18,10 @@ export type PublicArtPage =
   | 'calendar';
 
 /** Main public landing hero — watercolor studio with moon & peonies. */
-export const PUBLIC_HOME_ART = '/images/public-home-hero.png';
+export const PUBLIC_HOME_ART = versionedStaticAsset('/images/public-home-hero.png');
 
-/** Quiet watercolor backgrounds — reuses member hero art at low opacity. */
-export const PUBLIC_PAGE_ART: Record<PublicArtPage, string> = {
-  home: PUBLIC_HOME_ART,
+const RAW_PUBLIC_PAGE_ART: Record<PublicArtPage, string> = {
+  home: '/images/public-home-hero.png',
   map: '/images/heroes/cycle.webp',
   ritual: '/images/heroes/my_day.webp',
   bridge: '/images/heroes/bridge.webp',
@@ -34,4 +35,10 @@ export const PUBLIC_PAGE_ART: Record<PublicArtPage, string> = {
   medical: '/images/heroes/crisis.webp',
   cookies: '/images/heroes/privacy.webp',
   data_rights: '/images/heroes/privacy.webp',
-  calendar: '/images/heroes/monthly_reflection.webp'};
+  calendar: '/images/heroes/monthly_reflection.webp',
+};
+
+/** Quiet watercolor backgrounds — reuses member hero art at low opacity. */
+export const PUBLIC_PAGE_ART = Object.fromEntries(
+  Object.entries(RAW_PUBLIC_PAGE_ART).map(([page, path]) => [page, versionedStaticAsset(path)]),
+) as Record<PublicArtPage, string>;

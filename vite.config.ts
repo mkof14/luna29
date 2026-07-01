@@ -10,8 +10,13 @@ export default defineConfig(({ mode }) => {
   define: {
     __LUNA_SENTRY_DSN__: JSON.stringify(process.env.VITE_SENTRY_DSN || ''),
     __LUNA_SENTRY_ENV__: JSON.stringify(process.env.VITE_SENTRY_ENV || ''),
-    __LUNA_APP_RELEASE__: JSON.stringify(process.env.VITE_APP_RELEASE || ''),
+    __LUNA_APP_RELEASE__: JSON.stringify(
+      process.env.VITE_APP_RELEASE ||
+        process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 8) ||
+        'hero2',
+    ),
     __LUNA_GA4_ID__: JSON.stringify(process.env.VITE_GA4_MEASUREMENT_ID || ''),
+    __LUNA_VITE_DEV__: JSON.stringify(mode === 'development'),
   },
   plugins: [
     react(),

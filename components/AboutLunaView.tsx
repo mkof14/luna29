@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Language, LangCopy, getLang } from '../constants';
+import { versionedStaticAsset } from '../utils/staticAssetUrl';
 
 interface AboutLunaViewProps {
   lang: Language;
@@ -76,7 +77,7 @@ export const AboutLunaView: React.FC<AboutLunaViewProps> = ({ lang, mode = 'publ
         <article className="lg:col-span-2 rounded-[2.8rem] border border-slate-300/75 dark:border-slate-800/90 overflow-hidden bg-gradient-to-br from-slate-200/95 via-slate-100/95 to-sky-100/70 dark:bg-[#050b1a] p-4 md:p-5 shadow-[0_18px_46px_rgba(71,85,105,0.2)] dark:shadow-[0_22px_60px_rgba(2,6,23,0.75)]">
           <div className="relative rounded-[2rem] overflow-hidden mx-auto w-full max-w-[360px]">
             <img
-              src="/images/Luna%20L%2044.png"
+              src={versionedStaticAsset('/images/Luna%20L%2044.png')}
               alt="Luna29 L 44"
               className="w-full h-auto object-cover"
             />
@@ -128,7 +129,7 @@ export const AboutLunaView: React.FC<AboutLunaViewProps> = ({ lang, mode = 'publ
           <aside className="lg:col-span-2 rounded-[2.5rem] border border-slate-200/80 dark:border-slate-700/80 luna-vivid-card-alt-4 p-3 md:p-4 shadow-[0_14px_42px_rgba(74,58,116,0.16),0_5px_16px_rgba(71,126,143,0.14),inset_0_1px_0_rgba(255,255,255,0.45)] space-y-3">
             <div className="relative z-10 h-64 md:h-[22rem] rounded-[2.2rem] overflow-hidden border border-transparent bg-transparent">
               <img
-                src="/images/window_reflection_portrait.webp"
+                src={versionedStaticAsset('/images/window_reflection_portrait.webp')}
                 alt="Luna29 Reflection Portrait"
                 className="absolute -top-8 inset-x-0 h-[calc(100%+2rem)] w-full object-cover"
                 style={{ objectPosition: '50% 28%' }}

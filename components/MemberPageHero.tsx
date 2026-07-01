@@ -1,9 +1,9 @@
 import React from 'react';
 import { Language, TranslationSchema, LangCopy, getLang } from '../constants';
 import { TabType } from '../utils/navigation';
+import { getMemberHeroImage } from '../utils/memberHeroImages';
 
 type HeroConfig = {
-  image: string;
   title: string;
   subtitle?: string;
   description?: string;
@@ -402,45 +402,46 @@ export const MemberPageHero: React.FC<{
   const descriptions = getLang(descriptionByLang, lang) || descriptionByLang.en;
 
   const configs: Record<TabType, HeroConfig> = {
-    dashboard: { image: '/images/luna_banner_1.jpg', title: ui.navigation.home || 'Home', subtitle, description: descriptions[descriptionKeyByTab.dashboard] },
-    today_mirror: { image: '/images/luna_banner_1.jpg', title: 'Today', subtitle, description: descriptions[descriptionKeyByTab.today_mirror] },
-    my_day: { image: '/images/luna_banner_1.jpg', title: 'My Day with Luna29', subtitle, description: descriptions[descriptionKeyByTab.my_day] },
-    monthly_reflection: { image: '/images/luna_banner_1.jpg', title: 'Your month with Luna29', subtitle, description: descriptions[descriptionKeyByTab.monthly_reflection] },
-    rhythm_calendar: { image: '/images/heroes/cycle.webp', title: 'Rhythm Calendar', subtitle, description: descriptions[descriptionKeyByTab.rhythm_calendar] },
-    insights_paywall: { image: '/images/luna_banner_1.jpg', title: 'Unlock Insights', subtitle, description: descriptions[descriptionKeyByTab.insights_paywall] },
-    about: { image: '/images/Luna L 44.png', title: legal.about, subtitle, description: descriptions[descriptionKeyByTab.about] },
-    cycle: { image: '/images/luna_banner_10.jpg', title: ui.navigation.cycle || 'Luna29 Balance', subtitle, description: descriptions[descriptionKeyByTab.cycle] },
-    labs: { image: '/images/luna_banner_5.jpg', title: ui.navigation.labs || 'Labs', subtitle, description: descriptions[descriptionKeyByTab.labs] },
-    history: { image: '/images/luna_banner_11.jpg', title: ui.navigation.history || 'History', subtitle, description: descriptions[descriptionKeyByTab.history] },
-    creative: { image: '/images/crescent_moon_mist.webp', title: ui.navigation.creative || 'Create', subtitle, description: descriptions[descriptionKeyByTab.creative] },
-    profile: { image: '/images/portrait_collection.webp', title: ui.navigation.profile || 'Profile', subtitle, description: descriptions[descriptionKeyByTab.profile] },
-    privacy: { image: '/images/window_reflection_portrait.webp', title: 'Privacy', subtitle, description: descriptions[descriptionKeyByTab.privacy] },
-    bridge: { image: '/images/luna_banner_6.jpg', title: ui.navigation.bridge || 'The Bridge', subtitle, description: descriptions[descriptionKeyByTab.bridge] },
-    family: { image: '/images/luna_banner_12.jpg', title: ui.navigation.family || 'Relationships', subtitle, description: descriptions[descriptionKeyByTab.family] },
-    reflections: { image: '/images/luna_banner_3.jpg', title: ui.navigation.reflections || 'Voice Note', subtitle, description: descriptions[descriptionKeyByTab.reflections] },
-    voice_files: { image: '/images/luna_banner_4.jpg', title: ui.navigation.voiceFiles || 'My Voice Files', subtitle, description: descriptions[descriptionKeyByTab.voice_files] },
-    library: { image: '/images/crescent_moon_mist.webp', title: ui.navigation.library || 'Knowledge', subtitle, description: descriptions[descriptionKeyByTab.library] },
-    faq: { image: '/images/moon_phases_arc.webp', title: ui.navigation.faq || 'Questions', subtitle, description: descriptions[descriptionKeyByTab.faq] },
-    contact: { image: '/images/luna_banner_9.jpg', title: ui.navigation.contact || 'Contact', subtitle, description: descriptions[descriptionKeyByTab.contact], objectPositionClass: 'object-[44%_center]' },
-    meds: { image: '/images/luna_banner_9.jpg', title: ui.navigation.meds || 'Medications', subtitle, description: descriptions[descriptionKeyByTab.meds], objectPositionClass: 'object-[44%_center]' },
-    crisis: { image: '/images/luna_banner_13.jpg', title: ui.navigation.crisis || 'Reset Room', subtitle, description: descriptions[descriptionKeyByTab.crisis] },
-    partner_faq: { image: '/images/couple_conversation.webp', title: ui.navigation.partner || 'PARTNER FAQ', subtitle, description: descriptions[descriptionKeyByTab.partner_faq] },
-    relationships: { image: '/images/luna_banner_14.jpg', title: 'Relationships', subtitle, description: descriptions[descriptionKeyByTab.relationships], objectPositionClass: 'object-[center_38%]' },
-    admin: { image: '/images/Luna logo3.png', title: ui.navigation.admin || 'Admin', subtitle, description: descriptions[descriptionKeyByTab.admin] },
-    how_it_works: { image: '/images/portrait_collection.webp', title: legal.how_it_works, subtitle, description: descriptions[descriptionKeyByTab.how_it_works] },
-    terms: { image: '/images/night_window_portrait.webp', title: legal.terms, subtitle, description: descriptions[descriptionKeyByTab.terms] },
-    medical: { image: '/images/night_window_portrait.webp', title: legal.medical, subtitle, description: descriptions[descriptionKeyByTab.medical] },
-    cookies: { image: '/images/night_window_portrait.webp', title: legal.cookies, subtitle, description: descriptions[descriptionKeyByTab.cookies] },
-    data_rights: { image: '/images/night_window_portrait.webp', title: legal.data_rights, subtitle, description: descriptions[descriptionKeyByTab.data_rights] },
+    dashboard: { title: ui.navigation.home || 'Home', subtitle, description: descriptions[descriptionKeyByTab.dashboard] },
+    today_mirror: { title: 'Today', subtitle, description: descriptions[descriptionKeyByTab.today_mirror] },
+    my_day: { title: 'My Day with Luna29', subtitle, description: descriptions[descriptionKeyByTab.my_day] },
+    monthly_reflection: { title: 'Your month with Luna29', subtitle, description: descriptions[descriptionKeyByTab.monthly_reflection] },
+    rhythm_calendar: { title: 'Rhythm Calendar', subtitle, description: descriptions[descriptionKeyByTab.rhythm_calendar] },
+    insights_paywall: { title: 'Unlock Insights', subtitle, description: descriptions[descriptionKeyByTab.insights_paywall] },
+    about: { title: legal.about, subtitle, description: descriptions[descriptionKeyByTab.about] },
+    cycle: { title: ui.navigation.cycle || 'Luna29 Balance', subtitle, description: descriptions[descriptionKeyByTab.cycle] },
+    labs: { title: ui.navigation.labs || 'Labs', subtitle, description: descriptions[descriptionKeyByTab.labs] },
+    history: { title: ui.navigation.history || 'History', subtitle, description: descriptions[descriptionKeyByTab.history] },
+    creative: { title: ui.navigation.creative || 'Create', subtitle, description: descriptions[descriptionKeyByTab.creative] },
+    profile: { title: ui.navigation.profile || 'Profile', subtitle, description: descriptions[descriptionKeyByTab.profile] },
+    privacy: { title: 'Privacy', subtitle, description: descriptions[descriptionKeyByTab.privacy] },
+    bridge: { title: ui.navigation.bridge || 'The Bridge', subtitle, description: descriptions[descriptionKeyByTab.bridge] },
+    family: { title: ui.navigation.family || 'Relationships', subtitle, description: descriptions[descriptionKeyByTab.family] },
+    reflections: { title: ui.navigation.reflections || 'Voice Note', subtitle, description: descriptions[descriptionKeyByTab.reflections] },
+    voice_files: { title: ui.navigation.voiceFiles || 'My Voice Files', subtitle, description: descriptions[descriptionKeyByTab.voice_files] },
+    library: { title: ui.navigation.library || 'Knowledge', subtitle, description: descriptions[descriptionKeyByTab.library] },
+    faq: { title: ui.navigation.faq || 'Questions', subtitle, description: descriptions[descriptionKeyByTab.faq] },
+    contact: { title: ui.navigation.contact || 'Contact', subtitle, description: descriptions[descriptionKeyByTab.contact], objectPositionClass: 'object-[44%_center]' },
+    meds: { title: ui.navigation.meds || 'Medications', subtitle, description: descriptions[descriptionKeyByTab.meds], objectPositionClass: 'object-[44%_center]' },
+    crisis: { title: ui.navigation.crisis || 'Reset Room', subtitle, description: descriptions[descriptionKeyByTab.crisis] },
+    partner_faq: { title: ui.navigation.partner || 'PARTNER FAQ', subtitle, description: descriptions[descriptionKeyByTab.partner_faq] },
+    relationships: { title: 'Relationships', subtitle, description: descriptions[descriptionKeyByTab.relationships], objectPositionClass: 'object-[center_38%]' },
+    admin: { title: ui.navigation.admin || 'Admin', subtitle, description: descriptions[descriptionKeyByTab.admin] },
+    how_it_works: { title: legal.how_it_works, subtitle, description: descriptions[descriptionKeyByTab.how_it_works] },
+    terms: { title: legal.terms, subtitle, description: descriptions[descriptionKeyByTab.terms] },
+    medical: { title: legal.medical, subtitle, description: descriptions[descriptionKeyByTab.medical] },
+    cookies: { title: legal.cookies, subtitle, description: descriptions[descriptionKeyByTab.cookies] },
+    data_rights: { title: legal.data_rights, subtitle, description: descriptions[descriptionKeyByTab.data_rights] },
   };
 
   const config = configs[activeTab];
+  const heroImage = getMemberHeroImage(activeTab);
 
   return (
     <section className="mb-8 md:mb-10 rounded-[2.5rem] border border-slate-200/70 dark:border-slate-700/70 overflow-hidden shadow-[0_30px_75px_rgba(71,62,105,0.22)] dark:shadow-[0_34px_84px_rgba(0,0,0,0.58)] relative">
       <div className="absolute inset-0 bg-slate-100 dark:bg-[#071631]" />
       <img
-        src={config.image}
+        src={heroImage}
         alt={config.title}
         className={`relative z-10 h-[230px] md:h-[260px] object-cover w-[calc(100%+3mm)] max-w-none -translate-x-[3mm] ${config.objectPositionClass || 'object-center'} [mask-image:linear-gradient(to_bottom,black_0%,black_78%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_0%,black_78%,transparent_100%)]`}
       />
