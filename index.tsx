@@ -3,6 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './styles.css';
+import { isLocalRuntimeHost, prepareLocalDevRuntime, purgeServiceWorkerCaches, shouldBypassServiceWorker } from './utils/devRuntime';
 
 class RootErrorBoundary extends React.Component<{ children: React.ReactNode }, { error: Error | null }> {
   constructor(props: { children: React.ReactNode }) {
@@ -42,8 +43,6 @@ const applyInitialTheme = () => {
   document.documentElement.classList.toggle('dark', saved === 'dark');
 };
 
-applyInitialTheme();
-
 const setMobileAppViewport = () => {
   const vh = window.innerHeight * 0.01;
   document.documentElement.style.setProperty('--app-vh', `${vh}px`);
@@ -59,51 +58,60 @@ const applyStandaloneClass = () => {
   document.documentElement.classList.toggle('luna-standalone', standalone);
 };
 
-setMobileAppViewport();
-applyStandaloneClass();
-window.addEventListener('resize', setMobileAppViewport, { passive: true });
-window.addEventListener('orientationchange', setMobileAppViewport, { passive: true });
+const mountApp = () => {
+  applyInitialTheme();
+  setMobileAppViewport();
+  applyStandaloneClass();
+  window.addEventListener('resize', setMobileAppViewport, { passive: true });
+  window.addEventListener('orientationchange', setMobileAppViewport, { passive: true });
 
-const rootElement = document.getElementById('root');
-if (!rootElement) {
-  throw new Error("Could not find root element to mount to");
-}
-
-const root = ReactDOM.createRoot(rootElement);
-root.render(
-  <React.StrictMode>
-    <RootErrorBoundary>
-      <App />
-    </RootErrorBoundary>
-  </React.StrictMode>
-);
-
-if ('serviceWorker' in navigator) {
-  if (import.meta.env.DEV) {
-    navigator.serviceWorker.getRegistrations().then((regs) => {
-      regs.forEach((reg) => reg.unregister());
-    });
-    if ('caches' in window) {
-      caches.keys().then((keys) => Promise.all(keys.map((key) => caches.delete(key)))).catch(() => undefined);
-    }
-  } else {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker
-        .register('/sw.js')
-        .then((registration) => {
-          registration.update().catch(() => undefined);
-          registration.addEventListener('updatefound', () => {
-            const worker = registration.installing;
-            if (!worker) return;
-            worker.addEventListener('statechange', () => {
-              if (worker.state !== 'installed') return;
-              if (!navigator.serviceWorker.controller) return;
-              worker.postMessage({ type: 'SKIP_WAITING' });
-              window.location.reload();
-            });
-          });
-        })
-        .catch(() => undefined);
-    });
+  const rootElement = document.getElementById('root');
+  if (!rootElement) {
+    throw new Error('Could not find root element to mount to');
   }
-}
+
+  const root = ReactDOM.createRoot(rootElement);
+  root.render(
+    <React.StrictMode>
+      <RootErrorBoundary>
+        <App />
+      </RootErrorBoundary>
+    </React.StrictMode>
+  );
+};
+
+const bootstrap = async () => {
+  const bootState = await prepareLocalDevRuntime();
+  if (bootState === 'reloading') return;
+
+  mountApp();
+
+  if ('serviceWorker' in navigator) {
+    if (shouldBypassServiceWorker()) {
+      window.addEventListener('load', () => {
+        purgeServiceWorkerCaches().catch(() => undefined);
+      });
+    } else {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker
+          .register('/sw.js')
+          .then((registration) => {
+            registration.update().catch(() => undefined);
+            registration.addEventListener('updatefound', () => {
+              const worker = registration.installing;
+              if (!worker) return;
+              worker.addEventListener('statechange', () => {
+                if (worker.state !== 'installed') return;
+                if (!navigator.serviceWorker.controller) return;
+                worker.postMessage({ type: 'SKIP_WAITING' });
+                window.location.reload();
+              });
+            });
+          })
+          .catch(() => undefined);
+      });
+    }
+  }
+};
+
+void bootstrap();

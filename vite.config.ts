@@ -21,6 +21,15 @@ export default defineConfig(({ mode }) => {
         return html.replaceAll('__SITE_URL__', siteUrl);
       },
     },
+    {
+      name: 'luna-dev-no-store',
+      configureServer(server) {
+        server.middlewares.use((_req, res, next) => {
+          res.setHeader('Cache-Control', 'no-store');
+          next();
+        });
+      },
+    },
   ],
   build: {
     outDir: 'dist',
@@ -44,6 +53,11 @@ export default defineConfig(({ mode }) => {
   },
   server: {
     port: 3000,
+    strictPort: true,
+    host: 'localhost',
+    headers: {
+      'Cache-Control': 'no-store',
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:8787',

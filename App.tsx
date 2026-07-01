@@ -22,6 +22,7 @@ import { useCalendarReminderLoop } from './hooks/useCalendarReminders';
 import { InstallAppPrompt } from './components/InstallAppPrompt';
 import { StandaloneWelcomeOverlay } from './components/StandaloneWelcomeOverlay';
 import { StandaloneLaunchSplash } from './components/StandaloneLaunchSplash';
+import { DevRuntimeBadge } from './components/DevRuntimeBadge';
 
 // SHARED COMPONENTS
 import { LunaLiveButton } from './components/LunaLiveButton';
@@ -280,6 +281,7 @@ const App: React.FC = () => {
             }}
           />
         </Suspense>
+        <DevRuntimeBadge />
       </div>
     );
   }
@@ -379,6 +381,7 @@ const App: React.FC = () => {
       <StandaloneWelcomeOverlay lang={lang} />
       <InstallAppPrompt lang={lang} />
       <PrivacyControls lang={lang} isAuthenticated />
+      <DevRuntimeBadge />
     </div>
   );
 };

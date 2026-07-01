@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "dev:full": "node --env-file-if-exists=.env.local server/index.mjs & vite",
+    "dev:local": "node scripts/dev-local.mjs",
     "api": "node --env-file-if-exists=.env.local server/index.mjs",
     "build": "node scripts/generate-seo-assets.mjs && tsc && vite build && node scripts/prerender-public.mjs",
     "prerender": "node scripts/prerender-public.mjs",
