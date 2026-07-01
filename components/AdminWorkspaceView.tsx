@@ -7,21 +7,6 @@ import { AdminWorkspaceTab } from '../utils/adminWorkspaceI18n';
 
 const AdminPanelView = lazy(() => import('./AdminPanelView').then((m) => ({ default: m.AdminPanelView })));
 
-const SECTION_TARGETS: Record<AdminWorkspaceTab, string> = {
-  overview: 'admin-section-overview',
-  services: 'admin-section-services',
-  integrations: 'admin-section-integrations',
-  analytics: 'admin-section-analytics',
-  finance: 'admin-section-finance',
-  mail: 'admin-section-mail',
-  campaigns: 'admin-section-campaigns',
-  templates: 'admin-section-templates',
-  team: 'admin-section-team',
-  contacts: 'admin-section-contacts',
-  audit: 'admin-section-audit',
-  settings: 'admin-section-settings',
-};
-
 const roleOptions: AdminRole[] = ['viewer', 'operator', 'content_manager', 'finance_manager', 'super_admin'];
 
 type AdminWorkspaceViewProps = {
@@ -62,8 +47,8 @@ export const AdminWorkspaceView: React.FC<AdminWorkspaceViewProps> = ({
   }, [lang]);
 
   useEffect(() => {
-    const el = document.getElementById(SECTION_TARGETS[activeTab]);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (typeof window === 'undefined') return;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [activeTab]);
 
   return (
@@ -82,6 +67,7 @@ export const AdminWorkspaceView: React.FC<AdminWorkspaceViewProps> = ({
       <Suspense fallback={<div className="py-24 text-center text-xs font-bold uppercase tracking-widest text-slate-500">Loading…</div>}>
         <AdminPanelView
           embedded
+          activeSection={activeTab}
           lang={lang}
           session={session}
           onBack={onBack}

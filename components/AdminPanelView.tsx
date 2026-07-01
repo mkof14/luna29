@@ -6,6 +6,9 @@ import { copyTextSafely, shareTextSafely } from '../utils/share';
 import { adminService } from '../services/adminService';
 import { getAdminPanelLabels } from '../utils/adminPanelLabels';
 import { AdminAnalyticsPanel } from './admin/AdminAnalyticsPanel';
+import { useAdminThemeOptional } from './admin/AdminThemeContext';
+import { adminCard } from './admin/adminStyles';
+import { AdminWorkspaceTab } from '../utils/adminWorkspaceI18n';
 
 interface AdminPanelViewProps {
   session: AuthSession | null;
@@ -14,6 +17,7 @@ interface AdminPanelViewProps {
   onLogout: () => void;
   onRoleChange: (role: AdminRole) => void;
   embedded?: boolean;
+  activeSection?: AdminWorkspaceTab;
   onFeedback?: (message: string | null) => void;
 }
 
@@ -946,6 +950,7 @@ export const AdminPanelView: React.FC<AdminPanelViewProps> = ({
   onLogout,
   onRoleChange,
   embedded = false,
+  activeSection = 'overview',
   onFeedback,
 }) => {
   const labels = getAdminPanelLabels(lang);
@@ -1845,8 +1850,18 @@ export const AdminPanelView: React.FC<AdminPanelViewProps> = ({
     setActionFeedback('Archive completed. Storage usage optimized.');
   };
 
+  const adminTheme = useAdminThemeOptional();
+  const adminMode = adminTheme?.mode ?? 'dark';
+  const memberPanelCard =
+    'space-y-4 p-8 rounded-[2.5rem] bg-white/75 dark:bg-[#111c33]/72 backdrop-blur-xl border border-white/60 dark:border-white/12 shadow-luna-rich';
+  const memberPanelCardSpacious =
+    'space-y-5 p-8 rounded-[2.5rem] bg-white/75 dark:bg-[#111c33]/72 backdrop-blur-xl border border-white/60 dark:border-white/12 shadow-luna-rich';
+  const panelCard = embedded ? `space-y-4 p-8 ${adminCard(adminMode)}` : memberPanelCard;
+  const panelCardSpacious = embedded ? `space-y-5 p-8 ${adminCard(adminMode)}` : memberPanelCardSpacious;
+  const showSection = (tab: AdminWorkspaceTab) => !embedded || activeSection === tab;
+
   return (
-    <article className={`${embedded ? 'space-y-10 pb-16' : 'max-w-7xl mx-auto space-y-12 pb-40'} animate-in fade-in duration-700`}>
+    <article className={`${embedded ? 'space-y-6 pb-8' : 'max-w-7xl mx-auto space-y-12 pb-40'} animate-in fade-in duration-700`}>
       {!embedded ? (
       <header className="p-8 md:p-12 rounded-[3rem] bg-white/75 dark:bg-[#111c33]/72 backdrop-blur-xl border border-white/60 dark:border-white/12 shadow-[0_26px_80px_rgba(17,24,39,0.16)] dark:shadow-[0_28px_80px_rgba(2,6,23,0.55)] space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -1874,6 +1889,7 @@ export const AdminPanelView: React.FC<AdminPanelViewProps> = ({
       </header>
       ) : null}
 
+      {showSection('overview') && (
       <section id="admin-section-overview" className="scroll-mt-28 grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="p-6 rounded-[2rem] bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200/60 dark:border-emerald-700/30">
           <p className="text-[10px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-300">{statusLabels.Healthy}</p>
@@ -1888,9 +1904,11 @@ export const AdminPanelView: React.FC<AdminPanelViewProps> = ({
           <p className="text-4xl font-black text-rose-900 dark:text-rose-100">{totals.down}</p>
         </div>
       </section>
+      )}
 
-      <section className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-        <div className="space-y-4 p-8 rounded-[2.5rem] bg-white/75 dark:bg-[#111c33]/72 backdrop-blur-xl border border-white/60 dark:border-white/12 shadow-luna-rich">
+      {showSection('integrations') && (
+      <section id="admin-section-integrations" className="scroll-mt-28 grid grid-cols-1 xl:grid-cols-2 gap-8">
+        <div className={panelCard}>
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-xl font-black uppercase tracking-wider">{channelsCopy.socialTitle}</h2>
             <span className="px-3 py-2 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-300">
@@ -1986,8 +2004,11 @@ export const AdminPanelView: React.FC<AdminPanelViewProps> = ({
             ))}
           </div>
         </div>
+      </section>
+      )}
 
-        <div className="space-y-4 p-8 rounded-[2.5rem] bg-white/75 dark:bg-[#111c33]/72 backdrop-blur-xl border border-white/60 dark:border-white/12 shadow-luna-rich">
+      {showSection('mail') && (
+        <div id="admin-section-mail" className={`scroll-mt-28 ${panelCard}`}>
           <h2 className="text-xl font-black uppercase tracking-wider">{channelsCopy.emailTitle}</h2>
           <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">{channelsCopy.emailHint}</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -2057,12 +2078,17 @@ export const AdminPanelView: React.FC<AdminPanelViewProps> = ({
             <p className="text-xs text-slate-500">Delivery quality visualization based on open rate and bounce trends.</p>
           </div>
         </div>
-      </section>
+      )}
 
+      {showSection('analytics') && (
+      <div id="admin-section-analytics" className="scroll-mt-28">
       <AdminAnalyticsPanel lang={lang} onFeedback={setActionFeedback} />
+      </div>
+      )}
 
-      <section className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-        <div className="space-y-4 p-8 rounded-[2.5rem] bg-white/75 dark:bg-[#111c33]/72 backdrop-blur-xl border border-white/60 dark:border-white/12 shadow-luna-rich">
+      {showSection('settings') && (
+      <section id="admin-section-settings" className="scroll-mt-28 grid grid-cols-1 xl:grid-cols-2 gap-8">
+        <div className={panelCard}>
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-xl font-black uppercase tracking-wider">{adminUi.storageTitle}</h2>
             <span className="px-3 py-2 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-300">
@@ -2123,7 +2149,7 @@ export const AdminPanelView: React.FC<AdminPanelViewProps> = ({
           </div>
         </div>
 
-        <div className="space-y-4 p-8 rounded-[2.5rem] bg-white/75 dark:bg-[#111c33]/72 backdrop-blur-xl border border-white/60 dark:border-white/12 shadow-luna-rich">
+        <div className={panelCard}>
           <h2 className="text-xl font-black uppercase tracking-wider">Live Operations</h2>
           <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">Run quick actions to keep admin services responsive and clean.</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -2172,9 +2198,11 @@ export const AdminPanelView: React.FC<AdminPanelViewProps> = ({
           </div>
         </div>
       </section>
+      )}
 
-      <section className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-        <div className="space-y-4 p-8 rounded-[2.5rem] bg-white/75 dark:bg-[#111c33]/72 backdrop-blur-xl border border-white/60 dark:border-white/12 shadow-luna-rich">
+      {showSection('services') && (
+      <section id="admin-section-services" className="scroll-mt-28 grid grid-cols-1 xl:grid-cols-2 gap-8">
+        <div className={panelCard}>
           <h2 className="text-xl font-black uppercase tracking-wider">Service Health</h2>
           <div className="space-y-3">
             {services.map((service) => (
@@ -2196,8 +2224,11 @@ export const AdminPanelView: React.FC<AdminPanelViewProps> = ({
             ))}
           </div>
         </div>
+      </section>
+      )}
 
-        <div className="space-y-4 p-8 rounded-[2.5rem] bg-white/75 dark:bg-[#111c33]/72 backdrop-blur-xl border border-white/60 dark:border-white/12 shadow-luna-rich">
+      {showSection('campaigns') && (
+        <div id="admin-section-campaigns" className={`scroll-mt-28 ${panelCard}`}>
           <h2 className="text-xl font-black uppercase tracking-wider">Content Flow</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <input
@@ -2260,10 +2291,11 @@ export const AdminPanelView: React.FC<AdminPanelViewProps> = ({
             })}
           </div>
         </div>
-      </section>
+      )}
 
-      <section className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-        <div className="space-y-4 p-8 rounded-[2.5rem] bg-white/75 dark:bg-[#111c33]/72 backdrop-blur-xl border border-white/60 dark:border-white/12 shadow-luna-rich">
+      {showSection('templates') && (
+      <section id="admin-section-templates" className="scroll-mt-28 grid grid-cols-1 xl:grid-cols-2 gap-8">
+        <div className={panelCard}>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-xl font-black uppercase tracking-wider">Message Templates</h2>
             <button
@@ -2411,8 +2443,11 @@ export const AdminPanelView: React.FC<AdminPanelViewProps> = ({
             })}
           </div>
         </div>
+      </section>
+      )}
 
-        <div className="space-y-5 p-8 rounded-[2.5rem] bg-white/75 dark:bg-[#111c33]/72 backdrop-blur-xl border border-white/60 dark:border-white/12 shadow-luna-rich">
+      {showSection('team') && (
+        <div id="admin-section-team" className={`scroll-mt-28 ${panelCardSpacious}`}>
           <h2 className="text-xl font-black uppercase tracking-wider">{adminUi.inviteTitle}</h2>
           <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">{adminUi.inviteHint}</p>
           <div className="grid grid-cols-1 md:grid-cols-[1fr_220px_auto] gap-3">
@@ -2480,7 +2515,11 @@ export const AdminPanelView: React.FC<AdminPanelViewProps> = ({
               </div>
             ))}
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+        </div>
+      )}
+
+      {showSection('contacts') && (
+          <div id="admin-section-contacts" className="scroll-mt-28 grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/50">
               <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">{adminUi.usersTotal}</p>
               <p className="text-2xl font-black text-slate-800 dark:text-slate-100">{userStats.totalUsers.toLocaleString()}</p>
@@ -2494,10 +2533,10 @@ export const AdminPanelView: React.FC<AdminPanelViewProps> = ({
               <p className="text-2xl font-black text-slate-800 dark:text-slate-100">{userStats.new7d.toLocaleString()}</p>
             </div>
           </div>
-        </div>
-      </section>
+      )}
 
-      <section className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+      {showSection('finance') && (
+      <section id="admin-section-finance" className="scroll-mt-28 grid grid-cols-1 xl:grid-cols-2 gap-8">
         <div className="space-y-5 p-8 rounded-[2.5rem] bg-[#15182a] text-white border border-white/12 shadow-luna-deep">
           <h2 className="text-xl font-black uppercase tracking-wider">{adminUi.siteStatsTitle}</h2>
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
@@ -2544,8 +2583,11 @@ export const AdminPanelView: React.FC<AdminPanelViewProps> = ({
             <div className="p-4 rounded-2xl bg-white/5 border border-white/10"><p className="text-[10px] uppercase tracking-widest opacity-60">Trial to Paid</p><p className="text-2xl font-black">{financialMetrics.trialToPaid}%</p></div>
           </div>
         </div>
+      </section>
+      )}
 
-        <div className="space-y-4 p-8 rounded-[2.5rem] bg-white/75 dark:bg-[#111c33]/72 backdrop-blur-xl border border-white/60 dark:border-white/12 shadow-luna-rich">
+      {showSection('audit') && (
+        <div id="admin-section-audit" className={`scroll-mt-28 ${panelCard}`}>
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-xl font-black uppercase tracking-wider">Reliability & Checks</h2>
             <button onClick={runTechChecks} className="px-4 py-2 rounded-full bg-luna-purple text-white text-[10px] font-black uppercase tracking-widest">Run health check</button>
@@ -2585,7 +2627,7 @@ export const AdminPanelView: React.FC<AdminPanelViewProps> = ({
             )}
           </div>
         </div>
-      </section>
+      )}
 
       {preview && (
         <div className="fixed inset-0 z-[600] bg-slate-950/70 backdrop-blur-sm p-6 flex items-center justify-center">

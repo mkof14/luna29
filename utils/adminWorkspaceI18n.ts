@@ -109,8 +109,8 @@ export type AdminWorkspaceCopy = {
 };
 
 const base = (overrides: Partial<AdminWorkspaceCopy>): AdminWorkspaceCopy => ({
-  brandTitle: 'Luna29 Studio',
-  brandSubtitle: 'Care operations console',
+  brandTitle: 'Luna29',
+  brandSubtitle: 'Admin console',
   navMain: 'Main',
   navPlatform: 'Platform',
   navContent: 'Content',
@@ -204,8 +204,8 @@ const base = (overrides: Partial<AdminWorkspaceCopy>): AdminWorkspaceCopy => ({
 export const ADMIN_WORKSPACE_COPY: LangCopy<AdminWorkspaceCopy> = {
   en: base({}),
   ru: base({
-    brandTitle: 'Luna29 Studio',
-    brandSubtitle: 'Операционная консоль',
+    brandTitle: 'Luna29',
+    brandSubtitle: 'Админ-панель',
     navMain: 'Главное',
     navPlatform: 'Платформа',
     navContent: 'Контент',
@@ -239,15 +239,15 @@ export const ADMIN_WORKSPACE_COPY: LangCopy<AdminWorkspaceCopy> = {
     configured: 'Настроено',
     missing: 'Не настроено',
   }),
-  uk: base({ tabOverview: 'Огляд', tabServices: 'Сервіси', tabIntegrations: 'Інтеграції', tabAnalytics: 'Аналітика', tabCampaigns: 'Кампанії', tabTemplates: 'Шаблони', tabTeam: 'Команда', tabContacts: 'Контакти', tabAudit: 'Аудит', tabSettings: 'Налаштування', brandTitle: 'Luna29 Studio' }),
-  es: base({ tabOverview: 'Resumen', tabServices: 'Servicios', tabIntegrations: 'Integraciones', tabAnalytics: 'Analitica', tabCampaigns: 'Campanas', tabTemplates: 'Plantillas', tabTeam: 'Equipo', tabContacts: 'Contactos', tabAudit: 'Auditoria', tabSettings: 'Ajustes', brandTitle: 'Luna29 Studio' }),
-  fr: base({ tabOverview: 'Apercu', tabServices: 'Services', tabIntegrations: 'Integrations', tabAnalytics: 'Analytique', tabCampaigns: 'Campagnes', tabTemplates: 'Modeles', tabTeam: 'Equipe', tabContacts: 'Contacts', tabAudit: 'Audit', tabSettings: 'Parametres', brandTitle: 'Luna29 Studio' }),
-  de: base({ tabOverview: 'Ueberblick', tabServices: 'Dienste', tabIntegrations: 'Integrationen', tabAnalytics: 'Analytik', tabCampaigns: 'Kampagnen', tabTemplates: 'Vorlagen', tabTeam: 'Team', tabContacts: 'Kontakte', tabAudit: 'Audit', tabSettings: 'Einstellungen', brandTitle: 'Luna29 Studio' }),
-  zh: base({ tabOverview: '概览', tabServices: '服务', tabIntegrations: '集成', tabAnalytics: '分析', tabCampaigns: '活动', tabTemplates: '模板', tabTeam: '团队', tabContacts: '联系', tabAudit: '审计', tabSettings: '设置', brandTitle: 'Luna29 Studio' }),
-  ja: base({ tabOverview: '概要', tabServices: 'サービス', tabIntegrations: '連携', tabAnalytics: '分析', tabCampaigns: 'キャンペーン', tabTemplates: 'テンプレート', tabTeam: 'チーム', tabContacts: 'お問い合わせ', tabAudit: '監査', tabSettings: '設定', brandTitle: 'Luna29 Studio' }),
-  pt: base({ tabOverview: 'Visao geral', tabServices: 'Servicos', tabIntegrations: 'Integracoes', tabAnalytics: 'Analitica', tabCampaigns: 'Campanhas', tabTemplates: 'Modelos', tabTeam: 'Equipe', tabContacts: 'Contatos', tabAudit: 'Auditoria', tabSettings: 'Configuracoes', brandTitle: 'Luna29 Studio' }),
-  ar: base({ tabOverview: 'نظرة عامة', tabServices: 'الخدمات', tabIntegrations: 'التكاملات', tabAnalytics: 'التحليلات', tabCampaigns: 'الحملات', tabTemplates: 'القوالب', tabTeam: 'الفريق', tabContacts: 'الرسائل', tabAudit: 'التدقيق', tabSettings: 'الإعدادات', brandTitle: 'Luna29 Studio' }),
-  he: base({ tabOverview: 'סקירה', tabServices: 'שירותים', tabIntegrations: 'אינטגרציות', tabAnalytics: 'אנליטיקה', tabCampaigns: 'קמפיינים', tabTemplates: 'תבניות', tabTeam: 'צוות', tabContacts: 'פניות', tabAudit: 'ביקורת', tabSettings: 'הגדרות', brandTitle: 'Luna29 Studio' }),
+  uk: base({ tabOverview: 'Огляд', tabServices: 'Сервіси', tabIntegrations: 'Інтеграції', tabAnalytics: 'Аналітика', tabCampaigns: 'Кампанії', tabTemplates: 'Шаблони', tabTeam: 'Команда', tabContacts: 'Контакти', tabAudit: 'Аудит', tabSettings: 'Налаштування', brandTitle: 'Luna29' }),
+  es: base({ tabOverview: 'Resumen', tabServices: 'Servicios', tabIntegrations: 'Integraciones', tabAnalytics: 'Analitica', tabCampaigns: 'Campanas', tabTemplates: 'Plantillas', tabTeam: 'Equipo', tabContacts: 'Contactos', tabAudit: 'Auditoria', tabSettings: 'Ajustes', brandTitle: 'Luna29' }),
+  fr: base({ tabOverview: 'Apercu', tabServices: 'Services', tabIntegrations: 'Integrations', tabAnalytics: 'Analytique', tabCampaigns: 'Campagnes', tabTemplates: 'Modeles', tabTeam: 'Equipe', tabContacts: 'Contacts', tabAudit: 'Audit', tabSettings: 'Parametres', brandTitle: 'Luna29' }),
+  de: base({ tabOverview: 'Ueberblick', tabServices: 'Dienste', tabIntegrations: 'Integrationen', tabAnalytics: 'Analytik', tabCampaigns: 'Kampagnen', tabTemplates: 'Vorlagen', tabTeam: 'Team', tabContacts: 'Kontakte', tabAudit: 'Audit', tabSettings: 'Einstellungen', brandTitle: 'Luna29' }),
+  zh: base({ tabOverview: '概览', tabServices: '服务', tabIntegrations: '集成', tabAnalytics: '分析', tabCampaigns: '活动', tabTemplates: '模板', tabTeam: '团队', tabContacts: '联系', tabAudit: '审计', tabSettings: '设置', brandTitle: 'Luna29' }),
+  ja: base({ tabOverview: '概要', tabServices: 'サービス', tabIntegrations: '連携', tabAnalytics: '分析', tabCampaigns: 'キャンペーン', tabTemplates: 'テンプレート', tabTeam: 'チーム', tabContacts: 'お問い合わせ', tabAudit: '監査', tabSettings: '設定', brandTitle: 'Luna29' }),
+  pt: base({ tabOverview: 'Visao geral', tabServices: 'Servicos', tabIntegrations: 'Integracoes', tabAnalytics: 'Analitica', tabCampaigns: 'Campanhas', tabTemplates: 'Modelos', tabTeam: 'Equipe', tabContacts: 'Contatos', tabAudit: 'Auditoria', tabSettings: 'Configuracoes', brandTitle: 'Luna29' }),
+  ar: base({ tabOverview: 'نظرة عامة', tabServices: 'الخدمات', tabIntegrations: 'التكاملات', tabAnalytics: 'التحليلات', tabCampaigns: 'الحملات', tabTemplates: 'القوالب', tabTeam: 'الفريق', tabContacts: 'الرسائل', tabAudit: 'التدقيق', tabSettings: 'الإعدادات', brandTitle: 'Luna29' }),
+  he: base({ tabOverview: 'סקירה', tabServices: 'שירותים', tabIntegrations: 'אינטגרציות', tabAnalytics: 'אנליטיקה', tabCampaigns: 'קמפיינים', tabTemplates: 'תבניות', tabTeam: 'צוות', tabContacts: 'פניות', tabAudit: 'ביקורת', tabSettings: 'הגדרות', brandTitle: 'Luna29' }),
 };
 
 export const ADMIN_NAV: Array<{ tab: AdminWorkspaceTab; group: AdminNavGroup }> = [

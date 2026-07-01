@@ -10,6 +10,7 @@ import {
   tabLabel,
 } from '../../utils/adminWorkspaceI18n';
 import { useAdminTheme } from './AdminThemeContext';
+import { getBrandAssetUrl } from '../../utils/lunaBrandAssets';
 import { adminNavItem, adminSidebarBg } from './adminStyles';
 
 type AdminSidebarProps = {
@@ -88,9 +89,13 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
     >
       <div className={`p-4 border-b ${mode === 'dark' ? 'border-white/[0.08]' : 'border-slate-200/90'}`}>
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-luna-purple to-luna-teal flex items-center justify-center text-white font-black text-sm shrink-0">
-            L29
-          </div>
+          <img
+            src={getBrandAssetUrl('icon')}
+            alt="Luna29"
+            width={40}
+            height={40}
+            className="w-10 h-10 rounded-xl shrink-0 object-cover"
+          />
           {!collapsed ? (
             <div className="min-w-0">
               <p className={`text-sm font-black tracking-tight truncate ${mode === 'dark' ? 'text-white' : 'text-slate-900'}`}>

@@ -45,3 +45,6 @@ export const useAdminTheme = (): AdminThemeContextValue => {
   if (!ctx) throw new Error('useAdminTheme must be used within AdminThemeProvider');
   return ctx;
 };
+
+export const useAdminThemeOptional = (): AdminThemeContextValue | null =>
+  useContext(AdminThemeContext);
