@@ -1,14 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import { Language, LangCopy, getLang } from '../constants';
 import type { Copy, ExtraHowCopy } from '../utils/howItWorksContent';
-import { PublicPageArtHeader } from './public/PublicPageArtHeader';
+import { MEMBER_PAGE_KNOWLEDGE } from '../utils/memberPageStyles';
+import { MemberBackButton } from './member/MemberBackButton';
+import { PublicHeroBlock } from './public/PublicHeroBlock';
+import { PUBLIC_PAGE_ART } from '../utils/publicPageArt';
+import {
+  PUBLIC_BODY,
+  PUBLIC_CARD,
+  PUBLIC_H3,
+  PUBLIC_PAGE_STACK,
+  PUBLIC_SHELL,
+  PUBLIC_SHELL_INNER,
+  PUBLIC_SHELL_PAD,
+  PUBLIC_SURFACE,
+} from './public/publicPageStyles';
 
 interface HowItWorksViewProps {
   lang: Language;
   onBack?: () => void;
+  mode?: 'public' | 'member';
 }
 
-export const HowItWorksView: React.FC<HowItWorksViewProps> = ({ lang, onBack }) => {
+export const HowItWorksView: React.FC<HowItWorksViewProps> = ({ lang, onBack, mode = 'public' }) => {
   const loadingByLang: LangCopy< string> = {
     en: 'Loading...',
     ru: 'Загрузка...',
@@ -110,18 +124,33 @@ export const HowItWorksView: React.FC<HowItWorksViewProps> = ({ lang, onBack }) 
     );
   };
 
+  const shellClass = mode === 'member' ? MEMBER_PAGE_KNOWLEDGE : 'luna-page-shell luna-page-knowledge animate-in fade-in duration-500 space-y-8 relative p-6 md:p-8 max-w-6xl mx-auto';
+
   return (
-    <section className="luna-page-shell luna-page-knowledge animate-in fade-in duration-500 space-y-8 relative p-6 md:p-8 max-w-6xl mx-auto">
-      {onBack && (
-        <button onClick={onBack} className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-luna-purple transition-all">
+    <section className={shellClass}>
+      {onBack && mode === 'member' && <MemberBackButton lang={lang} onClick={onBack} />}
+      {onBack && mode === 'public' && (
+        <button onClick={onBack} className="mb-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-luna-purple transition-all">
           ← Back
         </button>
       )}
-      <PublicPageArtHeader page="how_it_works" eyebrow={c.eyebrow} title={c.title} />
-      <p className="text-center text-base md:text-lg font-semibold text-slate-600 dark:text-slate-300 max-w-3xl mx-auto">{c.subtitle}</p>
 
-      <div className="rounded-[2.5rem] border border-slate-200/70 dark:border-slate-800 bg-white/80 dark:bg-slate-900/70 p-7 md:p-8 shadow-luna-rich space-y-6">
-        <h2 className="text-2xl md:text-3xl font-black tracking-tight">{c.flowTitle}</h2>
+      <div className={PUBLIC_PAGE_STACK}>
+        <section className={`${PUBLIC_SHELL} luna-page-knowledge ${PUBLIC_SHELL_PAD}`}>
+          <div className={PUBLIC_SHELL_INNER}>
+            <PublicHeroBlock
+              eyebrow={c.eyebrow}
+              title={c.title}
+              subtitle={c.subtitle}
+              image={PUBLIC_PAGE_ART.how_it_works}
+              imageAlt={c.title}
+            />
+          </div>
+        </section>
+
+      <section className={`${PUBLIC_SHELL} luna-page-knowledge ${PUBLIC_SHELL_PAD}`}>
+        <div className={`${PUBLIC_SHELL_INNER} ${PUBLIC_SURFACE} space-y-6`}>
+        <h2 className={PUBLIC_H3}>{c.flowTitle}</h2>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-stretch">
           <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-5">
           {c.flow.map((item, idx) => (
@@ -182,7 +211,6 @@ export const HowItWorksView: React.FC<HowItWorksViewProps> = ({ lang, onBack }) 
             </div>
           </aside>
         </div>
-      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="rounded-[2.5rem] border border-slate-200/70 dark:border-slate-800 bg-white/80 dark:bg-slate-900/70 p-7 md:p-8 shadow-luna-rich space-y-5">
@@ -246,6 +274,9 @@ export const HowItWorksView: React.FC<HowItWorksViewProps> = ({ lang, onBack }) 
             </article>
           ))}
         </div>
+      </div>
+        </div>
+      </section>
       </div>
     </section>
   );

@@ -1,6 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { CyclePhase } from '../types';
 import { Language, LangCopy, getLang } from '../constants';
+import { MemberIconBackButton } from './member/MemberIconBackButton';
+import { LunaPageHeroSection } from './shared/LunaPageHeroSection';
+import { LunaPageContentSection } from './shared/LunaPageContentSection';
+import { PUBLIC_PAGE_STACK } from './public/publicPageStyles';
+import { MEMBER_PAGE_ROOT } from '../utils/memberPageStyles';
+import { getLunaPageTheme } from '../utils/lunaPageThemes';
+import { getMemberHeroImage } from '../utils/memberHeroImages';
 
 type CapacityLevel = 'low' | 'medium' | 'high';
 type RiskLevel = 'low' | 'moderate' | 'high';
@@ -530,25 +537,30 @@ export const FamilyView: React.FC<{ phase: CyclePhase; lang: Language; onBack: (
   const riskText = riskLevel === 'low' ? copy.conflictLow : riskLevel === 'moderate' ? copy.conflictModerate : copy.conflictHigh;
   const riskAdvice = riskLevel === 'low' ? copy.riskAdviceLow : riskLevel === 'moderate' ? copy.riskAdviceModerate : copy.riskAdviceHigh;
 
+  const themeClass = getLunaPageTheme('family').shellClass;
+
   return (
-    <div className="max-w-5xl mx-auto luna-page-shell luna-page-seasons space-y-8 animate-in slide-in-from-bottom-6 duration-700 p-6 md:p-10 bg-[radial-gradient(120%_80%_at_0%_0%,rgba(181,132,199,0.2),transparent_56%),radial-gradient(110%_75%_at_100%_100%,rgba(107,190,199,0.18),transparent_58%)] dark:bg-none rounded-[2rem]">
-      <div className="flex justify-between items-center">
-        <button onClick={onBack} className="group flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-luna-purple transition-all">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="group-hover:-translate-x-1 transition-transform">
-            <path d="M19 12H5M12 19l-7-7 7-7"/>
-          </svg>
-          {copy.back}
-        </button>
+    <section className={`${MEMBER_PAGE_ROOT} ${themeClass}`} data-testid="family-root">
+      <div className="flex justify-between items-center gap-4">
+        <MemberIconBackButton lang={lang} onClick={onBack} className="mb-0" />
         <div className="px-4 py-1.5 bg-luna-purple/10 rounded-full border border-luna-purple/20">
           <span className="text-sm font-black uppercase text-luna-purple tracking-[0.16em]">{copy.season}: {phase}</span>
         </div>
       </div>
 
-      <section className="luna-vivid-surface rounded-[2.5rem] p-8 md:p-10 border border-slate-200/80 dark:border-slate-800/80 shadow-[0_28px_80px_rgba(88,63,128,0.28)]">
-        <h2 className="text-4xl md:text-5xl font-black tracking-tight">{copy.title}</h2>
-        <p className="mt-2 text-sm font-semibold text-slate-600 dark:text-slate-300">{copy.subtitle}</p>
+      <div className={PUBLIC_PAGE_STACK}>
+        <LunaPageHeroSection
+          themeClass={themeClass}
+          eyebrow={copy.season}
+          title={copy.title}
+          subtitle={copy.subtitle}
+          image={getMemberHeroImage('family')}
+          imageAlt={copy.title}
+        />
 
-        <div className="mt-6 p-5 rounded-3xl luna-vivid-card-soft border border-slate-200/90 dark:border-slate-700/60 shadow-[0_12px_30px_rgba(118,96,153,0.18)]">
+        <LunaPageContentSection themeClass={themeClass} padded={false} className="space-y-8">
+      <section className="luna-vivid-surface rounded-[2.5rem] p-8 md:p-10 border border-slate-200/80 dark:border-slate-800/80 shadow-[0_28px_80px_rgba(88,63,128,0.28)]">
+        <div className="p-5 rounded-3xl luna-vivid-card-soft border border-slate-200/90 dark:border-slate-700/60 shadow-[0_12px_30px_rgba(118,96,153,0.18)]">
           <p className="text-base md:text-lg font-black uppercase tracking-[0.16em] text-luna-purple mb-2">{copy.phaseTipsTitle}</p>
           <p className="text-base font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">{copy.phaseTips[phase]}</p>
         </div>
@@ -671,6 +683,8 @@ export const FamilyView: React.FC<{ phase: CyclePhase; lang: Language; onBack: (
           </div>
         </div>
       </section>
-    </div>
+        </LunaPageContentSection>
+      </div>
+    </section>
   );
 };

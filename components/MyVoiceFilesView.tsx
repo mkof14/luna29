@@ -1,5 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Language } from '../constants';
+import { MemberIconBackButton } from './member/MemberIconBackButton';
+import { MemberPageIntro } from './member/MemberPageIntro';
+import { LunaPageContentSection } from './shared/LunaPageContentSection';
+import { getLunaPageTheme } from '../utils/lunaPageThemes';
 
 type SavedVoiceClip = {
   id: string;
@@ -357,20 +361,19 @@ export const MyVoiceFilesView: React.FC<{ lang: Language; onBack: () => void }> 
   };
 
   return (
-    <div className="max-w-6xl mx-auto luna-page-shell space-y-8 p-6 md:p-8 relative">
+    <>
+      <MemberIconBackButton lang={lang} onClick={onBack} className="mb-0" />
+      <MemberPageIntro lang={lang} page="voice_files" tab="voice_files" />
+
+      <LunaPageContentSection themeClass={getLunaPageTheme('voice_files').shellClass} padded={false} className="relative space-y-8">
       <div className="pointer-events-none absolute -top-24 -left-20 w-80 h-80 rounded-full bg-luna-purple/24 blur-[120px]" />
       <div className="pointer-events-none absolute top-1/3 -right-24 w-80 h-80 rounded-full bg-sky-300/22 blur-[130px]" />
       <div className="pointer-events-none absolute -bottom-28 left-1/3 w-80 h-80 rounded-full bg-rose-300/20 blur-[130px]" />
-      <button onClick={onBack} className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-luna-purple transition-all">
-        ← {copy.back}
-      </button>
 
       <section className="rounded-[3rem] border border-slate-200/75 dark:border-slate-700/85 bg-gradient-to-br from-[#f7ebf8]/94 via-[#eee7f4]/90 to-[#dde8f8]/86 dark:from-[#081127]/97 dark:via-[#0c1a38]/96 dark:to-[#142b53]/95 p-7 md:p-9 shadow-[0_34px_82px_rgba(93,74,132,0.3),0_14px_34px_rgba(72,124,153,0.2)] dark:shadow-[0_40px_92px_rgba(0,0,0,0.68),0_14px_38px_rgba(14,43,93,0.56)] space-y-6 relative overflow-hidden">
         <div className="absolute -top-14 right-4 w-56 h-56 rounded-full bg-luna-purple/28 blur-3xl" />
         <div className="absolute -bottom-20 left-10 w-64 h-64 rounded-full bg-sky-300/26 blur-3xl" />
         <div className="space-y-2">
-          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-luna-purple">Voice Archive</p>
-          <h1 className="text-3xl md:text-5xl font-black tracking-tight text-slate-900 dark:text-slate-100">{copy.title}</h1>
           <p className="text-sm md:text-base font-semibold text-slate-600 dark:text-slate-300 max-w-3xl">{copy.subtitle}</p>
         </div>
 
@@ -563,6 +566,7 @@ export const MyVoiceFilesView: React.FC<{ lang: Language; onBack: () => void }> 
           ))
         )}
       </section>
-    </div>
+      </LunaPageContentSection>
+    </>
   );
 };

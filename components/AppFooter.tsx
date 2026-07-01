@@ -15,6 +15,7 @@ import {
   getFooterSpiritActions,
   getFooterTrustLine,
 } from '../utils/publicFooterSpirit';
+import { MEMBER_FOOTER_EXPLORE_TABS } from '../utils/memberFooterNavigation';
 import { Language, TranslationSchema, LangCopy, getLang } from '../constants';
 
 interface BeforeInstallPromptEvent extends Event {
@@ -32,9 +33,7 @@ interface AppFooterProps {
   onOpenLive?: () => void;
 }
 
-type FooterTabLink = { kind: 'tab'; id: TabType; label: string; testId?: string };
-type FooterHrefLink = { kind: 'href'; href: string; label: string };
-type FooterLink = FooterTabLink | FooterHrefLink;
+type FooterTabLink = { id: TabType; label: string; testId?: string };
 
 const normalizeExternalUrl = (value: unknown) => {
   const raw = String(value || '').trim();
@@ -174,8 +173,8 @@ export const AppFooter: React.FC<AppFooterProps> = ({
     zh: { appStore: 'App Store', googlePlay: 'Google Play', soon: '商店链接即将上线。' },
     ja: { appStore: 'App Store', googlePlay: 'Google Play', soon: 'ストアリンクは近日公開。' },
     pt: { appStore: 'App Store', googlePlay: 'Google Play', soon: 'Links das lojas em breve.' },
-    ar: { appStore: 'App Store', googlePlay: 'Google Play', soon: 'Store links coming soon.' },
-    he: { appStore: 'App Store', googlePlay: 'Google Play', soon: 'Store links coming soon.' },
+    ar: { appStore: 'App Store', googlePlay: 'Google Play', soon: 'روابط المتاجر قريباً.' },
+    he: { appStore: 'App Store', googlePlay: 'Google Play', soon: 'קישורי החנות יופיעו בקרוב.' },
   };
 
   const installGuideModalByLang: LangCopy<{ title: string; close: string }> = {
@@ -188,8 +187,8 @@ export const AppFooter: React.FC<AppFooterProps> = ({
     zh: { title: '安装 Luna29', close: '关闭' },
     ja: { title: 'Luna29 をインストール', close: '閉じる' },
     pt: { title: 'Instalar Luna29', close: 'Fechar' },
-    ar: { title: 'Install Luna29', close: 'Close' },
-    he: { title: 'Install Luna29', close: 'Close' },
+    ar: { title: 'تثبيت Luna29', close: 'إغلاق' },
+    he: { title: 'התקנת Luna29', close: 'סגירה' },
   };
 
   const footerSectionTitles = getLang(footerSectionTitlesByLang, lang) || footerSectionTitlesByLang.en;
@@ -198,29 +197,37 @@ export const AppFooter: React.FC<AppFooterProps> = ({
   const storeBadges = getLang(storeBadgesByLang, lang) || storeBadgesByLang.en;
   const installGuideModal = getLang(installGuideModalByLang, lang) || installGuideModalByLang.en;
 
-  const footerExploreLinks: FooterLink[] = useMemo(
-    () => [
-      { kind: 'href', href: '/', label: ui.publicHome.tabs.home },
-      { kind: 'href', href: '/luna-balance', label: ui.publicHome.tabs.map },
-      { kind: 'tab', id: 'rhythm_calendar', label: memberNav.rhythmCalendar },
-      { kind: 'href', href: '/ritual-path', label: publicHomeNavLabels.ritual },
-      { kind: 'tab', id: 'bridge', label: ui.navigation.bridge || 'The Bridge' },
-      { kind: 'href', href: '/pricing', label: getLang(pricingLabelByLang, lang) || 'Pricing' },
-      { kind: 'tab', id: 'about', label: getLang(aboutLabelByLang, lang) || 'About', testId: 'about' },
-      { kind: 'tab', id: 'how_it_works', label: getLang(howItWorksLabelByLang, lang) || 'How It Works', testId: 'how_it_works' },
-      { kind: 'tab', id: 'faq', label: getLang(faqLabelByLang, lang) || 'FAQ' },
-      { kind: 'href', href: '/learning', label: getLang(learningLabelByLang, lang) || 'Learning' },
-    ],
+  const exploreLabel = (id: TabType): string => {
+    if (id === 'dashboard') return ui.publicHome.tabs.home;
+    if (id === 'cycle') return ui.publicHome.tabs.map;
+    if (id === 'rhythm_calendar') return memberNav.rhythmCalendar;
+    if (id === 'ritual_path') return publicHomeNavLabels.ritual;
+    if (id === 'bridge') return ui.navigation.bridge || 'The Bridge';
+    if (id === 'pricing') return getLang(pricingLabelByLang, lang) || 'Pricing';
+    if (id === 'about') return getLang(aboutLabelByLang, lang) || 'About';
+    if (id === 'how_it_works') return getLang(howItWorksLabelByLang, lang) || 'How It Works';
+    if (id === 'faq') return getLang(faqLabelByLang, lang) || 'FAQ';
+    if (id === 'learning') return getLang(learningLabelByLang, lang) || 'Learning';
+    return id;
+  };
+
+  const footerExploreLinks: FooterTabLink[] = useMemo(
+    () =>
+      MEMBER_FOOTER_EXPLORE_TABS.map((item) => ({
+        id: item.id,
+        testId: item.testId,
+        label: exploreLabel(item.id),
+      })),
     [lang, memberNav.rhythmCalendar, publicHomeNavLabels.ritual, ui.navigation.bridge, ui.publicHome.tabs.home, ui.publicHome.tabs.map]
   );
 
   const footerLegalLinks: FooterTabLink[] = useMemo(
     () => [
-      { kind: 'tab', id: 'privacy', label: legalNav.privacy, testId: 'privacy' },
-      { kind: 'tab', id: 'terms', label: legalNav.terms, testId: 'terms' },
-      { kind: 'tab', id: 'medical', label: legalNav.medical, testId: 'medical' },
-      { kind: 'tab', id: 'cookies', label: legalNav.cookies, testId: 'cookies' },
-      { kind: 'tab', id: 'data_rights', label: legalNav.data_rights, testId: 'data_rights' },
+      { id: 'privacy', label: legalNav.privacy, testId: 'privacy' },
+      { id: 'terms', label: legalNav.terms, testId: 'terms' },
+      { id: 'medical', label: legalNav.medical, testId: 'medical' },
+      { id: 'cookies', label: legalNav.cookies, testId: 'cookies' },
+      { id: 'data_rights', label: legalNav.data_rights, testId: 'data_rights' },
     ],
     [legalNav]
   );
@@ -237,26 +244,17 @@ export const AppFooter: React.FC<AppFooterProps> = ({
     { id: 'tiktok', href: 'https://tiktok.com', label: 'TikTok', icon: Music2, iconBg: 'bg-slate-900/10 dark:bg-white/10', iconColor: 'text-slate-900 dark:text-white' },
   ];
 
-  const renderExploreLink = (link: FooterLink, key: string) => {
-    if (link.kind === 'href') {
-      return (
-        <a key={key} href={link.href} className="text-left">
-          <LunaMenuLabel text={link.label} muted className="font-light" />
-        </a>
-      );
-    }
-    return (
-      <button
-        key={key}
-        type="button"
-        data-testid={link.testId ? `footer-nav-${link.testId}` : undefined}
-        onClick={() => navigateTo(link.id)}
-        className="text-left"
-      >
-        <LunaMenuLabel text={link.label} muted className="font-light" />
-      </button>
-    );
-  };
+  const renderExploreLink = (link: FooterTabLink, key: string) => (
+    <button
+      key={key}
+      type="button"
+      data-testid={link.testId ? `footer-nav-${link.testId}` : `footer-nav-${link.id}`}
+      onClick={() => navigateTo(link.id)}
+      className="text-left"
+    >
+      <LunaMenuLabel text={link.label} muted className="font-light" />
+    </button>
+  );
 
   const renderLegalLink = (link: FooterTabLink, key: string) => (
     <button
@@ -272,7 +270,7 @@ export const AppFooter: React.FC<AppFooterProps> = ({
 
   return (
     <>
-      <footer className={`w-full border-t-2 ${footerMoonAccent.borderClass} py-16 px-6 md:px-8 glass bg-slate-200/40 dark:bg-transparent mt-auto relative overflow-visible`}>
+      <footer className={`w-full border-t-2 ${footerMoonAccent.borderClass} py-16 px-6 md:px-8 glass bg-slate-200/55 dark:bg-slate-950/72 mt-auto relative overflow-visible`}>
         <div className="max-w-7xl mx-auto space-y-14 relative z-10">
           <div className="space-y-4 max-w-2xl">
             <div className="flex items-center gap-0.5 origin-left scale-[1.12]">
@@ -306,7 +304,7 @@ export const AppFooter: React.FC<AppFooterProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5 text-[13px] font-light">
                 {footerExploreColumns.map((column, columnIndex) => (
                   <div key={`footer-explore-col-${columnIndex}`} className="flex flex-col gap-2.5">
-                    {column.map((link) => renderExploreLink(link, `footer-explore-${columnIndex}-${link.kind === 'tab' ? link.id : link.href}`))}
+                    {column.map((link) => renderExploreLink(link, `footer-explore-${columnIndex}-${link.id}`))}
                   </div>
                 ))}
               </div>

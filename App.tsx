@@ -4,7 +4,9 @@ import { AuthSession, HormoneData } from './types';
 import { dataService } from './services/dataService';
 import { useAppPreferences } from './hooks/useAppPreferences';
 import { buildBottomNavItems, buildSidebarGroups, buildTopNavItems, TabType } from './utils/navigation';
-import { readTabFromUrl, syncUrlState } from './utils/urlRouting';
+import { readLangFromUrl, readTabFromUrl, syncUrlState } from './utils/urlRouting';
+import { pathnameToMemberTab } from './utils/memberFooterNavigation';
+import { type MemberNavigateOptions, MEMBER_HUB_TAB } from './utils/memberNavigation';
 import { AppShellNav } from './components/AppShellNav';
 import { AppFooter } from './components/AppFooter';
 import { AppMobileNav } from './components/AppMobileNav';
@@ -42,7 +44,12 @@ const App: React.FC = () => {
   const [showLive, setShowLive] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
   const [selectedHormone, setSelectedHormone] = useState<HormoneData | null>(null);
-  const [activeTab, setActiveTab] = useState<TabType>(() => readTabFromUrl() || 'today_mirror');
+  const [activeTab, setActiveTab] = useState<TabType>(() => {
+    const fromQuery = readTabFromUrl();
+    if (fromQuery) return fromQuery;
+    const fromPath = pathnameToMemberTab(typeof window !== 'undefined' ? window.location.pathname : '/');
+    return fromPath || 'today_mirror';
+  });
   const [showSyncOverlay, setShowSyncOverlay] = useState(false);
   
   const [checkinData, setCheckinData] = useState<Record<string, number>>({ 
@@ -143,12 +150,24 @@ const App: React.FC = () => {
     lang,
   });
 
-  const navigateTo = useCallback((tab: TabType) => {
+  const navigateTo = useCallback((tab: TabType, options?: MemberNavigateOptions) => {
     setActiveTab(tab);
-    setShowSidebar(false);
-    syncUrlState({ tab, lang });
+    const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches;
+    if (options?.openSidebar) {
+      setShowSidebar(true);
+    } else if (!options?.keepSidebar && !isDesktop) {
+      setShowSidebar(false);
+    }
+    syncUrlState({ tab, lang, replace: false });
+    if (typeof window !== 'undefined' && window.location.pathname !== '/') {
+      window.history.replaceState({}, '', '/');
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [lang]);
+
+  const onMemberBack = useCallback(() => {
+    navigateTo(MEMBER_HUB_TAB, { openSidebar: true });
+  }, [navigateTo]);
 
   const saveCheckin = useCallback(() => {
     dataService.logEvent('DAILY_CHECKIN', { metrics: { ...checkinData }, symptoms: [], isPeriod: false });
@@ -304,6 +323,7 @@ const App: React.FC = () => {
           onLogout={handleLogout}
         />
 
+      <div className="lg:pl-[300px]">
       <MainContentRouter
         activeTab={activeTab}
         lang={lang}
@@ -320,6 +340,7 @@ const App: React.FC = () => {
         setShowLive={setShowLive}
         setLog={setLog}
         navigateTo={navigateTo}
+        onMemberBack={onMemberBack}
         session={session}
         onLogout={handleLogout}
       />
@@ -333,6 +354,7 @@ const App: React.FC = () => {
         navigateTo={navigateTo}
         onOpenLive={() => setShowLive(true)}
       />
+      </div>
 
       <Suspense fallback={null}>
         <CheckinOverlay

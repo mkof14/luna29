@@ -30,7 +30,10 @@ export type TabType =
   | 'medical'
   | 'cookies'
   | 'data_rights'
-  | 'rhythm_calendar';
+  | 'rhythm_calendar'
+  | 'learning'
+  | 'pricing'
+  | 'ritual_path';
 
 type NavItem = {
   id: TabType;

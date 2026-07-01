@@ -6,6 +6,10 @@ import { generatePsychologistResponse } from '../services/geminiService';
 import { isVoiceAiEnabled, requestLunaVoiceResponse } from '../services/voiceConversationService';
 import { isAiProcessingAllowed } from '../utils/aiConsent';
 import { Language, LangCopy, getLang } from '../constants';
+import { MemberIconBackButton } from './member/MemberIconBackButton';
+import { MemberPageIntro } from './member/MemberPageIntro';
+import { LunaPageContentSection } from './shared/LunaPageContentSection';
+import { getLunaPageTheme } from '../utils/lunaPageThemes';
 
 type SpeechRecognitionAlternativeLike = {
   transcript: string;
@@ -1349,17 +1353,12 @@ export const AudioReflection: React.FC<{ onBack: () => void, lang?: Language }> 
   }, []);
 
   return (
-    <div className="max-w-4xl mx-auto luna-page-shell luna-page-voice space-y-6 p-6 md:p-8">
-      <motion.button
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        onClick={onBack}
-        className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-luna-purple transition-all"
-      >
-        <X size={14} /> {copy.back}
-      </motion.button>
+    <>
+      <MemberIconBackButton lang={lang} onClick={onBack} className="mb-0" />
+      <MemberPageIntro lang={lang} page="voice_note" tab="reflections" />
 
-      <header className="space-y-1">
+      <LunaPageContentSection themeClass={getLunaPageTheme('reflections').shellClass} padded={false}>
+      <header className="space-y-1 mb-4">
         <p className="text-base font-semibold text-slate-700 dark:text-slate-200">{greeting}, {profileName}</p>
         <p className="text-sm italic font-medium text-slate-500 dark:text-slate-300">{ui.listeningLine}</p>
       </header>
@@ -1369,8 +1368,7 @@ export const AudioReflection: React.FC<{ onBack: () => void, lang?: Language }> 
         <div className="absolute -bottom-20 -right-20 w-72 h-72 bg-rose-400/12 rounded-full blur-3xl" />
 
         <article className="relative z-10 mx-auto max-w-2xl rounded-[2rem] border border-slate-200/70 dark:border-slate-800/75 bg-white/78 dark:bg-slate-950/45 p-7 md:p-8 text-center shadow-[0_16px_36px_rgba(88,70,126,0.14)] dark:shadow-[0_18px_38px_rgba(0,0,0,0.42)]">
-          <h2 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-slate-100">{ui.voiceTitle}</h2>
-          <p className="mt-3 text-base font-medium text-slate-600 dark:text-slate-300">{ui.voiceSupport}</p>
+          <p className="text-base font-semibold text-slate-800 dark:text-slate-100">{ui.voiceSupport}</p>
           <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{ui.shortEnough}</p>
 
           <div className="mt-8 flex flex-col items-center gap-4">
@@ -1679,6 +1677,7 @@ export const AudioReflection: React.FC<{ onBack: () => void, lang?: Language }> 
       </main>
 
       {statusMsg && <p className="text-center text-xs text-slate-500 dark:text-slate-300">{statusMsg}</p>}
-    </div>
+      </LunaPageContentSection>
+    </>
   );
 };

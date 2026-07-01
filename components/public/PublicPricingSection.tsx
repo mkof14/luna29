@@ -115,14 +115,22 @@ export const PublicPricingSection: React.FC<PublicPricingSectionProps> = ({
             <button
               type="button"
               onClick={() => setBillingPeriod('month')}
-              className={`min-w-[110px] px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${billingPeriod === 'month' ? 'bg-luna-purple text-white shadow-luna-rich' : 'text-slate-500 hover:text-luna-purple'}`}
+              className={`min-w-[110px] px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
+                billingPeriod === 'month'
+                  ? 'bg-luna-purple text-white shadow-luna-rich'
+                  : 'border border-slate-300/80 dark:border-slate-500/50 bg-white/75 dark:bg-slate-800/85 text-slate-700 dark:text-slate-100 hover:border-luna-purple/45'
+              }`}
             >
               {pricingUi.monthToggle}
             </button>
             <button
               type="button"
               onClick={() => setBillingPeriod('year')}
-              className={`min-w-[110px] px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${billingPeriod === 'year' ? 'bg-luna-purple text-white shadow-luna-rich' : 'text-slate-500 hover:text-luna-purple'}`}
+              className={`min-w-[110px] px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
+                billingPeriod === 'year'
+                  ? 'bg-luna-purple text-white shadow-luna-rich'
+                  : 'border border-slate-300/80 dark:border-slate-500/50 bg-white/75 dark:bg-slate-800/85 text-slate-700 dark:text-slate-100 hover:border-luna-purple/45'
+              }`}
             >
               {pricingUi.yearToggle}
             </button>

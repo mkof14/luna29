@@ -4,15 +4,19 @@ import { dataService } from '../services/dataService';
 import { Medication } from '../types';
 import { getMedicationValidationError, normalizeMedicationInput } from '../utils/medications';
 import { Language, LangCopy, getLang } from '../constants';
+import { MemberIconBackButton } from './member/MemberIconBackButton';
+import { MemberPageIntro } from './member/MemberPageIntro';
+import { LunaPageContentSection } from './shared/LunaPageContentSection';
+import { getLunaPageTheme } from '../utils/lunaPageThemes';
 
 export const MedicationsView: React.FC<{ medications: Medication[]; lang: Language; onBack?: () => void }> = ({ medications, lang, onBack }) => {
   const copyByLang: LangCopy< {
     titleA: string; titleB: string; subtitle: string; close: string; addNew: string; addSuccess: string; removeSuccess: string;
     name: string; amount: string; save: string; empty: string; remove: string; standardDose: string; addedOn: string;
   }> = {
-    en: { titleA: 'My', titleB: 'Support.', subtitle: 'Keep track of what helps you feel better. Luna29 observes how your body responds to your care plan.', close: 'Close', addNew: 'Add something new', addSuccess: 'Support profile added.', removeSuccess: 'Support profile removed.', name: 'Name', amount: 'Amount', save: 'Save', empty: 'Nothing added yet.', remove: 'Remove', standardDose: 'Standard Dose', addedOn: 'Added on' },
-    ru: { titleA: 'Моя', titleB: 'Поддержка.', subtitle: 'Отмечайте, что помогает вам чувствовать себя лучше. Luna29 наблюдает, как тело реагирует на ваш план поддержки.', close: 'Закрыть', addNew: 'Добавить новое', addSuccess: 'Профиль поддержки добавлен.', removeSuccess: 'Профиль поддержки удален.', name: 'Название', amount: 'Дозировка', save: 'Сохранить', empty: 'Пока ничего не добавлено.', remove: 'Удалить', standardDose: 'Стандартная доза', addedOn: 'Добавлено' },
-    uk: { titleA: 'Моя', titleB: 'Підтримка.', subtitle: 'Відстежуйте, що допомагає вам почуватися краще. Luna29 спостерігає, як тіло реагує на ваш план підтримки.', close: 'Закрити', addNew: 'Додати нове', addSuccess: 'Профіль підтримки додано.', removeSuccess: 'Профіль підтримки видалено.', name: 'Назва', amount: 'Доза', save: 'Зберегти', empty: 'Поки нічого не додано.', remove: 'Видалити', standardDose: 'Стандартна доза', addedOn: 'Додано' },
+    en: { titleA: 'Medication', titleB: 'Note.', subtitle: 'Track medications and supportive care items. Luna29 observes how your body responds over time — without clinical claims.', close: 'Close', addNew: 'Add medication', addSuccess: 'Medication note added.', removeSuccess: 'Medication note removed.', name: 'Name', amount: 'Dose', save: 'Save', empty: 'No medications logged yet.', remove: 'Remove', standardDose: 'Typical dose', addedOn: 'Added on' },
+    ru: { titleA: 'Заметка', titleB: 'о препарате.', subtitle: 'Отмечайте препараты и элементы поддержки. Luna29 наблюдает реакцию тела во времени — без клинических утверждений.', close: 'Закрыть', addNew: 'Добавить препарат', addSuccess: 'Заметка о препарате добавлена.', removeSuccess: 'Заметка удалена.', name: 'Название', amount: 'Дозировка', save: 'Сохранить', empty: 'Пока нет записей о препаратах.', remove: 'Удалить', standardDose: 'Типичная доза', addedOn: 'Добавлено' },
+    uk: { titleA: 'Нотатка', titleB: 'про препарат.', subtitle: 'Відстежуйте препарати та елементи підтримки. Luna29 спостерігає реакцію тіла — без клінічних тверджень.', close: 'Закрити', addNew: 'Додати препарат', addSuccess: 'Нотатку додано.', removeSuccess: 'Нотатку видалено.', name: 'Назва', amount: 'Доза', save: 'Зберегти', empty: 'Поки немає записів про препарати.', remove: 'Видалити', standardDose: 'Типова доза', addedOn: 'Додано' },
     es: { titleA: 'Mi', titleB: 'Soporte.', subtitle: 'Registra lo que te ayuda a sentirte mejor. Luna29 observa cómo responde tu cuerpo a tu plan de cuidado.', close: 'Cerrar', addNew: 'Añadir nuevo', addSuccess: 'Perfil de soporte añadido.', removeSuccess: 'Perfil de soporte eliminado.', name: 'Nombre', amount: 'Cantidad', save: 'Guardar', empty: 'Aún no hay elementos.', remove: 'Eliminar', standardDose: 'Dosis estándar', addedOn: 'Añadido el' },
     fr: { titleA: 'Mon', titleB: 'Soutien.', subtitle: 'Suivez ce qui vous aide à vous sentir mieux. Luna29 observe la réponse de votre corps à votre plan.', close: 'Fermer', addNew: 'Ajouter un élément', addSuccess: 'Profil de soutien ajouté.', removeSuccess: 'Profil de soutien supprimé.', name: 'Nom', amount: 'Quantité', save: 'Enregistrer', empty: 'Rien pour le moment.', remove: 'Retirer', standardDose: 'Dose standard', addedOn: 'Ajouté le' },
     de: { titleA: 'Meine', titleB: 'Unterstützung.', subtitle: 'Behalte im Blick, was dir hilft. Luna29 beobachtet, wie dein Körper auf deinen Plan reagiert.', close: 'Schließen', addNew: 'Neu hinzufügen', addSuccess: 'Unterstützungsprofil hinzugefügt.', removeSuccess: 'Unterstützungsprofil entfernt.', name: 'Name', amount: 'Menge', save: 'Speichern', empty: 'Noch nichts hinzugefügt.', remove: 'Entfernen', standardDose: 'Standarddosis', addedOn: 'Hinzugefügt am' },
@@ -90,16 +94,15 @@ export const MedicationsView: React.FC<{ medications: Medication[]; lang: Langua
   };
 
   return (
-    <div className="max-w-6xl mx-auto luna-page-shell luna-page-support space-y-24 animate-in fade-in slide-in-from-bottom-12 duration-1000 p-8 md:p-10 pb-40">
-      <header className="flex flex-col lg:flex-row justify-between items-center lg:items-end gap-12">
-        <div className="space-y-10 text-center lg:text-left">
-          <h2 className="text-6xl lg:text-9xl font-black tracking-tighter leading-none uppercase text-slate-900 dark:text-slate-100">
-            {copy.titleA} <br/> <span className="text-luna-teal">{copy.titleB}</span>
-          </h2>
-          <p className="text-xl lg:text-2xl text-slate-500 italic font-medium max-w-xl">
-            {copy.subtitle}
-          </p>
-        </div>
+    <>
+      {onBack && <MemberIconBackButton lang={lang} onClick={onBack} className="mb-0" />}
+      <MemberPageIntro lang={lang} page="meds" tab="meds" />
+
+      <LunaPageContentSection themeClass={getLunaPageTheme('meds').shellClass} padded={false} className="space-y-12">
+      <header className="flex flex-col lg:flex-row justify-between items-center lg:items-end gap-6">
+        <p className="text-base md:text-lg font-semibold text-slate-600 dark:text-slate-300 max-w-xl text-center lg:text-left">
+          {copy.subtitle}
+        </p>
         <button 
           data-testid="medications-toggle-add"
           onClick={() => setShowAdd(!showAdd)}
@@ -182,6 +185,7 @@ export const MedicationsView: React.FC<{ medications: Medication[]; lang: Langua
           ))
         )}
       </section>
-    </div>
+      </LunaPageContentSection>
+    </>
   );
 };

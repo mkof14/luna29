@@ -588,7 +588,7 @@ const reportConflictsByLang: Partial<LangCopy< {
   pt: { title: 'Conflitos De Dados', hint: 'Foram encontrados vários valores para o mesmo marcador. Escolha qual usar no relatório final.', choose: 'Usar no relatório', confidence: 'Confiabilidade', source: 'Fonte', manual: 'Manual', text: 'Texto', ocr: 'Scan OCR', pdf: 'Scan PDF' },
 };
 
-const reportsUiByLang: Partial<LangCopy< {
+type ReportsUiCopy = {
   badge: string;
   title: string;
   titleAccent: string;
@@ -603,13 +603,22 @@ const reportsUiByLang: Partial<LangCopy< {
   goals: string;
   symptomsQuick: string;
   labTable: string;
-  marker?: string;
-  value?: string;
-  unit?: string;
-  reference?: string;
-  date?: string;
-  note?: string;
-  delete?: string;
+  marker: string;
+  value: string;
+  unit: string;
+  reference: string;
+  date: string;
+  note: string;
+  delete: string;
+  workflowTitle: string;
+  loadingGuide: string;
+  workflowReportStep: string;
+  labsRequiredHint: string;
+  profileBirthYear: string;
+  profileCycleLength: string;
+  profileCycleDay: string;
+  profileMedications: string;
+  profileKnownConditions: string;
   addRow: string;
   uploadTitle: string;
   uploadFile: string;
@@ -638,10 +647,12 @@ const reportsUiByLang: Partial<LangCopy< {
   unsupportedFormat: string;
   extractFailed: string;
   aiScan: string;
-}>> = {
+};
+
+const reportsUiByLang: Partial<LangCopy<Partial<ReportsUiCopy>>> = {
   en: { badge: 'My Health Reports', title: 'Reports', titleAccent: 'That Explain', workflow: 'Simple workflow: choose report identity, fill your markers, upload image/text, and get a clear hormone-focused summary.', identityTitle: 'Report Identity', includeId: 'Include ID in report', includeName: 'Include Name in report', userIdOverride: 'User ID (optional override)', current: 'Current', privateIdentity: 'Private (no name/ID in summary)', profileTitle: 'Personal Health Profile', goals: 'Goals / Symptoms Priority', symptomsQuick: 'Today symptoms (quick select)', labTable: 'Lab Table', addRow: 'Add Row', uploadTitle: 'Upload scan/text', uploadFile: 'Upload File', uploadPlaceholder: 'Paste report text here or upload an image/text/PDF file...', readyExtraction: 'Ready for extraction', generate: 'Generate Report', reading: 'Reading...', quickOverview: 'Quick Overview', withinRange: 'Within range', outOfRange: 'Out of range', hormoneInfographic: 'Hormone Infographic', unlockInfographic: 'Add markers to unlock infographic.', day: 'day', hormoneSignals: 'Hormone Signals', questionsDoctor: 'Questions for Doctor', detectedMarkers: 'Detected Markers', refShort: 'Ref', status: 'Status', na: 'n/a', summaryTitle: 'Clinical-Friendly Summary', copyDoctor: 'Copy for doctor', reportReadyTitle: 'Report ready zone', reportReadyBody: 'Choose identity, fill profile + table, then Generate Report.', safetyTitle: 'Safety note', safetyBody: 'Luna29 provides educational interpretation only. Final diagnosis and treatment decisions require a licensed clinician.', unsupportedFormat: 'Unsupported format. Use text, image, or PDF files.', extractFailed: 'Could not extract text from file.', aiScan: 'AI scan' },
-  ru: { badge: 'Отчеты здоровья', title: 'Отчеты', titleAccent: 'С Пояснением', workflow: 'Простой процесс: выберите идентификацию отчета, заполните маркеры, загрузите фото/текст и получите понятное гормональное резюме.', identityTitle: 'Идентификация Отчета', includeId: 'Включить ID в отчет', includeName: 'Включить имя в отчет', userIdOverride: 'ID пользователя (опционально)', current: 'Текущее', privateIdentity: 'Приватно (без имени/ID в резюме)', profileTitle: 'Персональный Профиль Здоровья', goals: 'Цели / Приоритет симптомов', symptomsQuick: 'Симптомы сегодня (быстрый выбор)', labTable: 'Таблица Анализов', addRow: 'Добавить Строку', uploadTitle: 'Загрузка скана/текста', uploadFile: 'Загрузить Файл', uploadPlaceholder: 'Вставьте текст отчета или загрузите файл изображения/текста/PDF...', readyExtraction: 'Готово к распознаванию', generate: 'Сгенерировать Отчет', reading: 'Чтение...', quickOverview: 'Быстрый Обзор', withinRange: 'В норме', outOfRange: 'Вне нормы', hormoneInfographic: 'Гормональная Инфографика', unlockInfographic: 'Добавьте маркеры, чтобы открыть инфографику.', day: 'день', hormoneSignals: 'Гормональные Сигналы', questionsDoctor: 'Вопросы Врачу', detectedMarkers: 'Обнаруженные Маркеры', refShort: 'Реф.', status: 'Статус', na: 'н/д', summaryTitle: 'Клинически Понятное Резюме', copyDoctor: 'Скопировать для врача', reportReadyTitle: 'Зона готовности отчета', reportReadyBody: 'Выберите идентификацию, заполните профиль и таблицу, затем сгенерируйте отчет.', safetyTitle: 'Важное примечание', safetyBody: 'Luna29 дает образовательную интерпретацию. Окончательный диагноз и лечение определяет лицензированный врач.', unsupportedFormat: 'Неподдерживаемый формат. Используйте текст, изображение или PDF.', extractFailed: 'Не удалось извлечь текст из файла.', aiScan: 'AI-скан' },
-  uk: { badge: 'Звіти здоров\u2019я', title: 'Звіти', titleAccent: 'З Поясненням', workflow: 'Простий процес: оберіть ідентифікацію звіту, заповніть маркери, завантажте фото/текст і отримайте зрозумілий гормональний підсумок.', identityTitle: 'Ідентифікація Звіту', includeId: 'Додати ID у звіт', includeName: 'Додати імʼя у звіт', userIdOverride: 'ID користувача (опціонально)', current: 'Поточне', privateIdentity: 'Приватно (без імені/ID у підсумку)', profileTitle: 'Персональний Профіль Здоровʼя', goals: 'Цілі / Пріоритет симптомів', symptomsQuick: 'Симптоми сьогодні (швидкий вибір)', labTable: 'Таблиця Аналізів', addRow: 'Додати Рядок', uploadTitle: 'Завантаження скану/тексту', uploadFile: 'Завантажити Файл', uploadPlaceholder: 'Вставте текст звіту або завантажте файл зображення/тексту/PDF...', readyExtraction: 'Готово до розпізнавання', generate: 'Згенерувати Звіт', reading: 'Зчитування...', quickOverview: 'Швидкий Огляд', withinRange: 'У нормі', outOfRange: 'Поза нормою', hormoneInfographic: 'Гормональна Інфографіка', unlockInfographic: 'Додайте маркери, щоб відкрити інфографіку.', day: 'день', hormoneSignals: 'Гормональні Сигнали', questionsDoctor: 'Питання До Лікаря', detectedMarkers: 'Виявлені Маркери', refShort: 'Реф.', status: 'Статус', na: 'н/д', summaryTitle: 'Клінічно Зрозумілий Підсумок', copyDoctor: 'Скопіювати для лікаря', reportReadyTitle: 'Зона готовності звіту', reportReadyBody: 'Оберіть ідентифікацію, заповніть профіль і таблицю, потім згенеруйте звіт.', safetyTitle: 'Важлива примітка', safetyBody: 'Luna29 надає освітню інтерпретацію. Остаточний діагноз і лікування визначає ліцензований лікар.', unsupportedFormat: 'Непідтримуваний формат. Використовуйте текст, зображення або PDF.', extractFailed: 'Не вдалося зчитати текст із файлу.', aiScan: 'AI-скан' },
+  ru: { badge: 'Отчеты здоровья', title: 'Отчеты', titleAccent: 'С Пояснением', workflow: 'Простой процесс: выберите идентификацию отчета, заполните маркеры, загрузите фото/текст и получите понятное гормональное резюме.', identityTitle: 'Идентификация Отчета', includeId: 'Включить ID в отчет', includeName: 'Включить имя в отчет', userIdOverride: 'ID пользователя (опционально)', current: 'Текущее', privateIdentity: 'Приватно (без имени/ID в резюме)', profileTitle: 'Персональный Профиль Здоровья', goals: 'Цели / Приоритет симптомов', symptomsQuick: 'Симптомы сегодня (быстрый выбор)', labTable: 'Таблица Анализов', marker: 'Маркер', value: 'Значение', unit: 'Ед.', reference: 'Референс', date: 'Дата', note: 'Заметка', delete: 'Удалить', workflowTitle: 'Маршрут отчёта', loadingGuide: 'Загрузка справки...', workflowReportStep: 'Сгенерировать отчёт', labsRequiredHint: 'Добавьте хотя бы один маркер или вставьте текст анализа перед генерацией.', profileBirthYear: 'Год рождения', profileCycleLength: 'Длина цикла', profileCycleDay: 'День цикла', profileMedications: 'Текущие препараты', profileKnownConditions: 'Известные состояния', addRow: 'Добавить Строку', uploadTitle: 'Загрузка скана/текста', uploadFile: 'Загрузить Файл', uploadPlaceholder: 'Вставьте текст отчета или загрузите файл изображения/текста/PDF...', readyExtraction: 'Готово к распознаванию', generate: 'Сгенерировать Отчет', reading: 'Чтение...', quickOverview: 'Быстрый Обзор', withinRange: 'В норме', outOfRange: 'Вне нормы', hormoneInfographic: 'Гормональная Инфографика', unlockInfographic: 'Добавьте маркеры, чтобы открыть инфографику.', day: 'день', hormoneSignals: 'Гормональные Сигналы', questionsDoctor: 'Вопросы Врачу', detectedMarkers: 'Обнаруженные Маркеры', refShort: 'Реф.', status: 'Статус', na: 'н/д', summaryTitle: 'Клинически Понятное Резюме', copyDoctor: 'Скопировать для врача', reportReadyTitle: 'Зона готовности отчета', reportReadyBody: 'Выберите идентификацию, заполните профиль и таблицу, затем сгенерируйте отчет.', safetyTitle: 'Важное примечание', safetyBody: 'Luna29 дает образовательную интерпретацию. Окончательный диагноз и лечение определяет лицензированный врач.', unsupportedFormat: 'Неподдерживаемый формат. Используйте текст, изображение или PDF.', extractFailed: 'Не удалось извлечь текст из файла.', aiScan: 'AI-скан' },
+  uk: { badge: 'Звіти здоров\u2019я', title: 'Звіти', titleAccent: 'З Поясненням', workflow: 'Простий процес: оберіть ідентифікацію звіту, заповніть маркери, завантажте фото/текст і отримайте зрозумілий гормональний підсумок.', identityTitle: 'Ідентифікація Звіту', includeId: 'Додати ID у звіт', includeName: 'Додати імʼя у звіт', userIdOverride: 'ID користувача (опціонально)', current: 'Поточне', privateIdentity: 'Приватно (без імені/ID у підсумку)', profileTitle: 'Персональний Профіль Здоровʼя', goals: 'Цілі / Пріоритет симптомів', symptomsQuick: 'Симптоми сьогодні (швидкий вибір)', labTable: 'Таблиця Аналізів', marker: 'Маркер', value: 'Значення', unit: 'Од.', reference: 'Референс', date: 'Дата', note: 'Нотатка', delete: 'Видалити', workflowTitle: 'Маршрут звіту', loadingGuide: 'Завантаження довідки...', workflowReportStep: 'Згенерувати звіт', labsRequiredHint: 'Додайте хоча б один маркер або вставте текст аналізів перед генерацією.', profileBirthYear: 'Рік народження', profileCycleLength: 'Довжина циклу', profileCycleDay: 'День циклу', profileMedications: 'Поточні препарати', profileKnownConditions: 'Відомі стани', addRow: 'Додати Рядок', uploadTitle: 'Завантаження скану/тексту', uploadFile: 'Завантажити Файл', uploadPlaceholder: 'Вставте текст звіту або завантажте файл зображення/тексту/PDF...', readyExtraction: 'Готово до розпізнавання', generate: 'Згенерувати Звіт', reading: 'Зчитування...', quickOverview: 'Швидкий Огляд', withinRange: 'У нормі', outOfRange: 'Поза нормою', hormoneInfographic: 'Гормональна Інфографіка', unlockInfographic: 'Додайте маркери, щоб відкрити інфографіку.', day: 'день', hormoneSignals: 'Гормональні Сигнали', questionsDoctor: 'Питання До Лікаря', detectedMarkers: 'Виявлені Маркери', refShort: 'Реф.', status: 'Статус', na: 'н/д', summaryTitle: 'Клінічно Зрозумілий Підсумок', copyDoctor: 'Скопіювати для лікаря', reportReadyTitle: 'Зона готовності звіту', reportReadyBody: 'Оберіть ідентифікацію, заповніть профіль і таблицю, потім згенеруйте звіт.', safetyTitle: 'Важлива примітка', safetyBody: 'Luna29 надає освітню інтерпретацію. Остаточний діагноз і лікування визначає ліцензований лікар.', unsupportedFormat: 'Непідтримуваний формат. Використовуйте текст, зображення або PDF.', extractFailed: 'Не вдалося зчитати текст із файлу.', aiScan: 'AI-скан' },
   es: { badge: 'Informes de salud', title: 'Reportes', titleAccent: 'Que Explican', workflow: 'Flujo simple: elige identidad del reporte, completa marcadores, sube imagen/texto y obtén un resumen hormonal claro.', identityTitle: 'Identidad Del Reporte', includeId: 'Incluir ID en el reporte', includeName: 'Incluir nombre en el reporte', userIdOverride: 'ID de usuario (opcional)', current: 'Actual', privateIdentity: 'Privado (sin nombre/ID en el resumen)', profileTitle: 'Perfil Personal De Salud', goals: 'Objetivos / Prioridad de síntomas', symptomsQuick: 'Síntomas de hoy (selección rápida)', labTable: 'Tabla De Laboratorio', addRow: 'Agregar Fila', uploadTitle: 'Subir escaneo/texto', uploadFile: 'Subir Archivo', uploadPlaceholder: 'Pega texto del reporte o sube un archivo de imagen/texto/PDF...', readyExtraction: 'Listo para extracción', generate: 'Generar Reporte', reading: 'Leyendo...', quickOverview: 'Resumen Rápido', withinRange: 'En rango', outOfRange: 'Fuera de rango', hormoneInfographic: 'Infografía Hormonal', unlockInfographic: 'Agrega marcadores para activar la infografía.', day: 'día', hormoneSignals: 'Señales Hormonales', questionsDoctor: 'Preguntas Para El Médico', detectedMarkers: 'Marcadores Detectados', refShort: 'Ref', status: 'Estado', na: 'n/d', summaryTitle: 'Resumen Clínico Claro', copyDoctor: 'Copiar para el médico', reportReadyTitle: 'Zona lista para reporte', reportReadyBody: 'Elige identidad, completa perfil + tabla y luego genera el reporte.', safetyTitle: 'Nota de seguridad', safetyBody: 'Luna29 ofrece interpretación educativa. El diagnóstico y tratamiento final requiere personal médico licenciado.', unsupportedFormat: 'Formato no compatible. Usa archivos de texto, imagen o PDF.', extractFailed: 'No se pudo extraer texto del archivo.', aiScan: 'escaneo AI' },
   fr: { badge: 'Rapports santé', title: 'Rapports', titleAccent: 'Qui Expliquent', workflow: 'Flux simple: choisissez l identité, remplissez les marqueurs, chargez image/texte et obtenez un résumé hormonal clair.', identityTitle: 'Identité Du Rapport', includeId: 'Inclure ID dans le rapport', includeName: 'Inclure le nom dans le rapport', userIdOverride: 'ID utilisateur (optionnel)', current: 'Actuel', privateIdentity: 'Privé (sans nom/ID dans le résumé)', profileTitle: 'Profil Personnel De Santé', goals: 'Objectifs / Priorité des symptômes', symptomsQuick: 'Symptômes du jour (sélection rapide)', labTable: 'Tableau De Laboratoire', addRow: 'Ajouter Ligne', uploadTitle: 'Téléverser scan/texte', uploadFile: 'Téléverser Fichier', uploadPlaceholder: 'Collez le texte du rapport ou téléversez un fichier image/texte/PDF...', readyExtraction: 'Prêt pour extraction', generate: 'Générer Rapport', reading: 'Lecture...', quickOverview: 'Aperçu Rapide', withinRange: 'Dans la norme', outOfRange: 'Hors norme', hormoneInfographic: 'Infographie Hormonale', unlockInfographic: 'Ajoutez des marqueurs pour activer l infographie.', day: 'jour', hormoneSignals: 'Signaux Hormonaux', questionsDoctor: 'Questions Pour Le Médecin', detectedMarkers: 'Marqueurs Détectés', refShort: 'Réf', status: 'Statut', na: 'n/d', summaryTitle: 'Résumé Clinique Lisible', copyDoctor: 'Copier pour le médecin', reportReadyTitle: 'Zone de rapport prête', reportReadyBody: 'Choisissez l identité, complétez profil + tableau, puis générez le rapport.', safetyTitle: 'Note de sécurité', safetyBody: 'Luna29 fournit une interprétation éducative. Le diagnostic et le traitement final nécessitent un médecin agréé.', unsupportedFormat: 'Format non pris en charge. Utilisez un fichier texte, image ou PDF.', extractFailed: 'Impossible d extraire le texte du fichier.', aiScan: 'scan AI' },
   de: { badge: 'Gesundheitsberichte', title: 'Berichte', titleAccent: 'Die Erklären', workflow: 'Einfacher Ablauf: Berichtsidentität wählen, Marker ausfüllen, Bild/Text hochladen und klare hormonfokussierte Zusammenfassung erhalten.', identityTitle: 'Berichtsidentität', includeId: 'ID im Bericht anzeigen', includeName: 'Name im Bericht anzeigen', userIdOverride: 'Benutzer-ID (optional)', current: 'Aktuell', privateIdentity: 'Privat (kein Name/ID in der Zusammenfassung)', profileTitle: 'Persönliches Gesundheitsprofil', goals: 'Ziele / Symptom-Priorität', symptomsQuick: 'Heutige Symptome (Schnellauswahl)', labTable: 'Labortabelle', addRow: 'Zeile Hinzufügen', uploadTitle: 'Scan/Text hochladen', uploadFile: 'Datei Hochladen', uploadPlaceholder: 'Berichtstext einfügen oder Bild/Text/PDF-Datei hochladen...', readyExtraction: 'Bereit für Extraktion', generate: 'Bericht Erstellen', reading: 'Lese...', quickOverview: 'Schnellübersicht', withinRange: 'Im Bereich', outOfRange: 'Außerhalb', hormoneInfographic: 'Hormon-Infografik', unlockInfographic: 'Marker hinzufügen, um die Infografik freizuschalten.', day: 'Tag', hormoneSignals: 'Hormonsignale', questionsDoctor: 'Fragen Für Den Arzt', detectedMarkers: 'Erkannte Marker', refShort: 'Ref', status: 'Status', na: 'k.A.', summaryTitle: 'Klinisch Verständliche Zusammenfassung', copyDoctor: 'Für Arzt kopieren', reportReadyTitle: 'Bericht bereit', reportReadyBody: 'Identität wählen, Profil + Tabelle ausfüllen und dann Bericht erzeugen.', safetyTitle: 'Sicherheitshinweis', safetyBody: 'Luna29 bietet eine edukative Interpretation. Endgültige Diagnose und Therapie erfordern medizinisches Fachpersonal.', unsupportedFormat: 'Nicht unterstütztes Format. Bitte Text-, Bild- oder PDF-Datei verwenden.', extractFailed: 'Text konnte aus der Datei nicht extrahiert werden.', aiScan: 'AI-Scan' },
@@ -1007,38 +1018,97 @@ const womenReportInsightsByLang: Partial<LangCopy< {
 };
 
 
+const reportsUiDefaults: Pick<
+  ReportsUiCopy,
+  | 'marker'
+  | 'value'
+  | 'unit'
+  | 'reference'
+  | 'date'
+  | 'note'
+  | 'delete'
+  | 'workflowTitle'
+  | 'loadingGuide'
+  | 'workflowReportStep'
+  | 'labsRequiredHint'
+  | 'profileBirthYear'
+  | 'profileCycleLength'
+  | 'profileCycleDay'
+  | 'profileMedications'
+  | 'profileKnownConditions'
+> = {
+  marker: 'Marker',
+  value: 'Value',
+  unit: 'Unit',
+  reference: 'Reference',
+  date: 'Date',
+  note: 'Note',
+  delete: 'Delete',
+  workflowTitle: 'Report Workflow',
+  loadingGuide: 'Loading guide...',
+  workflowReportStep: 'Generate Report',
+  labsRequiredHint: 'Add at least one marker value or paste lab text before generating.',
+  profileBirthYear: 'Birth Year',
+  profileCycleLength: 'Cycle Length',
+  profileCycleDay: 'Cycle Day',
+  profileMedications: 'Current Medications',
+  profileKnownConditions: 'Known Conditions',
+};
+
+const mergeReportsUi = (lang: Language): ReportsUiCopy => ({
+  ...reportsUiDefaults,
+  ...(getLang(reportsUiByLang, lang) || reportsUiByLang.en || {}),
+} as ReportsUiCopy);
+
+export interface LabsViewExportContent {
+  reportUi: NonNullable<(typeof reportUiByLang)['en']>;
+  medForm: NonNullable<(typeof medicalFormByLang)['en']>;
+  reportSourcesUi: NonNullable<(typeof reportSourceByLang)['en']>;
+  reportCategories: NonNullable<(typeof markerCategoryByLang)['en']>;
+  detailedUi: NonNullable<(typeof detailedReportByLang)['en']>;
+  womenUi: NonNullable<(typeof womenReportInsightsByLang)['en']>;
+  locale: string;
+}
+
 export interface LabsViewLocalizedContent {
   sexualUi: NonNullable<(typeof sexualUiByLang)['en']>;
   visualGuide: NonNullable<(typeof visualGuideByLang)['en']>;
   reportUi: NonNullable<(typeof reportUiByLang)['en']>;
-  medForm: NonNullable<(typeof medicalFormByLang)['en']>;
   reportLangUi: NonNullable<(typeof reportLanguageUiByLang)['en']>;
-  reportSourcesUi: NonNullable<(typeof reportSourceByLang)['en']>;
   reportCategories: NonNullable<(typeof markerCategoryByLang)['en']>;
   reportActions: NonNullable<(typeof reportActionsByLang)['en']>;
   conflictsUi: NonNullable<(typeof reportConflictsByLang)['en']>;
-  reportsUi: NonNullable<(typeof reportsUiByLang)['en']>;
-  detailedUi: NonNullable<(typeof detailedReportByLang)['en']>;
-  womenUi: NonNullable<(typeof womenReportInsightsByLang)['en']>;
+  reportsUi: ReportsUiCopy;
   reportLanguageNames: typeof reportLanguageNames;
   locale: string;
+  export: LabsViewExportContent;
 }
 
-export function getLabsViewLocalizedContent(lang: Language, reportLang: Language): LabsViewLocalizedContent {
+export function getLabsViewExportContent(reportLang: Language): LabsViewExportContent {
+  return {
+    reportUi: getLang(reportUiByLang, reportLang) || reportUiByLang.en!,
+    medForm: getLang(medicalFormByLang, reportLang) || medicalFormByLang.en!,
+    reportSourcesUi: getLang(reportSourceByLang, reportLang) || reportSourceByLang.en!,
+    reportCategories: getLang(markerCategoryByLang, reportLang) || markerCategoryByLang.en!,
+    detailedUi: getLang(detailedReportByLang, reportLang) || detailedReportByLang.en!,
+    womenUi: getLang(womenReportInsightsByLang, reportLang) || womenReportInsightsByLang.en!,
+    locale: localeByLang[reportLang] || localeByLang.en,
+  };
+}
+
+/** UI copy follows interface `lang`; exported HTML/PDF copy follows `reportLang`. */
+export function getLabsViewLocalizedContent(lang: Language, reportLang: Language = lang): LabsViewLocalizedContent {
   return {
     sexualUi: getLang(sexualUiByLang, lang) || sexualUiByLang.en!,
     visualGuide: getLang(visualGuideByLang, lang) || visualGuideByLang.en!,
-    reportUi: reportUiByLang[reportLang] || reportUiByLang.en!,
-    medForm: medicalFormByLang[reportLang] || medicalFormByLang.en!,
+    reportUi: getLang(reportUiByLang, lang) || reportUiByLang.en!,
     reportLangUi: getLang(reportLanguageUiByLang, lang) || reportLanguageUiByLang.en!,
-    reportSourcesUi: reportSourceByLang[reportLang] || reportSourceByLang.en!,
-    reportCategories: markerCategoryByLang[reportLang] || markerCategoryByLang.en!,
+    reportCategories: getLang(markerCategoryByLang, lang) || markerCategoryByLang.en!,
     reportActions: getLang(reportActionsByLang, lang) || reportActionsByLang.en!,
     conflictsUi: getLang(reportConflictsByLang, lang) || reportConflictsByLang.en!,
-    reportsUi: getLang(reportsUiByLang, lang) || reportsUiByLang.en!,
-    detailedUi: detailedReportByLang[reportLang] || detailedReportByLang.en!,
-    womenUi: womenReportInsightsByLang[reportLang] || womenReportInsightsByLang.en!,
+    reportsUi: mergeReportsUi(lang),
     reportLanguageNames,
-    locale: localeByLang[reportLang] || localeByLang.en,
+    locale: localeByLang[lang] || localeByLang.en,
+    export: getLabsViewExportContent(reportLang),
   };
 }

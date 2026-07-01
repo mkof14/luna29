@@ -11,6 +11,11 @@ import {
   LegalNavDocType,
 } from '../utils/legal';
 import { LunaMenuLabel } from './SmoothLangText';
+import { PublicHeroBlock } from './public/PublicHeroBlock';
+import { PUBLIC_PAGE_ART, PublicArtPage } from '../utils/publicPageArt';
+import { getMemberHeroImage } from '../utils/memberHeroImages';
+import { MEMBER_PAGE_KNOWLEDGE } from '../utils/memberPageStyles';
+import { MemberBackButton } from './member/MemberBackButton';
 import {
   PUBLIC_BODY,
   PUBLIC_CARD,
@@ -124,28 +129,36 @@ export const LegalDocumentView: React.FC<LegalDocumentViewProps> = ({ lang, doc,
     window.location.reload();
   };
 
+  const docArtPage: PublicArtPage =
+    doc === 'medical' ? 'medical' : doc === 'terms' ? 'terms' : doc === 'cookies' ? 'cookies' : doc === 'data_rights' ? 'data_rights' : 'privacy';
+  const heroImage = mode === 'public' ? PUBLIC_PAGE_ART[docArtPage] : getMemberHeroImage(docArtPage === 'medical' ? 'medical' : docArtPage === 'terms' ? 'terms' : docArtPage === 'cookies' ? 'cookies' : docArtPage === 'data_rights' ? 'data_rights' : 'privacy');
+
   return (
     <article className={mode === 'public'
       ? `${PUBLIC_PAGE_STACK} max-w-5xl mx-auto pb-8`
-      : 'max-w-5xl mx-auto luna-page-shell luna-page-questions space-y-10 animate-in fade-in duration-700 pb-24 p-8 md:p-10'}>
-      {onBack && (
-        <button onClick={onBack} className={mode === 'public'
-          ? `${PUBLIC_CHIP} hover:border-luna-purple/45 transition-colors`
-          : 'text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-luna-purple transition-all'}>
+      : `${MEMBER_PAGE_KNOWLEDGE} ${PUBLIC_PAGE_STACK}`}>
+      {onBack && mode === 'member' && <MemberBackButton lang={lang} onClick={onBack} />}
+      {onBack && mode === 'public' && (
+        <button onClick={onBack} className={`${PUBLIC_CHIP} hover:border-luna-purple/45 transition-colors`}>
           ← {ui.back}
         </button>
       )}
-      <header className={mode === 'public'
-        ? `${PUBLIC_SHELL} luna-page-questions ${PUBLIC_SHELL_PAD} space-y-4`
-        : 'rounded-[2rem] border border-slate-200 dark:border-slate-700 luna-vivid-surface p-6 md:p-7 space-y-4'}>
-        <div className={`${mode === 'public' ? PUBLIC_SHELL_INNER : ''} space-y-4`}>
-        <div className="flex items-center gap-3">
-          <span className="text-3xl" aria-hidden="true">{meta.icon}</span>
-          <p className={mode === 'public' ? PUBLIC_EYEBROW : `text-[10px] font-black uppercase tracking-[0.4em] ${meta.accent}`}>{modeLabel}</p>
+
+      <section className={`${PUBLIC_SHELL} luna-page-questions ${PUBLIC_SHELL_PAD}`}>
+        <div className={PUBLIC_SHELL_INNER}>
+          <PublicHeroBlock
+            eyebrow={modeLabel}
+            title={copy.title}
+            subtitle={copy.subtitle}
+            image={heroImage}
+            imageAlt={copy.title}
+          />
         </div>
-        <h1 className={mode === 'public' ? PUBLIC_H1 : 'text-4xl md:text-5xl font-black tracking-tight text-slate-900 dark:text-slate-100'}>{copy.title}</h1>
-        <p className={mode === 'public' ? PUBLIC_BODY : 'text-base font-semibold text-slate-600 dark:text-slate-300'}>{copy.subtitle}</p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+      </section>
+
+      <section className={`${PUBLIC_SHELL} luna-page-questions ${PUBLIC_SHELL_PAD}`}>
+        <div className={`${PUBLIC_SHELL_INNER} ${PUBLIC_SURFACE} space-y-4`}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className={`${PUBLIC_CHIP} p-3`}>
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-300">{ui.effectiveDate}</p>
             <p className="text-sm font-bold text-slate-700 dark:text-slate-100">{effectiveDate}</p>
@@ -156,7 +169,7 @@ export const LegalDocumentView: React.FC<LegalDocumentViewProps> = ({ lang, doc,
           </div>
         </div>
         </div>
-      </header>
+      </section>
       <section className={mode === 'public' ? 'grid grid-cols-1 gap-5' : 'grid grid-cols-1 gap-5'}>
         {copy.sections.map((section) => (
           <article key={section.heading} className={mode === 'public' ? `${PUBLIC_CARD} space-y-2` : 'rounded-[2rem] border border-slate-200 dark:border-slate-700 luna-vivid-card p-6 md:p-7'}>

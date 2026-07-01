@@ -385,8 +385,26 @@ export const MemberPageHero: React.FC<{
     medical: 'disclaimer',
     cookies: 'cookies',
     data_rights: 'data_rights',
+    learning: 'knowledge',
+    pricing: 'home',
+    ritual_path: 'how',
   };
   const descriptions = getLang(descriptionByLang, lang) || descriptionByLang.en;
+
+  const exploreTitleByLang: LangCopy<{ learning: string; pricing: string; ritual: string }> = {
+    en: { learning: 'Learning', pricing: 'Pricing', ritual: 'Ritual Path' },
+    ru: { learning: 'Обучение', pricing: 'Тарифы', ritual: 'Ритуальный путь' },
+    uk: { learning: 'Навчання', pricing: 'Тарифи', ritual: 'Ритуальний шлях' },
+    es: { learning: 'Aprendizaje', pricing: 'Precios', ritual: 'Ruta ritual' },
+    fr: { learning: 'Apprentissage', pricing: 'Tarifs', ritual: 'Chemin rituel' },
+    de: { learning: 'Lernen', pricing: 'Preise', ritual: 'Ritualpfad' },
+    zh: { learning: '学习', pricing: '价格', ritual: '仪式路径' },
+    ja: { learning: '学習', pricing: '料金', ritual: 'リチュアルパス' },
+    pt: { learning: 'Aprendizagem', pricing: 'Preços', ritual: 'Caminho ritual' },
+    ar: { learning: 'التعلّم', pricing: 'الأسعار', ritual: 'المسار الطقسي' },
+    he: { learning: 'לימוד', pricing: 'מחירים', ritual: 'נתיב טקסי' },
+  };
+  const exploreTitles = getLang(exploreTitleByLang, lang) || exploreTitleByLang.en;
 
   const configs: Record<TabType, HeroConfig> = {
     dashboard: { title: ui.navigation.home || 'Home', subtitle, description: descriptions[descriptionKeyByTab.dashboard] },
@@ -418,6 +436,9 @@ export const MemberPageHero: React.FC<{
     medical: { title: legal.medical, subtitle, description: descriptions[descriptionKeyByTab.medical] },
     cookies: { title: legal.cookies, subtitle, description: descriptions[descriptionKeyByTab.cookies] },
     data_rights: { title: legal.data_rights, subtitle, description: descriptions[descriptionKeyByTab.data_rights] },
+    learning: { title: exploreTitles.learning, subtitle, description: descriptions[descriptionKeyByTab.learning] },
+    pricing: { title: exploreTitles.pricing, subtitle, description: descriptions[descriptionKeyByTab.pricing] },
+    ritual_path: { title: exploreTitles.ritual, subtitle, description: descriptions[descriptionKeyByTab.ritual_path] },
   };
 
   const config = configs[activeTab];

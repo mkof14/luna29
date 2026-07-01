@@ -1,6 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { Language, getLang } from '../constants';
+import { MemberIconBackButton } from './member/MemberIconBackButton';
+import { MemberPageIntro } from './member/MemberPageIntro';
+import { LunaPageContentSection } from './shared/LunaPageContentSection';
+import { getLunaPageTheme } from '../utils/lunaPageThemes';
 import { billingService } from '../services/billingService';
 
 interface InsightsPaywallViewProps {
@@ -165,20 +169,13 @@ export const InsightsPaywallView: React.FC<InsightsPaywallViewProps> = ({ lang, 
   };
 
   return (
-    <section className="max-w-4xl mx-auto p-6 md:p-8 space-y-6">
-      <button
-        onClick={onBack}
-        className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-luna-purple transition-colors"
-      >
-        <ArrowLeft size={14} /> {copy.back}
-      </button>
+    <>
+      <MemberIconBackButton lang={lang} onClick={onBack} className="mb-0" />
+      <MemberPageIntro lang={lang} page="insights_paywall" tab="insights_paywall" />
 
-      <article className="rounded-[2.4rem] border border-slate-200/80 dark:border-[#2a4670] bg-white/88 dark:bg-[#081a3d]/94 p-7 md:p-9 shadow-luna-rich space-y-6">
+      <LunaPageContentSection themeClass={getLunaPageTheme('insights_paywall').shellClass}>
         <div className="space-y-2">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-luna-purple">Luna29 Insights</p>
-          <h1 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-slate-100">{copy.top}</h1>
-          <p className="text-base font-medium text-slate-700 dark:text-slate-200">{copy.lineA}</p>
-          <p className="text-base font-medium text-slate-700 dark:text-slate-200">{copy.lineB}</p>
+          <p className="text-base font-medium text-slate-700 dark:text-slate-200">{copy.lineA} {copy.lineB}</p>
         </div>
 
         <article className="rounded-2xl bg-slate-100/75 dark:bg-slate-800/60 p-5 space-y-2">
@@ -215,7 +212,7 @@ export const InsightsPaywallView: React.FC<InsightsPaywallViewProps> = ({ lang, 
           {loading && <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{copy.loading}</p>}
           {feedback && <p className="text-xs font-semibold text-rose-500 dark:text-rose-300">{feedback}</p>}
         </div>
-      </article>
-    </section>
+      </LunaPageContentSection>
+    </>
   );
 };

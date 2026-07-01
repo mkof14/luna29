@@ -1,20 +1,31 @@
 
 import React, { useState } from 'react';
 import { TRANSLATIONS, Language, LangCopy, getLang } from '../constants';
+import { MemberIconBackButton } from './member/MemberIconBackButton';
+import { LunaPageHeroSection } from './shared/LunaPageHeroSection';
+import { LunaPageContentSection } from './shared/LunaPageContentSection';
+import { PUBLIC_PAGE_STACK } from './public/publicPageStyles';
+import { MEMBER_INNER_CARD, MEMBER_BODY_TEXT, MEMBER_PAGE_ROOT, MEMBER_SECTION_EYEBROW } from '../utils/memberPageStyles';
+import { getLunaPageTheme } from '../utils/lunaPageThemes';
+import { getMemberTabHeroCopy } from '../utils/memberTabHeroCopy';
+import { getMemberHeroImage } from '../utils/memberHeroImages';
 import { motion, AnimatePresence } from 'motion/react';
 
 export const PartnerFAQView: React.FC<{ lang: Language; onBack: () => void }> = ({ lang, onBack }) => {
   const ui = TRANSLATIONS[lang];
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   type PartnerFaqItem = (typeof ui.bridge.partnerFAQ.items)[number];
-  const copyByLang: LangCopy< {
+  type PartnerFaqCopy = {
     back: string;
     philosophy: string;
     quote: string;
     reportsTitle: string;
     reportsLead: string;
     reportsPoints: string[];
-  }> = {
+    examplesTitle?: string;
+    examples?: Array<{ scene: string; say: string; avoid: string }>;
+  };
+  const copyByLang: LangCopy<PartnerFaqCopy> = {
     en: {
       back: 'Back',
       philosophy: 'Luna29 Philosophy',
@@ -22,6 +33,12 @@ export const PartnerFAQView: React.FC<{ lang: Language; onBack: () => void }> = 
       reportsTitle: 'How Partners Use My Health Reports',
       reportsLead: 'Reports help couples discuss health with less conflict: what changed, why it may happen, and what support is useful now.',
       reportsPoints: ['Use report language to discuss needs without blame.', 'Bring report to clinician and decide next tests together.', 'Share only ID/no name if privacy is needed.'],
+      examplesTitle: 'Partner spirit in practice',
+      examples: [
+        { scene: 'Low energy evening', say: 'I hear that your body is asking for rest. I can handle dinner — no fixing needed.', avoid: 'Why are you always tired? You just need to push through.' },
+        { scene: 'Before a hard conversation', say: 'I want to understand your capacity today. We can pause if it gets heavy.', avoid: 'We need to talk now — this cannot wait.' },
+        { scene: 'After a health report', say: 'The report names a pattern, not a verdict. What would feel supportive this week?', avoid: 'The report proves you should change everything immediately.' },
+      ],
     },
     ru: {
       back: 'Назад',
@@ -30,6 +47,12 @@ export const PartnerFAQView: React.FC<{ lang: Language; onBack: () => void }> = 
       reportsTitle: 'Как Партнеру Использовать My Health Reports',
       reportsLead: 'Отчеты помогают обсуждать здоровье без конфликтов: что изменилось, почему это могло случиться и какая поддержка нужна сейчас.',
       reportsPoints: ['Используйте язык отчета для разговора без обвинений.', 'Берите отчет к врачу и вместе решайте, какие анализы нужны дальше.', 'При необходимости делитесь только ID без имени.'],
+      examplesTitle: 'Дух партнёрства на практике',
+      examples: [
+        { scene: 'Вечер с низкой энергией', say: 'Слышу, что тело просит отдых. Я могу взять ужин — без «исправлений».', avoid: 'Почему ты всегда устаёшь? Просто нужно собраться.' },
+        { scene: 'Перед сложным разговором', say: 'Хочу понять твой ресурс сегодня. Можем поставить паузу, если станет тяжело.', avoid: 'Нам нужно поговорить прямо сейчас — это не может ждать.' },
+        { scene: 'После health report', say: 'Отчёт называет паттерн, не приговор. Что было бы поддержкой на этой неделе?', avoid: 'Отчёт доказывает, что тебе нужно срочно всё менять.' },
+      ],
     },
     uk: {
       back: 'Назад',
@@ -104,31 +127,38 @@ export const PartnerFAQView: React.FC<{ lang: Language; onBack: () => void }> = 
       reportsPoints: ['Use report language to discuss needs without blame.', 'Bring report to clinician and decide next tests together.', 'Share only ID/no name if privacy is needed.'],
     },};
   const copy = getLang(copyByLang, lang);
+  const enPartnerCopy = copyByLang.en;
+  const examplesTitle = copy.examplesTitle ?? enPartnerCopy.examplesTitle;
+  const examples = copy.examples ?? enPartnerCopy.examples ?? [];
 
   const toggle = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
   };
 
+  const hero = getMemberTabHeroCopy('partner_faq', lang, ui);
+  const themeClass = getLunaPageTheme('partner_faq').shellClass;
+
   return (
-    <div className="max-w-4xl mx-auto luna-page-shell luna-page-partner space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700 p-8 md:p-10 pb-40">
-      <header className="flex justify-between items-center">
-        <button onClick={onBack} className="group flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-luna-purple transition-all">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="group-hover:-translate-x-1 transition-transform">
-            <path d="M19 12H5M12 19l-7-7 7-7"/>
-          </svg>
-          {copy.back}
-        </button>
-        <div className="px-4 py-1.5 bg-luna-purple/10 rounded-full border border-luna-purple/20">
-          <span className="text-[10px] font-black uppercase text-luna-purple tracking-widest">{ui.bridge.partnerFAQ.title}</span>
-        </div>
-      </header>
+    <section className={`${MEMBER_PAGE_ROOT} ${themeClass}`} data-testid="partner-faq-root">
+      <MemberIconBackButton lang={lang} onClick={onBack} className="mb-0" />
 
-      <div className="text-center space-y-4">
-        <h2 className="text-5xl font-black tracking-tight uppercase">{ui.bridge.partnerFAQ.title}</h2>
-        <p className="text-sm font-medium text-slate-400 uppercase tracking-[0.3em]">{ui.bridge.partnerFAQ.subtitle}</p>
-      </div>
+      <div className={PUBLIC_PAGE_STACK}>
+        <LunaPageHeroSection
+          themeClass={themeClass}
+          eyebrow={hero.eyebrow}
+          title={hero.title}
+          subtitle={ui.bridge.partnerFAQ.subtitle}
+          image={getMemberHeroImage('partner_faq')}
+          imageAlt={hero.title}
+          chip={
+            <span className="text-[10px] font-black uppercase tracking-[0.16em] text-luna-purple dark:text-[#d8b4fe]">
+              {ui.bridge.partnerFAQ.title}
+            </span>
+          }
+        />
 
-      <div className="space-y-4">
+        <LunaPageContentSection themeClass={themeClass} padded={false} className="space-y-12">
+        <div className="space-y-4">
         {ui.bridge.partnerFAQ.items.map((item: PartnerFaqItem, idx: number) => (
           <div 
             key={idx} 
@@ -169,6 +199,19 @@ export const PartnerFAQView: React.FC<{ lang: Language; onBack: () => void }> = 
         ))}
       </div>
 
+      <section className="space-y-4">
+        <h3 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{examplesTitle}</h3>
+        <div className="grid grid-cols-1 gap-4">
+          {examples.map((item) => (
+            <article key={item.scene} className={`${MEMBER_INNER_CARD} p-6 md:p-7 space-y-3`}>
+              <p className={MEMBER_SECTION_EYEBROW}>{item.scene}</p>
+              <p className={MEMBER_BODY_TEXT}><span className="font-black text-emerald-700 dark:text-emerald-300">Say: </span>{item.say}</p>
+              <p className={MEMBER_BODY_TEXT}><span className="font-black text-rose-700 dark:text-rose-300">Avoid: </span>{item.avoid}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
       <article className="p-8 md:p-10 rounded-[2.5rem] border-2 border-luna-purple/30 luna-vivid-card-alt-4 shadow-[0_14px_34px_rgba(76,29,149,0.14)] space-y-4">
         <p className="text-[10px] font-black uppercase tracking-[0.3em] text-luna-purple">My Health Reports</p>
         <h3 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-slate-100">{copy.reportsTitle}</h3>
@@ -188,6 +231,8 @@ export const PartnerFAQView: React.FC<{ lang: Language; onBack: () => void }> = 
           {copy.quote}
         </p>
       </div>
-    </div>
+        </LunaPageContentSection>
+      </div>
+    </section>
   );
 };

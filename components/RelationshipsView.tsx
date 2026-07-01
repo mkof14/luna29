@@ -13,6 +13,10 @@ import { generatePartnerNote } from '../services/geminiService';
 import { dataService } from '../services/dataService';
 import { normalizePartnerNoteInput } from '../utils/bridge';
 import { copyTextSafely, shareTextSafely } from '../utils/share';
+import { MemberIconBackButton } from './member/MemberIconBackButton';
+import { MemberPageIntro } from './member/MemberPageIntro';
+import { LunaPageContentSection } from './shared/LunaPageContentSection';
+import { getLunaPageTheme } from '../utils/lunaPageThemes';
 
 type Step = 'intro' | 'intent' | 'tone' | 'boundary' | 'result';
 
@@ -361,19 +365,17 @@ export const RelationshipsView: React.FC<{ phase: CyclePhase; lang: Language; on
   };
 
   return (
-    <div className="max-w-5xl mx-auto luna-page-shell luna-page-relationships space-y-12 animate-in slide-in-from-bottom-6 duration-700 p-8 md:p-10">
-      <div className="flex justify-between items-center">
-        <button onClick={handleBack} className="group flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-luna-purple transition-all">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="group-hover:-translate-x-1 transition-transform">
-            <path d="M19 12H5M12 19l-7-7 7-7"/>
-          </svg>
-          {copy.back}
-        </button>
-        <div className="px-4 py-1.5 bg-luna-purple/10 rounded-full border border-luna-purple/20">
+    <>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <MemberIconBackButton lang={lang} onClick={handleBack} className="mb-0" />
+        <div className="px-4 py-1.5 bg-luna-purple/10 rounded-full border border-luna-purple/20 self-start sm:self-auto">
           <span className="text-[10px] font-black uppercase text-luna-purple tracking-widest">{ui.bridge.title}</span>
         </div>
       </div>
-      
+
+      {step === 'intro' && <MemberPageIntro lang={lang} page="relationships" tab="relationships" />}
+
+      <LunaPageContentSection themeClass={getLunaPageTheme('relationships').shellClass} padded={false} className="space-y-8">
       <div className="luna-vivid-surface p-8 md:p-16 rounded-[4rem] space-y-16">
         {renderStepContent()}
 
@@ -400,6 +402,7 @@ export const RelationshipsView: React.FC<{ phase: CyclePhase; lang: Language; on
       <div className="p-12 text-center text-slate-400 italic text-sm max-w-2xl mx-auto leading-relaxed opacity-60">
         "{copy.quote}"
       </div>
-    </div>
+      </LunaPageContentSection>
+    </>
   );
 };

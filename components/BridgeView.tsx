@@ -11,6 +11,10 @@ import { JourneyProgress } from './JourneyProgress';
 import { useSubscriptionAccess } from '../hooks/useSubscriptionAccess';
 import { canUseBridgeReflection } from '../utils/subscriptionAccess';
 import { BRIDGE_FLOW_COPY, BRIDGE_INFO_COPY } from '../utils/memberCoreI18n';
+import { MemberIconBackButton } from './member/MemberIconBackButton';
+import { MemberPageIntro } from './member/MemberPageIntro';
+import { LunaPageContentSection } from './shared/LunaPageContentSection';
+import { getLunaPageTheme } from '../utils/lunaPageThemes';
 
 type BridgeStep = 'entry' | 'reflection' | 'result';
 
@@ -115,11 +119,13 @@ export const BridgeView: React.FC<{ lang: Language; onBack: () => void }> = ({ l
   };
 
   return (
-    <div className="max-w-5xl mx-auto min-h-[70vh] luna-page-shell luna-page-bridge flex flex-col p-6 md:p-8 text-center space-y-10">
+    <>
+      <MemberIconBackButton lang={lang} onClick={onBack} className="mb-0" />
+      <MemberPageIntro lang={lang} page="bridge" tab="bridge" />
+
+      <LunaPageContentSection themeClass={getLunaPageTheme('bridge').shellClass} padded={false} className="min-h-[70vh] flex flex-col text-center space-y-10">
       <JourneyProgress lang={lang} currentStep={3} />
       <section className="rounded-[2.6rem] border border-slate-200/70 dark:border-slate-800/80 bg-gradient-to-br from-[#f6ebf4]/90 via-[#eee8f3]/86 to-[#e5edf9]/82 dark:from-[#07122a]/94 dark:via-[#0b1a35]/92 dark:to-[#112446]/90 p-7 md:p-9 shadow-[0_18px_46px_rgba(88,70,126,0.18)] dark:shadow-[0_22px_54px_rgba(0,0,0,0.5)] space-y-6">
-        <p className="text-[10px] font-black uppercase tracking-[0.45em] text-luna-purple">{info.eyebrow}</p>
-        <h1 className="text-3xl md:text-5xl font-black tracking-tight text-slate-900 dark:text-slate-100">{info.title}</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-left">
           <article className="rounded-[2rem] border border-slate-200/70 dark:border-slate-800/85 bg-white/75 dark:bg-slate-900/55 p-5 md:p-6 space-y-3">
             <p className="text-base md:text-lg font-black uppercase tracking-[0.18em] text-luna-purple">{info.problemTitle}</p>
@@ -162,9 +168,9 @@ export const BridgeView: React.FC<{ lang: Language; onBack: () => void }> = ({ l
             exit={{ opacity: 0, y: -20 }}
             className="space-y-12"
           >
-            <h2 className="text-3xl md:text-5xl font-medium italic text-slate-800 dark:text-slate-200 leading-tight max-w-2xl">
+            <p className="text-lg md:text-xl font-medium italic text-slate-800 dark:text-slate-200 leading-relaxed max-w-2xl">
               "{copy.entryQuote}"
-            </h2>
+            </p>
             <button 
               onClick={handleContinue}
               className="px-12 py-5 bg-slate-950 dark:bg-white text-white dark:text-slate-950 rounded-full text-xs font-black uppercase tracking-widest shadow-xl hover:scale-105 transition-all"
@@ -267,6 +273,7 @@ export const BridgeView: React.FC<{ lang: Language; onBack: () => void }> = ({ l
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+      </LunaPageContentSection>
+    </>
   );
 };

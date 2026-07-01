@@ -4,10 +4,12 @@ import { AuthSession, CyclePhase, HealthEvent, HormoneData, RuleOutput, SystemSt
 import { Language, TranslationSchema, LangCopy, getLang } from '../constants';
 import { langMap } from '../utils/languages';
 import { TabType } from '../utils/navigation';
+import type { MemberNavigateOptions } from '../utils/memberNavigation';
 import CycleTimeline from './CycleTimeline';
 import { DashboardView } from './DashboardView';
 import { DEFAULT_CYCLE_LENGTH, DEFAULT_USER_AGE } from '../constants/appDefaults';
-import { MemberPageHero } from './MemberPageHero';
+
+import { MemberPageShell } from './member/MemberPageShell';
 
 const LabsView = lazy(() => import('./LabsView').then((m) => ({ default: m.LabsView })));
 const MedicationsView = lazy(() => import('./MedicationsView').then((m) => ({ default: m.MedicationsView })));
@@ -33,6 +35,9 @@ const MyDayWithLunaView = lazy(() => import('./MyDayWithLunaView').then((m) => (
 const MonthlyReflectionView = lazy(() => import('./MonthlyReflectionView').then((m) => ({ default: m.MonthlyReflectionView })));
 const InsightsPaywallView = lazy(() => import('./InsightsPaywallView').then((m) => ({ default: m.InsightsPaywallView })));
 const LunaRhythmCalendarView = lazy(() => import('./LunaRhythmCalendarView').then((m) => ({ default: m.LunaRhythmCalendarView })));
+const MemberLearningView = lazy(() => import('./member/MemberLearningView').then((m) => ({ default: m.MemberLearningView })));
+const MemberPricingView = lazy(() => import('./member/MemberPricingView').then((m) => ({ default: m.MemberPricingView })));
+const MemberRitualView = lazy(() => import('./member/MemberRitualView').then((m) => ({ default: m.MemberRitualView })));
 
 const LoadingFallback: React.FC<{ lang: Language }> = ({ lang }) => (
   <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4 animate-pulse">
@@ -160,7 +165,8 @@ interface MainContentRouterProps {
   setShowSyncOverlay: (next: boolean) => void;
   setShowLive: (next: boolean) => void;
   setLog: (log: HealthEvent[]) => void;
-  navigateTo: (tab: TabType) => void;
+  navigateTo: (tab: TabType, options?: MemberNavigateOptions) => void;
+  onMemberBack: () => void;
   session: AuthSession | null;
   onLogout: () => void;
 }
@@ -181,15 +187,16 @@ export const MainContentRouter: React.FC<MainContentRouterProps> = ({
   setShowLive,
   setLog,
   navigateTo,
+  onMemberBack,
   session,
   onLogout,
 }) => {
   return (
-    <main data-testid={`member-tab-${activeTab}`} className="flex-grow max-w-7xl mx-auto w-full px-6 pt-12 pb-40 relative z-10">
+    <main data-testid={`member-tab-${activeTab}`} className="flex-grow max-w-7xl mx-auto w-full px-6 pt-12 pb-40 relative z-10 member-tab-content">
       <div className="pointer-events-none absolute -top-16 left-10 w-72 h-72 rounded-full bg-[#f2ccda]/20 dark:bg-luna-purple/18 blur-[90px]" />
       <div className="pointer-events-none absolute top-1/3 right-0 w-96 h-96 rounded-full bg-[#d6dff7]/24 dark:bg-[#1e3a7a]/20 blur-[120px]" />
-      <MemberPageHero activeTab={activeTab} lang={lang} ui={ui} />
-      <MemberContentErrorBoundary lang={lang} resetKey={`${activeTab}:${lang}`} onBackHome={() => navigateTo('today_mirror')}>
+      <MemberContentErrorBoundary lang={lang} resetKey={`${activeTab}:${lang}`} onBackHome={onMemberBack}>
+      <MemberPageShell tab={activeTab} lang={lang} ui={ui}>
       <Suspense fallback={<LoadingFallback lang={lang} />}>
         {activeTab === 'dashboard' && (
           <DashboardView
@@ -225,7 +232,7 @@ export const MainContentRouter: React.FC<MainContentRouterProps> = ({
             systemState={systemState}
             events={log}
             onSpeak={() => navigateTo('reflections')}
-            onBack={() => navigateTo('today_mirror')}
+            onBack={onMemberBack}
           />
         )}
         {activeTab === 'monthly_reflection' && (
@@ -234,22 +241,22 @@ export const MainContentRouter: React.FC<MainContentRouterProps> = ({
             currentPhase={currentPhase}
             systemState={systemState}
             events={log}
-            onBack={() => navigateTo('today_mirror')}
+            onBack={onMemberBack}
           />
         )}
-        {activeTab === 'insights_paywall' && <InsightsPaywallView lang={lang} onBack={() => navigateTo('today_mirror')} />}
+        {activeTab === 'insights_paywall' && <InsightsPaywallView lang={lang} onBack={onMemberBack} />}
         {activeTab === 'rhythm_calendar' && (
           <LunaRhythmCalendarView
             lang={lang}
             log={log}
             currentCycleDay={systemState.currentDay}
             cycleLength={systemState.cycleLength}
-            onBack={() => navigateTo('today_mirror')}
+            onBack={onMemberBack}
             memberEmail={session?.email}
             syncEnabled={Boolean(session?.id)}
           />
         )}
-        {activeTab === 'about' && <AboutLunaView lang={lang} mode="member" onBack={() => navigateTo('today_mirror')} />}
+        {activeTab === 'about' && <AboutLunaView lang={lang} mode="member" onBack={onMemberBack} />}
         {activeTab === 'cycle' && (
           <CycleTimeline
             currentDay={systemState.currentDay}
@@ -259,16 +266,16 @@ export const MainContentRouter: React.FC<MainContentRouterProps> = ({
               setLog(dataService.getLog());
             }}
             isDetailed={true}
-            onBack={() => navigateTo('today_mirror')}
+            onBack={onMemberBack}
           />
         )}
-        {activeTab === 'profile' && <ProfileView onBack={() => navigateTo('today_mirror')} />}
-        {activeTab === 'bridge' && <BridgeView lang={lang} onBack={() => navigateTo('today_mirror')} />}
-        {activeTab === 'relationships' && <RelationshipsView phase={currentPhase} lang={lang} onBack={() => navigateTo('today_mirror')} />}
-        {activeTab === 'family' && <FamilyView phase={currentPhase} lang={lang} onBack={() => navigateTo('today_mirror')} />}
-        {activeTab === 'reflections' && <AudioReflection onBack={() => navigateTo('today_mirror')} lang={lang} />}
-        {activeTab === 'voice_files' && <MyVoiceFilesView onBack={() => navigateTo('today_mirror')} lang={lang} />}
-        {activeTab === 'creative' && <CreativeStudio />}
+        {activeTab === 'profile' && <ProfileView lang={lang} onBack={onMemberBack} />}
+        {activeTab === 'bridge' && <BridgeView lang={lang} onBack={onMemberBack} />}
+        {activeTab === 'relationships' && <RelationshipsView phase={currentPhase} lang={lang} onBack={onMemberBack} />}
+        {activeTab === 'family' && <FamilyView phase={currentPhase} lang={lang} onBack={onMemberBack} />}
+        {activeTab === 'reflections' && <AudioReflection onBack={onMemberBack} lang={lang} />}
+        {activeTab === 'voice_files' && <MyVoiceFilesView onBack={onMemberBack} lang={lang} />}
+        {activeTab === 'creative' && <CreativeStudio lang={lang} onBack={onMemberBack} />}
         {activeTab === 'labs' && (
           <LabsView
             day={systemState.currentDay}
@@ -276,23 +283,27 @@ export const MainContentRouter: React.FC<MainContentRouterProps> = ({
             lang={lang}
             userId={session?.id}
             userName={session?.name}
-            onBack={() => navigateTo('today_mirror')}
+            onBack={onMemberBack}
           />
         )}
-        {activeTab === 'meds' && <MedicationsView medications={systemState.medications} lang={lang} onBack={() => navigateTo('today_mirror')} />}
-        {activeTab === 'history' && <HistoryView log={dataService.getLog()} lang={lang} onBack={() => navigateTo('today_mirror')} />}
-        {activeTab === 'privacy' && <PrivacyPolicyView lang={lang} onBack={() => navigateTo('today_mirror')} />}
-        {activeTab === 'terms' && <LegalDocumentView lang={lang} doc="terms" onBack={() => navigateTo('today_mirror')} mode="member" />}
-        {activeTab === 'medical' && <LegalDocumentView lang={lang} doc="medical" onBack={() => navigateTo('today_mirror')} mode="member" />}
-        {activeTab === 'cookies' && <LegalDocumentView lang={lang} doc="cookies" onBack={() => navigateTo('today_mirror')} mode="member" />}
-        {activeTab === 'data_rights' && <LegalDocumentView lang={lang} doc="data_rights" onBack={() => navigateTo('today_mirror')} mode="member" />}
-        {activeTab === 'library' && <HormoneLibraryView lang={lang} onBack={() => navigateTo('today_mirror')} />}
-        {activeTab === 'faq' && <FAQView lang={lang} onBack={() => navigateTo('today_mirror')} />}
-        {activeTab === 'partner_faq' && <PartnerFAQView lang={lang} onBack={() => navigateTo('today_mirror')} />}
-        {activeTab === 'contact' && <ContactView ui={ui} lang={lang} onBack={() => navigateTo('today_mirror')} />}
-        {activeTab === 'crisis' && <CrisisCenterView lang={lang} onBack={() => navigateTo('today_mirror')} />}
-        {activeTab === 'how_it_works' && <HowItWorksView lang={lang} onBack={() => navigateTo('today_mirror')} />}
+        {activeTab === 'meds' && <MedicationsView medications={systemState.medications} lang={lang} onBack={onMemberBack} />}
+        {activeTab === 'history' && <HistoryView log={dataService.getLog()} lang={lang} onBack={onMemberBack} />}
+        {activeTab === 'privacy' && <PrivacyPolicyView lang={lang} onBack={onMemberBack} />}
+        {activeTab === 'terms' && <LegalDocumentView lang={lang} doc="terms" onBack={onMemberBack} mode="member" />}
+        {activeTab === 'medical' && <LegalDocumentView lang={lang} doc="medical" onBack={onMemberBack} mode="member" />}
+        {activeTab === 'cookies' && <LegalDocumentView lang={lang} doc="cookies" onBack={onMemberBack} mode="member" />}
+        {activeTab === 'data_rights' && <LegalDocumentView lang={lang} doc="data_rights" onBack={onMemberBack} mode="member" />}
+        {activeTab === 'library' && <HormoneLibraryView lang={lang} onBack={onMemberBack} />}
+        {activeTab === 'faq' && <FAQView lang={lang} mode="member" onBack={onMemberBack} />}
+        {activeTab === 'partner_faq' && <PartnerFAQView lang={lang} onBack={onMemberBack} />}
+        {activeTab === 'contact' && <ContactView ui={ui} lang={lang} onBack={onMemberBack} />}
+        {activeTab === 'crisis' && <CrisisCenterView lang={lang} onBack={onMemberBack} />}
+        {activeTab === 'how_it_works' && <HowItWorksView lang={lang} onBack={onMemberBack} mode="member" />}
+        {activeTab === 'learning' && <MemberLearningView lang={lang} onBack={onMemberBack} />}
+        {activeTab === 'pricing' && <MemberPricingView lang={lang} onBack={onMemberBack} />}
+        {activeTab === 'ritual_path' && <MemberRitualView lang={lang} onBack={onMemberBack} />}
       </Suspense>
+      </MemberPageShell>
       </MemberContentErrorBoundary>
     </main>
   );

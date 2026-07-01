@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Language, LangCopy, getLang } from '../constants';
 import { KnowledgePageShell } from './KnowledgePageShell';
 import { AccordionSections } from './AccordionSections';
+import { MEMBER_PAGE_QUESTIONS, MEMBER_INNER_CARD, MEMBER_BODY_TEXT, MEMBER_SECTION_EYEBROW } from '../utils/memberPageStyles';
 import type { AccordionCategory } from './AccordionSections';
 
 interface FAQCopy {
@@ -134,6 +135,7 @@ export const FAQView: React.FC<{ lang?: Language; onBack?: () => void; mode?: 'p
 
   return (
     <KnowledgePageShell
+      lang={lang}
       eyebrow={copy.eyebrow}
       titleA={copy.titleA}
       titleB={copy.titleB}
@@ -144,6 +146,7 @@ export const FAQView: React.FC<{ lang?: Language; onBack?: () => void; mode?: 'p
       footerTitle={copy.promiseTitle}
       footerQuote={copy.promiseQuote}
       heroPage="faq"
+      mode={mode}
     >
       <AccordionSections categories={categories} openFirst variant="knowledge" />
 

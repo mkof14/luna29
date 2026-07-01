@@ -17,18 +17,18 @@ const downloadHtml = (filename: string, html: string) => {
 };
 
 export async function buildPublicSampleReportHtml(lang: Language): Promise<string> {
+  const localized = getLabsViewLocalizedContent(lang, lang);
   const {
     reportUi,
-    medForm,
     reportsUi,
-    detailedUi,
-    womenUi,
     sexualUi,
-    reportSourcesUi,
-  } = getLabsViewLocalizedContent(lang, lang);
+    locale,
+    export: exportCopy,
+  } = localized;
+  const { medForm, detailedUi, womenUi, reportSourcesUi } = exportCopy;
 
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.luna29.com';
-  const generatedAt = new Intl.DateTimeFormat(getLabsViewLocalizedContent(lang, lang).locale, {
+  const generatedAt = new Intl.DateTimeFormat(locale, {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(new Date());

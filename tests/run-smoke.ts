@@ -588,21 +588,21 @@ const testLabsLocalizationCoverage = () => {
       const localized = getLabsViewLocalizedContent(lang, reportLang);
       assert.ok(localized.reportsUi.title.trim().length > 0, `reports title should be non-empty for lang=${lang}`);
       assert.ok(localized.reportsUi.generate.trim().length > 0, `reports generate label should be non-empty for lang=${lang}`);
-      assert.ok(localized.reportUi.reportTitle.trim().length > 0, `report title should be non-empty for reportLang=${reportLang}`);
-      assert.ok(localized.reportUi.sampleDownload.trim().length > 0, `sample download label should be non-empty for reportLang=${reportLang}`);
-      assert.ok(localized.medForm.disclaimerTitle.trim().length > 0, `disclaimer title should be non-empty for reportLang=${reportLang}`);
-      assert.ok(localized.medForm.disclaimerBody.trim().length > 0, `disclaimer body should be non-empty for reportLang=${reportLang}`);
+      assert.ok(localized.export.reportUi.reportTitle.trim().length > 0, `report title should be non-empty for reportLang=${reportLang}`);
+      assert.ok(localized.export.reportUi.sampleDownload.trim().length > 0, `sample download label should be non-empty for reportLang=${reportLang}`);
+      assert.ok(localized.export.medForm.disclaimerTitle.trim().length > 0, `disclaimer title should be non-empty for reportLang=${reportLang}`);
+      assert.ok(localized.export.medForm.disclaimerBody.trim().length > 0, `disclaimer body should be non-empty for reportLang=${reportLang}`);
       assert.ok(localized.reportActions.downloaded.trim().length > 0, `report action feedback should be non-empty for lang=${lang}`);
       assert.ok(localized.reportActions.clearDraft.trim().length > 0, `clear draft label should be non-empty for lang=${lang}`);
       assert.ok(localized.reportActions.autosaved.trim().length > 0, `autosaved label should be non-empty for lang=${lang}`);
       assert.ok(localized.conflictsUi.title.trim().length > 0, `conflicts title should be non-empty for lang=${lang}`);
-      assert.ok(localized.womenUi.clinicalFocusTitle.trim().length > 0, `women clinical title should be non-empty for reportLang=${reportLang}`);
-      assert.ok(localized.detailedUi.title.trim().length > 0, `detailed report title should be non-empty for reportLang=${reportLang}`);
-      assert.equal(typeof localized.locale, 'string', `locale should be string for reportLang=${reportLang}`);
-      assert.ok(localized.locale.includes('-'), `locale should be normalized with region for reportLang=${reportLang}`);
+      assert.ok(localized.export.womenUi.clinicalFocusTitle.trim().length > 0, `women clinical title should be non-empty for reportLang=${reportLang}`);
+      assert.ok(localized.export.detailedUi.title.trim().length > 0, `detailed report title should be non-empty for reportLang=${reportLang}`);
+      assert.equal(typeof localized.export.locale, 'string', `locale should be string for reportLang=${reportLang}`);
+      assert.ok(localized.export.locale.includes('-'), `locale should be normalized with region for reportLang=${reportLang}`);
       assert.ok((localized.reportLanguageNames[reportLang] ?? localized.reportLanguageNames.en).trim().length > 0, `report language name should exist for ${reportLang}`);
       assert.equal(localized.visualGuide.cards.length >= 1, true, `visual guide should have cards for lang=${lang}`);
-      assert.equal(localized.reportUi.serviceBullets.length >= 3, true, `service bullets should have enough items for reportLang=${reportLang}`);
+      assert.equal(localized.export.reportUi.serviceBullets.length >= 3, true, `service bullets should have enough items for reportLang=${reportLang}`);
     }
   }
 };

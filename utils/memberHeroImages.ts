@@ -32,6 +32,9 @@ const RAW_MEMBER_HERO_IMAGES: Partial<Record<TabType, string>> = {
   cookies: '/images/heroes/r2/privacy.webp',
   data_rights: '/images/heroes/r2/privacy.webp',
   rhythm_calendar: '/images/heroes/r2/cycle.webp',
+  learning: '/images/heroes/r2/library.webp',
+  pricing: '/images/heroes/r2/insights_paywall.webp',
+  ritual_path: '/images/heroes/r2/my_day.webp',
 };
 
 export const MEMBER_HERO_IMAGES = Object.fromEntries(

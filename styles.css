@@ -95,17 +95,24 @@ html.dark .member-hero-art--painted .member-hero-art__tone-dark {
   display: block;
 }
 
-/* Member page: first content card overlaps hero */
 .member-tab-content {
-  margin-top: -3.25rem;
   position: relative;
   z-index: 20;
 }
 
-@media (min-width: 768px) {
-  .member-tab-content {
-    margin-top: -4.5rem;
-  }
+/* Member sidebar — solid panel background */
+html:not(.dark) .luna-app-sidebar {
+  background-color: #f8f5fa !important;
+}
+
+html.dark .luna-app-sidebar {
+  background-color: #0f1a33 !important;
+}
+
+.member-tab-content .luna-page-shell :is(h1, h2, h3, h4) {
+  font-size: unset !important;
+  line-height: 1.4 !important;
+  letter-spacing: normal;
 }
 
 .member-tab-content > * > article:first-of-type,
@@ -259,9 +266,9 @@ body,
 }
 
 .dark .glass {
-  background: rgba(15, 23, 42, 0.7);
+  background: rgba(15, 23, 42, 0.82);
   backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(148, 163, 184, 0.18);
 }
 
 .dark .shadow-luna {
@@ -926,4 +933,21 @@ input[type='range'] {
   direction: ltr;
   unicode-bidi: embed;
   text-align: left;
+}
+
+/* Member zone — improve low-contrast controls in dark theme */
+.member-tab-content button[class*='text-slate-400'],
+.member-tab-content a[class*='text-slate-400'] {
+  color: rgb(203 213 225) !important;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 9999px;
+  padding: 0.5rem 0.9rem;
+  background: rgba(30, 41, 59, 0.55);
+}
+
+.dark .member-tab-content button[class*='text-slate-400'],
+.dark .member-tab-content a[class*='text-slate-400'] {
+  color: rgb(241 245 249) !important;
+  border-color: rgba(148, 163, 184, 0.45);
+  background: rgba(15, 23, 42, 0.82);
 }

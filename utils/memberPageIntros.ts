@@ -1,0 +1,253 @@
+import { Language, LangCopy, getLang } from '../constants';
+
+export type MemberIntroPageId =
+  | 'my_day'
+  | 'voice_note'
+  | 'voice_files'
+  | 'monthly_reflection'
+  | 'insights_paywall'
+  | 'bridge'
+  | 'relationships'
+  | 'creative'
+  | 'meds'
+  | 'profile'
+  | 'labs'
+  | 'history';
+
+export type MemberPageIntroCopy = {
+  eyebrow: string;
+  title: string;
+  body: string;
+  tips: string[];
+};
+
+const INTROS: LangCopy<Record<MemberIntroPageId, MemberPageIntroCopy>> = {
+  en: {
+    my_day: {
+      eyebrow: 'Daily rhythm',
+      title: 'My Day',
+      body: 'A single-day canvas: how your body, sleep, and cycle phase read together. Use it as orientation — not a scorecard.',
+      tips: ['Check in on Today first if numbers feel empty.', 'Export or share only when the day feels worth remembering.', 'Evening line is a soft closure, not homework.'],
+    },
+    voice_note: {
+      eyebrow: 'Voice reflection',
+      title: 'Voice note',
+      body: 'Speak before you fix. Luna29 listens, structures your words, and answers with calm focus — without diagnosing or commanding.',
+      tips: ['One minute is enough; depth beats length.', 'Name the feeling, not the verdict.', 'Save to My Voice Files when a phrase should return.'],
+    },
+    voice_files: {
+      eyebrow: 'Voice archive',
+      title: 'Voice files',
+      body: 'Your spoken reflections over time — tagged, searchable, private. Patterns emerge when you review weeks, not minutes.',
+      tips: ['Favorite clips you want to revisit before Bridge.', 'Filter by date when preparing for a clinician visit.', 'Tags help separate work stress from cycle weeks.'],
+    },
+    monthly_reflection: {
+      eyebrow: 'Seasonal mirror',
+      title: 'Monthly note',
+      body: 'A gentle monthly note — what repeated, what softened, what asked for rest. Share only if it helps someone understand you.',
+      tips: ['Needs a few check-ins across the month to feel rich.', 'Treat insights as hypotheses, not facts.', 'Pair with Rhythm Calendar for context.'],
+    },
+    insights_paywall: {
+      eyebrow: 'Deeper patterns',
+      title: 'Insights',
+      body: 'Paid insights connect daily signals into longer arcs: sleep load, cycle edges, voice themes. Still observation — never medical advice.',
+      tips: ['Trial lets you feel the rhythm before committing.', 'Monthly notes and Bridge depth expand with Insights.', 'Cancel anytime; your local data stays yours.'],
+    },
+    bridge: {
+      eyebrow: 'Clear communication',
+      title: 'Bridge',
+      body: 'Turn inner weather into words someone else can receive. Three short answers → a letter you can edit before sending.',
+      tips: ['Answer honestly, not performatively.', 'Edit every line — AI drafts, you decide.', 'Free tier has weekly limits; premium expands flow.'],
+    },
+    relationships: {
+      eyebrow: 'Partner note',
+      title: 'Relationships',
+      body: 'Craft a message aligned with your capacity today: intent, tone, and boundary. Built for partners who want to support without pressure.',
+      tips: ['Name your partner once — Luna29 remembers locally.', 'Soft boundary ≠ silence; it protects connection.', 'Read aloud before you send.'],
+    },
+    creative: {
+      eyebrow: 'State visualizer',
+      title: 'Create',
+      body: 'Express state as image or motion when words lag behind. A creative ritual — not content for performance.',
+      tips: ['Describe sensation + color + pace.', 'Requires API key for generation locally.', 'Save outputs that feel like truth, not art.'],
+    },
+    meds: {
+      eyebrow: 'Medication note',
+      title: 'Medication note',
+      body: 'Log medications and supportive items you track. Luna29 notes timing alongside your rhythm — it does not prescribe or adjust doses.',
+      tips: ['Name + dose is enough; notes optional.', 'Remove entries when plans change.', 'Bring this list to visits — export from Profile if needed.'],
+    },
+    profile: {
+      eyebrow: 'Identity lens',
+      title: 'Profile',
+      body: 'Four pillars shape how Luna29 reads your rhythm: personal baseline, health context, mind sensitivities, heritage. Stored on your device.',
+      tips: ['Sync Profile after meaningful changes.', 'Billing lives here — separate from clinical data.', 'Units toggle affects display only.'],
+    },
+    labs: {
+      eyebrow: 'Health reports',
+      title: 'Health Reports',
+      body: 'Upload labs, add values manually, and build a calm report for yourself or a clinician — observation only, not diagnosis.',
+      tips: ['Save a draft before you analyze.', 'Check conflicts when the same marker appears twice.', 'Share only what helps the conversation.'],
+    },
+    history: {
+      eyebrow: 'Your story',
+      title: 'My Journey',
+      body: 'A timeline of check-ins, voice themes, and cycle edges — patterns over days, not verdicts about who you are.',
+      tips: ['Look for repeats across weeks, not one bad day.', 'Pair with Rhythm Calendar for context.', 'Export before a visit if it helps.'],
+    },
+  },
+  ru: {
+    my_day: {
+      eyebrow: 'Дневной ритм',
+      title: 'Мой день',
+      body: 'Холст одного дня: как тело, сон и фаза цикла складываются вместе. Это ориентация — не оценка.',
+      tips: ['Сначала check-in на Today, если данных мало.', 'Экспорт — когда день стоит запомнить.', 'Вечерняя строка — мягкое завершение, не задание.'],
+    },
+    voice_note: {
+      eyebrow: 'Голосовая рефлексия',
+      title: 'Голосовая заметка',
+      body: 'Сначала проговорите — потом «исправляйте». Luna29 слушает, структурирует и отвечает спокойно — без диагнозов.',
+      tips: ['Минуты достаточно.', 'Назовите чувство, не приговор.', 'Сохраняйте в My Voice Files важные фразы.'],
+    },
+    voice_files: {
+      eyebrow: 'Голосовой архив',
+      title: 'Голосовой архив',
+      body: 'Ваши голосовые заметки во времени — с тегами и поиском. Паттерны видны на неделях, не за минуты.',
+      tips: ['Отмечайте избранное перед Bridge.', 'Фильтр по дате — перед визитом к врачу.', 'Теги отделяют работу от цикла.'],
+    },
+    monthly_reflection: {
+      eyebrow: 'Месячное зеркало',
+      title: 'Месячная заметка',
+      body: 'Мягкая месячная заметка — что повторялось, что смягчилось, что просило отдых.',
+      tips: ['Нужны check-in’ы в течение месяца.', 'Инсайты — гипотезы, не диагноз.', 'Смотрите вместе с Rhythm Calendar.'],
+    },
+    insights_paywall: {
+      eyebrow: 'Глубже паттерны',
+      title: 'Инсайты',
+      body: 'Платные инсайты связывают сигналы в длинные дуги: сон, края цикла, темы голоса. Наблюдение, не медицина.',
+      tips: ['Trial — почувствовать ритм до оплаты.', 'Расширяются monthly notes и Bridge.', 'Отмена в любой момент.'],
+    },
+    bridge: {
+      eyebrow: 'Ясная коммуникация',
+      title: 'Мост',
+      body: 'Переведите внутреннюю погоду в слова, которые другой может принять. Три ответа → письмо для редактирования.',
+      tips: ['Честно, не для показа.', 'Редактируйте каждую строку.', 'На free — лимит в неделю.'],
+    },
+    relationships: {
+      eyebrow: 'Записка партнёру',
+      title: 'Relationships',
+      body: 'Сообщение под ваш ресурс сегодня: намерение, тон, граница. Для поддержки без давления.',
+      tips: ['Имя партнёра сохраняется локально.', 'Мягкая граница ≠ молчание.', 'Прочитайте вслух перед отправкой.'],
+    },
+    creative: {
+      eyebrow: 'Визуализатор состояния',
+      title: 'Create',
+      body: 'Когда слов мало — цвет и движение. Творческий ритуал, не контент для оценки.',
+      tips: ['Ощущение + цвет + темп.', 'Нужен API key локально.', 'Сохраняйте правду, не «красоту».'],
+    },
+    meds: {
+      eyebrow: 'Заметка о препарате',
+      title: 'Заметка о препаратах',
+      body: 'Препараты и поддерживающие позиции. Luna29 видит ритм рядом — не назначает и не меняет дозы.',
+      tips: ['Название + доза достаточно.', 'Удаляйте при смене плана.', 'Список для визитов.'],
+    },
+    profile: {
+      eyebrow: 'Линза идентичности',
+      title: 'Профиль',
+      body: 'Четыре столпа задают, как Luna29 читает ритм. Данные на устройстве.',
+      tips: ['Sync Profile после изменений.', 'Billing отдельно от клиники.', 'Единицы — только отображение.'],
+    },
+    labs: {
+      eyebrow: 'Отчёты здоровья',
+      title: 'Health Reports',
+      body: 'Загрузите анализы, добавьте значения и соберите спокойный отчёт — наблюдение, не диагноз.',
+      tips: ['Сохраните черновик перед анализом.', 'Проверяйте конфликты дубликатов.', 'Делитесь только тем, что помогает разговору.'],
+    },
+    history: {
+      eyebrow: 'Ваша история',
+      title: 'My Journey',
+      body: 'Хронология check-in, голосовых тем и краёв цикла — паттерны по дням, не приговор.',
+      tips: ['Смотрите повторы по неделям.', 'С Rhythm Calendar — для контекста.', 'Экспорт перед визитом при необходимости.'],
+    },
+  },
+  uk: {
+    my_day: {
+      eyebrow: 'Денний ритм',
+      title: 'Мій день',
+      body: 'Полотно одного дня: тіло, сон і фаза циклу разом. Орієнтація — не оцінка.',
+      tips: ['Спочатку check-in на Today.', 'Експорт — коли день вартий памʼяті.', 'Вечірній рядок — мʼяке завершення.'],
+    },
+    voice_note: {
+      eyebrow: 'Голосова рефлексія',
+      title: 'Голосова нотатка',
+      body: 'Спочатку проговоріть — потім виправляйте. Luna29 слухає і відповідає спокійно.',
+      tips: ['Хвилини достатньо.', 'Назвіть почуття.', 'Зберігайте в My Voice Files.'],
+    },
+    voice_files: {
+      eyebrow: 'Голосовий архів',
+      title: 'Голосовий архів',
+      body: 'Голосові нотатки в часі — з тегами. Патерни видно на тижнях.',
+      tips: ['Обране перед Bridge.', 'Фільтр по даті.', 'Теги для роботи/циклу.'],
+    },
+    monthly_reflection: {
+      eyebrow: 'Місячне дзеркало',
+      title: 'Місячна нотатка',
+      body: 'Мʼяка місячна нотатка — повтори, помʼякшення, відпочинок.',
+      tips: ['Потрібні check-in протягом місяця.', 'Інсайти — гіпотези.', 'Разом з Rhythm Calendar.'],
+    },
+    insights_paywall: {
+      eyebrow: 'Глибші патерни',
+      title: 'Інсайти',
+      body: 'Платні інсайти зʼєднують сигнали в довгі дуги. Спостереження, не медицина.',
+      tips: ['Trial перед оплатою.', 'Monthly + Bridge глибше.', 'Скасування будь-коли.'],
+    },
+    bridge: {
+      eyebrow: 'Ясна комунікація',
+      title: 'Міст',
+      body: 'Внутрішня погода → слова для іншого. Три відповіді → лист для редагування.',
+      tips: ['Чесно.', 'Редагуйте кожен рядок.', 'Free — ліміт на тиждень.'],
+    },
+    relationships: {
+      eyebrow: 'Нотатка партнеру',
+      title: 'Relationships',
+      body: 'Повідомлення під ресурс сьогодні: намір, тон, межа.',
+      tips: ['Імʼя локально.', 'Мʼяка межа ≠ мовчання.', 'Прочитайте вголос.'],
+    },
+    creative: {
+      eyebrow: 'Візуалізатор',
+      title: 'Create',
+      body: 'Колір і рух, коли слів мало.',
+      tips: ['Відчуття + колір.', 'API key локально.', 'Правда, не «краса».'],
+    },
+    meds: {
+      eyebrow: 'Нотатка про препарат',
+      title: 'Нотатка про препарати',
+      body: 'Препарати поруч із ритмом — без призначень.',
+      tips: ['Назва + доза.', 'Видаляйте при зміні.', 'Для візитів.'],
+    },
+    profile: {
+      eyebrow: 'Профіль',
+      title: 'Профіль',
+      body: 'Чотири столпи задають читання ритму. Дані на пристрої.',
+      tips: ['Sync після змін.', 'Billing окремо.', 'Одиниці — відображення.'],
+    },
+    labs: {
+      eyebrow: 'Звіти здоровʼя',
+      title: 'Health Reports',
+      body: 'Завантажте аналізи, додайте значення — спокійний звіт, не діагноз.',
+      tips: ['Збережіть чернетку.', 'Перевіряйте конфлікти.', 'Діліться лише корисним.'],
+    },
+    history: {
+      eyebrow: 'Ваша історія',
+      title: 'My Journey',
+      body: 'Хронологія check-in і тем — патерни по днях.',
+      tips: ['Повтори по тижнях.', 'Разом з Rhythm Calendar.', 'Експорт перед візитом.'],
+    },
+  },
+};
+
+export const getMemberPageIntro = (lang: Language, page: MemberIntroPageId): MemberPageIntroCopy => {
+  const localized = getLang(INTROS, lang)?.[page];
+  if (localized) return localized;
+  return INTROS.en[page];
+};
