@@ -8,6 +8,7 @@ import type { AccordionCategory } from './AccordionSections';
 interface LearningViewProps {
   lang: Language;
   onBack?: () => void;
+  mode?: 'public' | 'member';
 }
 
 const STATS_BY_LANG: LangCopy<Array<{ label: string; value: string }>> = {
@@ -79,7 +80,7 @@ const STATS_BY_LANG: LangCopy<Array<{ label: string; value: string }>> = {
   ],
 };
 
-export const LearningView: React.FC<LearningViewProps> = ({ lang, onBack }) => {
+export const LearningView: React.FC<LearningViewProps> = ({ lang, onBack, mode = 'public' }) => {
   const loadingByLang: LangCopy<string> = {
     en: 'Loading...',
     ru: 'Загрузка...',
@@ -120,6 +121,7 @@ export const LearningView: React.FC<LearningViewProps> = ({ lang, onBack }) => {
 
   return (
     <KnowledgePageShell
+      lang={lang}
       eyebrow={copy.eyebrow}
       titleA={copy.titleA}
       titleB={copy.titleB}
@@ -129,6 +131,8 @@ export const LearningView: React.FC<LearningViewProps> = ({ lang, onBack }) => {
       onBack={onBack}
       footerTitle={copy.promiseTitle}
       footerQuote={copy.promiseQuote}
+      heroPage={mode === 'public' ? 'learning' : undefined}
+      mode={mode}
     >
       <AccordionSections categories={categories} openFirst variant="knowledge" />
     </KnowledgePageShell>

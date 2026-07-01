@@ -107,6 +107,57 @@ export const consumeTrialPending = (): boolean => {
   }
 };
 
+const CHECKOUT_PENDING_KEY = 'luna_checkout_pending_v1';
+const ONBOARDING_REASON_KEY = 'luna_onboarding_reason_v1';
+
+export const markCheckoutPending = (period: 'month' | 'year'): void => {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(CHECKOUT_PENDING_KEY, period);
+};
+
+export const consumeCheckoutPending = (): 'month' | 'year' | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const pending = localStorage.getItem(CHECKOUT_PENDING_KEY);
+    if (pending !== 'month' && pending !== 'year') return null;
+    localStorage.removeItem(CHECKOUT_PENDING_KEY);
+    return pending;
+  } catch {
+    return null;
+  }
+};
+
+export const saveOnboardingReason = (reason: string): void => {
+  if (typeof window === 'undefined' || !reason.trim()) return;
+  localStorage.setItem(ONBOARDING_REASON_KEY, reason.trim());
+};
+
+export const readOnboardingReason = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    return localStorage.getItem(ONBOARDING_REASON_KEY);
+  } catch {
+    return null;
+  }
+};
+
+import { TabType } from './navigation';
+
+export const resolveOnboardingLandingTab = (reason: string | null): TabType => {
+  if (!reason) return 'today_mirror';
+  const lower = reason.toLowerCase();
+  if (lower.includes('cycle') || lower.includes('цикл') || lower.includes('цикл') || lower.includes('ritmo') || lower.includes('周期') || lower.includes('zyk')) {
+    return 'rhythm_calendar';
+  }
+  if (lower.includes('partner') || lower.includes('парт') || lower.includes('пар') || lower.includes('pareja') || lower.includes('partenaire')) {
+    return 'bridge';
+  }
+  if (lower.includes('body') || lower.includes('тел') || lower.includes('тіл') || lower.includes('cuerpo') || lower.includes('körper') || lower.includes('身体')) {
+    return 'cycle';
+  }
+  return 'today_mirror';
+};
+
 export const applyServerTrialToLocal = (payload: {
   startedAt: string;
   endsAt: string;

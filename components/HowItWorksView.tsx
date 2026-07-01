@@ -1,13 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import { Language, LangCopy, getLang } from '../constants';
 import type { Copy, ExtraHowCopy } from '../utils/howItWorksContent';
+import { MEMBER_PAGE_KNOWLEDGE } from '../utils/memberPageStyles';
+import { MemberBackButton } from './member/MemberBackButton';
+import { PublicHeroBlock } from './public/PublicHeroBlock';
+import { PUBLIC_PAGE_ART } from '../utils/publicPageArt';
+import {
+  PUBLIC_BODY,
+  PUBLIC_CARD,
+  PUBLIC_H3,
+  PUBLIC_PAGE_STACK,
+  PUBLIC_SHELL,
+  PUBLIC_SHELL_INNER,
+  PUBLIC_SHELL_PAD,
+  PUBLIC_SURFACE,
+} from './public/publicPageStyles';
 
 interface HowItWorksViewProps {
   lang: Language;
   onBack?: () => void;
+  mode?: 'public' | 'member';
 }
 
-export const HowItWorksView: React.FC<HowItWorksViewProps> = ({ lang, onBack }) => {
+export const HowItWorksView: React.FC<HowItWorksViewProps> = ({ lang, onBack, mode = 'public' }) => {
   const loadingByLang: LangCopy< string> = {
     en: 'Loading...',
     ru: 'Загрузка...',
@@ -109,25 +124,33 @@ export const HowItWorksView: React.FC<HowItWorksViewProps> = ({ lang, onBack }) 
     );
   };
 
+  const shellClass = mode === 'member' ? MEMBER_PAGE_KNOWLEDGE : 'luna-page-shell luna-page-knowledge animate-in fade-in duration-500 space-y-8 relative p-6 md:p-8 max-w-6xl mx-auto';
+
   return (
-    <section className="luna-page-shell luna-page-knowledge animate-in fade-in duration-500 space-y-8 relative p-6 md:p-8">
-      <div className="absolute -top-28 -left-24 w-96 h-96 rounded-full bg-luna-purple/25 blur-[140px] pointer-events-none" />
-      <div className="absolute top-1/3 -right-24 w-96 h-96 rounded-full bg-luna-coral/20 blur-[140px] pointer-events-none" />
-      <div className="absolute -bottom-24 left-1/4 w-[28rem] h-[28rem] rounded-full bg-luna-teal/20 blur-[140px] pointer-events-none" />
+    <section className={shellClass}>
+      {onBack && mode === 'member' && <MemberBackButton lang={lang} onClick={onBack} />}
+      {onBack && mode === 'public' && (
+        <button onClick={onBack} className="mb-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-luna-purple transition-all">
+          ← Back
+        </button>
+      )}
 
-      <div className="rounded-[3rem] border border-slate-200/70 dark:border-slate-800 bg-gradient-to-br from-[#f0e3ec]/95 via-[#e7dde9]/92 to-[#d8cfdd]/90 dark:from-slate-900/90 dark:via-slate-900/85 dark:to-slate-800/80 p-8 md:p-10 shadow-luna-rich relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(255,255,255,0.35),transparent_42%),radial-gradient(circle_at_82%_78%,rgba(167,139,250,0.16),transparent_40%)]" />
-        <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-luna-purple/30 blur-[120px] animate-pulse" />
-        <div className="absolute -bottom-20 -left-20 w-72 h-72 rounded-full bg-luna-teal/24 blur-[120px]" />
-        <header className="relative z-10 max-w-4xl mx-auto text-center space-y-3">
-          <p className="text-sm md:text-base font-black uppercase tracking-[0.24em] text-luna-purple">{c.eyebrow}</p>
-          <h1 className="text-4xl md:text-6xl font-black tracking-tight text-slate-900 dark:text-slate-100">{c.title}</h1>
-          <p className="text-base md:text-lg font-semibold text-slate-600 dark:text-slate-300">{c.subtitle}</p>
-        </header>
-      </div>
+      <div className={PUBLIC_PAGE_STACK}>
+        <section className={`${PUBLIC_SHELL} luna-page-knowledge ${PUBLIC_SHELL_PAD}`}>
+          <div className={PUBLIC_SHELL_INNER}>
+            <PublicHeroBlock
+              eyebrow={c.eyebrow}
+              title={c.title}
+              subtitle={c.subtitle}
+              image={PUBLIC_PAGE_ART.how_it_works}
+              imageAlt={c.title}
+            />
+          </div>
+        </section>
 
-      <div className="rounded-[2.5rem] border border-slate-200/70 dark:border-slate-800 bg-white/80 dark:bg-slate-900/70 p-7 md:p-8 shadow-luna-rich space-y-6">
-        <h2 className="text-2xl md:text-3xl font-black tracking-tight">{c.flowTitle}</h2>
+      <section className={`${PUBLIC_SHELL} luna-page-knowledge ${PUBLIC_SHELL_PAD}`}>
+        <div className={`${PUBLIC_SHELL_INNER} ${PUBLIC_SURFACE} space-y-6`}>
+        <h2 className={PUBLIC_H3}>{c.flowTitle}</h2>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-stretch">
           <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-5">
           {c.flow.map((item, idx) => (
@@ -188,7 +211,6 @@ export const HowItWorksView: React.FC<HowItWorksViewProps> = ({ lang, onBack }) 
             </div>
           </aside>
         </div>
-      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="rounded-[2.5rem] border border-slate-200/70 dark:border-slate-800 bg-white/80 dark:bg-slate-900/70 p-7 md:p-8 shadow-luna-rich space-y-5">
@@ -252,6 +274,9 @@ export const HowItWorksView: React.FC<HowItWorksViewProps> = ({ lang, onBack }) 
             </article>
           ))}
         </div>
+      </div>
+        </div>
+      </section>
       </div>
     </section>
   );

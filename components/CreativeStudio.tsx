@@ -1,6 +1,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { generateStateVisual, startVeoVideo } from '../services/geminiService';
+import { Language } from '../constants';
+import { MemberIconBackButton } from './member/MemberIconBackButton';
+import { MemberPageIntro } from './member/MemberPageIntro';
+import { LunaPageContentSection } from './shared/LunaPageContentSection';
+import { getLunaPageTheme } from '../utils/lunaPageThemes';
+
+interface CreativeStudioProps {
+  lang?: Language;
+  onBack?: () => void;
+}
 
 interface AiStudioApi {
   hasSelectedApiKey?: () => Promise<boolean>;
@@ -13,7 +23,7 @@ declare global {
   }
 }
 
-export const CreativeStudio: React.FC = () => {
+export const CreativeStudio: React.FC<CreativeStudioProps> = ({ lang = 'en', onBack }) => {
   const [prompt, setPrompt] = useState("");
   const [result, setResult] = useState<{ type: 'img' | 'vid', url: string } | null>(null);
   const [loading, setLoading] = useState(false);
@@ -111,12 +121,13 @@ export const CreativeStudio: React.FC = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto luna-page-shell luna-page-create space-y-12 animate-in fade-in duration-500 p-8 md:p-10">
-      <header className="border-b-2 border-slate-900 dark:border-slate-100 pb-8 flex justify-between items-end">
-        <div>
-          <h2 className="text-4xl font-black uppercase tracking-tighter">State Visualizer</h2>
-          <p className="text-sm font-medium text-slate-500 mt-2 uppercase tracking-widest">Non-verbal health expression</p>
-        </div>
+    <>
+      {onBack && <MemberIconBackButton lang={lang} onClick={onBack} className="mb-0" />}
+      <MemberPageIntro lang={lang} page="creative" tab="creative" />
+
+      <LunaPageContentSection themeClass={getLunaPageTheme('creative').shellClass} padded={false} className="space-y-12">
+      <header className="border-b border-slate-200 dark:border-slate-600 pb-6">
+        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Describe what you feel — Luna29 turns it into color and motion.</p>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
@@ -187,6 +198,7 @@ export const CreativeStudio: React.FC = () => {
           </div>
         </section>
       </div>
-    </div>
+      </LunaPageContentSection>
+    </>
   );
 };

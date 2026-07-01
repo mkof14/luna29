@@ -4,7 +4,6 @@ import { TabType } from '../utils/navigation';
 import { getMemberHeroImage } from '../utils/memberHeroImages';
 
 type HeroConfig = {
-  image: string;
   title: string;
   subtitle?: string;
   description?: string;
@@ -31,7 +30,6 @@ type DescriptionKey =
   | 'reset'
   | 'partner'
   | 'relationships'
-  | 'admin'
   | 'how'
   | 'terms'
   | 'disclaimer'
@@ -91,7 +89,6 @@ export const MemberPageHero: React.FC<{
       reset: 'Short stabilization protocols to reduce overload and restore functional calm.',
       partner: 'Guidance for partners: how to support without pressure and communicate with clarity.',
       relationships: 'Relationship regulation tools aligned with capacity, timing, and emotional load.',
-      admin: 'Private workspace for managing content, team access, and key account insights.',
       how: 'Step-by-step flow of Luna29 usage from public orientation to private member tools.',
       terms: 'Legal terms describing use conditions, account rules, and service limitations.',
       disclaimer: 'Service boundary notice: Luna29 is informational support, not medical diagnosis or treatment.',
@@ -118,7 +115,6 @@ export const MemberPageHero: React.FC<{
       reset: 'Короткие протоколы стабилизации для снижения перегрузки и возврата устойчивости.',
       partner: 'Раздел для партнера: как поддерживать без давления и общаться яснее.',
       relationships: 'Инструменты регулирования отношений с учетом ресурса и эмоциональной нагрузки.',
-      admin: 'Приватное пространство для управления контентом, доступами команды и ключевыми показателями.',
       how: 'Пошаговая логика использования Luna29: от публичной части к member-инструментам.',
       terms: 'Юридические условия использования, правила аккаунта и ограничения сервиса.',
       disclaimer: 'Границы сервиса: Luna29 — информационная поддержка, не диагностика и не лечение.',
@@ -145,7 +141,6 @@ export const MemberPageHero: React.FC<{
       reset: 'Короткі протоколи стабілізації для зниження перевантаження.',
       partner: 'Розділ для партнера: як підтримувати без тиску та говорити ясніше.',
       relationships: 'Інструменти регуляції стосунків з урахуванням ресурсу та емоційної напруги.',
-      admin: 'Приватний простір для керування контентом, доступами команди та ключовими показниками.',
       how: 'Покрокова логіка Luna29: від публічної орієнтації до member-інструментів.',
       terms: 'Юридичні умови використання, правила акаунта й обмеження сервісу.',
       disclaimer: 'Межі сервісу: Luna29 — інформаційна підтримка, не діагностика і не лікування.',
@@ -172,7 +167,6 @@ export const MemberPageHero: React.FC<{
       reset: 'Protocolos breves para bajar sobrecarga y recuperar estabilidad.',
       partner: 'Guia para pareja: como apoyar sin presion y con claridad.',
       relationships: 'Regulacion de relaciones segun capacidad y carga emocional.',
-      admin: 'Espacio privado para gestionar contenido, accesos del equipo y métricas clave.',
       how: 'Flujo paso a paso de uso de Luna29.',
       terms: 'Terminos legales de uso, reglas de cuenta y limites del servicio.',
       disclaimer: 'Luna29 es apoyo informativo, no diagnostico ni tratamiento medico.',
@@ -199,7 +193,6 @@ export const MemberPageHero: React.FC<{
       reset: 'Protocoles courts pour diminuer la surcharge et retrouver de la stabilite.',
       partner: 'Guide partenaire: soutenir sans pression, communiquer avec clarte.',
       relationships: 'Regulation relationnelle selon la capacite et la charge emotionnelle.',
-      admin: 'Espace prive pour gerer le contenu, les acces equipe et les indicateurs cles.',
       how: 'Parcours pas a pas de Luna29.',
       terms: 'Conditions legales d utilisation et limites du service.',
       disclaimer: 'Luna29 est un support informatif, pas un diagnostic ni un traitement.',
@@ -226,7 +219,6 @@ export const MemberPageHero: React.FC<{
       reset: 'Kurze Stabilisierungsprotokolle zur Senkung von Uberlastung.',
       partner: 'Partnerleitfaden: unterstutzen ohne Druck, klar kommunizieren.',
       relationships: 'Beziehungsregulation nach Kapazitat, Timing und emotionaler Last.',
-      admin: 'Privater Bereich fur Inhalte, Teamzugange und wichtige Kennzahlen.',
       how: 'Schritt-fur-Schritt-Nutzung von Luna29.',
       terms: 'Rechtliche Nutzungsbedingungen und Servicegrenzen.',
       disclaimer: 'Luna29 ist informativ, keine medizinische Diagnose oder Behandlung.',
@@ -253,7 +245,6 @@ export const MemberPageHero: React.FC<{
       reset: '短时稳定协议：降低过载，恢复可用状态。',
       partner: '伴侣指南：如何在不施压下提供支持与沟通。',
       relationships: '根据容量与情绪负荷进行关系调节。',
-      admin: '私密工作区：管理内容、团队权限与关键洞察。',
       how: 'Luna29 使用路径与核心步骤说明。',
       terms: '服务条款：账户规则、使用条件与限制。',
       disclaimer: 'Luna29 为信息支持工具，不提供医疗诊断或治疗。',
@@ -280,7 +271,6 @@ export const MemberPageHero: React.FC<{
       reset: '過負荷を下げる短時間の安定化プロトコル。',
       partner: 'パートナー向け：圧をかけずに支えるための指針。',
       relationships: '容量と感情負荷に合わせた関係調整ツール。',
-      admin: '非公開ワークスペース（コンテンツ管理、チーム権限、主要インサイト）。',
       how: 'Luna29 の利用手順を段階的に説明します。',
       terms: '利用規約、アカウントルール、サービス制限。',
       disclaimer: 'Luna29 は情報支援であり、医療診断・治療ではありません。',
@@ -307,7 +297,6 @@ export const MemberPageHero: React.FC<{
       reset: 'Protocolos curtos para reduzir sobrecarga e recuperar estabilidade.',
       partner: 'Guia para parceiro: apoiar sem pressao e comunicar com clareza.',
       relationships: 'Regulacao de relacionamentos por capacidade e carga emocional.',
-      admin: 'Espaco privado para gerir conteudo, acessos da equipe e indicadores-chave.',
       how: 'Fluxo passo a passo de uso do Luna29.',
       terms: 'Termos legais de uso, regras de conta e limites do servico.',
       disclaimer: 'Luna29 e suporte informativo, nao diagnostico ou tratamento medico.',
@@ -334,7 +323,6 @@ export const MemberPageHero: React.FC<{
       reset: 'بروتوكولات قصيرة للاستقرار لتقليل الإرهاق واستعادة الهدوء.',
       partner: 'إرشاد للشريك: كيف يدعم دون ضغط ويتواصل بوضوح.',
       relationships: 'أدوات تنظيم العلاقات وفق السعة والتوقيت والحمل العاطفي.',
-      admin: 'مساحة خاصة لإدارة المحتوى ووصول الفريق ورؤى الحساب.',
       how: 'مسار خطوة بخطوة لاستخدام Luna29 من التوجيه العام إلى أدوات العضو.',
       terms: 'شروط قانونية لوصف شروط الاستخدام وقواعد الحساب وحدود الخدمة.',
       disclaimer: 'إشعار حدود الخدمة: Luna29 دعم معلوماتي وليست تشخيصاً أو علاجاً طبياً.',
@@ -361,7 +349,6 @@ export const MemberPageHero: React.FC<{
       reset: 'פרוטוקולים קצרים לייצוב להפחתת עומס יתר ושחזור רוגע.',
       partner: 'הנחיה לבן/בת הזוג: איך לתמוך בלי לחץ ולתקשר בבהירות.',
       relationships: 'כלי ויסות מערכות יחסים לפי קיבולת, תזמון ועומס רגשי.',
-      admin: 'מרחב עבודה פרטי לניהול תוכן, גישת צוות ותובנות מפתח.',
       how: 'זרימת שימוש של Luna29 צעד אחר צעד מהכיוון הציבורי לכלי חברה.',
       terms: 'תנאים משפטיים לתנאי שימוש, כללי חשבון ומגבלות שירות.',
       disclaimer: 'הודעת גבול שירות: Luna29 היא תמיכה מידעית, לא אבחון או טיפול רפואי.',
@@ -393,63 +380,82 @@ export const MemberPageHero: React.FC<{
     crisis: 'reset',
     partner_faq: 'partner',
     relationships: 'relationships',
-    admin: 'admin',
     how_it_works: 'how',
     terms: 'terms',
     medical: 'disclaimer',
     cookies: 'cookies',
     data_rights: 'data_rights',
+    learning: 'knowledge',
+    pricing: 'home',
+    ritual_path: 'how',
   };
   const descriptions = getLang(descriptionByLang, lang) || descriptionByLang.en;
 
+  const exploreTitleByLang: LangCopy<{ learning: string; pricing: string; ritual: string }> = {
+    en: { learning: 'Learning', pricing: 'Pricing', ritual: 'Ritual Path' },
+    ru: { learning: 'Обучение', pricing: 'Тарифы', ritual: 'Ритуальный путь' },
+    uk: { learning: 'Навчання', pricing: 'Тарифи', ritual: 'Ритуальний шлях' },
+    es: { learning: 'Aprendizaje', pricing: 'Precios', ritual: 'Ruta ritual' },
+    fr: { learning: 'Apprentissage', pricing: 'Tarifs', ritual: 'Chemin rituel' },
+    de: { learning: 'Lernen', pricing: 'Preise', ritual: 'Ritualpfad' },
+    zh: { learning: '学习', pricing: '价格', ritual: '仪式路径' },
+    ja: { learning: '学習', pricing: '料金', ritual: 'リチュアルパス' },
+    pt: { learning: 'Aprendizagem', pricing: 'Preços', ritual: 'Caminho ritual' },
+    ar: { learning: 'التعلّم', pricing: 'الأسعار', ritual: 'المسار الطقسي' },
+    he: { learning: 'לימוד', pricing: 'מחירים', ritual: 'נתיב טקסי' },
+  };
+  const exploreTitles = getLang(exploreTitleByLang, lang) || exploreTitleByLang.en;
+
   const configs: Record<TabType, HeroConfig> = {
-    dashboard: { image: '/images/luna_banner_1.jpg', title: ui.navigation.home || 'Home', subtitle, description: descriptions[descriptionKeyByTab.dashboard] },
-    today_mirror: { image: '/images/luna_banner_1.jpg', title: 'Today', subtitle, description: descriptions[descriptionKeyByTab.today_mirror] },
-    my_day: { image: '/images/luna_banner_1.jpg', title: 'My Day with Luna29', subtitle, description: descriptions[descriptionKeyByTab.my_day] },
-    monthly_reflection: { image: '/images/luna_banner_1.jpg', title: 'Your month with Luna29', subtitle, description: descriptions[descriptionKeyByTab.monthly_reflection] },
-    rhythm_calendar: { image: '/images/heroes/cycle.webp', title: 'Rhythm Calendar', subtitle, description: descriptions[descriptionKeyByTab.rhythm_calendar] },
-    insights_paywall: { image: '/images/luna_banner_1.jpg', title: 'Unlock Insights', subtitle, description: descriptions[descriptionKeyByTab.insights_paywall] },
-    about: { image: '/images/Luna L 44.png', title: legal.about, subtitle, description: descriptions[descriptionKeyByTab.about] },
-    cycle: { image: '/images/luna_banner_10.jpg', title: ui.navigation.cycle || 'Luna29 Balance', subtitle, description: descriptions[descriptionKeyByTab.cycle] },
-    labs: { image: '/images/luna_banner_5.jpg', title: ui.navigation.labs || 'Labs', subtitle, description: descriptions[descriptionKeyByTab.labs] },
-    history: { image: '/images/luna_banner_11.jpg', title: ui.navigation.history || 'History', subtitle, description: descriptions[descriptionKeyByTab.history] },
-    creative: { image: '/images/crescent_moon_mist.webp', title: ui.navigation.creative || 'Create', subtitle, description: descriptions[descriptionKeyByTab.creative] },
-    profile: { image: '/images/portrait_collection.webp', title: ui.navigation.profile || 'Profile', subtitle, description: descriptions[descriptionKeyByTab.profile] },
-    privacy: { image: '/images/window_reflection_portrait.webp', title: 'Privacy', subtitle, description: descriptions[descriptionKeyByTab.privacy] },
-    bridge: { image: '/images/luna_banner_6.jpg', title: ui.navigation.bridge || 'The Bridge', subtitle, description: descriptions[descriptionKeyByTab.bridge] },
-    family: { image: '/images/luna_banner_12.jpg', title: ui.navigation.family || 'Relationships', subtitle, description: descriptions[descriptionKeyByTab.family] },
-    reflections: { image: '/images/luna_banner_3.jpg', title: ui.navigation.reflections || 'Voice Note', subtitle, description: descriptions[descriptionKeyByTab.reflections] },
-    voice_files: { image: '/images/luna_banner_4.jpg', title: ui.navigation.voiceFiles || 'My Voice Files', subtitle, description: descriptions[descriptionKeyByTab.voice_files] },
-    library: { image: '/images/crescent_moon_mist.webp', title: ui.navigation.library || 'Knowledge', subtitle, description: descriptions[descriptionKeyByTab.library] },
-    faq: { image: '/images/moon_phases_arc.webp', title: ui.navigation.faq || 'Questions', subtitle, description: descriptions[descriptionKeyByTab.faq] },
-    contact: { image: '/images/luna_banner_9.jpg', title: ui.navigation.contact || 'Contact', subtitle, description: descriptions[descriptionKeyByTab.contact], objectPositionClass: 'object-[44%_center]' },
-    meds: { image: '/images/luna_banner_9.jpg', title: ui.navigation.meds || 'Medications', subtitle, description: descriptions[descriptionKeyByTab.meds], objectPositionClass: 'object-[44%_center]' },
-    crisis: { image: '/images/luna_banner_13.jpg', title: ui.navigation.crisis || 'Reset Room', subtitle, description: descriptions[descriptionKeyByTab.crisis] },
-    partner_faq: { image: '/images/couple_conversation.webp', title: ui.navigation.partner || 'PARTNER FAQ', subtitle, description: descriptions[descriptionKeyByTab.partner_faq] },
-    relationships: { image: '/images/luna_banner_14.jpg', title: 'Relationships', subtitle, description: descriptions[descriptionKeyByTab.relationships], objectPositionClass: 'object-[center_38%]' },
-    admin: { image: '/images/Luna logo3.png', title: ui.navigation.admin || 'Admin', subtitle, description: descriptions[descriptionKeyByTab.admin] },
-    how_it_works: { image: '/images/portrait_collection.webp', title: legal.how_it_works, subtitle, description: descriptions[descriptionKeyByTab.how_it_works] },
-    terms: { image: '/images/night_window_portrait.webp', title: legal.terms, subtitle, description: descriptions[descriptionKeyByTab.terms] },
-    medical: { image: '/images/night_window_portrait.webp', title: legal.medical, subtitle, description: descriptions[descriptionKeyByTab.medical] },
-    cookies: { image: '/images/night_window_portrait.webp', title: legal.cookies, subtitle, description: descriptions[descriptionKeyByTab.cookies] },
-    data_rights: { image: '/images/night_window_portrait.webp', title: legal.data_rights, subtitle, description: descriptions[descriptionKeyByTab.data_rights] },
+    dashboard: { title: ui.navigation.home || 'Home', subtitle, description: descriptions[descriptionKeyByTab.dashboard] },
+    today_mirror: { title: 'Today', subtitle, description: descriptions[descriptionKeyByTab.today_mirror] },
+    my_day: { title: 'My Day with Luna29', subtitle, description: descriptions[descriptionKeyByTab.my_day] },
+    monthly_reflection: { title: 'Your month with Luna29', subtitle, description: descriptions[descriptionKeyByTab.monthly_reflection] },
+    rhythm_calendar: { title: 'Rhythm Calendar', subtitle, description: descriptions[descriptionKeyByTab.rhythm_calendar] },
+    insights_paywall: { title: 'Unlock Insights', subtitle, description: descriptions[descriptionKeyByTab.insights_paywall] },
+    about: { title: legal.about, subtitle, description: descriptions[descriptionKeyByTab.about] },
+    cycle: { title: ui.navigation.cycle || 'Luna29 Balance', subtitle, description: descriptions[descriptionKeyByTab.cycle] },
+    labs: { title: ui.navigation.labs || 'Labs', subtitle, description: descriptions[descriptionKeyByTab.labs] },
+    history: { title: ui.navigation.history || 'History', subtitle, description: descriptions[descriptionKeyByTab.history] },
+    creative: { title: ui.navigation.creative || 'Create', subtitle, description: descriptions[descriptionKeyByTab.creative] },
+    profile: { title: ui.navigation.profile || 'Profile', subtitle, description: descriptions[descriptionKeyByTab.profile] },
+    privacy: { title: 'Privacy', subtitle, description: descriptions[descriptionKeyByTab.privacy] },
+    bridge: { title: ui.navigation.bridge || 'The Bridge', subtitle, description: descriptions[descriptionKeyByTab.bridge] },
+    family: { title: ui.navigation.family || 'Relationships', subtitle, description: descriptions[descriptionKeyByTab.family] },
+    reflections: { title: ui.navigation.reflections || 'Voice Note', subtitle, description: descriptions[descriptionKeyByTab.reflections] },
+    voice_files: { title: ui.navigation.voiceFiles || 'My Voice Files', subtitle, description: descriptions[descriptionKeyByTab.voice_files] },
+    library: { title: ui.navigation.library || 'Knowledge', subtitle, description: descriptions[descriptionKeyByTab.library] },
+    faq: { title: ui.navigation.faq || 'Questions', subtitle, description: descriptions[descriptionKeyByTab.faq] },
+    contact: { title: ui.navigation.contact || 'Contact', subtitle, description: descriptions[descriptionKeyByTab.contact], objectPositionClass: 'object-[44%_center]' },
+    meds: { title: ui.navigation.meds || 'Medications', subtitle, description: descriptions[descriptionKeyByTab.meds], objectPositionClass: 'object-[44%_center]' },
+    crisis: { title: ui.navigation.crisis || 'Reset Room', subtitle, description: descriptions[descriptionKeyByTab.crisis] },
+    partner_faq: { title: ui.navigation.partner || 'PARTNER FAQ', subtitle, description: descriptions[descriptionKeyByTab.partner_faq] },
+    relationships: { title: 'Relationships', subtitle, description: descriptions[descriptionKeyByTab.relationships], objectPositionClass: 'object-[center_38%]' },
+    how_it_works: { title: legal.how_it_works, subtitle, description: descriptions[descriptionKeyByTab.how_it_works] },
+    terms: { title: legal.terms, subtitle, description: descriptions[descriptionKeyByTab.terms] },
+    medical: { title: legal.medical, subtitle, description: descriptions[descriptionKeyByTab.medical] },
+    cookies: { title: legal.cookies, subtitle, description: descriptions[descriptionKeyByTab.cookies] },
+    data_rights: { title: legal.data_rights, subtitle, description: descriptions[descriptionKeyByTab.data_rights] },
+    learning: { title: exploreTitles.learning, subtitle, description: descriptions[descriptionKeyByTab.learning] },
+    pricing: { title: exploreTitles.pricing, subtitle, description: descriptions[descriptionKeyByTab.pricing] },
+    ritual_path: { title: exploreTitles.ritual, subtitle, description: descriptions[descriptionKeyByTab.ritual_path] },
   };
 
   const config = configs[activeTab];
   const heroImage = getMemberHeroImage(activeTab);
 
   return (
-    <section className="mb-8 md:mb-10 rounded-[2.5rem] border border-slate-200/70 dark:border-slate-700/70 overflow-hidden shadow-[0_30px_75px_rgba(71,62,105,0.22)] dark:shadow-[0_34px_84px_rgba(0,0,0,0.58)] relative min-h-[320px] md:min-h-[400px]">
+    <section className="mb-8 md:mb-10 rounded-[2.5rem] border border-slate-200/70 dark:border-slate-700/70 overflow-hidden shadow-[0_30px_75px_rgba(71,62,105,0.22)] dark:shadow-[0_34px_84px_rgba(0,0,0,0.58)] relative min-h-[300px] md:min-h-[360px]">
       <img
         src={heroImage}
         alt=""
         aria-hidden
         decoding="async"
         loading="eager"
-        className={`absolute inset-0 h-full w-full object-cover ${config.objectPositionClass || 'object-center'}`}
+        className={`absolute inset-0 h-full w-full object-cover ${config.objectPositionClass || 'object-[center_32%]'}`}
       />
-      <div className="absolute inset-x-0 top-0 z-20 h-20 bg-gradient-to-b from-black/30 to-transparent dark:from-black/45 pointer-events-none" />
-      <div className="absolute inset-x-0 bottom-0 z-20 h-12 bg-gradient-to-t from-slate-100/70 via-slate-100/15 to-transparent dark:from-slate-950/70 dark:via-slate-950/15 pointer-events-none" />
+      <div className="absolute inset-x-0 top-0 z-20 h-24 bg-gradient-to-b from-black/35 to-transparent dark:from-black/55 pointer-events-none" />
+      <div className="absolute inset-x-0 bottom-0 z-20 h-20 bg-gradient-to-t from-slate-100/90 via-slate-100/35 to-transparent dark:from-slate-950/90 dark:via-slate-950/35 pointer-events-none" />
       <div className="absolute left-6 right-6 bottom-6 z-30 space-y-1">
         <p className="text-[10px] font-black uppercase tracking-[0.35em] text-white/85 dark:text-slate-200/90">{config.subtitle}</p>
         <h2 className="text-2xl md:text-3xl font-black tracking-tight text-white dark:text-slate-100 drop-shadow-[0_3px_16px_rgba(0,0,0,0.42)]">

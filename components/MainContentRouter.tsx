@@ -1,14 +1,15 @@
 import React, { Suspense, lazy } from 'react';
 import { dataService } from '../services/dataService';
-import { AdminRole, AuthSession, CyclePhase, HealthEvent, HormoneData, RuleOutput, SystemState } from '../types';
+import { AuthSession, CyclePhase, HealthEvent, HormoneData, RuleOutput, SystemState } from '../types';
 import { Language, TranslationSchema, LangCopy, getLang } from '../constants';
 import { langMap } from '../utils/languages';
 import { TabType } from '../utils/navigation';
+import type { MemberNavigateOptions } from '../utils/memberNavigation';
 import CycleTimeline from './CycleTimeline';
 import { DashboardView } from './DashboardView';
 import { DEFAULT_CYCLE_LENGTH, DEFAULT_USER_AGE } from '../constants/appDefaults';
-import { authService } from '../services/authService';
-import { MemberPageHero } from './MemberPageHero';
+
+import { MemberPageShell } from './member/MemberPageShell';
 
 const LabsView = lazy(() => import('./LabsView').then((m) => ({ default: m.LabsView })));
 const MedicationsView = lazy(() => import('./MedicationsView').then((m) => ({ default: m.MedicationsView })));
@@ -34,6 +35,9 @@ const MyDayWithLunaView = lazy(() => import('./MyDayWithLunaView').then((m) => (
 const MonthlyReflectionView = lazy(() => import('./MonthlyReflectionView').then((m) => ({ default: m.MonthlyReflectionView })));
 const InsightsPaywallView = lazy(() => import('./InsightsPaywallView').then((m) => ({ default: m.InsightsPaywallView })));
 const LunaRhythmCalendarView = lazy(() => import('./LunaRhythmCalendarView').then((m) => ({ default: m.LunaRhythmCalendarView })));
+const MemberLearningView = lazy(() => import('./member/MemberLearningView').then((m) => ({ default: m.MemberLearningView })));
+const MemberPricingView = lazy(() => import('./member/MemberPricingView').then((m) => ({ default: m.MemberPricingView })));
+const MemberRitualView = lazy(() => import('./member/MemberRitualView').then((m) => ({ default: m.MemberRitualView })));
 
 const LoadingFallback: React.FC<{ lang: Language }> = ({ lang }) => (
   <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4 animate-pulse">
@@ -161,9 +165,9 @@ interface MainContentRouterProps {
   setShowSyncOverlay: (next: boolean) => void;
   setShowLive: (next: boolean) => void;
   setLog: (log: HealthEvent[]) => void;
-  navigateTo: (tab: TabType) => void;
+  navigateTo: (tab: TabType, options?: MemberNavigateOptions) => void;
+  onMemberBack: () => void;
   session: AuthSession | null;
-  onRoleChange: (role: AdminRole) => void;
   onLogout: () => void;
 }
 
@@ -183,86 +187,16 @@ export const MainContentRouter: React.FC<MainContentRouterProps> = ({
   setShowLive,
   setLog,
   navigateTo,
+  onMemberBack,
   session,
-  onRoleChange,
   onLogout,
 }) => {
-  const canAccessAdmin = authService.canAccessAdminWorkspace(session);
-  const copyByLang: LangCopy< { accessRestricted: string; permissionRequired: string; permissionBody: string; backHome: string }> = {
-    en: {
-      accessRestricted: 'Access Restricted',
-      permissionRequired: 'Admin Permission Required',
-      permissionBody: 'Your account currently does not have admin access. Contact the Luna29 owner to request access.',
-      backHome: 'Back to Home'
-    },
-    ru: {
-      accessRestricted: 'Доступ ограничен',
-      permissionRequired: 'Требуются права администратора',
-      permissionBody: 'У вашего аккаунта пока нет доступа к админ-пространству. Обратитесь к владельцу Luna29 для выдачи прав.',
-      backHome: 'На главную'
-    },
-    uk: {
-      accessRestricted: 'Доступ обмежено',
-      permissionRequired: 'Потрібні права адміністратора',
-      permissionBody: 'Ваш акаунт поки не має доступу до адмін-простору. Зверніться до власника Luna29 для надання прав.',
-      backHome: 'На головну'
-    },
-    es: {
-      accessRestricted: 'Acceso restringido',
-      permissionRequired: 'Se requieren permisos de administrador',
-      permissionBody: 'Tu cuenta no tiene acceso al espacio admin. Contacta al propietario de Luna29 para solicitar permisos.',
-      backHome: 'Volver al inicio'
-    },
-    fr: {
-      accessRestricted: 'Accès restreint',
-      permissionRequired: "Permission administrateur requise",
-      permissionBody: "Votre compte n'a pas encore accès à l'espace admin. Contactez le propriétaire de Luna29 pour obtenir les droits.",
-      backHome: "Retour à l'accueil"
-    },
-    de: {
-      accessRestricted: 'Zugriff eingeschränkt',
-      permissionRequired: 'Admin-Rechte erforderlich',
-      permissionBody: 'Dein Konto hat derzeit keinen Admin-Zugang. Kontaktiere die Luna29-Inhaberin für die Freigabe.',
-      backHome: 'Zur Startseite'
-    },
-    zh: {
-      accessRestricted: '访问受限',
-      permissionRequired: '需要管理员权限',
-      permissionBody: '你的账户目前没有管理员访问权限。请联系 Luna29 管理员开通权限。',
-      backHome: '返回主页'
-    },
-    ja: {
-      accessRestricted: 'アクセス制限',
-      permissionRequired: '管理者権限が必要です',
-      permissionBody: '現在のアカウントには管理者アクセスがありません。Luna29管理者に権限付与を依頼してください。',
-      backHome: 'ホームへ戻る'
-    },
-    pt: {
-      accessRestricted: 'Acesso restrito',
-      permissionRequired: 'Permissão de admin necessária',
-      permissionBody: 'Sua conta ainda não possui acesso admin. Contate o responsável do Luna29 para liberação.',
-      backHome: 'Voltar ao início'
-    },
-    ar: {
-      accessRestricted: 'الوصول مقيّد',
-      permissionRequired: 'مطلوبة صلاحية إدارية',
-      permissionBody: 'حسابكِ لا يملك وصولاً إدارياً حالياً. تواصلِي مع مالكة Luna29 لطلب الصلاحية.',
-      backHome: 'العودة للرئيسية'
-    },
-    he: {
-      accessRestricted: 'הגישה מוגבלת',
-      permissionRequired: 'נדרשת הרשאת מנהלת',
-      permissionBody: 'לחשבון שלך אין עדיין גישה למרחב הניהול. פני לבעלות Luna29 לקבלת הרשאה.',
-      backHome: 'חזרה לדף הבית'
-    },};
-  const copy = getLang(copyByLang, lang);
-
   return (
-    <main data-testid={`member-tab-${activeTab}`} className="flex-grow max-w-7xl mx-auto w-full px-6 pt-12 pb-40 relative z-10">
+    <main data-testid={`member-tab-${activeTab}`} className="flex-grow max-w-7xl mx-auto w-full px-6 pt-12 pb-40 relative z-10 member-tab-content">
       <div className="pointer-events-none absolute -top-16 left-10 w-72 h-72 rounded-full bg-[#f2ccda]/20 dark:bg-luna-purple/18 blur-[90px]" />
       <div className="pointer-events-none absolute top-1/3 right-0 w-96 h-96 rounded-full bg-[#d6dff7]/24 dark:bg-[#1e3a7a]/20 blur-[120px]" />
-      <MemberPageHero activeTab={activeTab} lang={lang} ui={ui} />
-      <MemberContentErrorBoundary lang={lang} resetKey={`${activeTab}:${lang}`} onBackHome={() => navigateTo('today_mirror')}>
+      <MemberContentErrorBoundary lang={lang} resetKey={`${activeTab}:${lang}`} onBackHome={onMemberBack}>
+      <MemberPageShell tab={activeTab} lang={lang} ui={ui}>
       <Suspense fallback={<LoadingFallback lang={lang} />}>
         {activeTab === 'dashboard' && (
           <DashboardView
@@ -298,7 +232,7 @@ export const MainContentRouter: React.FC<MainContentRouterProps> = ({
             systemState={systemState}
             events={log}
             onSpeak={() => navigateTo('reflections')}
-            onBack={() => navigateTo('today_mirror')}
+            onBack={onMemberBack}
           />
         )}
         {activeTab === 'monthly_reflection' && (
@@ -307,22 +241,22 @@ export const MainContentRouter: React.FC<MainContentRouterProps> = ({
             currentPhase={currentPhase}
             systemState={systemState}
             events={log}
-            onBack={() => navigateTo('today_mirror')}
+            onBack={onMemberBack}
           />
         )}
-        {activeTab === 'insights_paywall' && <InsightsPaywallView lang={lang} onBack={() => navigateTo('today_mirror')} />}
+        {activeTab === 'insights_paywall' && <InsightsPaywallView lang={lang} onBack={onMemberBack} />}
         {activeTab === 'rhythm_calendar' && (
           <LunaRhythmCalendarView
             lang={lang}
             log={log}
             currentCycleDay={systemState.currentDay}
             cycleLength={systemState.cycleLength}
-            onBack={() => navigateTo('today_mirror')}
+            onBack={onMemberBack}
             memberEmail={session?.email}
             syncEnabled={Boolean(session?.id)}
           />
         )}
-        {activeTab === 'about' && <AboutLunaView lang={lang} mode="member" onBack={() => navigateTo('today_mirror')} />}
+        {activeTab === 'about' && <AboutLunaView lang={lang} mode="member" onBack={onMemberBack} />}
         {activeTab === 'cycle' && (
           <CycleTimeline
             currentDay={systemState.currentDay}
@@ -332,16 +266,16 @@ export const MainContentRouter: React.FC<MainContentRouterProps> = ({
               setLog(dataService.getLog());
             }}
             isDetailed={true}
-            onBack={() => navigateTo('today_mirror')}
+            onBack={onMemberBack}
           />
         )}
-        {activeTab === 'profile' && <ProfileView onBack={() => navigateTo('today_mirror')} />}
-        {activeTab === 'bridge' && <BridgeView lang={lang} onBack={() => navigateTo('today_mirror')} />}
-        {activeTab === 'relationships' && <RelationshipsView phase={currentPhase} lang={lang} onBack={() => navigateTo('today_mirror')} />}
-        {activeTab === 'family' && <FamilyView phase={currentPhase} lang={lang} onBack={() => navigateTo('today_mirror')} />}
-        {activeTab === 'reflections' && <AudioReflection onBack={() => navigateTo('today_mirror')} lang={lang} />}
-        {activeTab === 'voice_files' && <MyVoiceFilesView onBack={() => navigateTo('today_mirror')} lang={lang} />}
-        {activeTab === 'creative' && <CreativeStudio />}
+        {activeTab === 'profile' && <ProfileView lang={lang} onBack={onMemberBack} />}
+        {activeTab === 'bridge' && <BridgeView lang={lang} onBack={onMemberBack} />}
+        {activeTab === 'relationships' && <RelationshipsView phase={currentPhase} lang={lang} onBack={onMemberBack} />}
+        {activeTab === 'family' && <FamilyView phase={currentPhase} lang={lang} onBack={onMemberBack} />}
+        {activeTab === 'reflections' && <AudioReflection onBack={onMemberBack} lang={lang} />}
+        {activeTab === 'voice_files' && <MyVoiceFilesView onBack={onMemberBack} lang={lang} />}
+        {activeTab === 'creative' && <CreativeStudio lang={lang} onBack={onMemberBack} />}
         {activeTab === 'labs' && (
           <LabsView
             day={systemState.currentDay}
@@ -349,33 +283,27 @@ export const MainContentRouter: React.FC<MainContentRouterProps> = ({
             lang={lang}
             userId={session?.id}
             userName={session?.name}
-            onBack={() => navigateTo('today_mirror')}
+            onBack={onMemberBack}
           />
         )}
-        {activeTab === 'meds' && <MedicationsView medications={systemState.medications} lang={lang} onBack={() => navigateTo('today_mirror')} />}
-        {activeTab === 'history' && <HistoryView log={dataService.getLog()} lang={lang} onBack={() => navigateTo('today_mirror')} />}
-        {activeTab === 'privacy' && <PrivacyPolicyView lang={lang} onBack={() => navigateTo('today_mirror')} />}
-        {activeTab === 'terms' && <LegalDocumentView lang={lang} doc="terms" onBack={() => navigateTo('today_mirror')} mode="member" />}
-        {activeTab === 'medical' && <LegalDocumentView lang={lang} doc="medical" onBack={() => navigateTo('today_mirror')} mode="member" />}
-        {activeTab === 'cookies' && <LegalDocumentView lang={lang} doc="cookies" onBack={() => navigateTo('today_mirror')} mode="member" />}
-        {activeTab === 'data_rights' && <LegalDocumentView lang={lang} doc="data_rights" onBack={() => navigateTo('today_mirror')} mode="member" />}
-        {activeTab === 'library' && <HormoneLibraryView lang={lang} onBack={() => navigateTo('today_mirror')} />}
-        {activeTab === 'faq' && <FAQView lang={lang} onBack={() => navigateTo('today_mirror')} />}
-        {activeTab === 'partner_faq' && <PartnerFAQView lang={lang} onBack={() => navigateTo('today_mirror')} />}
-        {activeTab === 'contact' && <ContactView ui={ui} lang={lang} onBack={() => navigateTo('today_mirror')} />}
-        {activeTab === 'crisis' && <CrisisCenterView lang={lang} onBack={() => navigateTo('today_mirror')} />}
-        {activeTab === 'how_it_works' && <HowItWorksView lang={lang} onBack={() => navigateTo('today_mirror')} />}
-        {activeTab === 'admin' && !canAccessAdmin && (
-          <section className="min-h-[50vh] flex flex-col items-center justify-center text-center space-y-5">
-            <p className="text-xs font-black uppercase tracking-[0.4em] text-rose-400">{copy.accessRestricted}</p>
-            <h2 className="text-4xl font-black uppercase tracking-tight">{copy.permissionRequired}</h2>
-            <p className="max-w-lg text-slate-500 font-semibold">{copy.permissionBody}</p>
-            <button onClick={() => navigateTo('today_mirror')} className="px-6 py-3 rounded-full bg-luna-purple text-white text-[10px] font-black uppercase tracking-widest">
-              {copy.backHome}
-            </button>
-          </section>
-        )}
+        {activeTab === 'meds' && <MedicationsView medications={systemState.medications} lang={lang} onBack={onMemberBack} />}
+        {activeTab === 'history' && <HistoryView log={dataService.getLog()} lang={lang} onBack={onMemberBack} />}
+        {activeTab === 'privacy' && <PrivacyPolicyView lang={lang} onBack={onMemberBack} />}
+        {activeTab === 'terms' && <LegalDocumentView lang={lang} doc="terms" onBack={onMemberBack} mode="member" />}
+        {activeTab === 'medical' && <LegalDocumentView lang={lang} doc="medical" onBack={onMemberBack} mode="member" />}
+        {activeTab === 'cookies' && <LegalDocumentView lang={lang} doc="cookies" onBack={onMemberBack} mode="member" />}
+        {activeTab === 'data_rights' && <LegalDocumentView lang={lang} doc="data_rights" onBack={onMemberBack} mode="member" />}
+        {activeTab === 'library' && <HormoneLibraryView lang={lang} onBack={onMemberBack} />}
+        {activeTab === 'faq' && <FAQView lang={lang} mode="member" onBack={onMemberBack} />}
+        {activeTab === 'partner_faq' && <PartnerFAQView lang={lang} onBack={onMemberBack} />}
+        {activeTab === 'contact' && <ContactView ui={ui} lang={lang} onBack={onMemberBack} />}
+        {activeTab === 'crisis' && <CrisisCenterView lang={lang} onBack={onMemberBack} />}
+        {activeTab === 'how_it_works' && <HowItWorksView lang={lang} onBack={onMemberBack} mode="member" />}
+        {activeTab === 'learning' && <MemberLearningView lang={lang} onBack={onMemberBack} />}
+        {activeTab === 'pricing' && <MemberPricingView lang={lang} onBack={onMemberBack} />}
+        {activeTab === 'ritual_path' && <MemberRitualView lang={lang} onBack={onMemberBack} />}
       </Suspense>
+      </MemberPageShell>
       </MemberContentErrorBoundary>
     </main>
   );

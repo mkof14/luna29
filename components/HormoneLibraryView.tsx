@@ -5,6 +5,13 @@ import { HormoneData } from '../types';
 import { dataService } from '../services/dataService';
 import HormoneDetail from './HormoneDetail';
 import { getLocalizedHormone } from '../utils/hormoneLocalization';
+import { MemberIconBackButton } from './member/MemberIconBackButton';
+import { LunaPageHeroSection } from './shared/LunaPageHeroSection';
+import { LunaPageContentSection } from './shared/LunaPageContentSection';
+import { PUBLIC_PAGE_STACK } from './public/publicPageStyles';
+import { MEMBER_PAGE_ROOT } from '../utils/memberPageStyles';
+import { getLunaPageTheme } from '../utils/lunaPageThemes';
+import { getMemberHeroImage } from '../utils/memberHeroImages';
 
 export const HormoneLibraryView: React.FC<{ lang: Language; onBack: () => void }> = ({ lang, onBack }) => {
   const ui = TRANSLATIONS[lang];
@@ -193,23 +200,25 @@ export const HormoneLibraryView: React.FC<{ lang: Language; onBack: () => void }
     return matchesLab || matchesProfile || matchesMeds || inBaselines;
   };
 
-  return (
-    <div data-testid="library-root" className="max-w-7xl mx-auto luna-page-shell luna-page-knowledge space-y-24 animate-in fade-in slide-in-from-bottom-12 duration-1000 p-8 md:p-10 pb-40 px-6">
-      <header className="flex flex-col items-center lg:items-start gap-8">
-        <button data-testid="library-back" onClick={onBack} className="group flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-luna-purple transition-all">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="group-hover:-translate-x-1 transition-transform"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-          {copy.back}
-        </button>
-        <div className="space-y-4 text-center lg:text-left">
-          <h2 className="text-6xl lg:text-9xl font-black tracking-tighter leading-[0.85] uppercase text-slate-900 dark:text-slate-100">
-            {copy.titleA} <br/> <span className="text-luna-purple">{copy.titleB}</span>
-          </h2>
-          <p className="text-xl lg:text-2xl text-slate-500 italic font-medium max-w-3xl leading-relaxed">
-            {ui.library.subheadline}
-          </p>
-        </div>
-      </header>
+  const themeClass = getLunaPageTheme('library').shellClass;
 
+  return (
+    <section data-testid="library-root" className={`${MEMBER_PAGE_ROOT} ${themeClass}`}>
+      <MemberIconBackButton lang={lang} onClick={onBack} className="mb-0" />
+
+      <div className={PUBLIC_PAGE_STACK}>
+        <LunaPageHeroSection
+          themeClass={themeClass}
+          eyebrow={copy.titleA}
+          title={`${copy.titleA} ${copy.titleB}`.trim()}
+          subtitle={ui.library.subheadline}
+          image={getMemberHeroImage('library')}
+          imageAlt={`${copy.titleA} ${copy.titleB}`}
+          tips={extra.usageItems}
+          tipsTitle={extra.usageTitle}
+        />
+
+        <LunaPageContentSection themeClass={themeClass} padded={false} className="space-y-24">
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <article className="rounded-[2rem] border border-slate-200/80 dark:border-slate-700/80 bg-white/80 dark:bg-slate-900/65 p-6 space-y-4 shadow-luna-rich">
           <h3 className="text-lg font-black tracking-tight text-luna-purple">{extra.innerWeatherTitle}</h3>
@@ -307,6 +316,8 @@ export const HormoneLibraryView: React.FC<{ lang: Language; onBack: () => void }
           </p>
         </div>
       </div>
-    </div>
+        </LunaPageContentSection>
+      </div>
+    </section>
   );
 };

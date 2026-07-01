@@ -1,10 +1,12 @@
 
 import React, { useState, useMemo, lazy, Suspense, useCallback, useEffect } from 'react';
-import { AdminRole, AuthSession, HormoneData } from './types';
+import { AuthSession, HormoneData } from './types';
 import { dataService } from './services/dataService';
 import { useAppPreferences } from './hooks/useAppPreferences';
 import { buildBottomNavItems, buildSidebarGroups, buildTopNavItems, TabType } from './utils/navigation';
-import { readTabFromUrl, syncUrlState } from './utils/urlRouting';
+import { readLangFromUrl, readTabFromUrl, syncUrlState } from './utils/urlRouting';
+import { pathnameToMemberTab } from './utils/memberFooterNavigation';
+import { type MemberNavigateOptions, MEMBER_HUB_TAB } from './utils/memberNavigation';
 import { AppShellNav } from './components/AppShellNav';
 import { AppFooter } from './components/AppFooter';
 import { AppMobileNav } from './components/AppMobileNav';
@@ -22,6 +24,7 @@ import { useCalendarReminderLoop } from './hooks/useCalendarReminders';
 import { InstallAppPrompt } from './components/InstallAppPrompt';
 import { StandaloneWelcomeOverlay } from './components/StandaloneWelcomeOverlay';
 import { StandaloneLaunchSplash } from './components/StandaloneLaunchSplash';
+import { DevRuntimeBadge } from './components/DevRuntimeBadge';
 
 // SHARED COMPONENTS
 import { LunaLiveButton } from './components/LunaLiveButton';
@@ -30,7 +33,6 @@ const HormoneDetail = lazy(() => import('./components/HormoneDetail'));
 const CheckinOverlay = lazy(() => import('./components/CheckinOverlay').then((m) => ({ default: m.CheckinOverlay })));
 const AuthView = lazy(() => import('./components/AuthView').then((m) => ({ default: m.AuthView })));
 const PublicLandingView = lazy(() => import('./components/PublicLandingView').then((m) => ({ default: m.PublicLandingView })));
-const AdminWorkspaceView = lazy(() => import('./components/AdminWorkspaceView').then((m) => ({ default: m.AdminWorkspaceView })));
 
 const App: React.FC = () => {
   const [showLaunchSplash, setShowLaunchSplash] = useState(false);
@@ -42,7 +44,12 @@ const App: React.FC = () => {
   const [showLive, setShowLive] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
   const [selectedHormone, setSelectedHormone] = useState<HormoneData | null>(null);
-  const [activeTab, setActiveTab] = useState<TabType>(() => readTabFromUrl() || 'today_mirror');
+  const [activeTab, setActiveTab] = useState<TabType>(() => {
+    const fromQuery = readTabFromUrl();
+    if (fromQuery) return fromQuery;
+    const fromPath = pathnameToMemberTab(typeof window !== 'undefined' ? window.location.pathname : '/');
+    return fromPath || 'today_mirror';
+  });
   const [showSyncOverlay, setShowSyncOverlay] = useState(false);
   
   const [checkinData, setCheckinData] = useState<Record<string, number>>({ 
@@ -143,12 +150,24 @@ const App: React.FC = () => {
     lang,
   });
 
-  const navigateTo = useCallback((tab: TabType) => {
+  const navigateTo = useCallback((tab: TabType, options?: MemberNavigateOptions) => {
     setActiveTab(tab);
-    setShowSidebar(false);
-    syncUrlState({ tab, lang });
+    const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches;
+    if (options?.openSidebar) {
+      setShowSidebar(true);
+    } else if (!options?.keepSidebar && !isDesktop) {
+      setShowSidebar(false);
+    }
+    syncUrlState({ tab, lang, replace: false });
+    if (typeof window !== 'undefined' && window.location.pathname !== '/') {
+      window.history.replaceState({}, '', '/');
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [lang]);
+
+  const onMemberBack = useCallback(() => {
+    navigateTo(MEMBER_HUB_TAB, { openSidebar: true });
+  }, [navigateTo]);
 
   const saveCheckin = useCallback(() => {
     dataService.logEvent('DAILY_CHECKIN', { metrics: { ...checkinData }, symptoms: [], isPeriod: false });
@@ -161,21 +180,9 @@ const App: React.FC = () => {
     navigateTo('bridge');
   }, [saveCheckin, navigateTo]);
 
-  const canAccessAdmin = useMemo(() => authService.canAccessAdminWorkspace(session), [session]);
-
-  const sidebarGroups = useMemo(() => buildSidebarGroups(ui, canAccessAdmin, lang), [ui, canAccessAdmin, lang]);
+  const sidebarGroups = useMemo(() => buildSidebarGroups(ui, lang), [ui, lang]);
   const topNavItems = useMemo(() => buildTopNavItems(ui, lang), [ui, lang]);
   const bottomNavItems = useMemo(() => buildBottomNavItems(ui, lang), [ui, lang]);
-  const handleRoleChange = useCallback((role: AdminRole) => {
-    if (!session) return;
-    authService
-      .updateRole(session, role)
-      .then((updatedSession) => setSession(updatedSession))
-      .catch((error) => {
-        // Keep existing state on failed role update; Admin UI remains accessible.
-        console.error('Role update failed', error);
-      });
-  }, [session]);
 
   useCalendarReminderLoop(Boolean(session?.id));
 
@@ -241,8 +248,7 @@ const App: React.FC = () => {
               onSuccess={async (nextSession) => {
                 setShowAuthModal(false);
                 setSession(nextSession);
-                const isAdmin = authService.canAccessAdminWorkspace(nextSession);
-                setActiveTab(isAdmin ? 'admin' : 'today_mirror');
+                setActiveTab('today_mirror');
                 if (consumeTrialPending()) {
                   try {
                     const result = await billingService.startServerTrial();
@@ -279,6 +285,7 @@ const App: React.FC = () => {
             }}
           />
         </Suspense>
+        <DevRuntimeBadge />
       </div>
     );
   }
@@ -300,28 +307,6 @@ const App: React.FC = () => {
     );
   }
 
-  if (activeTab === 'admin' && canAccessAdmin) {
-    return (
-      <>
-        <Suspense
-          fallback={
-            <div className="min-h-screen flex items-center justify-center bg-[#070b14] text-slate-400">
-              <div className="text-[10px] font-black uppercase tracking-[0.3em]">Loading Admin…</div>
-            </div>
-          }
-        >
-          <AdminWorkspaceView
-            session={session}
-            lang={lang}
-            onBack={() => navigateTo('today_mirror')}
-            onLogout={handleLogout}
-            onRoleChange={handleRoleChange}
-          />
-        </Suspense>
-      </>
-    );
-  }
-
   return (
       <div className="min-h-screen flex flex-col bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans relative overflow-x-hidden">
         <AppShellNav
@@ -338,6 +323,7 @@ const App: React.FC = () => {
           onLogout={handleLogout}
         />
 
+      <div className="lg:pl-[300px]">
       <MainContentRouter
         activeTab={activeTab}
         lang={lang}
@@ -354,17 +340,21 @@ const App: React.FC = () => {
         setShowLive={setShowLive}
         setLog={setLog}
         navigateTo={navigateTo}
+        onMemberBack={onMemberBack}
         session={session}
-        onRoleChange={handleRoleChange}
         onLogout={handleLogout}
       />
 
       <AppFooter
         ui={ui}
         lang={lang}
+        theme={theme}
+        setLang={setLang}
+        setTheme={setTheme}
         navigateTo={navigateTo}
-        canAccessAdmin={canAccessAdmin}
+        onOpenLive={() => setShowLive(true)}
       />
+      </div>
 
       <Suspense fallback={null}>
         <CheckinOverlay
@@ -400,6 +390,7 @@ const App: React.FC = () => {
       <StandaloneWelcomeOverlay lang={lang} />
       <InstallAppPrompt lang={lang} />
       <PrivacyControls lang={lang} isAuthenticated />
+      <DevRuntimeBadge />
     </div>
   );
 };

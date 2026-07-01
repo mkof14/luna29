@@ -3,6 +3,8 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './styles.css';
+import { prepareLocalDevRuntime, purgeServiceWorkerCaches, shouldBypassServiceWorker } from './utils/devRuntime';
+import { ensureFreshAppShell } from './utils/appShellVersion';
 
 class RootErrorBoundary extends React.Component<{ children: React.ReactNode }, { error: Error | null }> {
   constructor(props: { children: React.ReactNode }) {
@@ -42,8 +44,6 @@ const applyInitialTheme = () => {
   document.documentElement.classList.toggle('dark', saved === 'dark');
 };
 
-applyInitialTheme();
-
 const setMobileAppViewport = () => {
   const vh = window.innerHeight * 0.01;
   document.documentElement.style.setProperty('--app-vh', `${vh}px`);
@@ -59,60 +59,42 @@ const applyStandaloneClass = () => {
   document.documentElement.classList.toggle('luna-standalone', standalone);
 };
 
-setMobileAppViewport();
-applyStandaloneClass();
-window.addEventListener('resize', setMobileAppViewport, { passive: true });
-window.addEventListener('orientationchange', setMobileAppViewport, { passive: true });
+const mountApp = () => {
+  applyInitialTheme();
+  setMobileAppViewport();
+  applyStandaloneClass();
+  window.addEventListener('resize', setMobileAppViewport, { passive: true });
+  window.addEventListener('orientationchange', setMobileAppViewport, { passive: true });
 
-const rootElement = document.getElementById('root');
-if (!rootElement) {
-  throw new Error("Could not find root element to mount to");
-}
-
-const root = ReactDOM.createRoot(rootElement);
-root.render(
-  <React.StrictMode>
-    <RootErrorBoundary>
-      <App />
-    </RootErrorBoundary>
-  </React.StrictMode>
-);
-
-if ('serviceWorker' in navigator) {
-  const purgeLegacyCaches = async () => {
-    try {
-      const regs = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(regs.map((reg) => reg.unregister()));
-      if ('caches' in window) {
-        const keys = await caches.keys();
-        await Promise.all(keys.map((key) => caches.delete(key)));
-      }
-    } catch {
-      // ignore
-    }
-  };
-
-  if (import.meta.env.DEV) {
-    purgeLegacyCaches();
-  } else {
-    const resetKey = 'luna_cache_reset_v3';
-    const needsReset = (() => {
-      try {
-        return localStorage.getItem(resetKey) !== '1';
-      } catch {
-        return true;
-      }
-    })();
-
-    if (needsReset) {
-      purgeLegacyCaches().finally(() => {
-        try {
-          localStorage.setItem(resetKey, '1');
-        } catch {
-          // ignore
-        }
-        window.location.reload();
-      });
-    }
+  const rootElement = document.getElementById('root');
+  if (!rootElement) {
+    throw new Error('Could not find root element to mount to');
   }
-}
+
+  const root = ReactDOM.createRoot(rootElement);
+  root.render(
+    <React.StrictMode>
+      <RootErrorBoundary>
+        <App />
+      </RootErrorBoundary>
+    </React.StrictMode>
+  );
+};
+
+const bootstrap = async () => {
+  const bootState = await prepareLocalDevRuntime();
+  if (bootState === 'reloading') return;
+
+  const shellState = await ensureFreshAppShell();
+  if (shellState === 'reloading') return;
+
+  mountApp();
+
+  if ('serviceWorker' in navigator && shouldBypassServiceWorker()) {
+    window.addEventListener('load', () => {
+      purgeServiceWorkerCaches().catch(() => undefined);
+    });
+  }
+};
+
+void bootstrap();

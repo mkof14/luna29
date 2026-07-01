@@ -1,5 +1,6 @@
 import { CyclePhase, HealthEvent } from '../types';
 import { getCyclePhaseByDay } from './cycle';
+import { versionedStaticAsset } from './staticAssetUrl';
 
 export type CalendarDayMarker = {
   checkin: boolean;
@@ -48,22 +49,22 @@ export type CalendarYearData = {
 
 /** One unique hero illustration per calendar month (0 = January). */
 const MONTH_HERO_IMAGES = [
-  '/images/heroes/today_mirror.webp',
-  '/images/heroes/my_day.webp',
-  '/images/heroes/cycle.webp',
-  '/images/heroes/history.webp',
-  '/images/heroes/monthly_reflection.webp',
-  '/images/heroes/reflections.webp',
-  '/images/heroes/library.webp',
-  '/images/heroes/relationships.webp',
-  '/images/heroes/family.webp',
-  '/images/heroes/bridge.webp',
-  '/images/heroes/creative.webp',
-  '/images/heroes/profile.webp',
+  '/images/heroes/r2/today_mirror.webp',
+  '/images/heroes/r2/my_day.webp',
+  '/images/heroes/r2/cycle.webp',
+  '/images/heroes/r2/history.webp',
+  '/images/heroes/r2/monthly_reflection.webp',
+  '/images/heroes/r2/reflections.webp',
+  '/images/heroes/r2/library.webp',
+  '/images/heroes/r2/relationships.webp',
+  '/images/heroes/r2/family.webp',
+  '/images/heroes/r2/bridge.webp',
+  '/images/heroes/r2/creative.webp',
+  '/images/heroes/r2/profile.webp',
 ] as const;
 
 export const getCalendarMonthHeroImage = (month: number): string =>
-  MONTH_HERO_IMAGES[month % MONTH_HERO_IMAGES.length];
+  versionedStaticAsset(MONTH_HERO_IMAGES[month % MONTH_HERO_IMAGES.length]);
 
 const pad = (n: number) => String(n).padStart(2, '0');
 

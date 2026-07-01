@@ -6,6 +6,13 @@ import {
   CRISIS_SENSES_COPY,
   CRISIS_SHARE_MESSAGE,
 } from '../utils/memberCoreI18n';
+import { MemberIconBackButton } from './member/MemberIconBackButton';
+import { LunaPageHeroSection } from './shared/LunaPageHeroSection';
+import { LunaPageContentSection } from './shared/LunaPageContentSection';
+import { PUBLIC_PAGE_STACK } from './public/publicPageStyles';
+import { MEMBER_PAGE_ROOT } from '../utils/memberPageStyles';
+import { getLunaPageTheme } from '../utils/lunaPageThemes';
+import { getMemberHeroImage } from '../utils/memberHeroImages';
 
 type GroundingState = {
   see: string[];
@@ -145,26 +152,23 @@ export const CrisisCenterView: React.FC<{ lang: Language; onBack: () => void }> 
     'rounded-2xl border border-slate-300/70 dark:border-[#2e4c82] bg-gradient-to-br from-[#efe0e9]/94 via-[#e8ddef]/92 to-[#dfe6f3]/90 dark:bg-none dark:!bg-[#102a58] p-4';
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in slide-in-from-bottom-6 duration-700 relative dark:text-slate-100">
+    <section className={`${MEMBER_PAGE_ROOT} ${getLunaPageTheme('crisis').shellClass} relative dark:text-slate-100`} data-testid="crisis-root">
       <div className="pointer-events-none absolute -top-24 -left-20 w-80 h-80 rounded-full bg-luna-purple/24 blur-[130px] dark:hidden" />
       <div className="pointer-events-none absolute top-1/3 -right-20 w-80 h-80 rounded-full bg-luna-coral/18 blur-[130px] dark:hidden" />
       <div className="pointer-events-none absolute -bottom-24 left-1/3 w-80 h-80 rounded-full bg-luna-teal/18 blur-[130px] dark:hidden" />
-      <div className="pointer-events-none absolute -top-24 -left-20 w-80 h-80 rounded-full hidden dark:block bg-indigo-500/18 blur-[140px]" />
-      <div className="pointer-events-none absolute top-1/3 -right-20 w-80 h-80 rounded-full hidden dark:block bg-cyan-400/12 blur-[145px]" />
-      <div className="pointer-events-none absolute -bottom-24 left-1/3 w-80 h-80 rounded-full hidden dark:block bg-fuchsia-500/14 blur-[140px]" />
-      <button onClick={onBack} className="text-xs font-black uppercase tracking-widest text-slate-400 hover:text-luna-purple transition-all">← {copy.back}</button>
+      <MemberIconBackButton lang={lang} onClick={onBack} className="mb-0 relative z-10" />
 
-      <section className="rounded-[3rem] border border-slate-200/70 dark:border-slate-800/90 bg-gradient-to-br from-[#efe0e9]/96 via-[#e2d8e8]/94 to-[#d1c9d9]/92 dark:from-[#050a14]/98 dark:via-[#070d19]/97 dark:to-[#060b16]/96 p-8 md:p-10 shadow-[0_22px_70px_rgba(88,60,120,0.2),0_8px_26px_rgba(79,118,141,0.18)] dark:shadow-[0_30px_84px_rgba(0,0,0,0.76),0_12px_32px_rgba(26,46,84,0.3)] relative overflow-hidden">
-        <div className="absolute -top-16 -right-20 w-80 h-80 rounded-full bg-luna-purple/30 dark:bg-indigo-500/24 blur-[120px]" />
-        <div className="absolute -bottom-20 -left-16 w-80 h-80 rounded-full bg-luna-coral/22 dark:bg-cyan-400/16 blur-[120px]" />
-        <div className="absolute inset-0 hidden dark:block bg-[radial-gradient(circle_at_18%_24%,rgba(129,140,248,0.2),transparent_38%),radial-gradient(circle_at_82%_76%,rgba(34,211,238,0.12),transparent_40%)]" />
-        <header className="relative z-10 text-center space-y-3">
-          <p className="text-[10px] font-black uppercase tracking-[0.5em] text-luna-purple">{copy.title}</p>
-          <h2 className="text-3xl md:text-5xl font-black tracking-tight text-slate-900 dark:text-slate-100">{copy.demand}</h2>
-          <p className="text-base md:text-lg font-semibold text-slate-600 dark:text-slate-300">{copy.subtitle}</p>
-        </header>
-      </section>
+      <div className={`${PUBLIC_PAGE_STACK} relative z-10`}>
+        <LunaPageHeroSection
+          themeClass={getLunaPageTheme('crisis').shellClass}
+          eyebrow={copy.title}
+          title={copy.demand}
+          subtitle={copy.subtitle}
+          image={getMemberHeroImage('crisis')}
+          imageAlt={copy.demand}
+        />
 
+        <LunaPageContentSection themeClass={getLunaPageTheme('crisis').shellClass} padded={false} className="space-y-8">
       <article className={`${panelClass} dark:from-[#040811]/98 dark:via-[#050b16]/97 dark:to-[#040913]/96 space-y-4`}>
         <h3 className="text-xl font-black tracking-tight">{copy.quickStartTitle}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -293,6 +297,8 @@ export const CrisisCenterView: React.FC<{ lang: Language; onBack: () => void }> 
           ))}
         </div>
       </article>
-    </div>
+        </LunaPageContentSection>
+      </div>
+    </section>
   );
 };

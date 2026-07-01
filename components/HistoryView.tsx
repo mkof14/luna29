@@ -2,15 +2,21 @@
 import React from 'react';
 import { HealthEvent } from '../types';
 import { Language, LangCopy, getLang } from '../constants';
+import { MemberIconBackButton } from './member/MemberIconBackButton';
+import { MemberPageIntro } from './member/MemberPageIntro';
+import { LunaPageContentSection } from './shared/LunaPageContentSection';
+import { getLunaPageTheme } from '../utils/lunaPageThemes';
 
 export const HistoryView: React.FC<{ log: HealthEvent[]; lang?: Language; onBack?: () => void }> = ({ log, lang = 'en', onBack }) => {
-  const copyByLang: LangCopy< {
+  type HistoryCopy = {
     daily: string; cycle: (day: string | number) => string; health: string; support: (name: string) => string; login: string; started: string; profile: string; system: string;
     titleA: string; titleB: string; subtitle: string; noEntries: string;
-  }> = {
-    en: { daily: 'Daily check-in saved.', cycle: (day) => `Cycle updated to Day ${day}.`, health: 'Health data updated.', support: (name) => `Support updated: ${name}.`, login: 'Logged in.', started: 'Started.', profile: 'Profile updated.', system: 'System event.', titleA: 'My', titleB: 'Journey.', subtitle: 'A look back at your journey. Every entry is a part of your story.', noEntries: 'No entries yet' },
-    ru: { daily: 'Ежедневная отметка сохранена.', cycle: (day) => `Цикл обновлен: день ${day}.`, health: 'Данные здоровья обновлены.', support: (name) => `Поддержка обновлена: ${name}.`, login: 'Вход выполнен.', started: 'Начало.', profile: 'Профиль обновлен.', system: 'Системное событие.', titleA: 'Мой', titleB: 'Путь.', subtitle: 'Взгляд назад на ваш путь. Каждая запись - часть вашей истории.', noEntries: 'Пока нет записей' },
-    uk: { daily: 'Щоденний чек-ін збережено.', cycle: (day) => `Цикл оновлено: день ${day}.`, health: "Дані здоров'я оновлено.", support: (name) => `Підтримку оновлено: ${name}.`, login: 'Вхід виконано.', started: 'Початок.', profile: 'Профіль оновлено.', system: 'Системна подія.', titleA: 'Мій', titleB: 'Шлях.', subtitle: 'Погляд на ваш шлях. Кожен запис - частина вашої історії.', noEntries: 'Поки немає записів' },
+    guideTitle?: string; guideBody?: string; tipCheckin?: string; tipCycle?: string; tipVoice?: string;
+  };
+  const copyByLang: LangCopy<HistoryCopy> = {
+    en: { daily: 'Daily check-in saved.', cycle: (day) => `Cycle updated to Day ${day}.`, health: 'Health data updated.', support: (name) => `Medication note updated: ${name}.`, login: 'Logged in.', started: 'Started.', profile: 'Profile updated.', system: 'System event.', titleA: 'My', titleB: 'Journey.', subtitle: 'A look back at your journey. Every entry is a part of your story.', noEntries: 'No entries yet', guideTitle: 'Your story builds quietly', guideBody: 'Each check-in, cycle sync, voice note, and medication log becomes a thread here. Luna29 does not score you — it remembers patterns over time.', tipCheckin: 'Start with a 60-second check-in on Today.', tipCycle: 'Sync your cycle day when energy shifts feel confusing.', tipVoice: 'Leave a Voice Note when words feel clearer than numbers.' },
+    ru: { daily: 'Ежедневная отметка сохранена.', cycle: (day) => `Цикл обновлен: день ${day}.`, health: 'Данные здоровья обновлены.', support: (name) => `Заметка о препарате обновлена: ${name}.`, login: 'Вход выполнен.', started: 'Начало.', profile: 'Профиль обновлен.', system: 'Системное событие.', titleA: 'Мой', titleB: 'Путь.', subtitle: 'Взгляд назад на ваш путь. Каждая запись — часть вашей истории.', noEntries: 'Пока нет записей', guideTitle: 'История собирается тихо', guideBody: 'Каждый check-in, sync цикла, voice note и запись о препарате становятся нитью здесь. Luna29 не оценивает — она помнит паттерны.', tipCheckin: 'Начните с 60-секундного check-in на Today.', tipCycle: 'Синхронизируйте день цикла, когда энергия кажется непонятной.', tipVoice: 'Оставьте Voice Note, когда слова яснее цифр.' },
+    uk: { daily: 'Щоденний чек-ін збережено.', cycle: (day) => `Цикл оновлено: день ${day}.`, health: "Дані здоров'я оновлено.", support: (name) => `Нотатку про препарат оновлено: ${name}.`, login: 'Вхід виконано.', started: 'Початок.', profile: 'Профіль оновлено.', system: 'Системна подія.', titleA: 'Мій', titleB: 'Шлях.', subtitle: 'Погляд на ваш шлях. Кожен запис — частина вашої історії.', noEntries: 'Поки немає записів', guideTitle: 'Історія збирається тихо', guideBody: 'Кожен check-in, sync циклу, voice note і запис про препарат стають ниткою тут. Luna29 не оцінює — вона памʼятає патерни.', tipCheckin: 'Почніть із 60-секундного check-in на Today.', tipCycle: 'Синхронізуйте день циклу, коли енергія здається незрозумілою.', tipVoice: 'Залиште Voice Note, коли слова ясніші за цифри.' },
     es: { daily: 'Check-in diario guardado.', cycle: (day) => `Ciclo actualizado al día ${day}.`, health: 'Datos de salud actualizados.', support: (name) => `Soporte actualizado: ${name}.`, login: 'Sesión iniciada.', started: 'Inicio.', profile: 'Perfil actualizado.', system: 'Evento del sistema.', titleA: 'Mi', titleB: 'Viaje.', subtitle: 'Una mirada a tu recorrido. Cada entrada es parte de tu historia.', noEntries: 'Sin entradas todavía' },
     fr: { daily: 'Check-in quotidien enregistré.', cycle: (day) => `Cycle mis à jour au jour ${day}.`, health: 'Données santé mises à jour.', support: (name) => `Soutien mis à jour: ${name}.`, login: 'Connexion réussie.', started: 'Démarré.', profile: 'Profil mis à jour.', system: 'Événement système.', titleA: 'Mon', titleB: 'Parcours.', subtitle: 'Un regard sur votre parcours. Chaque entrée fait partie de votre histoire.', noEntries: 'Aucune entrée pour le moment' },
     de: { daily: 'Täglicher Check-in gespeichert.', cycle: (day) => `Zyklus auf Tag ${day} aktualisiert.`, health: 'Gesundheitsdaten aktualisiert.', support: (name) => `Unterstützung aktualisiert: ${name}.`, login: 'Eingeloggt.', started: 'Gestartet.', profile: 'Profil aktualisiert.', system: 'Systemereignis.', titleA: 'Meine', titleB: 'Reise.', subtitle: 'Ein Rückblick auf deinen Weg. Jeder Eintrag ist Teil deiner Geschichte.', noEntries: 'Noch keine Einträge' },
@@ -48,15 +54,14 @@ export const HistoryView: React.FC<{ log: HealthEvent[]; lang?: Language; onBack
       .join(' ');
 
   return (
-    <div className="max-w-6xl mx-auto luna-page-shell luna-page-journey space-y-24 animate-in fade-in slide-in-from-bottom-12 duration-1000 p-8 md:p-10 pb-40">
-      <header className="flex flex-col items-center lg:items-start gap-10">
-        <h2 className="text-6xl lg:text-9xl font-black tracking-tighter leading-none uppercase text-slate-950 dark:text-slate-100">
-          {copy.titleA} <br/> <span className="text-luna-purple">{copy.titleB}</span>
-        </h2>
-        <p className="text-xl lg:text-2xl text-slate-600 dark:text-slate-400 italic font-medium max-w-2xl leading-relaxed">
-          {copy.subtitle}
-        </p>
-      </header>
+    <>
+      {onBack && <MemberIconBackButton lang={lang} onClick={onBack} className="mb-0" />}
+      <MemberPageIntro lang={lang} page="history" tab="history" />
+
+      <LunaPageContentSection themeClass={getLunaPageTheme('history').shellClass} padded={false}>
+      <p className="text-base font-medium text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed mb-8">
+        {copy.subtitle}
+      </p>
 
       <section data-testid="history-timeline" className="relative space-y-32">
         <div className="absolute left-10 lg:left-20 top-0 bottom-0 w-px bg-slate-300 dark:bg-slate-800" />
@@ -100,6 +105,7 @@ export const HistoryView: React.FC<{ log: HealthEvent[]; lang?: Language; onBack
           ))
         )}
       </section>
-    </div>
+      </LunaPageContentSection>
+    </>
   );
 };

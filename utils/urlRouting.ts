@@ -24,8 +24,17 @@ const MEMBER_TABS = new Set<TabType>([
   'crisis',
   'partner_faq',
   'relationships',
-  'admin',
   'rhythm_calendar',
+  'learning',
+  'pricing',
+  'ritual_path',
+  'about',
+  'how_it_works',
+  'privacy',
+  'terms',
+  'medical',
+  'cookies',
+  'data_rights',
 ]);
 
 export const readLangFromUrl = (): Language | null => {

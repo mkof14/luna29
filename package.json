@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "dev:full": "node --env-file-if-exists=.env.local server/index.mjs & vite",
+    "dev:local": "node scripts/dev-local.mjs",
     "api": "node --env-file-if-exists=.env.local server/index.mjs",
     "build": "node scripts/generate-seo-assets.mjs && tsc && vite build && node scripts/prerender-public.mjs",
     "prerender": "node scripts/prerender-public.mjs",
@@ -21,6 +22,7 @@
     "test:e2e:ui": "playwright test --ui",
     "smoke:deploy": "node scripts/post-deploy-smoke.mjs",
     "perf:bundle": "node scripts/perf-budget.mjs",
+    "optimize:heroes": "node scripts/optimize-hero-images.mjs",
     "qa:beta": "node scripts/qa-beta.mjs",
     "qa:beta:strict": "node scripts/qa-beta.mjs --strict",
     "release:ready": "node scripts/release-ready.mjs",
@@ -33,9 +35,9 @@
     "@google/genai": "^1.40.0",
     "lucide-react": "^0.575.0",
     "motion": "^12.34.3",
+    "pg": "^8.16.0",
     "react": "^19.2.4",
-    "react-dom": "^19.2.4",
-    "pg": "^8.16.0"
+    "react-dom": "^19.2.4"
   },
   "devDependencies": {
     "@playwright/test": "^1.52.0",
@@ -43,12 +45,13 @@
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
+    "jsdom": "^26.1.0",
     "postcss": "^8.4.49",
+    "sharp": "^0.35.2",
     "tailwindcss": "^3.4.16",
     "typescript": "^5.7.2",
     "vercel": "^54.18.3",
     "vite": "^6.0.0",
-    "vitest": "^3.2.4",
-    "jsdom": "^26.1.0"
+    "vitest": "^3.2.4"
   }
 }

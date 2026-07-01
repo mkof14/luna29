@@ -1,11 +1,34 @@
 import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react';
-import { Facebook, Heart, Instagram, Lock, MapPin, Mic, Music2, Sparkles, Youtube, Calendar } from 'lucide-react';
+import { Facebook, Instagram, Music2, Youtube } from 'lucide-react';
 import { Logo } from './Logo';
 import { Language, TranslationSchema, LangCopy, getLang } from '../constants';
 import LanguageSelector from './LanguageSelector';
+import { LunaMenuLabel, LunaShimmerText } from './SmoothLangText';
 import ThemeToggle from './ThemeToggle';
 import { PUBLIC_BTN_PRIMARY, PUBLIC_BTN_PRIMARY_GLOW, PUBLIC_BTN_SECONDARY } from './public/publicButtonStyles';
+import {
+  PUBLIC_BODY,
+  PUBLIC_CARD_SOFT,
+  PUBLIC_EYEBROW,
+  PUBLIC_H2,
+  PUBLIC_SHELL,
+  PUBLIC_SHELL_INNER,
+  PUBLIC_SHELL_PAD,
+  PUBLIC_SURFACE,
+} from './public/publicPageStyles';
+import { PublicHomeSection } from './public/PublicHomeSection';
 import { getMemberNavCopy } from '../utils/memberNavLabels';
+import { getBrandAssetUrl } from '../utils/lunaBrandAssets';
+import { getLegalHubLabel, getLegalNavLabels, LEGAL_ENTITY_NAME, LegalNavDocType } from '../utils/legal';
+import { getPublicHomeContent } from '../utils/publicHomeContent';
+import { resolveHeroAbVariant } from '../utils/publicHomeAb';
+import {
+  getFooterMicroRitual,
+  getFooterMoonAccent,
+  getFooterSpiritActions,
+  getFooterTrustLine,
+} from '../utils/publicFooterSpirit';
+import { markCheckoutPending, markTrialPending } from '../utils/subscriptionAccess';
 
 const HowItWorksView = lazy(() => import('./HowItWorksView').then((m) => ({ default: m.HowItWorksView })));
 const FAQView = lazy(() => import('./FAQView').then((m) => ({ default: m.FAQView })));
@@ -21,6 +44,7 @@ const PublicCalendarSection = lazy(() => import('./public/PublicCalendarSection'
 interface PublicLandingViewProps {
   onSignIn: () => void;
   onSignUp: () => void;
+  onOpenLive?: () => void;
   lang: Language;
   setLang: (lang: Language) => void;
   theme: 'light' | 'dark';
@@ -33,8 +57,8 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
 }
 
-export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, onSignUp, lang, setLang, theme, setTheme, ui }) => {
-  type PublicPage = 'home' | 'map' | 'ritual' | 'bridge' | 'pricing' | 'about' | 'how_it_works' | 'faq' | 'learning' | 'privacy' | 'terms' | 'medical' | 'cookies' | 'data_rights' | 'calendar';
+export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, onSignUp, onOpenLive, lang, setLang, theme, setTheme, ui }) => {
+  type PublicPage = 'home' | 'map' | 'ritual' | 'bridge' | 'pricing' | 'about' | 'how_it_works' | 'faq' | 'learning' | 'legal' | 'privacy' | 'terms' | 'medical' | 'cookies' | 'data_rights' | 'calendar';
   type TrialState = {
     startedAt: string;
     endsAt: string;
@@ -54,6 +78,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     if (pathname === '/how-it-works') return 'how_it_works';
     if (pathname === '/faq') return 'faq';
     if (pathname === '/training' || pathname === '/learning') return 'learning';
+    if (pathname === '/legal') return 'legal';
     if (pathname === '/privacy') return 'privacy';
     if (pathname === '/terms') return 'terms';
     if (pathname === '/disclaimer') return 'medical';
@@ -71,6 +96,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     if (page === 'how_it_works') return '/how-it-works';
     if (page === 'faq') return '/faq';
     if (page === 'learning') return '/learning';
+    if (page === 'legal') return '/legal';
     if (page === 'privacy') return '/privacy';
     if (page === 'terms') return '/terms';
     if (page === 'medical') return '/disclaimer';
@@ -85,7 +111,6 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     if (typeof window === 'undefined') return 'home';
     return resolvePageFromPath(window.location.pathname);
   });
-  const [isHomeExpanded, setIsHomeExpanded] = useState(false);
   const [billingPeriod, setBillingPeriod] = useState<'month' | 'year'>('month');
   const [trialState, setTrialState] = useState<TrialState | null>(null);
   const [trialFeedback, setTrialFeedback] = useState('');
@@ -94,13 +119,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
   const [showInstallGuideModal, setShowInstallGuideModal] = useState(false);
   const [isStandaloneMode, setIsStandaloneMode] = useState(false);
   const [mobilePlatform, setMobilePlatform] = useState<'ios' | 'android' | 'other'>('other');
-  const [homeCalibrateEnabled, setHomeCalibrateEnabled] = useState(false);
-  const [homeCalibrateRef, setHomeCalibrateRef] = useState('/images/home-reference.png');
-  const [homeCalibrateOpacity, setHomeCalibrateOpacity] = useState(45);
-  const [homeCalibrateOffsetX, setHomeCalibrateOffsetX] = useState(0);
-  const [homeCalibrateOffsetY, setHomeCalibrateOffsetY] = useState(0);
-  const [homeCalibrateScale, setHomeCalibrateScale] = useState(100);
-  const [homeCalibrateHidePanel, setHomeCalibrateHidePanel] = useState(false);
+  const [heroAbVariant] = useState(() => resolveHeroAbVariant());
   const normalizeExternalUrl = (value: unknown) => {
     const next = String(value || '').trim();
     if (!next || next === '#') return '';
@@ -108,23 +127,19 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
   };
   const appStoreUrl = normalizeExternalUrl(import.meta.env.VITE_APP_STORE_URL);
   const googlePlayUrl = normalizeExternalUrl(import.meta.env.VITE_GOOGLE_PLAY_URL);
-  const expoPreviewUrl = normalizeExternalUrl(import.meta.env.VITE_EXPO_PREVIEW_URL || 'https://expo.dev/accounts/mkof14/projects/luna-mobile');
-  const appStoreHref = appStoreUrl || expoPreviewUrl || '#';
-  const googlePlayHref = googlePlayUrl || expoPreviewUrl || '#';
-  const showPreviewLink = (!appStoreUrl || !googlePlayUrl) && Boolean(expoPreviewUrl);
 
-  const storeBadgeCopyByLang: LangCopy< { title: string; appStore: string; googlePlay: string; preview: string; soon: string }> = {
-    en: { title: 'Luna29 Mobile', appStore: 'Download on the App Store', googlePlay: 'Get it on Google Play', preview: 'Open Mobile Preview', soon: 'Store links will be active after release.' },
-    ru: { title: 'Luna29 Mobile', appStore: 'Скачать в App Store', googlePlay: 'Скачать в Google Play', preview: 'Открыть мобильный превью', soon: 'Ссылки станут активны после релиза.' },
-    uk: { title: 'Luna29 Mobile', appStore: 'Завантажити в App Store', googlePlay: 'Отримати в Google Play', preview: 'Відкрити мобільне превʼю', soon: 'Посилання стануть активними після релізу.' },
-    es: { title: 'Luna29 Mobile', appStore: 'Descargar en App Store', googlePlay: 'Disponible en Google Play', preview: 'Abrir vista previa móvil', soon: 'Los enlaces estarán activos tras el lanzamiento.' },
-    fr: { title: 'Luna29 Mobile', appStore: 'Télécharger sur App Store', googlePlay: 'Disponible sur Google Play', preview: 'Ouvrir aperçu mobile', soon: 'Les liens seront actifs après la sortie.' },
-    de: { title: 'Luna29 Mobile', appStore: 'Im App Store laden', googlePlay: 'Bei Google Play', preview: 'Mobile Vorschau öffnen', soon: 'Store-Links werden nach dem Release aktiviert.' },
-    zh: { title: 'Luna29 Mobile', appStore: 'App Store 下载', googlePlay: 'Google Play 获取', preview: '打开移动预览', soon: '发布后将启用商店链接。' },
-    ja: { title: 'Luna29 Mobile', appStore: 'App Store で入手', googlePlay: 'Google Play で入手', preview: 'モバイルプレビューを開く', soon: 'リリース後にストアリンクを有効化します。' },
-    pt: { title: 'Luna29 Mobile', appStore: 'Baixar na App Store', googlePlay: 'Disponível no Google Play', preview: 'Abrir prévia móvel', soon: 'Os links serão ativados após o lançamento.' },
-  ar: { title: 'Luna29 Mobile', appStore: 'تنزيل من App Store', googlePlay: 'احصلي عليه من Google Play', preview: 'فتح المعاينة على الجوال', soon: 'ستُفعّل روابط المتجر بعد الإصدار.' },
-  he: { title: 'Luna29 Mobile', appStore: 'הורדה מ-App Store', googlePlay: 'קבלי ב-Google Play', preview: 'פתיחת תצוגה מקדימה בנייד', soon: 'קישורי החנות יופעלו לאחר השקה.' },};
+  const storeBadgeCopyByLang: LangCopy< { title: string; appStore: string; googlePlay: string; soon: string }> = {
+    en: { title: 'Luna29 Mobile', appStore: 'Download on the App Store', googlePlay: 'Get it on Google Play', soon: 'Store links will be active after release.' },
+    ru: { title: 'Luna29 Mobile', appStore: 'Скачать в App Store', googlePlay: 'Скачать в Google Play', soon: 'Ссылки станут активны после релиза.' },
+    uk: { title: 'Luna29 Mobile', appStore: 'Завантажити в App Store', googlePlay: 'Отримати в Google Play', soon: 'Посилання стануть активними після релізу.' },
+    es: { title: 'Luna29 Mobile', appStore: 'Descargar en App Store', googlePlay: 'Disponible en Google Play', soon: 'Los enlaces estarán activos tras el lanzamiento.' },
+    fr: { title: 'Luna29 Mobile', appStore: 'Télécharger sur App Store', googlePlay: 'Disponible sur Google Play', soon: 'Les liens seront actifs après la sortie.' },
+    de: { title: 'Luna29 Mobile', appStore: 'Im App Store laden', googlePlay: 'Bei Google Play', soon: 'Store-Links werden nach dem Release aktiviert.' },
+    zh: { title: 'Luna29 Mobile', appStore: 'App Store 下载', googlePlay: 'Google Play 获取', soon: '发布后将启用商店链接。' },
+    ja: { title: 'Luna29 Mobile', appStore: 'App Store で入手', googlePlay: 'Google Play で入手', soon: 'リリース後にストアリンクを有効化します。' },
+    pt: { title: 'Luna29 Mobile', appStore: 'Baixar na App Store', googlePlay: 'Disponível no Google Play', soon: 'Os links serão ativados após o lançamento.' },
+  ar: { title: 'Luna29 Mobile', appStore: 'تنزيل من App Store', googlePlay: 'احصلي عليه من Google Play', soon: 'ستُفعّل روابط المتجر بعد الإصدار.' },
+  he: { title: 'Luna29 Mobile', appStore: 'הורדה מ-App Store', googlePlay: 'קבלי ב-Google Play', soon: 'קישורי החנות יופעלו לאחר השקה.' },};
   const storeBadges = getLang(storeBadgeCopyByLang, lang) || storeBadgeCopyByLang.en;
 
   const loadingLabelByLang: LangCopy< string> = {
@@ -261,27 +276,6 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     else setMobilePlatform('other');
   }, []);
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const params = new URLSearchParams(window.location.search);
-    const enabled = params.get('calibrate') === '1' || params.get('calibrate_home') === '1';
-    if (!enabled) return;
-
-    const parseNumber = (raw: string | null, fallback: number) => {
-      if (!raw) return fallback;
-      const parsed = Number(raw);
-      return Number.isFinite(parsed) ? parsed : fallback;
-    };
-
-    setHomeCalibrateEnabled(true);
-    setHomeCalibrateRef(params.get('ref') || '/images/home-reference.png');
-    setHomeCalibrateOpacity(parseNumber(params.get('opacity'), 45));
-    setHomeCalibrateOffsetX(parseNumber(params.get('offset_x'), 0));
-    setHomeCalibrateOffsetY(parseNumber(params.get('offset_y'), 0));
-    setHomeCalibrateScale(parseNumber(params.get('scale'), 100));
-    setHomeCalibrateHidePanel(params.get('hide_calibration_panel') === '1');
-  }, []);
-
   const pricingUiByLang = {
     en: {
       monthToggle: 'Month',
@@ -300,9 +294,11 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       featurePrivate: '✓ Health data stays on your device',
       featureBodyMap: '✓ Body rhythm map and daily guidance',
       featureBridge: '✓ Partner bridge and note tools',
-      featureAdmin: '✓ Admin-secured access and role logic',
+      featureReports: '✓ Health reports and doctor-ready exports',
       continueTrial: 'Continue Trial',
-      startTrial: 'Start Trial • 7 Days',
+      startTrial: 'Start 7-day free trial',
+      subscribeCta: 'Subscribe · {price}',
+      freeAccountCta: 'Create free account — free tier forever',
       freeTier: 'Free',
       paidTier: 'Insights (Paid)',
       trialActiveFeedback: 'Trial active: {days} days left.',
@@ -326,9 +322,11 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       featurePrivate: '✓ Данные здоровья остаются на вашем устройстве',
       featureBodyMap: '✓ Карта ритмов тела и ежедневные подсказки',
       featureBridge: '✓ Мост с партнером и инструменты заметок',
-      featureAdmin: '✓ Защищенный админ-доступ и роли',
+      featureReports: '✓ Health Reports и отчёты для врача',
       continueTrial: 'Продолжить Trial',
-      startTrial: 'Начать Trial • 7 Дней',
+      startTrial: 'Начать trial на 7 дней',
+      subscribeCta: 'Подписаться · {price}',
+      freeAccountCta: 'Бесплатный аккаунт — free tier навсегда',
       freeTier: 'Бесплатно',
       paidTier: 'Insights (Платно)',
       trialActiveFeedback: 'Trial активен: осталось {days} дн.',
@@ -352,9 +350,11 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       featurePrivate: '✓ Дані здоровʼя залишаються на вашому пристрої',
       featureBodyMap: '✓ Карта ритмів тіла і щоденні підказки',
       featureBridge: '✓ Міст для партнера та інструменти нотаток',
-      featureAdmin: '✓ Захищений адмін-доступ і ролі',
+      featureReports: '✓ Health Reports і звіти для лікаря',
       continueTrial: 'Продовжити Trial',
-      startTrial: 'Почати Trial • 7 Днів',
+      startTrial: 'Почати trial на 7 днів',
+      subscribeCta: 'Підписатися · {price}',
+      freeAccountCta: 'Безкоштовний акаунт — free tier назавжди',
       freeTier: 'Безкоштовно',
       paidTier: 'Insights (Платно)',
       trialActiveFeedback: 'Trial активний: залишилось {days} дн.',
@@ -378,9 +378,11 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       featurePrivate: '✓ Zona privada completa con check-ins',
       featureBodyMap: '✓ Mapa de ritmo corporal y guia diaria',
       featureBridge: '✓ Bridge para pareja y herramientas de reflexion',
-      featureAdmin: '✓ Acceso admin seguro y logica de roles',
-      continueTrial: 'Continuar Prueba',
-      startTrial: 'Iniciar Prueba • 7 Dias',
+      featureReports: '✓ Informes de salud listos para el medico',
+      continueTrial: 'Continuar prueba',
+      startTrial: 'Prueba gratis 7 dias',
+      subscribeCta: 'Suscribirse · {price}',
+      freeAccountCta: 'Cuenta gratis — plan free para siempre',
       trialActiveFeedback: 'Prueba activa: {days} dias restantes.',
       trialUsedFeedback: 'La prueba ya se uso en este dispositivo.',
       trialStartedFeedback: 'Prueba iniciada. Crea una cuenta para continuar.',
@@ -402,9 +404,11 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       featurePrivate: '✓ Zone membre complete avec check-ins prives',
       featureBodyMap: '✓ Carte des rythmes corporels et guidance quotidienne',
       featureBridge: '✓ Bridge partenaire et outils de reflexion',
-      featureAdmin: '✓ Acces admin securise et roles',
-      continueTrial: "Continuer L'Essai",
-      startTrial: "Demarrer L'Essai • 7 Jours",
+      featureReports: '✓ Rapports sante prets pour le medecin',
+      continueTrial: "Continuer l'essai",
+      startTrial: 'Essai gratuit 7 jours',
+      subscribeCta: "S'abonner · {price}",
+      freeAccountCta: 'Compte gratuit — offre free a vie',
       trialActiveFeedback: 'Essai actif: {days} jours restants.',
       trialUsedFeedback: 'Essai deja utilise sur cet appareil.',
       trialStartedFeedback: 'Essai demarre. Creez un compte pour continuer.',
@@ -426,9 +430,11 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       featurePrivate: '✓ Voller Mitgliederbereich mit privaten Check-ins',
       featureBodyMap: '✓ Koerperrhythmus-Karte und taegliche Guidance',
       featureBridge: '✓ Partner-Bridge und Reflexions-Tools',
-      featureAdmin: '✓ Admin-gesicherter Zugang und Rollenlogik',
+      featureReports: '✓ Gesundheitsberichte fur Arztbesuche',
       continueTrial: 'Testphase Fortsetzen',
-      startTrial: 'Test Starten • 7 Tage',
+      startTrial: '7-Tage-Test starten',
+      subscribeCta: 'Abonnieren · {price}',
+      freeAccountCta: 'Kostenloses Konto — Free tier dauerhaft',
       trialActiveFeedback: 'Testphase aktiv: noch {days} Tage.',
       trialUsedFeedback: 'Testphase wurde auf diesem Geraet bereits genutzt.',
       trialStartedFeedback: 'Test gestartet. Konto erstellen, um fortzufahren.',
@@ -450,9 +456,11 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       featurePrivate: '✓ 完整会员区与私密 check-in',
       featureBodyMap: '✓ 身体节律地图与每日引导',
       featureBridge: '✓ 伴侣 bridge 与反思工具',
-      featureAdmin: '✓ 管理员安全访问与角色逻辑',
+      featureReports: '✓ 健康报告与就医准备导出',
       continueTrial: '继续试用',
-      startTrial: '开始试用 • 7 天',
+      startTrial: '开始 7 天免费试用',
+      subscribeCta: '订阅 · {price}',
+      freeAccountCta: '创建免费账户 — 永久免费层',
       trialActiveFeedback: '试用进行中：剩余 {days} 天。',
       trialUsedFeedback: '该设备已使用过试用。',
       trialStartedFeedback: '试用已开始。请创建账号继续。',
@@ -474,9 +482,11 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       featurePrivate: '✓ 非公開チェックインを含むメンバーゾーン',
       featureBodyMap: '✓ ボディリズムマップと日次ガイダンス',
       featureBridge: '✓ パートナーブリッジと内省ツール',
-      featureAdmin: '✓ 管理者保護アクセスと権限ロジック',
+      featureReports: '✓ 健康レポートと医師向けエクスポート',
       continueTrial: 'トライアルを続ける',
-      startTrial: 'トライアル開始 • 7日間',
+      startTrial: '7日間無料トライアル',
+      subscribeCta: '登録 · {price}',
+      freeAccountCta: '無料アカウント — 永久無料プラン',
       trialActiveFeedback: 'トライアル中: 残り {days} 日。',
       trialUsedFeedback: 'この端末では既にトライアルを利用済みです。',
       trialStartedFeedback: 'トライアル開始。続けるにはアカウント作成が必要です。',
@@ -498,9 +508,11 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       featurePrivate: '✓ Zona membro completa com check-ins privados',
       featureBodyMap: '✓ Mapa de ritmo corporal e guia diaria',
       featureBridge: '✓ Bridge com parceiro e ferramentas de reflexao',
-      featureAdmin: '✓ Acesso admin seguro e logica de papeis',
-      continueTrial: 'Continuar Teste',
-      startTrial: 'Iniciar Teste • 7 Dias',
+      featureReports: '✓ Relatorios de saude prontos para o medico',
+      continueTrial: 'Continuar teste',
+      startTrial: 'Teste gratis de 7 dias',
+      subscribeCta: 'Assinar · {price}',
+      freeAccountCta: 'Conta gratis — plano free para sempre',
       trialActiveFeedback: 'Teste ativo: {days} dias restantes.',
       trialUsedFeedback: 'O teste ja foi usado neste dispositivo.',
       trialStartedFeedback: 'Teste iniciado. Crie uma conta para continuar.',
@@ -522,9 +534,11 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       featurePrivate: '✓ بيانات الصحة تبقى على جهازك',
       featureBodyMap: '✓ خريطة إيقاع الجسم والإرشاد اليومي',
       featureBridge: '✓ جسر الشريك وأدوات الملاحظات',
-      featureAdmin: '✓ وصول إداري آمن ومنطق الأدوار',
-      continueTrial: 'متابعة التجربة',
-      startTrial: 'ابدئي التجربة • 7 أيام',
+      featureReports: '✓ Health reports and doctor-ready exports',
+      continueTrial: 'Continue trial',
+      startTrial: 'Start 7-day free trial',
+      subscribeCta: 'Subscribe · {price}',
+      freeAccountCta: 'Create free account — free tier forever',
       freeTier: 'مجاني',
       paidTier: 'Insights (مدفوع)',
       trialActiveFeedback: 'التجربة نشطة: متبقٍ {days} أيام.',
@@ -548,9 +562,11 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       featurePrivate: '✓ נתוני בריאות נשארים במכשיר שלך',
       featureBodyMap: '✓ מפת קצב גוף והנחיה יומית',
       featureBridge: '✓ גשר לבן/בת זוג וכלי הערות',
-      featureAdmin: '✓ גישת אדמין מאובטחת ולוגיקת תפקידים',
+      featureReports: '✓ Health reports and doctor-ready exports',
       continueTrial: 'המשך ניסיון',
-      startTrial: 'התחילי ניסיון • 7 ימים',
+      startTrial: 'Start 7-day free trial',
+      subscribeCta: 'Subscribe · {price}',
+      freeAccountCta: 'Create free account — free tier forever',
       freeTier: 'חינם',
       paidTier: 'Insights (בתשלום)',
       trialActiveFeedback: 'ניסיון פעיל: נותרו {days} ימים.',
@@ -636,6 +652,12 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     localStorage.setItem(TRIAL_STORAGE_KEY, JSON.stringify(next));
     setTrialState(next);
     setTrialFeedback(pricingUi.trialStartedFeedback);
+    markTrialPending();
+    onSignUp();
+  };
+
+  const handleSubscribe = () => {
+    markCheckoutPending(billingPeriod);
     onSignUp();
   };
 
@@ -731,7 +753,6 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     finalBody: 'Pause, understand, and move forward with clarity.',
     finalCta: 'Try Luna29',
   };
-  const homeToggle = landingNarratives?.homeToggle || { more: 'Show Full Story', less: 'Show Less' };
   const hormoneFocus = landingNarratives?.hormoneFocus || {
     title: 'Hormones Matter',
     subtitle: 'Markers shape energy, mood, focus, and recovery.',
@@ -753,13 +774,10 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     monthNote: 'per month',
     yearNote: 'per year',
     saveBadge: 'Save 25% yearly',
-    cta: 'Buy Luna29 Access',
-    recommended: 'Recommended: $12.99/month.',
+    cta: 'Subscribe after account',
+    recommended: 'Cancel anytime · 7-day free trial included.',
   };
   const pricingUi = getLang(pricingUiByLang, lang) || pricingUiByLang.en;
-  const visibleExplainParagraphs = isHomeExpanded ? homeStory.explainParagraphs : homeStory.explainParagraphs.slice(0, 2);
-  const visibleSections = isHomeExpanded ? homeStory.sections : homeStory.sections.slice(0, 2);
-
   const sections = [
     { id: 'home', label: ui.publicHome.tabs.home },
     { id: 'map', label: ui.publicHome.tabs.map },
@@ -767,32 +785,32 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     { id: 'bridge', label: ui.navigation.bridge || 'The Bridge' },
     { id: 'pricing', label: getLang(pricingLabelByLang, lang) || 'Pricing' },
   ] as const;
-  const footerSectionTitlesByLang: LangCopy< { explore: string; guides: string; legal: string; install: string; account: string }> = {
-    en: { explore: 'Explore', guides: 'Guides', legal: 'Legal', install: 'Install App', account: 'Account' },
-    ru: { explore: 'Разделы', guides: 'Гайды', legal: 'Юридический', install: 'Установить App', account: 'Аккаунт' },
-    uk: { explore: 'Розділи', guides: 'Гайди', legal: 'Юридичний', install: 'Встановити App', account: 'Акаунт' },
-    es: { explore: 'Secciones', guides: 'Guias', legal: 'Legal', install: 'Instalar App', account: 'Cuenta' },
-    fr: { explore: 'Sections', guides: 'Guides', legal: 'Juridique', install: 'Installer App', account: 'Compte' },
-    de: { explore: 'Bereiche', guides: 'Leitfaden', legal: 'Recht', install: 'App Installieren', account: 'Konto' },
-    zh: { explore: '页面', guides: '指南', legal: '法律', install: '安装 App', account: '账户' },
-    ja: { explore: 'ページ', guides: 'ガイド', legal: '法務', install: 'App をインストール', account: 'アカウント' },
-    pt: { explore: 'Secoes', guides: 'Guias', legal: 'Legal', install: 'Instalar App', account: 'Conta' },
-  ar: { explore: 'استكشاف', guides: 'أدلة', legal: 'قانوني', install: 'تثبيت التطبيق', account: 'الحساب' },
-  he: { explore: 'חקירה', guides: 'מדריכים', legal: 'משפטי', install: 'התקנת אפליקציה', account: 'חשבון' },};
+  const footerSectionTitlesByLang: LangCopy<{ explore: string; legal: string; install: string; preferences: string }> = {
+    en: { explore: 'Explore', legal: 'Legal', install: 'Install App', preferences: 'Language & Theme' },
+    ru: { explore: 'Разделы', legal: 'Юридический раздел', install: 'Установить App', preferences: 'Язык и тема' },
+    uk: { explore: 'Розділи', legal: 'Юридичний розділ', install: 'Встановити App', preferences: 'Мова і тема' },
+    es: { explore: 'Secciones', legal: 'Legal', install: 'Instalar App', preferences: 'Idioma y tema' },
+    fr: { explore: 'Sections', legal: 'Juridique', install: 'Installer App', preferences: 'Langue et theme' },
+    de: { explore: 'Bereiche', legal: 'Rechtliches', install: 'App installieren', preferences: 'Sprache und Design' },
+    zh: { explore: '页面', legal: '法律信息', install: '安装 App', preferences: '语言与主题' },
+    ja: { explore: 'ページ', legal: '法務情報', install: 'App をインストール', preferences: '言語とテーマ' },
+    pt: { explore: 'Secoes', legal: 'Legal', install: 'Instalar App', preferences: 'Idioma e tema' },
+    ar: { explore: 'استكشاف', legal: 'قانوني', install: 'تثبيت التطبيق', preferences: 'اللغة والمظهر' },
+    he: { explore: 'חקירה', legal: 'משפטי', install: 'התקנת אפליקציה', preferences: 'שפה וערכת נושא' },
+  };
 
-  const legalLabelsByLang: LangCopy< { legal: string; privacy: string; terms: string; medical: string; cookies: string; dataRights: string }> = {
-    en: { legal: 'Legal', privacy: 'Privacy Notice', terms: 'Terms', medical: 'Disclaimer', cookies: 'Cookies', dataRights: 'Data Rights' },
-    ru: { legal: 'Юридический раздел', privacy: 'Приватность', terms: 'Условия', medical: 'Дисклеймер', cookies: 'Cookies', dataRights: 'Права на данные' },
-    uk: { legal: 'Юридичний розділ', privacy: 'Приватність', terms: 'Умови', medical: 'Дисклеймер', cookies: 'Cookies', dataRights: 'Права на дані' },
-    es: { legal: 'Legal', privacy: 'Privacidad', terms: 'Terminos', medical: 'Descargo', cookies: 'Cookies', dataRights: 'Derechos de Datos' },
-    fr: { legal: 'Juridique', privacy: 'Confidentialite', terms: 'Conditions', medical: 'Avertissement', cookies: 'Cookies', dataRights: 'Droits Donnees' },
-    de: { legal: 'Rechtliches', privacy: 'Datenschutz', terms: 'Bedingungen', medical: 'Hinweis', cookies: 'Cookies', dataRights: 'Datenrechte' },
-    zh: { legal: '法律', privacy: '隐私', terms: '条款', medical: '免责声明', cookies: 'Cookies', dataRights: '数据权利' },
-    ja: { legal: '法務', privacy: 'プライバシー', terms: '利用規約', medical: '免責', cookies: 'Cookies', dataRights: 'データ権利' },
-    pt: { legal: 'Legal', privacy: 'Privacidade', terms: 'Termos', medical: 'Aviso', cookies: 'Cookies', dataRights: 'Direitos de Dados' },
-  ar: { legal: 'قانوني', privacy: 'إشعار الخصوصية', terms: 'الشروط', medical: 'إخلاء المسؤولية', cookies: 'Cookies', dataRights: 'حقوق البيانات' },
-  he: { legal: 'משפטי', privacy: 'הודעת פרטיות', terms: 'תנאים', medical: 'הצהרת אחריות', cookies: 'Cookies', dataRights: 'זכויות נתונים' },};
-  const legalLabels = getLang(legalLabelsByLang, lang);
+  const legalNav = getLegalNavLabels(lang);
+  const legalHubLabel = getLegalHubLabel(lang);
+  const openLegalDoc = (doc: LegalNavDocType) => {
+    const pageByDoc: Record<LegalNavDocType, PublicPage> = {
+      privacy: 'privacy',
+      terms: 'terms',
+      medical: 'medical',
+      cookies: 'cookies',
+      data_rights: 'data_rights',
+    };
+    setActivePage(pageByDoc[doc]);
+  };
   const footerSectionTitles = getLang(footerSectionTitlesByLang, lang) || footerSectionTitlesByLang.en;
   const themeLabelByLang: LangCopy< string> = {
     en: 'Theme',
@@ -810,8 +828,10 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     en: {
       ios: 'iPhone Install',
       android: 'Android Install',
+      desktop: 'Install on Desktop',
       iosTip: 'Open Safari -> Share -> Add to Home Screen.',
       androidTip: 'Use browser menu -> Install App.',
+      desktopTip: 'Use Chrome or Edge menu -> Install Luna29.',
       noPrompt: 'Install prompt is not available in this browser session.',
       explainTitle: 'How Install Works',
       explainBody: 'Install adds Luna29 to your home screen and opens full-screen like an app.',
@@ -826,8 +846,10 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     ru: {
       ios: 'Установить на iPhone',
       android: 'Установить на Android',
+      desktop: 'Установить на компьютер',
       iosTip: 'Откройте Safari -> Поделиться -> На экран Домой.',
       androidTip: 'Используйте меню браузера -> Установить приложение.',
+      desktopTip: 'Chrome или Edge -> меню -> Установить Luna29.',
       noPrompt: 'Системный install prompt сейчас недоступен в этом браузере.',
       explainTitle: 'Как работает установка',
       explainBody: 'После установки Luna29 появится на домашнем экране и будет открываться как приложение.',
@@ -983,7 +1005,16 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       admin: 'אדמין',
       social: 'רשתות',
     },};
-  const installActions = getLang(installActionsByLang, lang) || installActionsByLang.en;
+  const installActions = { ...installActionsByLang.en, ...(getLang(installActionsByLang, lang) || {}) };
+  const runPublicInstall = async () => {
+    if (!publicInstallPrompt) {
+      setInstallFeedback(installActions.noPrompt);
+      return;
+    }
+    await publicInstallPrompt.prompt();
+    await publicInstallPrompt.userChoice;
+    setInstallFeedback(mobilePlatform === 'other' ? installActions.desktopTip : installActions.androidTip);
+  };
   const installGuideModalByLang: Partial<
     Record<
       Language,
@@ -997,6 +1028,10 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
         iosStep2: string;
         androidStep1: string;
         androidStep2: string;
+        desktopTitle?: string;
+        desktopStep1?: string;
+        desktopStep2?: string;
+        openDesktopPrompt?: string;
         fallback: string;
         close: string;
         openPrompt: string;
@@ -1013,9 +1048,13 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       iosStep2: 'Step 2: Tap Share and choose Add to Home Screen.',
       androidStep1: 'Step 1: Open Luna29 in Chrome/Edge.',
       androidStep2: 'Step 2: Tap browser menu and choose Install App.',
+      desktopTitle: 'Desktop Install',
+      desktopStep1: 'Step 1: Open Luna29 in Chrome or Edge.',
+      desktopStep2: 'Step 2: Click Install in the address bar or browser menu.',
       fallback: 'Open Safari -> Share -> Add to Home Screen.',
       close: 'Close',
       openPrompt: 'Open Android Install',
+      openDesktopPrompt: 'Install Luna29 on Desktop',
     },
     ru: {
       title: 'Install App',
@@ -1027,9 +1066,13 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       iosStep2: 'Step 2: Tap Share and choose Add to Home Screen.',
       androidStep1: 'Step 1: Open Luna29 in Chrome/Edge.',
       androidStep2: 'Step 2: Tap browser menu and choose Install App.',
+      desktopTitle: 'Desktop Install',
+      desktopStep1: 'Шаг 1: Откройте Luna29 в Chrome или Edge.',
+      desktopStep2: 'Шаг 2: Нажмите «Установить» в адресной строке или меню браузера.',
       fallback: 'Open Safari -> Share -> Add to Home Screen.',
       close: 'Закрыть',
       openPrompt: 'Открыть Android Install',
+      openDesktopPrompt: 'Установить Luna29 на компьютер',
     },
     ar: {
       title: 'تثبيت التطبيق',
@@ -1149,23 +1192,6 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     he: { title: 'לוח קצב', body: 'תצוגות חודש ושנה עריכתיות עם הערות יומיות, הדפסה וסנכרון.' },
   };
   const calendarHomeService = getLang(calendarHomeServiceByLang, lang) || calendarHomeServiceByLang.en;
-  const footerPageLinks: Array<{ id: PublicPage; label: string }> = [
-    { id: 'home', label: ui.publicHome.tabs.home },
-    { id: 'map', label: ui.publicHome.tabs.map },
-    { id: 'calendar', label: memberNav.rhythmCalendar },
-    { id: 'ritual', label: 'Ritual Path' },
-    { id: 'bridge', label: ui.navigation.bridge || 'The Bridge' },
-    { id: 'pricing', label: getLang(pricingLabelByLang, lang) || 'Pricing' },
-    { id: 'about', label: getLang(aboutLabelByLang, lang) || 'About' },
-    { id: 'how_it_works', label: getLang(howItWorksLabelByLang, lang) || 'How It Works' },
-    { id: 'faq', label: getLang(faqLabelByLang, lang) || 'FAQ' },
-    { id: 'learning', label: getLang(learningLabelByLang, lang) || 'Learning' },
-    { id: 'privacy', label: legalLabels.privacy },
-    { id: 'terms', label: legalLabels.terms },
-    { id: 'medical', label: legalLabels.medical },
-    { id: 'cookies', label: legalLabels.cookies },
-    { id: 'data_rights', label: legalLabels.dataRights },
-  ];
   const aboutPageTitleByLang: LangCopy< string> = {
     en: 'About Luna29',
     ru: 'О Luna29',
@@ -1687,453 +1713,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       resetTitle: 'התחילי לצפות בקצב שלך.',
       resetCta: 'צרי את מרחב Luna29 שלך',
     },};
-  const homeRefCopy = getLang(homeRefCopyByLang, lang)?.heroTitle ? getLang(homeRefCopyByLang, lang) : homeRefCopyByLang.en;
-  const dailyCompanionByLang: Partial<Record<
-    Language,
-    {
-      heroTitle: string;
-      heroSubtitle: string;
-      primaryCta: string;
-      secondaryCta: string;
-      whatTitle: string;
-      whatBody: string;
-      ritualTitle: string;
-      ritualSubtitle: string;
-      stepSpeak: string;
-      stepCheckin: string;
-      stepRhythm: string;
-      stepPattern: string;
-      patternTitle: string;
-      patternCardLabel: string;
-      patternOne: string;
-      patternTwo: string;
-      finalTitle: string;
-      finalCta: string;
-    }
-  >> = {
-    en: {
-      heroTitle: 'Your daily emotional mirror',
-      heroSubtitle: 'Understand yourself through body, senses, and words.',
-      primaryCta: "Start today's note",
-      secondaryCta: 'See how Luna29 works',
-      whatTitle: 'A simple daily structure',
-      whatBody: 'Luna29 helps you understand your day with calm and clarity.',
-      ritualTitle: 'A small daily ritual',
-      ritualSubtitle: 'A clear flow you can repeat in under a minute.',
-      stepSpeak: 'Speak to Luna29',
-      stepCheckin: 'Quick check-in',
-      stepRhythm: 'See your rhythm',
-      stepPattern: 'Discover patterns',
-      patternTitle: 'Pattern preview',
-      patternCardLabel: 'Pattern noticed',
-      patternOne: 'Energy drops two days before cycle',
-      patternTwo: 'Sleep under 6h affects emotional sensitivity',
-      finalTitle: 'Begin observing your rhythm',
-      finalCta: 'Create your Luna29 space',
-    },
-    ru: {
-      heroTitle: 'Ваше ежедневное эмоциональное зеркало',
-      heroSubtitle: 'Понимайте себя через тело, ощущения и слова.',
-      primaryCta: 'Начать сегодняшнюю заметку',
-      secondaryCta: 'Как работает Luna29',
-      whatTitle: 'Простая ежедневная структура',
-      whatBody: 'Luna29 помогает понять день спокойно и без перегрузки.',
-      ritualTitle: 'Небольшой ежедневный ритуал',
-      ritualSubtitle: 'Простой поток, который легко повторять каждый день.',
-      stepSpeak: 'Поговорить с Luna29',
-      stepCheckin: 'Быстрый check-in',
-      stepRhythm: 'Увидеть ритм',
-      stepPattern: 'Замечать паттерны',
-      patternTitle: 'Превью паттернов',
-      patternCardLabel: 'Паттерн замечен',
-      patternOne: 'Энергия снижается за два дня до цикла',
-      patternTwo: 'Сон меньше 6 часов усиливает эмоциональную чувствительность',
-      finalTitle: 'Начните наблюдать свой ритм',
-      finalCta: 'Создать пространство Luna29',
-    },
-    uk: {
-      heroTitle: 'Ваше щоденне емоційне дзеркало',
-      heroSubtitle: 'Розумійте себе через тіло, відчуття і слова.',
-      primaryCta: 'Почати сьогоднішню нотатку',
-      secondaryCta: 'Як працює Luna29',
-      whatTitle: 'Проста щоденна структура',
-      whatBody: 'Luna29 допомагає спокійно зрозуміти свій день.',
-      ritualTitle: 'Невеликий щоденний ритуал',
-      ritualSubtitle: 'Короткий щоденний потік без перевантаження.',
-      stepSpeak: 'Поговорити з Luna29',
-      stepCheckin: 'Швидкий check-in',
-      stepRhythm: 'Побачити ритм',
-      stepPattern: 'Помічати патерни',
-      patternTitle: 'Попередній перегляд патернів',
-      patternCardLabel: 'Патерн помічено',
-      patternOne: 'Енергія знижується за два дні до циклу',
-      patternTwo: 'Сон менше 6 годин підвищує емоційну чутливість',
-      finalTitle: 'Почніть спостерігати свій ритм',
-      finalCta: 'Створити свій простір Luna29',
-    },
-    es: {
-      heroTitle: 'Tu espejo emocional diario',
-      heroSubtitle: 'Comprendete a traves del cuerpo, los sentidos y las palabras.',
-      primaryCta: 'Empezar la nota de hoy',
-      secondaryCta: 'Ver como funciona Luna29',
-      whatTitle: 'Una estructura diaria simple',
-      whatBody: 'Luna29 te ayuda a entender tu dia con calma y claridad.',
-      ritualTitle: 'Un pequeno ritual diario',
-      ritualSubtitle: 'Un flujo claro que puedes repetir en menos de un minuto.',
-      stepSpeak: 'Hablar con Luna29',
-      stepCheckin: 'Check-in rapido',
-      stepRhythm: 'Ver tu ritmo',
-      stepPattern: 'Descubrir patrones',
-      patternTitle: 'Vista previa de patrones',
-      patternCardLabel: 'Patron detectado',
-      patternOne: 'La energia baja dos dias antes del ciclo',
-      patternTwo: 'Dormir menos de 6 h aumenta la sensibilidad emocional',
-      finalTitle: 'Comienza a observar tu ritmo',
-      finalCta: 'Crear tu espacio Luna29',
-    },
-    fr: {
-      heroTitle: 'Votre miroir emotionnel quotidien',
-      heroSubtitle: 'Comprenez-vous a travers le corps, les sensations et les mots.',
-      primaryCta: "Commencer la note d'aujourd'hui",
-      secondaryCta: 'Voir comment Luna29 fonctionne',
-      whatTitle: 'Une structure quotidienne simple',
-      whatBody: 'Luna29 vous aide a comprendre votre journee avec calme et clarte.',
-      ritualTitle: 'Un petit rituel quotidien',
-      ritualSubtitle: 'Un flux clair a repeter en moins d une minute.',
-      stepSpeak: 'Parler avec Luna29',
-      stepCheckin: 'Check-in rapide',
-      stepRhythm: 'Voir votre rythme',
-      stepPattern: 'Decouvrir des tendances',
-      patternTitle: 'Apercu des tendances',
-      patternCardLabel: 'Tendance remarquee',
-      patternOne: 'L energie baisse deux jours avant le cycle',
-      patternTwo: 'Moins de 6 h de sommeil augmente la sensibilite emotionnelle',
-      finalTitle: 'Commencez a observer votre rythme',
-      finalCta: 'Creer votre espace Luna29',
-    },
-    de: {
-      heroTitle: 'Dein taeglicher emotionaler Spiegel',
-      heroSubtitle: 'Verstehe dich ueber Koerper, Sinne und Worte.',
-      primaryCta: 'Heutige Notiz starten',
-      secondaryCta: 'So funktioniert Luna29',
-      whatTitle: 'Eine einfache Tagesstruktur',
-      whatBody: 'Luna29 hilft dir, deinen Tag ruhig und klar zu verstehen.',
-      ritualTitle: 'Ein kleines taegliches Ritual',
-      ritualSubtitle: 'Ein klarer Ablauf, den du in unter einer Minute wiederholst.',
-      stepSpeak: 'Mit Luna29 sprechen',
-      stepCheckin: 'Schneller Check-in',
-      stepRhythm: 'Deinen Rhythmus sehen',
-      stepPattern: 'Muster erkennen',
-      patternTitle: 'Muster-Vorschau',
-      patternCardLabel: 'Muster erkannt',
-      patternOne: 'Die Energie sinkt zwei Tage vor dem Zyklus',
-      patternTwo: 'Weniger als 6 h Schlaf erhoehen die emotionale Sensibilitaet',
-      finalTitle: 'Beginne, deinen Rhythmus zu beobachten',
-      finalCta: 'Deinen Luna29-Raum erstellen',
-    },
-    zh: {
-      heroTitle: '你的每日情绪镜像',
-      heroSubtitle: '通过身体、感受与表达，更理解自己。',
-      primaryCta: '开始今天的记录',
-      secondaryCta: '了解 Luna29 如何工作',
-      whatTitle: '简单的每日结构',
-      whatBody: 'Luna29 帮助你以平静与清晰理解一天。',
-      ritualTitle: '一个小小的每日仪式',
-      ritualSubtitle: '不到一分钟即可完成的清晰流程。',
-      stepSpeak: '与 Luna29 对话',
-      stepCheckin: '快速 check-in',
-      stepRhythm: '查看你的节律',
-      stepPattern: '发现规律',
-      patternTitle: '规律预览',
-      patternCardLabel: '发现规律',
-      patternOne: '能量会在周期前两天下降',
-      patternTwo: '睡眠少于 6 小时会提高情绪敏感度',
-      finalTitle: '开始观察你的节律',
-      finalCta: '创建你的 Luna29 空间',
-    },
-    ja: {
-      heroTitle: 'あなたの毎日の感情ミラー',
-      heroSubtitle: 'からだ、感覚、ことばを通して自分を理解する。',
-      primaryCta: '今日のメモを始める',
-      secondaryCta: 'Luna29 の仕組みを見る',
-      whatTitle: 'シンプルな毎日の構成',
-      whatBody: 'Luna29 は一日を穏やかに分かりやすく整えます。',
-      ritualTitle: '小さな毎日のリチュアル',
-      ritualSubtitle: '1分以内で繰り返せる明確な流れ。',
-      stepSpeak: 'Luna29 と話す',
-      stepCheckin: 'クイック check-in',
-      stepRhythm: 'リズムを見る',
-      stepPattern: 'パターンを見つける',
-      patternTitle: 'パターンプレビュー',
-      patternCardLabel: 'パターンを確認',
-      patternOne: 'エネルギーは周期の2日前に下がりやすい',
-      patternTwo: '睡眠 6 時間未満で感情の敏感さが上がりやすい',
-      finalTitle: 'あなたのリズムを観察しよう',
-      finalCta: 'Luna29 スペースを作成',
-    },
-    pt: {
-      heroTitle: 'Seu espelho emocional diario',
-      heroSubtitle: 'Entenda-se por meio do corpo, dos sentidos e das palavras.',
-      primaryCta: 'Iniciar a nota de hoje',
-      secondaryCta: 'Ver como Luna29 funciona',
-      whatTitle: 'Uma estrutura diaria simples',
-      whatBody: 'A Luna29 ajuda voce a entender seu dia com calma e clareza.',
-      ritualTitle: 'Um pequeno ritual diario',
-      ritualSubtitle: 'Um fluxo claro para repetir em menos de um minuto.',
-      stepSpeak: 'Falar com a Luna29',
-      stepCheckin: 'Check-in rapido',
-      stepRhythm: 'Ver seu ritmo',
-      stepPattern: 'Descobrir padroes',
-      patternTitle: 'Previa de padroes',
-      patternCardLabel: 'Padrao identificado',
-      patternOne: 'A energia cai dois dias antes do ciclo',
-      patternTwo: 'Dormir menos de 6h aumenta a sensibilidade emocional',
-      finalTitle: 'Comece a observar seu ritmo',
-      finalCta: 'Criar seu espaco Luna29',
-    },
-    ar: {
-      heroTitle: 'مرآتك العاطفية اليومية',
-      heroSubtitle: 'افهمي نفسك عبر الجسم والحواس والكلمات.',
-      primaryCta: 'ابدئي ملاحظة اليوم',
-      secondaryCta: 'شاهدي كيف تعمل Luna29',
-      whatTitle: 'هيكل يومي بسيط',
-      whatBody: 'Luna29 تساعدك على فهم يومك بهدوء ووضوح.',
-      ritualTitle: 'طقس يومي صغير',
-      ritualSubtitle: 'مسار واضح يمكنك تكراره في أقل من دقيقة.',
-      stepSpeak: 'تحدّثي مع Luna29',
-      stepCheckin: 'تسجيل سريع',
-      stepRhythm: 'شاهدي إيقاعك',
-      stepPattern: 'اكتشفي الأنماط',
-      patternTitle: 'معاينة الأنماط',
-      patternCardLabel: 'نمط ملحوظ',
-      patternOne: 'الطاقة تنخفض قبل يومين من الدورة',
-      patternTwo: 'النوم أقل من 6 ساعات يؤثر على الحساسية العاطفية',
-      finalTitle: 'ابدئي مراقبة إيقاعك',
-      finalCta: 'أنشئي مساحة Luna29 الخاصة بك',
-    },
-    he: {
-      heroTitle: 'המראה הרגשית היומית שלך',
-      heroSubtitle: 'הביני את עצמך דרך גוף, חושים ומילים.',
-      primaryCta: 'התחילי את הערת היום',
-      secondaryCta: 'ראי איך Luna29 עובדת',
-      whatTitle: 'מבנה יומי פשוט',
-      whatBody: 'Luna29 עוזרת להבין את היום בשקט ובבהירות.',
-      ritualTitle: 'טקס יומי קטן',
-      ritualSubtitle: 'זרימה ברורה שאפשר לחזור עליה בפחות מדקה.',
-      stepSpeak: 'דברי עם Luna29',
-      stepCheckin: 'צ׳ק-אין מהיר',
-      stepRhythm: 'ראי את הקצב שלך',
-      stepPattern: 'גלי דפוסים',
-      patternTitle: 'תצוגה מקדימה של דפוסים',
-      patternCardLabel: 'דפוס שזוהה',
-      patternOne: 'האנרגיה יורדת יומיים לפני המחזור',
-      patternTwo: 'שינה מתחת ל-6 שעות משפיעה על רגישות רגשית',
-      finalTitle: 'התחילי לצפות בקצב שלך',
-      finalCta: 'צרי את מרחב Luna29 שלך',
-    },
-  };
-  const dailyCompanionCopy = getLang(dailyCompanionByLang, lang) || dailyCompanionByLang.en!;
-  const homeActionByLang: Partial<
-    Record<
-      Language,
-      {
-        talkLine: string;
-        actions: Array<{ label: string; sub: string }>;
-        servicesTitle: string;
-        servicesSubtitle: string;
-        services: Array<{ title: string; body: string }>;
-      }
-    >
-  > = {
-    en: {
-      talkLine: 'You can speak with Luna29 by voice any day.',
-      actions: [
-        { label: 'Start Note', sub: 'Talk with Luna29 now' },
-        { label: 'Check-In', sub: '30 sec emotional check-in' },
-        { label: 'See Insights', sub: 'Get a gentle daily response' },
-        { label: 'Body Map', sub: 'See your rhythm visually' },
-      ],
-      servicesTitle: 'What Luna29 includes',
-      servicesSubtitle: 'Core services available after sign in.',
-      services: [
-        { title: 'Voice Note', body: 'Record how your day felt and get a calm note.' },
-        { title: 'Daily Mirror', body: 'See today context from cycle, sleep, and check-ins.' },
-        { title: 'Pattern Preview', body: 'Notice simple recurring signals over time.' },
-        { title: 'My Health Reports', body: 'Upload labs/tests and generate structured reports.' },
-      ],
-    },
-    ru: {
-      talkLine: 'С Luna29 можно говорить голосом каждый день.',
-      actions: [
-        { label: 'Начать Заметку', sub: 'Поговорить с Luna29 сейчас' },
-        { label: 'Check-In', sub: 'Эмоциональный check-in за 30 сек' },
-        { label: 'Смотреть Инсайты', sub: 'Получить мягкую ежедневную обратную связь' },
-        { label: 'Карта Тела', sub: 'Увидеть ритм визуально' },
-      ],
-      servicesTitle: 'Что включает Luna29',
-      servicesSubtitle: 'Основные функции и сервисы после входа.',
-      services: [
-        { title: 'Voice Note', body: 'Записывайте состояние голосом и получайте спокойную заметку.' },
-        { title: 'Daily Mirror', body: 'Контекст дня из цикла, сна и check-in.' },
-        { title: 'Pattern Preview', body: 'Отслеживание повторяющихся сигналов во времени.' },
-        { title: 'My Health Reports', body: 'Загрузка анализов/тестов и генерация структурированного отчета.' },
-      ],
-    },
-    uk: {
-      talkLine: 'З Luna29 можна говорити голосом щодня.',
-      actions: [
-        { label: 'Почати Нотатку', sub: 'Поговорити з Luna29 зараз' },
-        { label: 'Check-In', sub: 'Емоційний check-in за 30 сек' },
-        { label: 'Дивитись Інсайти', sub: 'Отримати м’який щоденний відгук' },
-        { label: 'Мапа Тіла', sub: 'Побачити ритм візуально' },
-      ],
-      servicesTitle: 'Що включає Luna29',
-      servicesSubtitle: 'Ключові функції та сервіси після входу.',
-      services: [
-        { title: 'Voice Note', body: 'Записуйте стан голосом і отримуйте спокійну нотатку.' },
-        { title: 'Daily Mirror', body: 'Контекст дня з циклу, сну та check-in.' },
-        { title: 'Pattern Preview', body: 'Відстеження повторюваних сигналів у часі.' },
-        { title: 'My Health Reports', body: 'Завантаження аналізів/тестів і генерація структурованого звіту.' },
-      ],
-    },
-    es: {
-      talkLine: 'Puedes hablar con Luna29 por voz cada dia.',
-      actions: [
-        { label: 'Iniciar Nota', sub: 'Hablar con Luna29 ahora' },
-        { label: 'Check-In', sub: 'Check-in emocional en 30 seg' },
-        { label: 'Ver Insights', sub: 'Recibir una respuesta diaria suave' },
-        { label: 'Mapa Corporal', sub: 'Ver tu ritmo de forma visual' },
-      ],
-      servicesTitle: 'Que incluye Luna29',
-      servicesSubtitle: 'Funciones y servicios principales despues de iniciar sesion.',
-      services: [
-        { title: 'Voice Note', body: 'Graba como te sentiste hoy y recibe una nota tranquila.' },
-        { title: 'Daily Mirror', body: 'Mira el contexto de hoy desde ciclo, sueno y check-ins.' },
-        { title: 'Pattern Preview', body: 'Detecta senales repetidas con el paso del tiempo.' },
-        { title: 'My Health Reports', body: 'Sube analisis/pruebas y genera reportes estructurados.' },
-      ],
-    },
-    fr: {
-      talkLine: 'Vous pouvez parler avec Luna29 a voix haute chaque jour.',
-      actions: [
-        { label: 'Demarrer Note', sub: 'Parler avec Luna29 maintenant' },
-        { label: 'Check-In', sub: 'Check-in emotionnel en 30 sec' },
-        { label: 'Voir Insights', sub: 'Obtenir un retour quotidien en douceur' },
-        { label: 'Carte du Corps', sub: 'Voir votre rythme visuellement' },
-      ],
-      servicesTitle: 'Ce que Luna29 inclut',
-      servicesSubtitle: 'Fonctions et services essentiels apres connexion.',
-      services: [
-        { title: 'Voice Note', body: 'Enregistrez votre etat du jour et recevez une note calme.' },
-        { title: 'Daily Mirror', body: 'Contexte du jour via cycle, sommeil et check-ins.' },
-        { title: 'Pattern Preview', body: 'Reperez les signaux recurrents au fil du temps.' },
-        { title: 'My Health Reports', body: 'Importez analyses/tests et generez des rapports structures.' },
-      ],
-    },
-    de: {
-      talkLine: 'Du kannst jeden Tag per Stimme mit Luna29 sprechen.',
-      actions: [
-        { label: 'Notiz Starten', sub: 'Jetzt mit Luna29 sprechen' },
-        { label: 'Check-In', sub: 'Emotionaler Check-in in 30 Sek' },
-        { label: 'Insights Sehen', sub: 'Sanfte taegliche Rueckmeldung erhalten' },
-        { label: 'Koerperkarte', sub: 'Deinen Rhythmus visuell sehen' },
-      ],
-      servicesTitle: 'Was Luna29 beinhaltet',
-      servicesSubtitle: 'Wichtige Funktionen und Services nach dem Login.',
-      services: [
-        { title: 'Voice Note', body: 'Nimm deinen Tag per Stimme auf und erhalte eine ruhige Notiz.' },
-        { title: 'Daily Mirror', body: 'Tageskontext aus Zyklus, Schlaf und Check-ins.' },
-        { title: 'Pattern Preview', body: 'Einfache wiederkehrende Signale ueber Zeit erkennen.' },
-        { title: 'My Health Reports', body: 'Analysen/Tests hochladen und strukturierte Berichte erstellen.' },
-      ],
-    },
-    zh: {
-      talkLine: '你每天都可以用语音与 Luna29 对话。',
-      actions: [
-        { label: '开始记录', sub: '现在就和 Luna29 说说话' },
-        { label: '快速 Check-In', sub: '30 秒情绪 check-in' },
-        { label: '查看洞察', sub: '获得温和的每日反馈' },
-        { label: '身体地图', sub: '可视化查看你的节律' },
-      ],
-      servicesTitle: 'Luna29 包含的内容',
-      servicesSubtitle: '登录后可用的核心功能与服务。',
-      services: [
-        { title: 'Voice Note', body: '语音记录你的一天，并获得平静总结。' },
-        { title: 'Daily Mirror', body: '结合周期、睡眠与 check-in 查看今日状态。' },
-        { title: 'Pattern Preview', body: '逐步发现重复出现的信号。' },
-        { title: 'My Health Reports', body: '上传化验/测试并生成结构化报告。' },
-      ],
-    },
-    ja: {
-      talkLine: '毎日、Luna29 に声で話しかけられます。',
-      actions: [
-        { label: 'メモ開始', sub: '今すぐ Luna29 と話す' },
-        { label: 'クイック Check-In', sub: '30秒の感情 check-in' },
-        { label: 'インサイトを見る', sub: 'やさしい毎日のフィードバックを受け取る' },
-        { label: 'ボディマップ', sub: 'リズムを視覚的に確認する' },
-      ],
-      servicesTitle: 'Luna29 に含まれる機能',
-      servicesSubtitle: 'サインイン後に使える主な機能とサービス。',
-      services: [
-        { title: 'Voice Note', body: '一日の気持ちを音声で記録し、穏やかなメモを受け取る。' },
-        { title: 'Daily Mirror', body: '周期・睡眠・check-inから今日の文脈を確認。' },
-        { title: 'Pattern Preview', body: '時間とともに繰り返しのサインに気づく。' },
-        { title: 'My Health Reports', body: '検査データをアップロードして構造化レポートを作成。' },
-      ],
-    },
-    pt: {
-      talkLine: 'Voce pode falar com a Luna29 por voz todos os dias.',
-      actions: [
-        { label: 'Iniciar Nota', sub: 'Falar com a Luna29 agora' },
-        { label: 'Check-In', sub: 'Check-in emocional em 30 seg' },
-        { label: 'Ver Insights', sub: 'Receber um retorno diario suave' },
-        { label: 'Mapa Corporal', sub: 'Ver seu ritmo de forma visual' },
-      ],
-      servicesTitle: 'O que a Luna29 inclui',
-      servicesSubtitle: 'Funcoes e servicos principais apos entrar.',
-      services: [
-        { title: 'Voice Note', body: 'Grave como seu dia foi e receba uma nota calma.' },
-        { title: 'Daily Mirror', body: 'Veja o contexto de hoje por ciclo, sono e check-ins.' },
-        { title: 'Pattern Preview', body: 'Perceba sinais recorrentes ao longo do tempo.' },
-        { title: 'My Health Reports', body: 'Envie exames/testes e gere relatorios estruturados.' },
-      ],
-    },
-    ar: {
-      talkLine: 'يمكنك التحدث مع Luna29 بالصوت كل يوم.',
-      actions: [
-        { label: 'بدء ملاحظة', sub: 'تحدثي مع Luna29 الآن' },
-        { label: 'Check-In', sub: 'check-in عاطفي في 30 ثانية' },
-        { label: 'عرض الرؤى', sub: 'احصلي على رد يومي لطيف' },
-        { label: 'خريطة الجسم', sub: 'شاهدي إيقاعك بصرياً' },
-      ],
-      servicesTitle: 'ما يتضمنه Luna29',
-      servicesSubtitle: 'الخدمات الأساسية المتاحة بعد تسجيل الدخول.',
-      services: [
-        { title: 'Voice Note', body: 'سجّلي شعورك باليوم واحصلي على ملاحظة هادئة.' },
-        { title: 'Daily Mirror', body: 'سياق اليوم من الدورة والنوم وcheck-in.' },
-        { title: 'Pattern Preview', body: 'لاحظي إشارات متكررة ببساطة مع الوقت.' },
-        { title: 'My Health Reports', body: 'ارفعي تحاليل/فحوصات وأنشئي تقارير منظمة.' },
-      ],
-    },
-    he: {
-      talkLine: 'אפשר לדבר עם Luna29 בקול בכל יום.',
-      actions: [
-        { label: 'התחלת הערה', sub: 'דברי עם Luna29 עכשיו' },
-        { label: 'Check-In', sub: 'check-in רגשי ב-30 שניות' },
-        { label: 'צפייה בתובנות', sub: 'קבלי תגובה יומית עדינה' },
-        { label: 'מפת גוף', sub: 'ראי את הקצב שלך ויזואלית' },
-      ],
-      servicesTitle: 'מה Luna29 כוללת',
-      servicesSubtitle: 'שירותים מרכזיים זמינים אחרי התחברות.',
-      services: [
-        { title: 'Voice Note', body: 'הקליטי איך היום הרגיש וקבלי הערה שקטה.' },
-        { title: 'Daily Mirror', body: 'הקשר של היום ממחזור, שינה ו-check-in.' },
-        { title: 'Pattern Preview', body: 'שימי לב לאותות חוזרים פשוטים לאורך זמן.' },
-        { title: 'My Health Reports', body: 'העלי בדיקות/מעבדה ויצרי דוחות מובנים.' },
-      ],
-    },
-  };
-  const homeActionCopy = getLang(homeActionByLang, lang) || homeActionByLang.en!;
+  const homeContent = useMemo(() => getPublicHomeContent(lang, heroAbVariant), [heroAbVariant, lang]);
   const homeEyebrowByLang: Partial<LangCopy< string>> = {
     en: 'Luna29 Home',
     ru: 'Главная Luna29',
@@ -2160,83 +1740,6 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     ar: 'أمثلة للملاحظة من الاستخدام اليومي.',
     he: 'דוגמאות תצפית מהשימוש היומי.',
   };
-  const homePillarsByLang: Partial<
-    Record<
-      Language,
-      Array<{ title: string; text: string }>
-    >
-  > = {
-    en: [
-      { title: 'Your Body', text: 'body rhythms and inner signals' },
-      { title: 'Your Senses', text: 'moments, feelings, and emotional tone' },
-      { title: 'Your Words', text: 'voice notes and gentle thoughts' },
-    ],
-    ru: [
-      { title: 'Ваше Тело', text: 'ритмы тела и внутренние сигналы' },
-      { title: 'Ваши Ощущения', text: 'моменты, чувства и эмоциональный фон' },
-      { title: 'Ваши Слова', text: 'голосовые отражения и мягкие мысли' },
-    ],
-    uk: [
-      { title: 'Ваше Тіло', text: 'ритми тіла та внутрішні сигнали' },
-      { title: 'Ваші Відчуття', text: 'моменти, почуття та емоційний тон' },
-      { title: 'Ваші Слова', text: 'голосові нотатки та м’які думки' },
-    ],
-    es: [
-      { title: 'Tu Cuerpo', text: 'ritmos del cuerpo y senales internas' },
-      { title: 'Tus Sentidos', text: 'momentos, emociones y tono del dia' },
-      { title: 'Tus Palabras', text: 'reflexiones por voz y pensamientos suaves' },
-    ],
-    fr: [
-      { title: 'Votre Corps', text: 'rythmes du corps et signaux interieurs' },
-      { title: 'Vos Sens', text: 'moments, ressentis et tonalite emotionnelle' },
-      { title: 'Vos Mots', text: 'reflexions vocales et pensees en douceur' },
-    ],
-    de: [
-      { title: 'Dein Koerper', text: 'Koerperrhythmen und innere Signale' },
-      { title: 'Deine Sinne', text: 'Momente, Gefuehle und emotionale Stimmung' },
-      { title: 'Deine Worte', text: 'Sprachreflexionen und sanfte Gedanken' },
-    ],
-    zh: [
-      { title: '你的身体', text: '身体节律与内在信号' },
-      { title: '你的感受', text: '一天中的时刻、感受与情绪' },
-      { title: '你的表达', text: '语音反思与温柔想法' },
-    ],
-    ja: [
-      { title: 'あなたの体', text: '体のリズムと内側のサイン' },
-      { title: 'あなたの感覚', text: 'その日の出来事、感情、雰囲気' },
-      { title: 'あなたの言葉', text: '音声リフレクションとやさしい思考' },
-    ],
-    pt: [
-      { title: 'Seu Corpo', text: 'ritmos do corpo e sinais internos' },
-      { title: 'Seus Sentidos', text: 'momentos, sentimentos e tom emocional' },
-      { title: 'Suas Palavras', text: 'reflexoes por voz e pensamentos suaves' },
-    ],
-    ar: [
-      { title: 'جسمك', text: 'إيقاعات الجسم والإشارات الداخلية' },
-      { title: 'حواسك', text: 'لحظات ومشاعر ونبرة عاطفية' },
-      { title: 'كلماتك', text: 'ملاحظات صوتية وأفكار لطيفة' },
-    ],
-    he: [
-      { title: 'הגוף שלך', text: 'קצבי גוף ואותות פנימיים' },
-      { title: 'החושים שלך', text: 'רגעים, רגשות וטון רגשי' },
-      { title: 'המילים שלך', text: 'הערות קוליות ומחשבות עדינות' },
-    ],
-  };
-  const homePillars = getLang(homePillarsByLang, lang) || homePillarsByLang.en!;
-  const homeFeatureChipLabelsByLang: Partial<LangCopy< string[]>> = {
-    en: ['Voice recording', 'Gentle insights', 'Body Map rhythm', 'Notes history'],
-    ru: ['Голосовая запись', 'Мягкие инсайты', 'Body Map ритма', 'История отражений'],
-    uk: ['Голосовий запис', 'М’які інсайти', 'Body Map ритму', 'Історія нотаток'],
-    es: ['Grabacion de voz', 'Insights suaves', 'Ritmo en Body Map', 'Historial de reflexiones'],
-    fr: ['Enregistrement vocal', 'Insights doux', 'Rythme dans Body Map', 'Historique des reflexions'],
-    de: ['Sprachaufnahme', 'Sanfte Insights', 'Rhythmus in Body Map', 'Reflexionsverlauf'],
-    zh: ['语音记录', '温和洞察', 'Body Map 节律', '反思历史'],
-    ja: ['音声記録', 'やさしいインサイト', 'Body Map リズム', 'リフレクション履歴'],
-    pt: ['Gravacao por voz', 'Insights suaves', 'Ritmo no Body Map', 'Historico de reflexoes'],
-    ar: ['تسجيل صوتي', 'رؤى لطيفة', 'إيقاع Body Map', 'سجل التأملات'],
-    he: ['הקלטה קולית', 'תובנות עדינות', 'קצב Body Map', 'היסטוריית רפлексיה'],
-  };
-  const homeFeatureChipLabels = getLang(homeFeatureChipLabelsByLang, lang) || homeFeatureChipLabelsByLang.en!;
   const publicHomeNavLabelsByLang: LangCopy< { home: string; ritual: string; map: string; adminLogin: string }> = {
     en: { home: 'Home', ritual: 'Ritual Path', map: 'Body Map', adminLogin: 'Admin Login' },
     ru: { home: 'Главная', ritual: 'Ритуальный путь', map: 'Карта тела', adminLogin: 'Вход Админ' },
@@ -2250,6 +1753,34 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
   ar: { home: 'الرئيسية', ritual: 'المسار الطقسي', map: 'خريطة الجسم', adminLogin: 'دخول الإدارة' },
   he: { home: 'בית', ritual: 'נתיב טקסי', map: 'מפת הגוף', adminLogin: 'כניסת אדמין' },};
   const publicHomeNavLabels = getLang(publicHomeNavLabelsByLang, lang) || publicHomeNavLabelsByLang.en;
+  const footerPageLinks: Array<{ id: PublicPage; label: string }> = [
+    { id: 'home', label: ui.publicHome.tabs.home },
+    { id: 'map', label: ui.publicHome.tabs.map },
+    { id: 'calendar', label: memberNav.rhythmCalendar },
+    { id: 'ritual', label: publicHomeNavLabels.ritual },
+    { id: 'bridge', label: ui.navigation.bridge || 'The Bridge' },
+    { id: 'pricing', label: getLang(pricingLabelByLang, lang) || 'Pricing' },
+    { id: 'about', label: getLang(aboutLabelByLang, lang) || 'About' },
+    { id: 'how_it_works', label: getLang(howItWorksLabelByLang, lang) || 'How It Works' },
+    { id: 'faq', label: getLang(faqLabelByLang, lang) || 'FAQ' },
+    { id: 'learning', label: getLang(learningLabelByLang, lang) || 'Learning' },
+  ];
+  const footerLegalLinks: Array<{ id: PublicPage; label: string }> = [
+    { id: 'legal', label: legalHubLabel },
+    { id: 'privacy', label: legalNav.privacy },
+    { id: 'terms', label: legalNav.terms },
+    { id: 'medical', label: legalNav.medical },
+    { id: 'cookies', label: legalNav.cookies },
+    { id: 'data_rights', label: legalNav.data_rights },
+  ];
+  const footerExploreMid = Math.ceil(footerPageLinks.length / 2);
+  const footerExploreColumns = [footerPageLinks.slice(0, footerExploreMid), footerPageLinks.slice(footerExploreMid)];
+  const footerLegalMid = Math.ceil(footerLegalLinks.length / 2);
+  const footerLegalColumns = [footerLegalLinks.slice(0, footerLegalMid), footerLegalLinks.slice(footerLegalMid)];
+  const footerMicroRitual = getFooterMicroRitual(lang);
+  const footerTrustLine = getFooterTrustLine(lang);
+  const footerSpiritActions = getFooterSpiritActions(lang);
+  const footerMoonAccent = getFooterMoonAccent(lang);
   const pageTitle = useMemo(() => {
     if (activePage === 'home') return ui.publicHome.pageTitle.home;
     if (activePage === 'map') return ui.publicHome.pageTitle.map;
@@ -2261,12 +1792,14 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     if (activePage === 'how_it_works') return getLang(howItWorksLabelByLang, lang) || 'How It Works';
     if (activePage === 'faq') return getLang(faqLabelByLang, lang) || 'FAQ';
     if (activePage === 'learning') return getLang(learningLabelByLang, lang) || 'Learning';
-    if (activePage === 'terms') return legalLabels.terms;
-    if (activePage === 'medical') return legalLabels.medical;
-    if (activePage === 'cookies') return legalLabels.cookies;
-    if (activePage === 'data_rights') return legalLabels.dataRights;
-    return ui.publicHome.pageTitle.privacy;
-  }, [activePage, howItWorksLabelByLang, lang, legalLabels.cookies, legalLabels.dataRights, legalLabels.medical, legalLabels.terms, pricingLabelByLang, ui.publicHome.pageTitle.home, ui.publicHome.pageTitle.map, ui.publicHome.pageTitle.privacy, ui.publicHome.pageTitle.ritual]);
+    if (activePage === 'legal') return legalHubLabel;
+    if (activePage === 'privacy') return legalNav.privacy;
+    if (activePage === 'terms') return legalNav.terms;
+    if (activePage === 'medical') return legalNav.medical;
+    if (activePage === 'cookies') return legalNav.cookies;
+    if (activePage === 'data_rights') return legalNav.data_rights;
+    return ui.publicHome.pageTitle.home;
+  }, [activePage, howItWorksLabelByLang, lang, legalHubLabel, legalNav, pricingLabelByLang, ui.publicHome.pageTitle.home, ui.publicHome.pageTitle.map, ui.publicHome.pageTitle.ritual]);
 
   useEffect(() => {
     const path = resolvePathFromPage(activePage);
@@ -2274,7 +1807,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       window.history.pushState({}, '', path);
     }
 
-    const titleByPageByLang: LangCopy< Record<Exclude<PublicPage, 'calendar'>, string>> = {
+    const titleByPageByLang: LangCopy< Record<Exclude<PublicPage, 'calendar' | 'legal'>, string>> = {
       en: { home: 'Luna29 | Public Home', map: 'Luna29 Balance | Visual Rhythm Map', ritual: 'Ritual Path | Luna29', bridge: 'The Bridge | Luna29', pricing: 'Pricing | Luna29', about: 'About Luna29', how_it_works: 'How It Works | Luna29', faq: 'FAQ | Luna29', learning: 'Learning | Luna29', privacy: 'Privacy Notice | Luna29', terms: 'Terms | Luna29', medical: 'Disclaimer | Luna29', cookies: 'Cookies Notice | Luna29', data_rights: 'Data Rights | Luna29' },
       ru: { home: 'Luna29 | Публичная Главная', map: 'Luna29 Balance | Карта ритма', ritual: 'Ритуальный путь | Luna29', bridge: 'Мост | Luna29', pricing: 'Тарифы | Luna29', about: 'О Luna29', how_it_works: 'Как это работает | Luna29', faq: 'FAQ | Luna29', learning: 'Обучение | Luna29', privacy: 'Уведомление о приватности | Luna29', terms: 'Условия | Luna29', medical: 'Дисклеймер | Luna29', cookies: 'Уведомление о cookies | Luna29', data_rights: 'Права на данные | Luna29' },
       uk: { home: 'Luna29 | Публічна Головна', map: 'Luna29 Balance | Мапа ритму', ritual: 'Ритуальний шлях | Luna29', bridge: 'Міст | Luna29', pricing: 'Тарифи | Luna29', about: 'Про Luna29', how_it_works: 'Як це працює | Luna29', faq: 'FAQ | Luna29', learning: 'Навчання | Luna29', privacy: 'Повідомлення про приватність | Luna29', terms: 'Умови | Luna29', medical: 'Дисклеймер | Luna29', cookies: 'Повідомлення про cookies | Luna29', data_rights: 'Права на дані | Luna29' },
@@ -2287,7 +1820,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       ar: { home: 'Luna29 | الصفحة العامة', map: 'Luna29 Balance | خريطة الإيقاع', ritual: 'المسار الطقسي | Luna29', bridge: 'الجسر | Luna29', pricing: 'الأسعار | Luna29', about: 'حول Luna29', how_it_works: 'كيف يعمل | Luna29', faq: 'الأسئلة الشائعة | Luna29', learning: 'التعلّم | Luna29', privacy: 'إشعار الخصوصية | Luna29', terms: 'الشروط | Luna29', medical: 'إخلاء المسؤولية | Luna29', cookies: 'إشعار cookies | Luna29', data_rights: 'حقوق البيانات | Luna29' },
       he: { home: 'Luna29 | דף ציבורי', map: 'Luna29 Balance | מפת קצב ויזואלית', ritual: 'נתיב טקסי | Luna29', bridge: 'הגשר | Luna29', pricing: 'מחירים | Luna29', about: 'אודות Luna29', how_it_works: 'איך זה עובד | Luna29', faq: 'שאלות נפוצות | Luna29', learning: 'לימוד | Luna29', privacy: 'הודעת פרטיות | Luna29', terms: 'תנאים | Luna29', medical: 'הצהרת אחריות | Luna29', cookies: 'הודעת cookies | Luna29', data_rights: 'זכויות נתונים | Luna29' },
     };
-    const descriptionByPageByLang: LangCopy< Record<Exclude<PublicPage, 'calendar'>, string>> = {
+    const descriptionByPageByLang: LangCopy< Record<Exclude<PublicPage, 'calendar' | 'legal'>, string>> = {
       en: { home: 'Luna29 public home. Calm orientation and access to member tools.', map: 'Luna29 Balance visualizes physiological rhythms and inner dynamics.', ritual: 'Ritual Path by Luna29: a path, not a checklist. A simple daily rhythm that protects attention and preserves signal.', bridge: 'The Bridge by Luna29 helps formulate state, explain calmly, and preserve respect in conversations.', pricing: 'Luna29 member access pricing and trial options.', about: 'About Luna29 and the BioMath origin.', how_it_works: 'How Luna29 works in practice.', faq: 'Detailed FAQ about Luna29 Balance, privacy, safety, and daily use.', learning: 'Luna29 Learning: terminology, concepts, and practical guidance.', privacy: 'Luna29 privacy notice.', terms: 'Luna29 terms of service.', medical: 'Luna29 disclaimer information.', cookies: 'Luna29 cookies notice.', data_rights: 'Luna29 data rights information.' },
       ru: { home: 'Публичная главная страница Luna29: спокойная навигация и доступ к инструментам участника.', map: 'Luna29 Balance визуализирует физиологические ритмы и внутреннюю динамику.', ritual: 'Ритуальный путь Luna29: путь, а не чеклист. Ежедневный ритм, который бережет внимание.', bridge: 'Мост Luna29 помогает ясно формулировать состояние и сохранять уважение в разговоре.', pricing: 'Тарифы и пробный доступ Luna29.', about: 'О Luna29 и происхождении BioMath.', how_it_works: 'Как Luna29 работает на практике.', faq: 'Подробный FAQ о Luna29 Balance, приватности, безопасности и ежедневном использовании.', learning: 'Обучение Luna29: терминология, идеи и практические рекомендации.', privacy: 'Уведомление о приватности Luna29.', terms: 'Условия использования Luna29.', medical: 'Дисклеймер Luna29.', cookies: 'Уведомление о cookies Luna29.', data_rights: 'Информация о правах на данные в Luna29.' },
       uk: { home: 'Публічна головна сторінка Luna29: спокійна орієнтація і доступ до інструментів учасника.', map: 'Luna29 Balance візуалізує фізіологічні ритми та внутрішню динаміку.', ritual: 'Ритуальний шлях Luna29: шлях, а не чеклист. Простий ритм, що береже увагу.', bridge: 'Міст Luna29 допомагає чітко формулювати стан і зберігати повагу в розмові.', pricing: 'Тарифи та пробний доступ Luna29.', about: 'Про Luna29 і походження BioMath.', how_it_works: 'Як Luna29 працює на практиці.', faq: 'Детальний FAQ про Luna29 Balance, приватність і безпеку.', learning: 'Навчання Luna29: термінологія, ідеї та практичні поради.', privacy: 'Повідомлення про приватність Luna29.', terms: 'Умови використання Luna29.', medical: 'Дисклеймер Luna29.', cookies: 'Повідомлення про cookies Luna29.', data_rights: 'Інформація про права на дані в Luna29.' },
@@ -2306,23 +1839,21 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     document.title =
       activePage === 'calendar'
         ? getLang(calendarSeoTitleByLang, lang) || calendarSeoTitleByLang.en
-        : titleByPage[activePage];
+        : activePage === 'legal'
+          ? `${legalHubLabel} | Luna29`
+          : titleByPage[activePage];
     const descriptionEl = document.querySelector('meta[name="description"]');
     if (descriptionEl) {
       descriptionEl.setAttribute(
         'content',
         activePage === 'calendar'
           ? getLang(calendarSeoDescriptionByLang, lang) || calendarSeoDescriptionByLang.en
-          : descriptionByPage[activePage],
+          : activePage === 'legal'
+            ? `${LEGAL_ENTITY_NAME} legal center: Privacy, Terms, Wellness Notice, Cookies, and Your Data.`
+            : descriptionByPage[activePage],
       );
     }
-  }, [activePage, calendarSeoDescriptionByLang, calendarSeoTitleByLang, lang]);
-
-  useEffect(() => {
-    if (activePage !== 'home') {
-      setIsHomeExpanded(false);
-    }
-  }, [activePage]);
+  }, [activePage, calendarSeoDescriptionByLang, calendarSeoTitleByLang, lang, legalHubLabel]);
 
   const heroBackgroundStyle = useMemo<React.CSSProperties>(() => {
     if (theme === 'dark') {
@@ -2364,30 +1895,39 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     };
   }, [theme]);
 
+  const publicNavClass = (page: PublicPage) =>
+    `text-[1.02rem] transition-opacity duration-300 ${
+      activePage === page ? 'font-bold opacity-100' : 'opacity-70 hover:opacity-100'
+    }`;
+
+  const publicNavItems: Array<{ page: PublicPage; label: string }> = [
+    { page: 'home', label: publicHomeNavLabels.home },
+    { page: 'ritual', label: publicHomeNavLabels.ritual },
+    { page: 'map', label: publicHomeNavLabels.map },
+    { page: 'calendar', label: memberNav.rhythmCalendar },
+    { page: 'pricing', label: getLang(pricingLabelByLang, lang) || 'Pricing' },
+  ];
+
   return (
-    <div className={`min-h-screen w-full relative overflow-hidden ${activePage === 'home' ? (theme === 'dark' ? 'bg-[#0b0d1f] text-slate-100' : 'bg-[#f3f2f6] text-slate-900') : ''}`}>
-      <div className={`absolute -top-16 -left-16 w-[34rem] h-[34rem] rounded-full blur-[138px] ${activePage === 'home' ? (theme === 'dark' ? 'bg-violet-500/30' : 'bg-[#f0edf5]/85') : 'bg-luna-purple/20'}`} />
-      <div className={`absolute top-1/3 -right-24 w-[32rem] h-[32rem] rounded-full blur-[138px] ${activePage === 'home' ? (theme === 'dark' ? 'bg-indigo-500/28' : 'bg-[#f6f5f9]/86') : 'bg-luna-teal/20'}`} />
-      <div className={`absolute -bottom-20 left-1/3 w-[28rem] h-[28rem] rounded-full blur-[138px] ${activePage === 'home' ? (theme === 'dark' ? 'bg-fuchsia-500/24' : 'bg-[#edeaf3]/84') : 'bg-luna-coral/20'}`} />
-
-      <div className={`${activePage === 'home' ? (theme === 'dark' ? 'relative z-30 h-2 bg-gradient-to-r from-[#12152f] via-[#1a2041] to-[#131733]' : 'relative z-30 h-2 bg-gradient-to-r from-[#f0ecf6] via-[#ece7f4] to-[#f1edf7]') : 'relative z-30 h-2 bg-slate-200/70 dark:bg-slate-900/60'}`} />
-
-      <header className={`${activePage === 'home' ? (theme === 'dark' ? 'relative z-30 border-b border-white/10 bg-[#0b0d1f]/82 backdrop-blur-md' : 'relative z-30 border-b border-[#d8d1e2] bg-[#f6f4fa]/88 backdrop-blur-md') : 'sticky top-0 z-30 border-b border-slate-300/70 dark:border-slate-700/70 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl'}`}>
-        <div className="max-w-[1160px] mx-auto px-4 md:px-6 h-14 md:h-14 flex items-center justify-between gap-4">
-          <button type="button" onClick={() => setActivePage('home')} className={`flex items-center gap-0.5 ${theme === 'dark' ? 'text-violet-100/95' : 'text-[#402c35]'}`}>
-            <img src="/images/luna-logo-transparent.webp" alt="" aria-hidden="true" className="h-[5.4rem] w-auto md:h-[6.3rem] object-contain select-none pointer-events-none" />
-            <Logo size="sm" className="cursor-default text-5xl leading-none" />
+    <div className="min-h-screen w-full relative overflow-x-hidden bg-gradient-to-b from-[#ebe4f4] via-slate-100 to-[#e4ecf6] dark:from-slate-950 dark:via-slate-950 dark:to-slate-950 text-slate-900 dark:text-slate-100">
+      <header
+        className="sticky top-0 z-30 border-b border-[#c9bdd9]/70 dark:border-slate-700/70 bg-white/88 dark:bg-slate-950/80 backdrop-blur-xl shadow-[0_8px_24px_rgba(109,87,163,0.08)]"
+        style={{ paddingTop: 'env(safe-area-inset-top)' }}
+      >
+        <div className="max-w-[1160px] mx-auto px-3 sm:px-4 md:px-6 h-14 sm:h-16 md:h-[4.5rem] flex items-center justify-between gap-2 sm:gap-4 min-w-0">
+          <button type="button" onClick={() => setActivePage('home')} className="flex items-center gap-1 min-w-0 shrink origin-left scale-[1.14] hover:scale-[1.18] active:scale-[1.1] transition-transform overflow-visible pr-1.5">
+            <img src={getBrandAssetUrl('icon')} alt="" aria-hidden="true" className="h-10 sm:h-14 w-auto md:h-16 object-contain select-none pointer-events-none shrink-0" />
+            <Logo size="sm" className="cursor-default text-3xl sm:text-5xl leading-none shrink-0" />
           </button>
-          <nav className="hidden md:flex items-center gap-4">
-            <button onClick={() => setActivePage('home')} className={`text-[1.02rem] transition-colors ${theme === 'dark' ? (activePage === 'home' ? 'text-violet-100' : 'text-violet-100/70 hover:text-violet-100') : (activePage === 'home' ? 'text-slate-900' : 'text-slate-600 hover:text-slate-900')}`}>{publicHomeNavLabels.home}</button>
-            <span className={`${theme === 'dark' ? 'text-violet-100/35' : 'text-slate-400'}`}>·</span>
-            <button onClick={() => setActivePage('ritual')} className={`text-[1.02rem] transition-colors ${theme === 'dark' ? (activePage === 'ritual' ? 'text-violet-100' : 'text-violet-100/70 hover:text-violet-100') : (activePage === 'ritual' ? 'text-slate-900' : 'text-slate-600 hover:text-slate-900')}`}>{publicHomeNavLabels.ritual}</button>
-            <span className={`${theme === 'dark' ? 'text-violet-100/35' : 'text-slate-400'}`}>·</span>
-            <button onClick={() => setActivePage('map')} className={`text-[1.02rem] transition-colors ${theme === 'dark' ? (activePage === 'map' ? 'text-violet-100' : 'text-violet-100/70 hover:text-violet-100') : (activePage === 'map' ? 'text-slate-900' : 'text-slate-600 hover:text-slate-900')}`}>{publicHomeNavLabels.map}</button>
-            <span className={`${theme === 'dark' ? 'text-violet-100/35' : 'text-slate-400'}`}>·</span>
-            <button onClick={() => setActivePage('calendar')} className={`text-[1.02rem] transition-colors ${theme === 'dark' ? (activePage === 'calendar' ? 'text-violet-100' : 'text-violet-100/70 hover:text-violet-100') : (activePage === 'calendar' ? 'text-slate-900' : 'text-slate-600 hover:text-slate-900')}`}>{memberNav.rhythmCalendar}</button>
-            <span className={`${theme === 'dark' ? 'text-violet-100/35' : 'text-slate-400'}`}>·</span>
-            <button onClick={() => setActivePage('pricing')} className={`text-[1.02rem] transition-colors ${theme === 'dark' ? (activePage === 'pricing' ? 'text-violet-100' : 'text-violet-100/70 hover:text-violet-100') : (activePage === 'pricing' ? 'text-slate-900' : 'text-slate-600 hover:text-slate-900')}`}>{getLang(pricingLabelByLang, lang) || 'Pricing'}</button>
+          <nav className="hidden md:flex items-center gap-4 min-w-0">
+            {publicNavItems.map((item, index) => (
+              <React.Fragment key={item.page}>
+                {index > 0 && <span className="text-slate-400/80 animate-color-shift-luna-suffix text-sm leading-none select-none">·</span>}
+                <button type="button" onClick={() => setActivePage(item.page)} className={publicNavClass(item.page)}>
+                  <LunaMenuLabel text={item.label} active={activePage === item.page} />
+                </button>
+              </React.Fragment>
+            ))}
           </nav>
           <div className="hidden md:flex items-center gap-2">
             <LanguageSelector current={lang} onSelect={setLang} />
@@ -2395,22 +1935,28 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
             <button
               data-testid="public-signin-up"
               onClick={onSignIn}
-              className={`${activePage === 'home' ? (theme === 'dark' ? 'px-4 py-1.5 rounded-full bg-violet-300/24 text-violet-100 hover:bg-violet-300/36' : 'px-4 py-1.5 rounded-full bg-violet-300/22 text-slate-800 hover:bg-violet-300/34') : 'px-5 py-2 rounded-full border border-luna-purple/40 bg-white/80 dark:bg-slate-900/70 text-luna-purple hover:border-luna-purple/70 hover:bg-luna-purple/10'} text-[10px] font-black uppercase tracking-widest transition-all`}
+              className="px-5 py-2 rounded-full border border-luna-purple/40 bg-white/80 dark:bg-slate-900/70 text-luna-purple hover:border-luna-purple/70 hover:bg-luna-purple/10 text-[10px] font-black uppercase tracking-widest transition-all"
             >
               {ui.publicHome.signInUp}
             </button>
           </div>
-          <div className="md:hidden flex items-center gap-2">
+          <div className="md:hidden flex items-center gap-1.5 sm:gap-2 shrink-0">
             <ThemeToggle theme={theme} toggle={() => setTheme(theme === 'light' ? 'dark' : 'light')} />
-            <div>
+            <div className="max-w-[5.5rem] sm:max-w-none overflow-hidden">
               <LanguageSelector current={lang} onSelect={setLang} />
             </div>
-            <button data-testid="public-signin-up-mobile" onClick={onSignIn} className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-[0.14em] ${theme === 'dark' ? 'bg-violet-300/24 text-violet-100' : 'bg-violet-300/22 text-slate-800'}`}>{ui.publicHome.signInUp}</button>
+            <button
+              data-testid="public-signin-up-mobile"
+              onClick={onSignIn}
+              className="px-2.5 sm:px-3 py-1.5 rounded-full border border-luna-purple/45 bg-white/90 text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.12em] sm:tracking-[0.14em] text-luna-purple whitespace-nowrap"
+            >
+              {ui.publicHome.signInUp}
+            </button>
           </div>
         </div>
       </header>
 
-      <main className={`max-w-[1160px] mx-auto px-4 md:px-6 ${activePage === 'home' ? 'pt-8 md:pt-12' : 'pt-4 md:pt-5'} pb-16 md:pb-24 relative z-10 ${activePage === 'home' ? 'space-y-12' : 'space-y-14 md:space-y-16'} ${activePage !== 'home' ? 'luna-public-baseline' : ''}`}>
+      <main className="max-w-[1160px] mx-auto px-3 sm:px-4 md:px-6 pt-6 sm:pt-8 md:pt-10 pb-14 sm:pb-16 md:pb-24 relative z-10 space-y-10 sm:space-y-12 md:space-y-14 luna-public-baseline min-w-0 w-full">
         {activePage !== 'home' && (
           <div className="flex items-center justify-between">
             <p className="text-[10px] font-black uppercase tracking-[0.45em] text-luna-purple">{pageTitle}</p>
@@ -2418,285 +1964,17 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
         )}
 
         {activePage === 'home' && (
-          <section className="space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-500">
-            <section className="relative overflow-hidden rounded-[3rem] border border-slate-200/70 dark:border-[#2a4670] shadow-luna-rich">
-              <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_85%_15%,rgba(241,184,223,0.34),transparent_60%),radial-gradient(100%_100%_at_5%_95%,rgba(172,182,246,0.32),transparent_62%),linear-gradient(145deg,#fcf4f8_0%,#f2eef8_44%,#eceefb_100%)] dark:bg-[radial-gradient(120%_90%_at_85%_15%,rgba(214,114,185,0.25),transparent_56%),radial-gradient(100%_100%_at_5%_95%,rgba(108,124,209,0.23),transparent_60%),linear-gradient(145deg,#121831_0%,#121f43_40%,#1a2f56_100%)]" />
-              <div className="relative z-10 p-6 md:p-10 lg:p-12">
-                <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-8 md:gap-10 items-center">
-                  <div className="space-y-6">
-                    <p className="text-[10px] font-black uppercase tracking-[0.34em] text-luna-purple">{getLang(homeEyebrowByLang, lang) || homeEyebrowByLang.en}</p>
-                    <h1 className="text-[clamp(2.3rem,4.9vw,5rem)] leading-[0.96] tracking-tight font-black text-slate-900 dark:text-slate-100">
-                      {dailyCompanionCopy.heroTitle}
-                    </h1>
-                    <p className="max-w-xl text-[1.02rem] md:text-[1.12rem] font-medium text-slate-700 dark:text-slate-200/90 leading-relaxed">
-                      {dailyCompanionCopy.heroSubtitle}
-                    </p>
-                    <div className="flex flex-wrap gap-3">
-                      <button
-                        type="button"
-                        onClick={onSignIn}
-                        className={`${PUBLIC_BTN_PRIMARY} px-7 py-3 text-sm tracking-[0.08em]`}
-                      >
-                        <span className={PUBLIC_BTN_PRIMARY_GLOW} />
-                        <span className="relative z-10">{dailyCompanionCopy.primaryCta}</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setActivePage('how_it_works')}
-                        className={`${PUBLIC_BTN_SECONDARY} px-7 py-3 text-sm tracking-[0.08em]`}
-                      >
-                        {dailyCompanionCopy.secondaryCta}
-                      </button>
-                    </div>
-                    <div className="space-y-2">
-                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-300">{storeBadges.title}</p>
-                      <div className="flex flex-wrap gap-2">
-                        <a
-                          href={appStoreHref}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="px-4 py-2.5 rounded-full border border-slate-300/80 dark:border-slate-600/80 bg-white/70 dark:bg-slate-900/55 text-[11px] font-black tracking-wide text-slate-800 dark:text-slate-100 hover:border-luna-purple/60 hover:text-luna-purple transition-colors"
-                        >
-                          {storeBadges.appStore}
-                        </a>
-                        <a
-                          href={googlePlayHref}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="px-4 py-2.5 rounded-full border border-slate-300/80 dark:border-slate-600/80 bg-white/70 dark:bg-slate-900/55 text-[11px] font-black tracking-wide text-slate-800 dark:text-slate-100 hover:border-luna-purple/60 hover:text-luna-purple transition-colors"
-                        >
-                          {storeBadges.googlePlay}
-                        </a>
-                      </div>
-                      {showPreviewLink && (
-                        <a
-                          href={expoPreviewUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="px-4 py-2.5 rounded-full border border-slate-300/80 dark:border-slate-600/80 bg-white/70 dark:bg-slate-900/55 text-[11px] font-black tracking-wide text-slate-800 dark:text-slate-100 hover:border-luna-purple/60 hover:text-luna-purple transition-colors"
-                        >
-                          {storeBadges.preview}
-                        </a>
-                      )}
-                      {(!appStoreUrl || !googlePlayUrl) && (
-                        <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-300">{storeBadges.soon}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="relative">
-                    <div className="absolute -inset-5 rounded-[2.4rem] bg-gradient-to-b from-fuchsia-300/22 via-violet-300/16 to-transparent dark:from-fuchsia-500/15 dark:via-indigo-500/18 blur-2xl" />
-                    <div className="relative rounded-[2.2rem] overflow-hidden border border-white/45 dark:border-white/10 shadow-[0_24px_60px_rgba(40,24,84,0.28)]">
-                      <img
-                        src="/images/face_image.webp"
-                        alt="Luna29 daily note mood"
-                        loading="eager"
-                        fetchPriority="high"
-                        decoding="async"
-                        className="w-full h-[420px] object-cover object-[58%_38%] saturate-[0.92] contrast-[0.93] brightness-[0.95]"
-                      />
-                      <div className="absolute inset-0 bg-[linear-gradient(165deg,rgba(250,227,241,0.18)_0%,rgba(188,154,222,0.14)_42%,rgba(34,42,86,0.42)_100%)]" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#171c3c]/44 via-transparent to-transparent" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-6 rounded-[1.8rem] border border-white/55 dark:border-white/14 bg-white/68 dark:bg-[#132a53]/52 backdrop-blur p-3 md:p-4">
-                  <p className="px-2 pb-2 inline-flex items-center gap-2 text-xs font-semibold text-[#704a90] dark:text-[#d2c3f3]">
-                    <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gradient-to-br from-[#f3cde4] to-[#e3d8ff] dark:from-[#604285] dark:to-[#4a4f86] text-luna-purple">
-                      <Mic size={11} />
-                    </span>
-                    {homeActionCopy.talkLine}
-                  </p>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
-                    {[
-                      {
-                        icon: Sparkles,
-                        ...homeActionCopy.actions[0],
-                        onClick: onSignIn,
-                        tone: 'from-[#f8dce9] via-[#f0ddfa] to-[#e5e0ff] dark:from-[#4f3a6f] dark:via-[#3f4278] dark:to-[#304f84]',
-                        iconTone: 'from-[#ffe8f3] to-[#ecdfff] dark:from-[#6b4e8f] dark:to-[#515990]',
-                      },
-                      {
-                        icon: Heart,
-                        ...homeActionCopy.actions[1],
-                        onClick: onSignIn,
-                        tone: 'from-[#fbe4ea] via-[#f3e4f9] to-[#ebddff] dark:from-[#5d3d67] dark:via-[#4a3f73] dark:to-[#3a4f7e]',
-                        iconTone: 'from-[#ffeef3] to-[#f1e3ff] dark:from-[#714b77] dark:to-[#575198]',
-                      },
-                      {
-                        icon: Mic,
-                        ...homeActionCopy.actions[2],
-                        onClick: onSignIn,
-                        tone: 'from-[#f4e8ff] via-[#e8e8ff] to-[#dcecff] dark:from-[#513969] dark:via-[#3f4678] dark:to-[#2f5385]',
-                        iconTone: 'from-[#f9eeff] to-[#e5edff] dark:from-[#68488f] dark:to-[#4a5f99]',
-                      },
-                      {
-                        icon: MapPin,
-                        ...homeActionCopy.actions[3],
-                        onClick: () => setActivePage('map'),
-                        tone: 'from-[#fae5f2] via-[#f3e9ff] to-[#e8e8ff] dark:from-[#5f426e] dark:via-[#4b4679] dark:to-[#3d4f86]',
-                        iconTone: 'from-[#ffeef8] to-[#ece8ff] dark:from-[#764f86] dark:to-[#57589a]',
-                      },
-                    ].map((item, index) => (
-                      <button
-                        key={`${item.label}-${index}`}
-                        onClick={item.onClick}
-                        className={`rounded-[1.2rem] border border-white/50 dark:border-white/12 bg-gradient-to-br ${item.tone} p-3 text-center shadow-[0_10px_24px_rgba(152,112,194,0.16)] dark:shadow-[0_12px_26px_rgba(16,24,54,0.38)] hover:-translate-y-0.5 transition-all`}
-                      >
-                        <span className={`mx-auto inline-flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br ${item.iconTone} text-luna-purple shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]`}>
-                          <item.icon size={16} />
-                        </span>
-                        <p className="mt-2 text-[12px] md:text-[13px] font-black uppercase tracking-[0.08em] text-slate-700 dark:text-slate-100">{item.label}</p>
-                        <p className="mt-1 text-[11px] md:text-[11.5px] font-semibold text-slate-600 dark:text-slate-200/90 leading-snug">{item.sub}</p>
-                      </button>
-                    ))}
-                  </div>
-                  <div className="mt-3 rounded-[1.1rem] border border-white/45 dark:border-white/10 bg-white/52 dark:bg-[#14254a]/55 px-3 py-2.5">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                      {[
-                        { icon: Mic, label: homeFeatureChipLabels[0] || homeFeatureChipLabelsByLang.en![0] },
-                        { icon: Sparkles, label: homeFeatureChipLabels[1] || homeFeatureChipLabelsByLang.en![1] },
-                        { icon: MapPin, label: homeFeatureChipLabels[2] || homeFeatureChipLabelsByLang.en![2] },
-                        { icon: Music2, label: homeFeatureChipLabels[3] || homeFeatureChipLabelsByLang.en![3] },
-                      ].map((item) => (
-                        <div key={item.label} className="rounded-xl border border-white/40 dark:border-white/10 bg-white/60 dark:bg-[#102043]/60 px-2.5 py-2 text-center">
-                          <span className="mx-auto inline-flex items-center justify-center w-6 h-6 rounded-full bg-luna-purple/16 text-luna-purple">
-                            <item.icon size={12} />
-                          </span>
-                          <p className="mt-1 text-[10px] font-semibold text-slate-700 dark:text-slate-200 leading-tight">{item.label}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <section className="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-6">
-              <article className="rounded-[2.2rem] border border-slate-200/70 dark:border-[#2a4670] bg-white/76 dark:bg-[#0d1f45]/86 shadow-luna-rich p-7 md:p-8">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  {[
-                    {
-                      title: homePillars[0]?.title || homePillarsByLang.en![0].title,
-                      text: homePillars[0]?.text || homePillarsByLang.en![0].text,
-                      tone: 'text-[#8b3f92] dark:text-[#d9a2ff]',
-                      icon: Lock,
-                    },
-                    {
-                      title: homePillars[1]?.title || homePillarsByLang.en![1].title,
-                      text: homePillars[1]?.text || homePillarsByLang.en![1].text,
-                      tone: 'text-[#6a58b6] dark:text-[#b7b6ff]',
-                      icon: Heart,
-                    },
-                    {
-                      title: homePillars[2]?.title || homePillarsByLang.en![2].title,
-                      text: homePillars[2]?.text || homePillarsByLang.en![2].text,
-                      tone: 'text-[#9b4e78] dark:text-[#f0b3d5]',
-                      icon: Mic,
-                    },
-                  ].map((item) => (
-                    <article
-                      key={item.title}
-                      className="rounded-[1.3rem] border border-white/60 dark:border-white/14 bg-[linear-gradient(165deg,rgba(255,255,255,0.86),rgba(245,236,255,0.72))] dark:bg-[linear-gradient(165deg,rgba(31,49,92,0.68),rgba(22,39,78,0.52))] backdrop-blur px-4 py-4 shadow-[0_12px_28px_rgba(143,104,191,0.18),inset_0_1px_0_rgba(255,255,255,0.62)] dark:shadow-[0_12px_28px_rgba(20,29,58,0.42),inset_0_1px_0_rgba(255,255,255,0.08)] transition-all hover:-translate-y-1 hover:shadow-[0_16px_34px_rgba(143,104,191,0.24),inset_0_1px_0_rgba(255,255,255,0.62)]"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-luna-purple/14 text-luna-purple">
-                          <item.icon size={14} />
-                        </span>
-                        <p className={`text-[14px] md:text-[16px] font-black uppercase tracking-[0.12em] ${item.tone}`}>{item.title}</p>
-                      </div>
-                      <p className="mt-2 text-[12px] font-semibold leading-relaxed text-slate-700 dark:text-slate-200/95">{item.text}</p>
-                    </article>
-                  ))}
-                </div>
-              </article>
-
-              <article className="rounded-[2.2rem] border border-slate-200/70 dark:border-[#2a4670] bg-white/76 dark:bg-[#0d1f45]/86 shadow-luna-rich p-7 md:p-8">
-                <h2 className="text-3xl md:text-[2.2rem] font-black tracking-tight text-slate-900 dark:text-slate-100">{dailyCompanionCopy.patternTitle}</h2>
-                <p className="mt-2 text-sm font-medium text-slate-600 dark:text-slate-300">{getLang(homePatternNoteByLang, lang) || homePatternNoteByLang.en}</p>
-                <div className="mt-4 space-y-3">
-                  <article className="rounded-[1.25rem] border border-slate-200/80 dark:border-[#2a4670] bg-slate-50/86 dark:bg-[#11284f]/76 p-4 transition-all hover:-translate-y-1 hover:shadow-[0_14px_30px_rgba(125,93,173,0.22)]">
-                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-luna-purple">{dailyCompanionCopy.patternCardLabel}</p>
-                    <p className="mt-2 text-sm font-semibold text-slate-800 dark:text-slate-100">{dailyCompanionCopy.patternOne}</p>
-                  </article>
-                  <article className="rounded-[1.25rem] border border-slate-200/80 dark:border-[#2a4670] bg-slate-50/86 dark:bg-[#11284f]/76 p-4 transition-all hover:-translate-y-1 hover:shadow-[0_14px_30px_rgba(125,93,173,0.22)]">
-                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-luna-purple">{dailyCompanionCopy.patternCardLabel}</p>
-                    <p className="mt-2 text-sm font-semibold text-slate-800 dark:text-slate-100">{dailyCompanionCopy.patternTwo}</p>
-                  </article>
-                </div>
-              </article>
-            </section>
-
-            <section className="relative overflow-hidden rounded-[2.2rem] border border-slate-200/70 dark:border-[#2a4670] bg-white/76 dark:bg-[#0d1f45]/86 shadow-luna-rich p-7 md:p-8">
-              <div className="absolute inset-0 bg-[radial-gradient(90%_120%_at_8%_10%,rgba(248,196,225,0.26),transparent_58%),radial-gradient(70%_100%_at_92%_0%,rgba(197,182,255,0.24),transparent_60%),linear-gradient(145deg,rgba(255,255,255,0.36),rgba(245,239,255,0.28))] dark:bg-[radial-gradient(90%_120%_at_8%_10%,rgba(157,106,184,0.18),transparent_60%),radial-gradient(70%_100%_at_92%_0%,rgba(92,113,177,0.16),transparent_62%),linear-gradient(145deg,rgba(20,35,70,0.38),rgba(17,31,62,0.26))]" />
-              <div className="relative z-10">
-              <h2 className="text-[1.7rem] md:text-[2rem] font-black tracking-tight text-slate-900 dark:text-slate-100">{homeActionCopy.servicesTitle}</h2>
-              <p className="mt-1 text-[0.95rem] font-semibold text-slate-700 dark:text-slate-300">{homeActionCopy.servicesSubtitle}</p>
-              <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-3">
-                {[...homeActionCopy.services, calendarHomeService].map((service, index) => {
-                  const isCalendar = index === homeActionCopy.services.length;
-                  const CardTag = isCalendar ? 'button' : 'article';
-                  return (
-                  <CardTag
-                    key={service.title}
-                    type={isCalendar ? 'button' : undefined}
-                    onClick={isCalendar ? () => setActivePage('calendar') : undefined}
-                    className={`rounded-[1.2rem] border border-white/55 dark:border-white/12 p-4 shadow-[0_10px_24px_rgba(147,107,187,0.16)] dark:shadow-[0_12px_24px_rgba(13,22,48,0.38)] text-left w-full ${
-                      isCalendar ? 'hover:-translate-y-0.5 transition-all cursor-pointer' : ''
-                    } ${
-                      index % 2 === 0
-                        ? 'bg-[linear-gradient(160deg,rgba(255,255,255,0.88),rgba(246,238,255,0.72))] dark:bg-[linear-gradient(160deg,rgba(28,46,86,0.68),rgba(21,39,76,0.56))]'
-                        : 'bg-[linear-gradient(160deg,rgba(255,249,253,0.88),rgba(240,241,255,0.72))] dark:bg-[linear-gradient(160deg,rgba(32,44,82,0.7),rgba(20,37,72,0.56))]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      {(() => {
-                        const iconMetaList = [
-                          { icon: Mic, iconTone: 'from-[#ffe0ef] to-[#eddcff] dark:from-[#6a4f89] dark:to-[#5a5a97]', titleTone: 'text-[#9a397a] dark:text-[#f0b7dc]' },
-                          { icon: Heart, iconTone: 'from-[#ffe8e9] to-[#f0e1ff] dark:from-[#6d4c7b] dark:to-[#5d5b99]', titleTone: 'text-[#7f4eb2] dark:text-[#cdc1ff]' },
-                          { icon: Sparkles, iconTone: 'from-[#f7e4ff] to-[#e2ecff] dark:from-[#624c8b] dark:to-[#4f659f]', titleTone: 'text-[#5f54b5] dark:text-[#bac7ff]' },
-                          { icon: MapPin, iconTone: 'from-[#ffeaf4] to-[#ece7ff] dark:from-[#6f4d84] dark:to-[#5b5d95]', titleTone: 'text-[#a14f7e] dark:text-[#efbdd8]' },
-                          { icon: Calendar, iconTone: 'from-[#ffe8f3] to-[#e8e4ff] dark:from-[#6a5088] dark:to-[#525a96]', titleTone: 'text-[#7a4fa8] dark:text-[#d4c4ff]' },
-                        ];
-                        const iconMeta = iconMetaList[index] ?? iconMetaList[0];
-                        const Icon = iconMeta.icon;
-                        return (
-                          <>
-                            <span className={`inline-flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br ${iconMeta.iconTone} text-luna-purple shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]`}>
-                              <Icon size={16} />
-                            </span>
-                            <p className={`text-[13px] md:text-[14px] font-black uppercase tracking-[0.12em] ${iconMeta.titleTone}`}>{service.title}</p>
-                          </>
-                        );
-                      })()}
-                    </div>
-                    <p className="mt-2 text-[0.95rem] font-medium leading-relaxed text-slate-700 dark:text-slate-200">{service.body}</p>
-                  </CardTag>
-                  );
-                })}
-              </div>
-              </div>
-            </section>
-
-            <section className="relative overflow-hidden rounded-[2.8rem] border border-slate-200/70 dark:border-[#2a4670] shadow-luna-rich p-9 md:p-12 text-center">
-              <div className="absolute inset-0 bg-[radial-gradient(90%_120%_at_0%_100%,rgba(174,161,223,0.28),transparent_58%),radial-gradient(80%_100%_at_100%_0%,rgba(244,176,208,0.24),transparent_62%),linear-gradient(145deg,#f9f2f8_0%,#f1eef9_44%,#eef0fa_100%)] dark:bg-[radial-gradient(90%_120%_at_0%_100%,rgba(120,102,184,0.27),transparent_60%),radial-gradient(80%_100%_at_100%_0%,rgba(185,101,149,0.2),transparent_62%),linear-gradient(145deg,#141a35_0%,#17234a_45%,#1d315b_100%)]" />
-              <div className="relative z-10">
-                <h2 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900 dark:text-slate-100">{dailyCompanionCopy.finalTitle}</h2>
-                <p className="mt-3 text-base font-medium text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">{dailyCompanionCopy.whatBody}</p>
-                <div className="mt-7">
-                  <button
-                    type="button"
-                    onClick={onSignIn}
-                    className={`${PUBLIC_BTN_PRIMARY} px-8 py-3 text-sm tracking-[0.08em]`}
-                  >
-                    <span className={PUBLIC_BTN_PRIMARY_GLOW} />
-                    <span className="relative z-10">{dailyCompanionCopy.finalCta}</span>
-                  </button>
-                </div>
-              </div>
-            </section>
-          </section>
+          <PublicHomeSection
+            homeEyebrow={getLang(homeEyebrowByLang, lang) || homeEyebrowByLang.en || 'Luna29 Home'}
+            homePatternNote={getLang(homePatternNoteByLang, lang) || homePatternNoteByLang.en || ''}
+            homeStory={homeStory}
+            homeContent={homeContent}
+            hormoneFocus={hormoneFocus}
+            calendarService={calendarHomeService}
+            onSignIn={onSignIn}
+            onStartTrial={startTrial}
+            onNavigate={setActivePage}
+          />
         )}
         {activePage === 'map' && (
           <Suspense fallback={lazyFallback}>
@@ -2742,23 +2020,9 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
         )}
 
         {activePage === 'privacy' && (
-          <section className="luna-page-shell luna-page-questions p-8 md:p-10 rounded-[3rem] border border-slate-200/70 dark:border-slate-800/80 shadow-luna-inset animate-in fade-in duration-500">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-6">
-            <div className="space-y-2">
-              <h3 className="text-[11px] font-black uppercase tracking-[0.6em] text-slate-600 dark:text-slate-500">{ui.publicHome.privacy.title}</h3>
-              <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">{ui.publicHome.privacy.subtitle}</p>
-            </div>
-            <button onClick={onSignIn} className={`${PUBLIC_BTN_SECONDARY} px-4 py-2 text-[10px] tracking-widest text-luna-purple`}>{ui.publicHome.privacy.cta}</button>
-          </div>
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 p-6">
-            <p className="text-slate-700 dark:text-slate-300 font-semibold leading-relaxed max-w-4xl">
-              {ui.publicHome.privacy.body}
-            </p>
-            <p className="mt-4 text-xs font-semibold text-slate-600 dark:text-slate-300 leading-relaxed">
-              {ui.shared.disclaimer}
-            </p>
-          </div>
-          </section>
+          <Suspense fallback={lazyFallback}>
+            <LegalDocumentView lang={lang} doc="privacy" mode="public" onBack={() => setActivePage('legal')} />
+          </Suspense>
         )}
 
         {activePage === 'pricing' && (
@@ -2774,6 +2038,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
               trialDaysLeft={trialDaysLeft}
               onSignUp={onSignUp}
               onStartTrial={startTrial}
+              onSubscribe={handleSubscribe}
               trialFeedback={trialFeedback}
             />
           </Suspense>
@@ -2784,141 +2049,197 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
           {activePage === 'how_it_works' && <HowItWorksView lang={lang} onBack={() => setActivePage('home')} />}
           {activePage === 'faq' && <FAQView lang={lang} mode="public" onBack={() => setActivePage('home')} />}
           {activePage === 'learning' && <LearningView lang={lang} onBack={() => setActivePage('home')} />}
-          {activePage === 'terms' && <LegalDocumentView lang={lang} doc="terms" mode="public" onBack={() => setActivePage('home')} />}
-          {activePage === 'medical' && <LegalDocumentView lang={lang} doc="medical" mode="public" onBack={() => setActivePage('home')} />}
-          {activePage === 'cookies' && <LegalDocumentView lang={lang} doc="cookies" mode="public" onBack={() => setActivePage('home')} />}
-          {activePage === 'data_rights' && <LegalDocumentView lang={lang} doc="data_rights" mode="public" onBack={() => setActivePage('home')} />}
+          {activePage === 'legal' && (
+            <LegalDocumentView
+              lang={lang}
+              doc="legal"
+              mode="public"
+              onBack={() => setActivePage('home')}
+              onNavigateDoc={openLegalDoc}
+            />
+          )}
+          {activePage === 'terms' && <LegalDocumentView lang={lang} doc="terms" mode="public" onBack={() => setActivePage('legal')} />}
+          {activePage === 'medical' && <LegalDocumentView lang={lang} doc="medical" mode="public" onBack={() => setActivePage('legal')} />}
+          {activePage === 'cookies' && <LegalDocumentView lang={lang} doc="cookies" mode="public" onBack={() => setActivePage('legal')} />}
+          {activePage === 'data_rights' && <LegalDocumentView lang={lang} doc="data_rights" mode="public" onBack={() => setActivePage('legal')} onNavigateDoc={openLegalDoc} />}
         </Suspense>
       </main>
 
-      <footer className="w-full border-t border-slate-300 dark:border-white/10 py-14 px-6 glass bg-slate-200/40 dark:bg-transparent mt-auto relative overflow-hidden">
-        <div className="pointer-events-none absolute -top-16 left-1/4 w-52 h-52 rounded-full bg-luna-purple/20 blur-[95px]" />
-        <div className="pointer-events-none absolute bottom-0 right-1/4 w-56 h-56 rounded-full bg-luna-teal/18 blur-[100px]" />
-        <div className="max-w-7xl mx-auto space-y-10 relative z-10">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-            <div className="space-y-2">
-              <div className="flex items-center gap-0.5">
-                <img src="/images/luna-logo-transparent.webp" alt="" aria-hidden="true" className="h-24 w-auto md:h-28 object-contain select-none pointer-events-none" />
-                <Logo size="sm" className="cursor-default text-5xl leading-none" />
-              </div>
-              <p className="text-lg font-semibold text-slate-800 dark:text-slate-400">Luna29 — The physiology of feeling.</p>
+      <footer className={`w-full border-t-2 ${footerMoonAccent.borderClass} py-16 px-6 md:px-8 glass bg-slate-200/40 dark:bg-transparent mt-auto relative overflow-visible`}>
+        <div className="max-w-7xl mx-auto space-y-14 relative z-10">
+          <div className="space-y-4 max-w-2xl">
+            <div className="flex items-center gap-0.5 origin-left scale-[1.12]">
+              <img src={getBrandAssetUrl('icon')} alt="" aria-hidden="true" className="h-16 w-auto md:h-[4.5rem] object-contain select-none pointer-events-none" />
+              <Logo size="sm" className="cursor-default text-4xl md:text-5xl leading-none" />
+            </div>
+            <p className="text-base md:text-lg font-semibold text-slate-800 dark:text-slate-400">{homeStory.heroLead}</p>
+            <p className="text-sm font-light italic leading-relaxed text-slate-600 dark:text-slate-400">{footerMicroRitual}</p>
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-1">
+              <button type="button" onClick={() => setActivePage('about')} className="text-[13px] font-light underline underline-offset-4">
+                <LunaMenuLabel text={footerSpiritActions.whyLuna29} muted />
+              </button>
+              {onOpenLive && (
+                <button type="button" onClick={onOpenLive} className="text-[13px] font-light underline underline-offset-4">
+                  <LunaMenuLabel text={footerSpiritActions.askLuna} muted />
+                </button>
+              )}
+            </div>
+            <p className="text-[12px] font-normal leading-relaxed text-slate-600 dark:text-slate-400">{footerTrustLine}</p>
+            <div className="flex items-center gap-2 text-[11px] font-light text-slate-500 dark:text-slate-400">
+              <span
+                className={`inline-block w-2 h-2 rounded-full shrink-0 ${footerMoonAccent.dotClass} ${footerMoonAccent.glowClass}`}
+                aria-hidden="true"
+              />
+              <span>{footerMoonAccent.label}</span>
             </div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-12 gap-x-8 gap-y-8">
-            <nav className="space-y-4 md:col-span-4">
-              <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-700 dark:text-slate-400">{footerSectionTitles.explore}</p>
-              <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-[13px] font-light tracking-[0.03em] text-slate-800 dark:text-slate-300">
-                {footerPageLinks.map((page) => (
-                  <button key={`footer-${page.id}`} onClick={() => setActivePage(page.id)} className="text-left font-light hover:text-luna-purple transition-colors hover:-translate-y-[1px]">
-                    {page.label}
-                  </button>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-8 sm:gap-x-12 gap-y-10 sm:gap-y-12 min-w-0">
+            <nav className="space-y-4 min-w-0 sm:col-span-2 xl:col-span-1">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em]">
+                <LunaShimmerText text={footerSectionTitles.explore} className="opacity-90 font-semibold" />
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5 text-[13px] font-light">
+                {footerExploreColumns.map((column, columnIndex) => (
+                  <div key={`footer-explore-col-${columnIndex}`} className="flex flex-col gap-2.5">
+                    {column.map((page) => (
+                      <button
+                        key={`footer-${page.id}`}
+                        onClick={() => setActivePage(page.id)}
+                        className="text-left"
+                      >
+                        <LunaMenuLabel text={page.label} muted className="font-light" />
+                      </button>
+                    ))}
+                  </div>
                 ))}
               </div>
             </nav>
-            <nav className="space-y-4 md:col-span-2">
-              <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-700 dark:text-slate-400">{footerSectionTitles.guides}</p>
-              <div className="flex flex-col gap-3 text-[13px] font-light tracking-[0.03em] text-slate-800 dark:text-slate-300">
-                <button onClick={() => setActivePage('about')} className="text-left font-light hover:text-luna-purple transition-colors">
-                  {getLang(aboutLabelByLang, lang) || 'About'}
-                </button>
-                <button onClick={() => setActivePage('how_it_works')} className="text-left font-light hover:text-luna-purple transition-colors">
-                  {getLang(howItWorksLabelByLang, lang) || 'How It Works'}
-                </button>
-                <button onClick={() => setActivePage('faq')} className="text-left font-light hover:text-luna-purple transition-colors">
-                  {getLang(faqLabelByLang, lang) || 'FAQ'}
-                </button>
-                <button onClick={() => setActivePage('learning')} className="text-left font-light hover:text-luna-purple transition-colors">
-                  {getLang(learningLabelByLang, lang) || 'Learning'}
-                </button>
+
+            <nav className="space-y-4 min-w-0 sm:col-span-2 xl:col-span-1">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em]">
+                <LunaShimmerText text={footerSectionTitles.legal} className="opacity-90 font-semibold" />
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5 text-[13px] font-light">
+                {footerLegalColumns.map((column, columnIndex) => (
+                  <div key={`footer-legal-col-${columnIndex}`} className="flex flex-col gap-2.5">
+                    {column.map((link) => (
+                      <button
+                        key={`footer-legal-${link.id}`}
+                        onClick={() => setActivePage(link.id)}
+                        className="text-left"
+                      >
+                        <LunaMenuLabel text={link.label} muted className="font-light" />
+                      </button>
+                    ))}
+                  </div>
+                ))}
               </div>
             </nav>
-            <nav className="space-y-4 md:col-span-2">
-              <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-700 dark:text-slate-400">{footerSectionTitles.legal}</p>
-              <div className="flex flex-col gap-3 text-[13px] font-light tracking-[0.03em] text-slate-800 dark:text-slate-300">
-                <button onClick={() => setActivePage('privacy')} className="text-left font-light hover:text-luna-purple transition-colors">{legalLabels.privacy}</button>
-                <button onClick={() => setActivePage('terms')} className="text-left font-light hover:text-luna-purple transition-colors">{legalLabels.terms}</button>
-                <button onClick={() => setActivePage('medical')} className="text-left font-light hover:text-luna-purple transition-colors">{legalLabels.medical}</button>
-                <button onClick={() => setActivePage('cookies')} className="text-left font-light hover:text-luna-purple transition-colors">{legalLabels.cookies}</button>
-                <button onClick={() => setActivePage('data_rights')} className="text-left font-light hover:text-luna-purple transition-colors">{legalLabels.dataRights}</button>
-              </div>
-            </nav>
-            <nav className="space-y-4 md:col-span-1">
-              <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-700 dark:text-slate-400">{footerSectionTitles.install}</p>
-              <button
-                onClick={() => setShowInstallGuideModal(true)}
-                className="text-left text-[13px] font-light tracking-[0.03em] text-luna-purple underline underline-offset-4 hover:opacity-80 transition-opacity"
-              >
-                {installGuideModal.title}
-              </button>
-              <div className="flex flex-col gap-2 pt-1">
-                <a
-                  href={appStoreHref}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-left text-[12px] font-semibold text-slate-800 dark:text-slate-300 hover:text-luna-purple transition-colors"
+
+            <nav className="space-y-4 min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em]">
+                <LunaShimmerText text={footerSectionTitles.install} className="opacity-90 font-semibold" />
+              </p>
+              <div className="flex flex-col gap-2.5">
+                <button
+                  onClick={() => setShowInstallGuideModal(true)}
+                  className="text-left text-[13px] font-light tracking-[0.03em] underline underline-offset-4"
                 >
-                  {storeBadges.appStore}
-                </a>
-                <a
-                  href={googlePlayHref}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-left text-[12px] font-semibold text-slate-800 dark:text-slate-300 hover:text-luna-purple transition-colors"
-                >
-                  {storeBadges.googlePlay}
-                </a>
-                {showPreviewLink && (
+                  <LunaMenuLabel text={installGuideModal.title} muted className="font-light" />
+                </button>
+                {!isStandaloneMode && (
+                  <button
+                    type="button"
+                    onClick={() => void runPublicInstall()}
+                    className="text-left text-[12px] font-semibold"
+                  >
+                    <LunaMenuLabel
+                      text={mobilePlatform === 'other' ? installActions.desktop : installActions.android}
+                      muted
+                      className="font-semibold"
+                    />
+                  </button>
+                )}
+                {appStoreUrl && (
                   <a
-                    href={expoPreviewUrl}
+                    href={appStoreUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-left text-[12px] font-semibold text-slate-800 dark:text-slate-300 hover:text-luna-purple transition-colors"
+                    className="text-left text-[12px] font-semibold"
                   >
-                    {storeBadges.preview}
+                    <LunaMenuLabel text={storeBadges.appStore} muted className="font-semibold" />
                   </a>
                 )}
-              </div>
-            </nav>
-            <nav className="space-y-4 md:col-span-1">
-              <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-700 dark:text-slate-400">{installActions.social}</p>
-              <div className="flex items-center gap-4 text-xs font-black uppercase tracking-[0.16em]">
-                {socialLinks.map((social) => (
+                {googlePlayUrl && (
                   <a
-                    key={social.id}
-                    href={social.href}
+                    href={googlePlayUrl}
                     target="_blank"
                     rel="noreferrer"
-                    aria-label={social.label}
-                    className="text-slate-700 dark:text-slate-300 hover:-translate-y-[1px] transition-transform"
+                    className="text-left text-[12px] font-semibold"
                   >
-                    <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full ${social.iconBg}`}>
-                      <social.icon size={14} className={social.iconColor} />
-                    </span>
+                    <LunaMenuLabel text={storeBadges.googlePlay} muted className="font-semibold" />
                   </a>
-                ))}
+                )}
+                {!appStoreUrl && !googlePlayUrl && (
+                  <p className="text-[11px] font-light text-slate-500 dark:text-slate-400">{storeBadges.soon}</p>
+                )}
+              </div>
+              <div className="pt-4 border-t border-slate-300/70 dark:border-slate-700/70 space-y-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em]">
+                  <LunaShimmerText text={installActions.social} className="opacity-90 font-semibold" />
+                </p>
+                <div className="flex items-center gap-3">
+                  {socialLinks.map((social) => (
+                    <a
+                      key={social.id}
+                      href={social.href}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label={social.label}
+                      className="text-slate-700 dark:text-slate-300 hover:-translate-y-[1px] transition-transform"
+                    >
+                      <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full ${social.iconBg}`}>
+                        <social.icon size={14} className={social.iconColor} />
+                      </span>
+                    </a>
+                  ))}
+                </div>
               </div>
             </nav>
-            <nav className="space-y-4 md:col-span-2 mt-16 md:mt-32">
-              <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-700 dark:text-slate-400">{footerSectionTitles.account}</p>
-              <div className="flex flex-col gap-3">
+
+            <nav className="space-y-4 min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em]">
+                <LunaShimmerText text={footerSectionTitles.preferences} className="opacity-90 font-semibold" />
+              </p>
+              <div className="flex flex-col gap-4">
+                <LanguageSelector
+                  current={lang}
+                  onSelect={setLang}
+                  variant="footer"
+                  menuAlign="left"
+                  menuPlacement="top"
+                />
                 <div className="flex items-center gap-3">
-                  <span className="text-[13px] font-light tracking-[0.03em] text-slate-800 dark:text-slate-300">
-                    {getLang(themeLabelByLang, lang) || themeLabelByLang.en}
-                  </span>
+                  <LunaMenuLabel
+                    text={getLang(themeLabelByLang, lang) || themeLabelByLang.en}
+                    muted
+                    className="text-[13px] font-light tracking-[0.03em]"
+                  />
                   <ThemeToggle theme={theme} toggle={() => setTheme(theme === 'light' ? 'dark' : 'light')} />
                 </div>
-                <button onClick={onSignIn} className="text-left text-[13px] font-light tracking-[0.03em] text-slate-800 dark:text-slate-300 underline underline-offset-4 hover:text-luna-purple transition-colors">
-                  {publicHomeNavLabels.adminLogin}
+                <button onClick={onSignIn} className="text-left text-[13px] font-light tracking-[0.03em] underline underline-offset-4">
+                  <LunaMenuLabel text={publicHomeNavLabels.adminLogin} muted className="font-light" />
                 </button>
               </div>
             </nav>
           </div>
-          <div className="pt-6 border-t border-slate-300 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
+
+          <div className="pt-8 border-t border-slate-300 dark:border-slate-800">
             <div className="space-y-2">
               <p className="text-[9px] font-black uppercase tracking-[0.35em] text-slate-700 dark:text-slate-400">{ui.publicHome.footerCopy}</p>
-              <p className="text-[11px] font-medium text-slate-700 dark:text-slate-400 leading-relaxed max-w-3xl">{ui.shared.disclaimer}</p>
+              <p className="text-[11px] font-medium text-slate-700 dark:text-slate-400 leading-relaxed">{ui.shared.disclaimer}</p>
             </div>
-            <p className="text-[9px] font-black uppercase tracking-[0.35em] text-slate-600 dark:text-slate-500">{legalLabels.legal}</p>
           </div>
         </div>
       </footer>
@@ -2928,7 +2249,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
             <p className="text-xs font-black uppercase tracking-[0.24em] text-luna-purple">{installGuideModal.title}</p>
             <p className="text-sm font-black uppercase tracking-[0.18em] text-slate-700 dark:text-slate-200">{installGuideModal.how}</p>
             <p className="text-sm font-semibold text-slate-600 dark:text-slate-300 leading-relaxed">{installGuideModal.intro}</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <article className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/90 dark:bg-slate-800/40 p-4 space-y-2">
                 <p className="text-[10px] font-black uppercase tracking-[0.16em] text-luna-purple">{installGuideModal.iosTitle}</p>
                 <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">{installGuideModal.iosStep1}</p>
@@ -2939,20 +2260,33 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
                 <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">{installGuideModal.androidStep1}</p>
                 <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">{installGuideModal.androidStep2}</p>
                 <button
-                  onClick={async () => {
-                    if (publicInstallPrompt) {
-                      await publicInstallPrompt.prompt();
-                      await publicInstallPrompt.userChoice;
-                      setInstallFeedback(installActions.androidTip);
-                      return;
-                    }
-                    setInstallFeedback(installActions.noPrompt);
-                  }}
+                  onClick={() => void runPublicInstall()}
                   className={`${PUBLIC_BTN_SECONDARY} mt-2 px-3 py-2 text-[10px] tracking-[0.14em] text-luna-purple`}
                 >
                   {installGuideModal.openPrompt}
                 </button>
               </article>
+              {mobilePlatform === 'other' && (
+                <article className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/90 dark:bg-slate-800/40 p-4 space-y-2">
+                  <p className="text-[10px] font-black uppercase tracking-[0.16em] text-luna-purple">
+                    {installGuideModal.desktopTitle || installActions.desktop}
+                  </p>
+                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    {installGuideModal.desktopStep1 || installActions.desktopTip}
+                  </p>
+                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    {installGuideModal.desktopStep2 || installActions.desktopTip}
+                  </p>
+                  {!isStandaloneMode && (
+                    <button
+                      onClick={() => void runPublicInstall()}
+                      className={`${PUBLIC_BTN_SECONDARY} mt-2 px-3 py-2 text-[10px] tracking-[0.14em] text-luna-purple`}
+                    >
+                      {installGuideModal.openDesktopPrompt || installActions.desktop}
+                    </button>
+                  )}
+                </article>
+              )}
             </div>
             <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">{installGuideModal.fallback}</p>
             {installFeedback && <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{installFeedback}</p>}

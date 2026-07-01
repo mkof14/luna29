@@ -2,8 +2,21 @@ import React, { useMemo } from 'react';
 import { Language, LangCopy, getLang } from '../../constants';
 import { DEFAULT_CYCLE_LENGTH } from '../../constants/appDefaults';
 import { LunaRhythmCalendar } from '../LunaRhythmCalendar';
+import { PUBLIC_PAGE_ART } from '../../utils/publicPageArt';
 import { PUBLIC_BTN_PRIMARY, PUBLIC_BTN_PRIMARY_GLOW, PUBLIC_BTN_SECONDARY } from './publicButtonStyles';
+import {
+  PUBLIC_BODY,
+  PUBLIC_CHIP,
+  PUBLIC_EYEBROW,
+  PUBLIC_H1,
+  PUBLIC_LEAD,
+  PUBLIC_PAGE_STACK,
+  PUBLIC_SHELL,
+  PUBLIC_SHELL_INNER,
+  PUBLIC_SHELL_PAD,
+} from './publicPageStyles';
 import { PublicQuietArtBackground } from './PublicQuietArtBackground';
+import { PublicHeroBlock } from './PublicHeroBlock';
 import { buildPublicCalendarDemoLog, PUBLIC_CALENDAR_DEMO_CYCLE_DAY } from '../../utils/publicCalendarDemo';
 
 interface PublicCalendarSectionProps {
@@ -163,39 +176,41 @@ export const PublicCalendarSection: React.FC<PublicCalendarSectionProps> = ({
   const demoLog = useMemo(() => buildPublicCalendarDemoLog(), []);
 
   return (
-    <section className="relative max-w-[1100px] mx-auto animate-in fade-in duration-500">
+    <section className={`relative ${PUBLIC_PAGE_STACK}`}>
       <PublicQuietArtBackground page="calendar" />
-      <div className="relative z-10 space-y-8">
-        <header className="rounded-[2.5rem] border border-slate-200/70 dark:border-slate-800/80 bg-white/72 dark:bg-slate-950/55 backdrop-blur-sm p-7 md:p-10 shadow-luna-rich space-y-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <p className="text-[10px] font-black uppercase tracking-[0.42em] text-luna-purple">{copy.eyebrow}</p>
-            <span className="px-3 py-1 rounded-full border border-luna-purple/25 bg-luna-purple/10 text-[9px] font-black uppercase tracking-[0.2em] text-luna-purple">
-              {copy.previewBadge}
-            </span>
-          </div>
-          <h1 className="text-4xl md:text-6xl font-black tracking-tight text-slate-900 dark:text-slate-100">{copy.title}</h1>
-          <p className="text-base md:text-lg font-semibold text-slate-700 dark:text-slate-200 leading-relaxed max-w-3xl">
-            {copy.subtitle}
-          </p>
-          <p className="text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed max-w-3xl">{copy.previewNote}</p>
-          <div className="flex flex-wrap gap-3 pt-2">
-            <button type="button" onClick={onSignUp} className={`${PUBLIC_BTN_PRIMARY} px-6 py-3 text-xs tracking-[0.12em]`}>
-              <span className={PUBLIC_BTN_PRIMARY_GLOW} />
-              <span className="relative z-10">{copy.enterMember}</span>
-            </button>
-            <button type="button" onClick={onSignIn} className={`${PUBLIC_BTN_SECONDARY} px-5 py-3 text-[10px] tracking-widest text-luna-purple`}>
-              {copy.memberSignIn}
-            </button>
-          </div>
-        </header>
+      <div className={`${PUBLIC_SHELL} luna-page-voice luna-page-focus luna-focus-home relative z-10 ${PUBLIC_SHELL_PAD} space-y-8`}>
+        <div className={`${PUBLIC_SHELL_INNER} space-y-8`}>
+          <PublicHeroBlock
+            eyebrow={copy.eyebrow}
+            title={copy.title}
+            subtitle={copy.subtitle}
+            image={PUBLIC_PAGE_ART.calendar}
+            imageAlt="Rhythm calendar"
+            imagePosition="center 32%"
+            chip={<span className={PUBLIC_CHIP}>{copy.previewBadge}</span>}
+          >
+            <p className={PUBLIC_BODY}>{copy.previewNote}</p>
+            <div className="flex flex-wrap gap-3 pt-2">
+              <button type="button" onClick={onSignUp} className={`${PUBLIC_BTN_PRIMARY} px-6 py-3 text-sm tracking-[0.08em]`}>
+                <span className={PUBLIC_BTN_PRIMARY_GLOW} />
+                <span className="relative z-10">{copy.enterMember}</span>
+              </button>
+              <button type="button" onClick={onSignIn} className={`${PUBLIC_BTN_SECONDARY} px-5 py-3 text-sm tracking-[0.08em] text-luna-purple`}>
+                {copy.memberSignIn}
+              </button>
+            </div>
+          </PublicHeroBlock>
+        </div>
 
-        <LunaRhythmCalendar
-          lang={lang}
-          log={demoLog}
-          currentCycleDay={PUBLIC_CALENDAR_DEMO_CYCLE_DAY}
-          cycleLength={DEFAULT_CYCLE_LENGTH}
-          onBack={onBackHome}
-        />
+        <div className={PUBLIC_SHELL_INNER}>
+          <LunaRhythmCalendar
+            lang={lang}
+            log={demoLog}
+            currentCycleDay={PUBLIC_CALENDAR_DEMO_CYCLE_DAY}
+            cycleLength={DEFAULT_CYCLE_LENGTH}
+            onBack={onBackHome}
+          />
+        </div>
       </div>
     </section>
   );

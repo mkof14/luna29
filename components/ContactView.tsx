@@ -4,6 +4,13 @@ import { ContactCopy } from '../types/uiCopy';
 import { hasMeaningfulText, normalizeUserText } from '../utils/text';
 import { Language, LangCopy, getLang } from '../constants';
 import { contactService } from '../services/contactService';
+import { MemberIconBackButton } from './member/MemberIconBackButton';
+import { LunaPageHeroSection } from './shared/LunaPageHeroSection';
+import { LunaPageContentSection } from './shared/LunaPageContentSection';
+import { PUBLIC_PAGE_STACK } from './public/publicPageStyles';
+import { MEMBER_PAGE_ROOT } from '../utils/memberPageStyles';
+import { getLunaPageTheme } from '../utils/lunaPageThemes';
+import { getMemberHeroImage } from '../utils/memberHeroImages';
 
 interface ContactViewProps {
   ui: ContactCopy;
@@ -82,24 +89,20 @@ export const ContactView: React.FC<ContactViewProps> = ({ ui, lang, onBack }) =>
   }
 
   return (
-    <div className="max-w-4xl mx-auto luna-page-shell luna-page-contact space-y-16 animate-in fade-in duration-700 p-8 md:p-10 pb-20">
-      {onBack && (
-        <button 
-          onClick={onBack} 
-          className="group flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-luna-purple transition-all mb-4"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="group-hover:-translate-x-1 transition-transform">
-            <path d="M19 12H5M12 19l-7-7 7-7"/>
-          </svg>
-          {copy.back}
-        </button>
-      )}
+    <section className={`${MEMBER_PAGE_ROOT} ${getLunaPageTheme('contact').shellClass}`} data-testid="contact-root">
+      {onBack && <MemberIconBackButton lang={lang} onClick={onBack} className="mb-0" />}
 
-      <header className="space-y-6 text-center max-w-2xl mx-auto">
-        <h2 className="text-5xl font-black tracking-tight text-slate-900 dark:text-slate-100">{ui.contact.headline}</h2>
-        <p className="text-lg font-medium text-slate-400 italic">{ui.contact.subheadline}</p>
-      </header>
+      <div className={PUBLIC_PAGE_STACK}>
+        <LunaPageHeroSection
+          themeClass={getLunaPageTheme('contact').shellClass}
+          eyebrow="Contact"
+          title={ui.contact.headline}
+          subtitle={ui.contact.subheadline}
+          image={getMemberHeroImage('contact')}
+          imageAlt={ui.contact.headline}
+        />
 
+        <LunaPageContentSection themeClass={getLunaPageTheme('contact').shellClass} padded={false}>
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
         <div className="lg:col-span-2 space-y-8">
            <div className="p-10 luna-vivid-card-alt-1 border border-slate-100 dark:border-slate-800 rounded-[3rem] shadow-luna space-y-6">
@@ -202,6 +205,8 @@ export const ContactView: React.FC<ContactViewProps> = ({ ui, lang, onBack }) =>
           )}
         </form>
       </div>
-    </div>
+        </LunaPageContentSection>
+      </div>
+    </section>
   );
 };

@@ -3,10 +3,16 @@ import { analyzeLabResults } from '../services/geminiService';
 import { dataService } from '../services/dataService';
 import { HealthEvent } from '../types';
 import { Logo } from './Logo';
+import { versionedAbsoluteAsset, versionedStaticAsset } from '../utils/staticAssetUrl';
+import { getBrandAssetUrl, LUNA_BRAND_PATHS } from '../utils/lunaBrandAssets';
 import { isSupportedLabFile } from '../utils/runtimeGuards';
 import { copyTextSafely, shareTextSafely } from '../utils/share';
 import { Language } from '../constants';
 import { getLabsViewLocalizedContent } from '../utils/labsViewContent';
+import { MemberIconBackButton } from './member/MemberIconBackButton';
+import { MemberPageIntro } from './member/MemberPageIntro';
+import { LunaPageContentSection } from './shared/LunaPageContentSection';
+import { getLunaPageTheme } from '../utils/lunaPageThemes';
 import { clearLabsDraftSnapshot, createDefaultSexualScores, readLabsDraftSnapshot, writeLabsDraftSnapshot } from '../utils/labsDraft';
 import { briefService } from '../services/briefService';
 import {
@@ -156,7 +162,7 @@ const ensureReportId = () => {
   }
 };
 
-export const LabsView: React.FC<{ day: number; age: number; lang: Language; userId?: string; userName?: string; onBack?: () => void }> = ({ day, age, lang, userId, userName }) => {
+export const LabsView: React.FC<{ day: number; age: number; lang: Language; userId?: string; userName?: string; onBack?: () => void }> = ({ day, age, lang, userId, userName, onBack }) => {
   const defaultProfile = useMemo<PersonalHealthProfile>(
     () => ({ ...emptyProfile, birthYear: String(new Date().getFullYear() - age), cycleDay: String(day) }),
     [age, day],
@@ -190,16 +196,35 @@ export const LabsView: React.FC<{ day: number; age: number; lang: Language; user
   const [profile, setProfile] = useState<PersonalHealthProfile>(() => ({ ...defaultProfile, ...(initialDraft?.profile || {}) }));
   const [lastDraftSavedAt, setLastDraftSavedAt] = useState<number | null>(null);
   const localized = useMemo(() => getLabsViewLocalizedContent(lang, reportLang), [lang, reportLang]);
-
+  const {
+    sexualUi,
+    visualGuide,
+    reportUi,
+    reportLangUi,
+    reportCategories,
+    reportActions,
+    conflictsUi,
+    reportsUi,
+    reportLanguageNames,
+    locale: uiLocale,
+    export: exportCopy,
+  } = localized;
+  const {
+    medForm,
+    detailedUi,
+    womenUi,
+    reportSourcesUi,
+    reportCategories: exportCategories,
+    reportUi: exportReportUi,
+    locale: reportLocale,
+  } = exportCopy;
+  const reportId = useMemo(() => manualReportId.trim() || userId || ensureReportId(), [manualReportId, userId]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const identitySectionRef = useRef<HTMLElement>(null);
   const profileSectionRef = useRef<HTMLElement>(null);
   const labsSectionRef = useRef<HTMLElement>(null);
   const reportSectionRef = useRef<HTMLElement>(null);
   const systemState = useMemo(() => dataService.projectState(log), [log]);
-  const { sexualUi, visualGuide, reportUi, medForm, reportLangUi, reportSourcesUi, reportCategories, reportActions, conflictsUi, reportsUi, detailedUi, womenUi, reportLanguageNames, locale: reportLocale } = localized;
-
-  const reportId = useMemo(() => manualReportId.trim() || userId || ensureReportId(), [manualReportId, userId]);
   const reportIdentityLine = useMemo(() => {
     const identity: string[] = [];
     if (includeNameInReport && userName) identity.push(`Name: ${userName}`);
@@ -431,22 +456,24 @@ export const LabsView: React.FC<{ day: number; age: number; lang: Language; user
       { key: 'identity', label: reportsUi.identityTitle, done: hasIdentityReady, action: () => jumpTo(identitySectionRef) },
       { key: 'profile', label: reportsUi.profileTitle, done: hasProfileReady, action: () => jumpTo(profileSectionRef) },
       { key: 'labs', label: reportsUi.labTable, done: hasLabsReady, action: () => jumpTo(labsSectionRef) },
-      { key: 'report', label: reportUi.reportTitle, done: hasReportReady, action: () => jumpTo(reportSectionRef) },
+      { key: 'report', label: reportsUi.workflowReportStep, done: hasReportReady, action: () => jumpTo(reportSectionRef) },
     ],
-    [hasIdentityReady, hasLabsReady, hasProfileReady, hasReportReady, reportUi.reportTitle, reportsUi.identityTitle, reportsUi.labTable, reportsUi.profileTitle],
+    [hasIdentityReady, hasLabsReady, hasProfileReady, hasReportReady, reportsUi.identityTitle, reportsUi.labTable, reportsUi.profileTitle, reportsUi.workflowReportStep],
   );
   const checklistDoneCount = workflowChecklist.filter((item) => item.done).length;
   const checklistProgress = Math.round((checklistDoneCount / workflowChecklist.length) * 100);
 
-  const markerCategory = (marker: string): string => {
+  const categorizeMarker = (categories: typeof reportCategories, marker: string): string => {
     const m = marker.toLowerCase();
-    if (/(estradiol|progesterone|lh|fsh|prolactin)/.test(m)) return reportCategories.cycle;
-    if (/(tsh|ft3|ft4|t3|t4|thyroid|anti-tpo|anti-tg)/.test(m)) return reportCategories.thyroid;
-    if (/(testosterone|shbg|dhea|androstenedione|17-oh)/.test(m)) return reportCategories.sexual;
-    if (/(glucose|insulin|hba1c)/.test(m)) return reportCategories.metabolic;
-    if (/(ferritin|vitamin d|b12|cbc)/.test(m)) return reportCategories.nutrient;
-    return reportCategories.other;
+    if (/(estradiol|progesterone|lh|fsh|prolactin)/.test(m)) return categories.cycle;
+    if (/(tsh|ft3|ft4|t3|t4|thyroid|anti-tpo|anti-tg)/.test(m)) return categories.thyroid;
+    if (/(testosterone|shbg|dhea|androstenedione|17-oh)/.test(m)) return categories.sexual;
+    if (/(glucose|insulin|hba1c)/.test(m)) return categories.metabolic;
+    if (/(ferritin|vitamin d|b12|cbc)/.test(m)) return categories.nutrient;
+    return categories.other;
   };
+  const markerCategory = (marker: string) => categorizeMarker(reportCategories, marker);
+  const exportMarkerCategory = (marker: string) => categorizeMarker(exportCategories, marker);
 
   const sourceLabel = (source?: ParsedLabValue['source']) => {
     if (source === 'manual') return conflictsUi.manual;
@@ -634,7 +661,7 @@ export const LabsView: React.FC<{ day: number; age: number; lang: Language; user
       reportsUi,
       sexualUi,
       womenUi,
-      markerCategory,
+      markerCategory: exportMarkerCategory,
       markerStatusExplanation,
       hormoneTopic,
     });
@@ -713,7 +740,7 @@ export const LabsView: React.FC<{ day: number; age: number; lang: Language; user
   };
 
   const handleReportShare = async () => {
-    const result = await shareTextSafely(reportText, reportUi.reportTitle);
+    const result = await shareTextSafely(reportText, exportReportUi.reportTitle);
     setReportActionFeedback(result === 'failed' ? reportActions.shareFailed : result === 'shared' ? reportActions.shared : reportActions.copied);
     setTimeout(() => setReportActionFeedback(null), 2000);
   };
@@ -741,21 +768,21 @@ export const LabsView: React.FC<{ day: number; age: number; lang: Language; user
 
   const handleSampleDownload = async () => {
     const { buildLocalizedSampleReportHtml } = await import('../utils/reportSampleTemplate');
-    const logoUrl = `${window.location.origin}/images/Luna%20logo3.png`;
-    const phaseArcImageUrl = `${window.location.origin}/images/moon_phases_arc.webp`;
+    const logoUrl = versionedAbsoluteAsset(window.location.origin, LUNA_BRAND_PATHS.lockup);
+    const phaseArcImageUrl = versionedAbsoluteAsset(window.location.origin, '/images/moon_phases_arc.webp');
     const sampleRows = [
-      { marker: 'Estradiol (E2)', value: '148 pg/mL', reference: '30-400', status: 'normal', category: markerCategory('Estradiol (E2)'), explanation: detailedUi.statusNormal, accent: hormoneTopic('Estradiol (E2)').accent },
-      { marker: 'Progesterone', value: '8.1 ng/mL', reference: '0.2-25', status: 'normal', category: markerCategory('Progesterone'), explanation: detailedUi.statusNormal, accent: hormoneTopic('Progesterone').accent },
-      { marker: 'TSH', value: '4.8 mIU/L', reference: '0.4-4.0', status: 'high', category: markerCategory('TSH'), explanation: detailedUi.statusHigh, accent: hormoneTopic('TSH').accent },
-      { marker: 'Ferritin', value: '18 ng/mL', reference: '15-150', status: 'low-normal', category: markerCategory('Ferritin'), explanation: detailedUi.statusLow, accent: hormoneTopic('Ferritin').accent },
+      { marker: 'Estradiol (E2)', value: '148 pg/mL', reference: '30-400', status: 'normal', category: exportMarkerCategory('Estradiol (E2)'), explanation: detailedUi.statusNormal, accent: hormoneTopic('Estradiol (E2)').accent },
+      { marker: 'Progesterone', value: '8.1 ng/mL', reference: '0.2-25', status: 'normal', category: exportMarkerCategory('Progesterone'), explanation: detailedUi.statusNormal, accent: hormoneTopic('Progesterone').accent },
+      { marker: 'TSH', value: '4.8 mIU/L', reference: '0.4-4.0', status: 'high', category: exportMarkerCategory('TSH'), explanation: detailedUi.statusHigh, accent: hormoneTopic('TSH').accent },
+      { marker: 'Ferritin', value: '18 ng/mL', reference: '15-150', status: 'low-normal', category: exportMarkerCategory('Ferritin'), explanation: detailedUi.statusLow, accent: hormoneTopic('Ferritin').accent },
     ];
     const sampleCycleDayRaw = Number(profile.cycleDay || systemState.currentDay || 21);
     const sampleCycleDay = Number.isFinite(sampleCycleDayRaw) ? sampleCycleDayRaw : 21;
     const localizedSampleHtml = buildLocalizedSampleReportHtml({
       logoUrl,
       phaseArcImageUrl,
-      reportTitle: reportUi.reportTitle,
-      sampleTitle: reportUi.sampleTitle,
+      reportTitle: exportReportUi.reportTitle,
+      sampleTitle: exportReportUi.sampleTitle,
       subtitle: detailedUi.subtitle,
       generatedAtLabel: medForm.generatedAt,
       generatedAtValue: reportGeneratedAt,
@@ -767,8 +794,8 @@ export const LabsView: React.FC<{ day: number; age: number; lang: Language; user
       disclaimerTitle: medForm.disclaimerTitle,
       disclaimerBody: medForm.disclaimerBody,
       reportCopyright,
-      servicePromise: reportUi.servicePromise,
-      serviceBullets: reportUi.serviceBullets,
+      servicePromise: exportReportUi.servicePromise,
+      serviceBullets: exportReportUi.serviceBullets,
       stableLabel: womenUi.stable,
       highPriorityLabel: womenUi.highPriority,
       watchLabel: womenUi.watch,
@@ -826,21 +853,17 @@ export const LabsView: React.FC<{ day: number; age: number; lang: Language; user
   };
 
   return (
-    <article className="max-w-7xl mx-auto luna-page-shell luna-page-reports space-y-12 animate-in fade-in slide-in-from-bottom-12 duration-1000 p-8 md:p-10 pb-40 relative dark:text-white">
-      <header className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Logo size="sm" />
-          <span className="text-[10px] font-black uppercase tracking-[0.45em] text-slate-500 dark:text-slate-200">{reportsUi.badge}</span>
-        </div>
-        <h2 className="text-5xl lg:text-7xl font-black tracking-tighter leading-[0.9] uppercase text-slate-950 dark:text-slate-100">
-          {reportsUi.title} <span className="text-luna-purple">{reportsUi.titleAccent}</span>
-        </h2>
-        <p className="text-base md:text-lg text-slate-700 dark:text-slate-300 font-semibold max-w-4xl leading-relaxed">
-          {reportsUi.workflow}
-        </p>
-      </header>
+    <>
+      {onBack && <MemberIconBackButton lang={lang} onClick={onBack} className="mb-0" />}
+      <MemberPageIntro lang={lang} page="labs" tab="labs" />
 
-      <section className="rounded-[2.2rem] border border-slate-200/80 dark:border-slate-700/70 bg-[radial-gradient(circle_at_14%_18%,rgba(255,255,255,0.46),transparent_38%),radial-gradient(circle_at_85%_80%,rgba(168,85,247,0.18),transparent_40%),linear-gradient(135deg,rgba(242,230,239,0.95),rgba(223,236,248,0.92))] dark:bg-[radial-gradient(circle_at_14%_18%,rgba(20,184,166,0.14),transparent_40%),radial-gradient(circle_at_84%_80%,rgba(124,58,237,0.2),transparent_40%),linear-gradient(135deg,rgba(8,22,47,0.94),rgba(13,34,68,0.92))] p-5 md:p-6 shadow-luna-rich space-y-3">
+      <LunaPageContentSection themeClass={getLunaPageTheme('labs').shellClass} padded={false}>
+    <article className="space-y-8 relative dark:text-white">
+      <p className="text-base font-medium text-slate-700 dark:text-slate-300 max-w-4xl leading-relaxed">
+        {reportsUi.workflow}
+      </p>
+
+      <section className="rounded-[1.4rem] border border-slate-200/80 dark:border-slate-700/70 bg-white/75 dark:bg-slate-900/55 p-5 md:p-6 space-y-3">
         <p className="text-sm md:text-base font-black uppercase tracking-[0.14em] text-luna-purple">{visualGuide.title}</p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {visualGuide.cards.map((card) => (
@@ -851,23 +874,34 @@ export const LabsView: React.FC<{ day: number; age: number; lang: Language; user
           ))}
         </div>
       </section>
-      <section className="rounded-[2.2rem] border border-slate-200/80 dark:border-slate-700/70 bg-white/75 dark:bg-[#0a1d3f]/88 p-5 md:p-6 shadow-luna-rich space-y-4">
+      <section className="luna-vivid-surface rounded-[2rem] p-6 md:p-8 shadow-luna-rich space-y-5">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-sm md:text-base font-black uppercase tracking-[0.14em] text-luna-purple">Report Workflow</p>
-          <p className="text-[11px] font-black uppercase tracking-[0.15em] text-slate-500 dark:text-slate-300">{checklistDoneCount}/{workflowChecklist.length}</p>
+          <h3 className="text-base md:text-lg font-black uppercase tracking-[0.16em] text-luna-purple dark:text-[#d8b4fe]">{reportsUi.workflowTitle}</h3>
+          <span className="luna-vivid-chip px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.15em] text-slate-700 dark:text-slate-200">
+            {checklistDoneCount}/{workflowChecklist.length}
+          </span>
         </div>
-        <div className="h-2 rounded-full bg-slate-200/80 dark:bg-slate-700/70 overflow-hidden">
-          <span className="block h-full bg-gradient-to-r from-luna-purple via-luna-coral to-teal-500 transition-all duration-500" style={{ width: `${Math.max(checklistProgress, 6)}%` }} />
+        <div className="h-2.5 rounded-full bg-slate-900/10 dark:bg-black/35 border border-white/40 dark:border-white/10 overflow-hidden">
+          <span className="block h-full bg-gradient-to-r from-luna-purple via-luna-coral to-teal-500 transition-all duration-500 shadow-[0_0_12px_rgba(124,72,193,0.45)]" style={{ width: `${Math.max(checklistProgress, 6)}%` }} />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
           {workflowChecklist.map((item, index) => (
             <button
               key={item.key}
+              type="button"
               onClick={item.action}
-              className={`rounded-xl border p-3 text-left transition-colors ${item.done ? 'border-emerald-300/80 bg-emerald-50/80 dark:bg-emerald-900/15 dark:border-emerald-700/50' : 'border-slate-200/80 bg-slate-50/80 dark:border-slate-700/70 dark:bg-slate-900/40'}`}
+              className={`rounded-2xl border p-4 text-left transition-all duration-200 ${
+                item.done
+                  ? 'luna-vivid-card-alt-3 border-emerald-400/55 dark:border-emerald-500/45 shadow-[0_10px_28px_rgba(16,185,129,0.18)] dark:shadow-[0_10px_28px_rgba(16,185,129,0.12)]'
+                  : 'luna-vivid-card-soft border-slate-200/80 dark:border-slate-600/55 hover:border-luna-purple/40 hover:shadow-[0_12px_32px_rgba(124,72,193,0.16)] dark:hover:shadow-[0_12px_32px_rgba(124,72,193,0.22)]'
+              }`}
             >
-              <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500 dark:text-slate-300">{index + 1}</p>
-              <p className={`mt-1 text-xs font-bold ${item.done ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-700 dark:text-slate-200'}`}>{item.label}</p>
+              <p className={`text-[10px] font-black uppercase tracking-[0.14em] ${item.done ? 'text-emerald-700 dark:text-emerald-300' : 'text-luna-purple dark:text-[#d8b4fe]'}`}>
+                {index + 1}
+              </p>
+              <p className={`mt-1.5 text-xs font-bold leading-snug ${item.done ? 'text-emerald-800 dark:text-emerald-200' : 'text-slate-800 dark:text-slate-100'}`}>
+                {item.label}
+              </p>
             </button>
           ))}
         </div>
@@ -876,7 +910,7 @@ export const LabsView: React.FC<{ day: number; age: number; lang: Language; user
       <Suspense
         fallback={
           <section className="rounded-[2rem] border border-slate-200/80 dark:border-slate-700/70 bg-white/70 dark:bg-[#0a1d3f]/70 p-6 shadow-luna-rich">
-            <p className="text-xs font-semibold text-slate-500 dark:text-slate-300">Loading guide...</p>
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-300">{reportsUi.loadingGuide}</p>
           </section>
         }
       >
@@ -923,11 +957,11 @@ export const LabsView: React.FC<{ day: number; age: number; lang: Language; user
             <h3 className="text-base md:text-lg font-black uppercase tracking-[0.16em] text-luna-purple">{reportsUi.profileTitle}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {[
-                ['birthYear', 'Birth Year'],
-                ['cycleLength', 'Cycle Length'],
-                ['cycleDay', 'Cycle Day'],
-                ['medications', 'Current Medications'],
-                ['knownConditions', 'Known Conditions'],
+                ['birthYear', reportsUi.profileBirthYear],
+                ['cycleLength', reportsUi.profileCycleLength],
+                ['cycleDay', reportsUi.profileCycleDay],
+                ['medications', reportsUi.profileMedications],
+                ['knownConditions', reportsUi.profileKnownConditions],
               ].map(([key, label]) => (
                 <label key={key} className="space-y-1">
                   <span className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-500">{label}</span>
@@ -1077,11 +1111,11 @@ export const LabsView: React.FC<{ day: number; age: number; lang: Language; user
                 <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-500">{uploadFeedback || reportsUi.readyExtraction}</p>
                 {lastDraftSavedAt && (
                   <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">
-                    {reportActions.autosaved}: {new Date(lastDraftSavedAt).toLocaleTimeString(reportLocale, { hour: '2-digit', minute: '2-digit' })}
+                    {reportActions.autosaved}: {new Date(lastDraftSavedAt).toLocaleTimeString(uiLocale, { hour: '2-digit', minute: '2-digit' })}
                   </p>
                 )}
                 {!hasLabsReady && (
-                  <p className="text-[10px] font-semibold text-amber-700 dark:text-amber-300">Add at least one marker value or paste lab text before generating.</p>
+                  <p className="text-[10px] font-semibold text-amber-700 dark:text-amber-300">{reportsUi.labsRequiredHint}</p>
                 )}
               </div>
               <div className="flex items-center gap-2">
@@ -1163,7 +1197,7 @@ export const LabsView: React.FC<{ day: number; age: number; lang: Language; user
           <article className="rounded-[2rem] border border-slate-200/80 dark:border-slate-700/70 bg-gradient-to-br from-[#e8e6f8]/90 via-[#e7f2fb]/88 to-[#e6f7f3]/86 dark:from-[#0d1f3f]/92 dark:via-[#12294b]/90 dark:to-[#133651]/88 p-6 space-y-4 shadow-luna-rich">
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm md:text-base font-black uppercase tracking-[0.14em] text-luna-purple">{reportsUi.hormoneInfographic}</p>
-              <img src="/images/moon_phases_arc.webp" alt="Cycle visual" className="h-10 w-24 object-cover rounded-lg border border-white/60 dark:border-slate-700/60" />
+              <img src={versionedStaticAsset('/images/moon_phases_arc.webp')} alt="Cycle visual" className="h-10 w-24 object-cover rounded-lg border border-white/60 dark:border-slate-700/60" />
             </div>
             <div className="space-y-2">
               {hormoneTopicStats.length > 0 ? hormoneTopicStats.map((entry) => (
@@ -1184,7 +1218,7 @@ export const LabsView: React.FC<{ day: number; age: number; lang: Language; user
 
           <article ref={reportSectionRef} className="rounded-[2rem] border border-slate-200/80 dark:border-slate-700/70 bg-gradient-to-br from-[#f3e5f4]/95 via-[#eee8fb]/92 to-[#e3edf9]/90 dark:from-[#0d1f3f]/95 dark:via-[#132a50]/93 dark:to-[#17345f]/92 p-6 shadow-luna-rich space-y-4">
             <div className="flex items-center gap-3">
-              <img src="/images/Luna%20logo3.png" alt="Luna29 symbol" className="h-10 w-10 object-contain" />
+              <img src={getBrandAssetUrl('icon')} alt="Luna29 symbol" className="h-10 w-10 object-contain" />
               <div>
                 <p className="text-sm md:text-base font-black uppercase tracking-[0.14em] text-luna-purple">{reportUi.reportTitle}</p>
                 <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">{reportUi.reportSubtitle}</p>
@@ -1317,5 +1351,7 @@ export const LabsView: React.FC<{ day: number; age: number; lang: Language; user
         </aside>
       </div>
     </article>
+      </LunaPageContentSection>
+    </>
   );
 };

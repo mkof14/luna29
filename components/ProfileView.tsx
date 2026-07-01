@@ -3,10 +3,19 @@ import { dataService } from '../services/dataService';
 import { ProfileData } from '../types';
 import { normalizeProfileData } from '../utils/profile';
 import { billingService, BillingStatusPayload } from '../services/billingService';
+import { Language } from '../constants';
+import { MemberIconBackButton } from './member/MemberIconBackButton';
+import { MemberPageIntro } from './member/MemberPageIntro';
+import { LunaPageContentSection } from './shared/LunaPageContentSection';
+import { getLunaPageTheme } from '../utils/lunaPageThemes';
+import { MEMBER_CHIP_ACTIVE, MEMBER_CHIP_INACTIVE } from '../utils/memberPageStyles';
 
-interface ProfileViewProps { onBack: () => void; }
+interface ProfileViewProps {
+  lang: Language;
+  onBack: () => void;
+}
 
-export const ProfileView: React.FC<ProfileViewProps> = ({ onBack }) => {
+export const ProfileView: React.FC<ProfileViewProps> = ({ lang, onBack }) => {
   const [log, setLog] = useState(() => dataService.getLog());
   const systemState = dataService.projectState(log);
   const [profile, setProfile] = useState<ProfileData>(systemState.profile);
@@ -106,66 +115,71 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onBack }) => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto luna-page-shell luna-page-profile space-y-16 animate-in fade-in slide-in-from-bottom-4 duration-1000 p-8 md:p-10 pb-32">
-      {/* GLOBAL PROFILE ACTIONS */}
-      <div className="flex justify-between items-center sticky top-28 z-50 py-5 luna-vivid-surface backdrop-blur-2xl px-10 rounded-[2.5rem] border-2 shadow-2xl">
-        <button onClick={onBack} className="group flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 dark:text-slate-300 hover:text-luna-purple transition-all">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="group-hover:-translate-x-1 transition-transform"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-          System Map
-        </button>
-        <div className="flex items-center gap-10">
-          <div className="hidden md:flex flex-col items-end gap-0.5">
-            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Billing</span>
-            <span className="text-[11px] font-bold text-slate-900 dark:text-slate-100">
-              {billingEnabled ? `${billing.status}${billing.period ? ` • ${billing.period}` : ''}` : 'Disabled'}
-            </span>
+    <>
+      <MemberIconBackButton lang={lang} onClick={onBack} className="mb-0" />
+      <MemberPageIntro lang={lang} page="profile" tab="profile" />
+
+      <LunaPageContentSection themeClass={getLunaPageTheme('profile').shellClass} padded={false}>
+      <div className="space-y-8">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div className="flex flex-wrap gap-6 text-sm">
+            <div>
+              <span className="block text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Billing</span>
+              <span className="font-bold text-slate-900 dark:text-slate-100">
+                {billingEnabled ? `${billing.status}${billing.period ? ` • ${billing.period}` : ''}` : 'Disabled'}
+              </span>
+            </div>
+            {profile.lastUpdated && (
+              <div>
+                <span className="block text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Calibration</span>
+                <span className="font-bold text-slate-900 dark:text-slate-100">{new Date(profile.lastUpdated).toLocaleDateString()}</span>
+              </div>
+            )}
           </div>
-          {profile.lastUpdated && <div className="hidden md:flex flex-col items-end gap-0.5">
-            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Calibration Point</span>
-            <span className="text-[11px] font-bold text-slate-900 dark:text-slate-100">{new Date(profile.lastUpdated).toLocaleDateString()}</span>
-          </div>}
-          <button
-            type="button"
-            onClick={openBillingPortal}
-            disabled={!billingEnabled || billingLoading}
-            className={`px-8 py-4 rounded-full text-[11px] font-black uppercase tracking-[0.2em] transition-all shadow-xl ${
-              billingEnabled && !billingLoading
-                ? 'bg-luna-purple/10 text-luna-purple border border-luna-purple/25 hover:scale-[1.02] active:scale-95'
-                : 'bg-slate-200/80 text-slate-500 border border-slate-300/80 cursor-not-allowed'
-            }`}
-          >
-            {billingLoading ? 'Opening...' : 'Manage Subscription'}
-          </button>
-          <button 
-            data-testid="profile-save"
-            onClick={handleSave} 
-            className={`px-12 py-4 rounded-full text-[11px] font-black uppercase tracking-[0.2em] transition-all shadow-xl ${isSaved ? 'bg-emerald-500 text-white shadow-emerald-500/20' : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:scale-[1.02] active:scale-95'}`}
-          >
-            {isSaved ? "Identity Synced" : "Sync Profile"}
-          </button>
+          <div className="flex flex-col sm:flex-row flex-wrap gap-2 w-full lg:w-auto">
+            <button
+              type="button"
+              onClick={openBillingPortal}
+              disabled={!billingEnabled || billingLoading}
+              className={`px-5 py-3 rounded-full text-[10px] font-black uppercase tracking-[0.16em] transition-all ${
+                billingEnabled && !billingLoading
+                  ? `${MEMBER_CHIP_INACTIVE} hover:border-luna-purple/50`
+                  : 'opacity-50 cursor-not-allowed border border-slate-300/60 dark:border-slate-600/50 px-5 py-3 rounded-full text-[10px] font-black uppercase text-slate-500'
+              }`}
+            >
+              {billingLoading ? 'Opening...' : 'Manage Subscription'}
+            </button>
+            <button
+              data-testid="profile-save"
+              type="button"
+              onClick={handleSave}
+              className={`px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-[0.16em] transition-all ${
+                isSaved
+                  ? 'bg-emerald-500 text-white shadow-lg'
+                  : `${MEMBER_CHIP_ACTIVE} hover:brightness-110`
+              }`}
+            >
+              {isSaved ? 'Identity Synced' : 'Sync Profile'}
+            </button>
+          </div>
         </div>
-      </div>
-      {billingFeedback && (
-        <p className="text-xs font-bold text-center text-rose-500 -mt-8">{billingFeedback}</p>
-      )}
-      <div className="max-w-5xl mx-auto px-2 -mt-6">
-        <div className="rounded-[2rem] border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/60 p-4 md:p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <div className="space-y-1">
-            <p className="text-sm md:text-base font-black uppercase tracking-[0.14em] text-luna-purple">Membership Billing</p>
-            <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-              Status: {billing.status}{billing.period ? ` • ${billing.period}` : ''} • Plan: {billing.plan || 'none'}
+
+        {billingFeedback && <p className="text-xs font-bold text-rose-500 dark:text-rose-300">{billingFeedback}</p>}
+
+        <div className="rounded-2xl border border-slate-200/75 dark:border-slate-600/45 bg-slate-50/80 dark:bg-slate-950/40 p-4 md:p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="space-y-1 min-w-0">
+            <p className="text-[10px] font-black uppercase tracking-[0.14em] text-luna-purple dark:text-[#d8b4fe]">Membership Billing</p>
+            <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 break-words">
+              Status: {billing.status}
+              {billing.period ? ` • ${billing.period}` : ''} • Plan: {billing.plan || 'none'}
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 shrink-0">
             <button
               type="button"
               disabled={!billingEnabled || billingLoading}
               onClick={() => startCheckout('month')}
-              className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-[0.12em] ${
-                billingEnabled && !billingLoading
-                  ? 'bg-luna-purple text-white hover:brightness-110'
-                  : 'bg-slate-200/80 text-slate-500 cursor-not-allowed'
-              }`}
+              className={billingEnabled && !billingLoading ? MEMBER_CHIP_INACTIVE : 'opacity-50 cursor-not-allowed px-4 py-2 rounded-full text-xs font-black uppercase'}
             >
               {billingLoading ? 'Opening...' : 'Start Monthly'}
             </button>
@@ -173,11 +187,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onBack }) => {
               type="button"
               disabled={!billingEnabled || billingLoading}
               onClick={() => startCheckout('year')}
-              className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-[0.12em] ${
-                billingEnabled && !billingLoading
-                  ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:brightness-110'
-                  : 'bg-slate-200/80 text-slate-500 cursor-not-allowed'
-              }`}
+              className={billingEnabled && !billingLoading ? MEMBER_CHIP_ACTIVE : 'opacity-50 cursor-not-allowed px-4 py-2 rounded-full text-xs font-black uppercase'}
             >
               {billingLoading ? 'Opening...' : 'Start Yearly'}
             </button>
@@ -185,10 +195,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onBack }) => {
         </div>
       </div>
 
-      <header className="text-center space-y-4 max-w-2xl mx-auto">
-        <h2 className="text-6xl font-black tracking-tighter text-slate-900 dark:text-slate-100 uppercase">My Identity</h2>
-        <p className="text-lg font-bold text-slate-500 dark:text-slate-400 italic">This data forms the primary lens through which Luna29 observes your biological rhythm.</p>
-      </header>
+      <p className="text-base font-medium text-slate-600 dark:text-slate-300 max-w-2xl mx-auto text-center">
+        This data forms the primary lens through which Luna29 observes your biological rhythm.
+      </p>
 
       <div className="grid grid-cols-1 gap-12">
         
@@ -376,6 +385,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onBack }) => {
           Luna29 operates as a closed system. This identity is stored exclusively on your device hardware. It is never transmitted, sold, or shared with external entities.
         </p>
       </div>
-    </div>
+      </LunaPageContentSection>
+    </>
   );
 };

@@ -1,6 +1,10 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowLeft, Share2 } from 'lucide-react';
+import { Share2 } from 'lucide-react';
 import { Language, getLang } from '../constants';
+import { MemberIconBackButton } from './member/MemberIconBackButton';
+import { MemberPageIntro } from './member/MemberPageIntro';
+import { LunaPageContentSection } from './shared/LunaPageContentSection';
+import { getLunaPageTheme } from '../utils/lunaPageThemes';
 import { CyclePhase, HealthEvent, SystemState } from '../types';
 import { shareTextSafely } from '../utils/share';
 
@@ -138,17 +142,13 @@ export const MonthlyReflectionView: React.FC<MonthlyReflectionViewProps> = ({
   };
 
   return (
-    <section className="max-w-4xl mx-auto p-6 md:p-8 space-y-6">
-      <button
-        onClick={onBack}
-        className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-luna-purple transition-colors"
-      >
-        <ArrowLeft size={14} /> {copy.back}
-      </button>
+    <>
+      <MemberIconBackButton lang={lang} onClick={onBack} className="mb-0" />
+      <MemberPageIntro lang={lang} page="monthly_reflection" tab="monthly_reflection" />
 
-      <article className="rounded-[2.2rem] border border-slate-200/75 dark:border-[#2a4670] bg-white/82 dark:bg-[#081a3d]/92 p-6 md:p-8 shadow-luna-rich space-y-5">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-luna-purple">{copy.monthLabel}</p>
-        <h1 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-slate-100">{copy.title}</h1>
+      <LunaPageContentSection themeClass={getLunaPageTheme('monthly_reflection').shellClass} padded={false}>
+      <article className="space-y-5">
+        <p className="text-sm font-medium text-slate-600 dark:text-slate-300">{copy.monthLabel}</p>
         <p className="text-sm font-medium text-slate-700 dark:text-slate-200">{copy.subtitle}</p>
 
         <div className="rounded-2xl bg-slate-100/85 dark:bg-slate-800/65 p-4 space-y-3">
@@ -170,6 +170,7 @@ export const MonthlyReflectionView: React.FC<MonthlyReflectionViewProps> = ({
           {feedback && <p className="text-xs font-semibold text-slate-500 dark:text-slate-300">{feedback}</p>}
         </div>
       </article>
-    </section>
+      </LunaPageContentSection>
+    </>
   );
 };

@@ -5,6 +5,8 @@ import react from '@vitejs/plugin-react';
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   const siteUrl = (env.VITE_SITE_URL || 'https://luna29.vercel.app').replace(/\/+$/, '');
+  const devBootstrapPassword =
+    mode === 'development' ? String(env.SUPER_ADMIN_BOOTSTRAP_PASSWORD || env.VITE_SUPER_ADMIN_BOOTSTRAP_PASSWORD || '').trim() : '';
 
   return {
   define: {
@@ -13,9 +15,13 @@ export default defineConfig(({ mode }) => {
     __LUNA_APP_RELEASE__: JSON.stringify(
       process.env.VITE_APP_RELEASE ||
         process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 8) ||
-        'restore1',
+        'shell4',
     ),
     __LUNA_GA4_ID__: JSON.stringify(process.env.VITE_GA4_MEASUREMENT_ID || ''),
+    __LUNA_VITE_DEV__: JSON.stringify(mode === 'development'),
+    ...(devBootstrapPassword
+      ? { 'import.meta.env.VITE_SUPER_ADMIN_BOOTSTRAP_PASSWORD': JSON.stringify(devBootstrapPassword) }
+      : {}),
   },
   plugins: [
     react(),
@@ -23,6 +29,16 @@ export default defineConfig(({ mode }) => {
       name: 'luna-site-url-html',
       transformIndexHtml(html) {
         return html.replaceAll('__SITE_URL__', siteUrl);
+      },
+    },
+    {
+      name: 'luna-dev-no-store',
+      configureServer(server) {
+        server.middlewares.use((_req, res, next) => {
+          res.setHeader('Cache-Control', 'no-store');
+          res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+          next();
+        });
       },
     },
   ],
@@ -34,7 +50,6 @@ export default defineConfig(({ mode }) => {
         manualChunks(id) {
           if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) return 'vendor-react';
           if (id.includes('node_modules/lucide-react') || id.includes('node_modules/motion')) return 'vendor-ui';
-          if (id.includes('/components/AdminPanelView') || id.includes('/services/adminService')) return 'feature-admin';
           if (id.includes('/components/AudioReflection') || id.includes('/components/MyVoiceFilesView')) return 'feature-voice';
           if (id.includes('/components/PublicLandingView')) return 'feature-public-landing';
           if (id.includes('/components/AboutLunaView')) return 'feature-public-about';
@@ -48,6 +63,12 @@ export default defineConfig(({ mode }) => {
   },
   server: {
     port: 3000,
+    strictPort: true,
+    host: 'localhost',
+    headers: {
+      'Cache-Control': 'no-store',
+      'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:8787',

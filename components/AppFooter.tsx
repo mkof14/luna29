@@ -1,408 +1,453 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Facebook, Instagram, Music2, Youtube } from 'lucide-react';
 import { Logo } from './Logo';
+import LanguageSelector from './LanguageSelector';
+import { LunaMenuLabel, LunaShimmerText } from './SmoothLangText';
+import ThemeToggle from './ThemeToggle';
 import { TabType } from '../utils/navigation';
 import { getMemberNavCopy } from '../utils/memberNavLabels';
 import { getBrandAssetUrl } from '../utils/lunaBrandAssets';
+import { getLegalNavLabels } from '../utils/legal';
+import { getLandingNarratives } from '../utils/publicLandingNarratives';
+import {
+  getFooterMicroRitual,
+  getFooterMoonAccent,
+  getFooterSpiritActions,
+  getFooterTrustLine,
+} from '../utils/publicFooterSpirit';
+import { MEMBER_FOOTER_EXPLORE_TABS } from '../utils/memberFooterNavigation';
 import { Language, TranslationSchema, LangCopy, getLang } from '../constants';
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
+}
 
 interface AppFooterProps {
   ui: TranslationSchema;
   lang: Language;
+  theme: 'light' | 'dark';
+  setLang: (lang: Language) => void;
+  setTheme: (theme: 'light' | 'dark') => void;
   navigateTo: (tab: TabType) => void;
-  canAccessAdmin: boolean;
+  onOpenLive?: () => void;
 }
 
-export const AppFooter: React.FC<AppFooterProps> = ({ ui, lang, navigateTo, canAccessAdmin }) => {
-  const footerLinkClass = 'text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-luna-purple transition-colors';
+type FooterTabLink = { id: TabType; label: string; testId?: string };
 
-  const footerCopyByLang: LangCopy< { sanctuary: string; terms: string; about: string; privacy: string; medical: string; cookies: string; dataRights: string; howItWorks: string; faq: string; learning: string; relationships: string; ritualPath: string; pricing: string; slogan: string; disclaimerLabel: string }> = {
-    en: {
-      sanctuary: 'A biological sanctuary. Luna29 uses a local-first model: core reflections stay on device, and account/security workflows may use protected backend services.',
-      terms: 'Terms of Service',
-      about: 'About',
-      privacy: 'Privacy Notice',
-      medical: 'Disclaimer',
-      cookies: 'Cookies Notice',
-      dataRights: 'Data Rights',
-      howItWorks: 'How It Works',
-      faq: 'FAQ',
-      learning: 'Learning',
-      relationships: 'Relationships',
-      ritualPath: 'Ritual Path',
-      pricing: 'Pricing',
-      slogan: 'Luna29 - The physiology of feeling.',
-      disclaimerLabel: 'Disclaimer',
-    },
-    ru: {
-      sanctuary: 'Биологическое пространство опоры. Luna29 работает в local-first режиме: основные записи остаются на устройстве, а аккаунт и безопасность могут использовать защищенный backend.',
-      terms: 'Условия Сервиса',
-      about: 'О проекте',
-      privacy: 'Уведомление о приватности',
-      medical: 'Дисклеймер',
-      cookies: 'Уведомление о cookies',
-      dataRights: 'Права на данные',
-      howItWorks: 'Как это работает',
-      faq: 'FAQ',
-      learning: 'Обучение',
-      relationships: 'Отношения',
-      ritualPath: 'Ритуальный путь',
-      pricing: 'Тарифы',
-      slogan: 'Luna29 - физиология чувств.',
-      disclaimerLabel: 'Дисклеймер',
-    },
-    uk: {
-      sanctuary: 'Біологічний простір опори. Luna29 працює у local-first режимі: основні записи лишаються на пристрої, а акаунт та безпека можуть використовувати захищений backend.',
-      terms: 'Умови Сервісу',
-      about: 'Про проект',
-      privacy: 'Повідомлення про приватність',
-      medical: 'Дисклеймер',
-      cookies: 'Повідомлення про cookies',
-      dataRights: 'Права на дані',
-      howItWorks: 'Як це працює',
-      faq: 'FAQ',
-      learning: 'Навчання',
-      relationships: 'Стосунки',
-      ritualPath: 'Ритуальний шлях',
-      pricing: 'Тарифи',
-      slogan: 'Luna29 - фізіологія відчуттів.',
-      disclaimerLabel: 'Дисклеймер',
-    },
-    es: {
-      sanctuary: 'Un santuario biologico. Luna29 usa modelo local-first: registros clave en tu dispositivo y flujos de cuenta/seguridad en backend protegido cuando es necesario.',
-      terms: 'Terminos Del Servicio',
-      about: 'Acerca',
-      privacy: 'Aviso De Privacidad',
-      medical: 'Descargo',
-      cookies: 'Aviso De Cookies',
-      dataRights: 'Derechos De Datos',
-      howItWorks: 'Cómo funciona',
-      faq: 'FAQ',
-      learning: 'Aprendizaje',
-      relationships: 'Relaciones',
-      ritualPath: 'Ruta ritual',
-      pricing: 'Precios',
-      slogan: 'Luna29 - La fisiología del sentir.',
-      disclaimerLabel: 'Descargo',
-    },
-    fr: {
-      sanctuary: 'Un sanctuaire biologique. Luna29 suit une approche local-first: donnees principales sur appareil, compte/securite via backend protege si necessaire.',
-      terms: 'Conditions Du Service',
-      about: 'A Propos',
-      privacy: 'Notice De Confidentialite',
-      medical: 'Avertissement',
-      cookies: 'Notice Cookies',
-      dataRights: 'Droits Sur Les Donnees',
-      howItWorks: 'Comment ça marche',
-      faq: 'FAQ',
-      learning: 'Apprentissage',
-      relationships: 'Relations',
-      ritualPath: 'Chemin rituel',
-      pricing: 'Tarifs',
-      slogan: 'Luna29 - La physiologie du ressenti.',
-      disclaimerLabel: 'Avertissement',
-    },
-    de: {
-      sanctuary: 'Ein biologischer Schutzraum. Luna29 nutzt local-first: Kerndaten lokal auf dem Geraet, Konto/Sicherheit bei Bedarf ueber geschuetztes Backend.',
-      terms: 'Nutzungsbedingungen',
-      about: 'Uber',
-      privacy: 'Datenschutzhinweis',
-      medical: 'Hinweis',
-      cookies: 'Cookie-Hinweis',
-      dataRights: 'Datenrechte',
-      howItWorks: 'So funktioniert es',
-      faq: 'FAQ',
-      learning: 'Lernen',
-      relationships: 'Beziehungen',
-      ritualPath: 'Ritualpfad',
-      pricing: 'Preise',
-      slogan: 'Luna29 - Die Physiologie des Fühlens.',
-      disclaimerLabel: 'Hinweis',
-    },
-    zh: {
-      sanctuary: '生理数据庇护空间。Luna29 采用 local-first：核心记录保存在设备本地，账号与安全流程在需要时使用受保护后端。',
-      terms: '服务条款',
-      about: '关于',
-      privacy: '隐私声明',
-      medical: '免责声明',
-      cookies: 'Cookie 声明',
-      dataRights: '数据权利',
-      howItWorks: '如何运作',
-      faq: '常见问题',
-      learning: '学习',
-      relationships: '关系',
-      ritualPath: '仪式路径',
-      pricing: '价格',
-      slogan: 'Luna29 - 感受的生理学。',
-      disclaimerLabel: '免责声明',
-    },
-    ja: {
-      sanctuary: '生体データのサンクチュアリ。Luna29 は local-first 方針で、主要データは端末保存、アカウント/セキュリティは必要時に保護バックエンドを利用します。',
-      terms: '利用規約',
-      about: '概要',
-      privacy: 'プライバシー通知',
-      medical: '免責',
-      cookies: 'Cookie 通知',
-      dataRights: 'データ権利',
-      howItWorks: '使い方',
-      faq: 'FAQ',
-      learning: '学習',
-      relationships: '関係性',
-      ritualPath: 'リチュアルパス',
-      pricing: '料金',
-      slogan: 'Luna29 - 感覚の生理学。',
-      disclaimerLabel: '免責',
-    },
-    pt: {
-      sanctuary: 'Um santuario biologico. Luna29 usa modelo local-first: dados principais no dispositivo e fluxos de conta/seguranca em backend protegido quando necessario.',
-      terms: 'Termos De Servico',
-      about: 'Sobre',
-      privacy: 'Aviso De Privacidade',
-      medical: 'Aviso',
-      cookies: 'Aviso De Cookies',
-      dataRights: 'Direitos De Dados',
-      howItWorks: 'Como funciona',
-      faq: 'FAQ',
-      learning: 'Aprendizagem',
-      relationships: 'Relacionamentos',
-      ritualPath: 'Caminho ritual',
-      pricing: 'Preços',
-      slogan: 'Luna29 - A fisiologia de sentir.',
-      disclaimerLabel: 'Aviso',
-    },
-    ar: {
-      sanctuary: 'ملاذ بيولוגي آمن. Luna29 تعمل بنموذج local-first: البيانات الأساسية على جهازك، والحساب والأمان عبر خادم محمي عند الحاجة.',
-      terms: 'شروط الخدمة',
-      about: 'حول Luna29',
-      privacy: 'إشعار الخصوصية',
-      medical: 'إخلاء مسؤولية',
-      cookies: 'إشعار cookies',
-      dataRights: 'حقوق البيانات',
-      howItWorks: 'كيف يعمل',
-      faq: 'الأسئلة الشائعة',
-      learning: 'التعلّم',
-      relationships: 'العلاقات',
-      ritualPath: 'المسار الطقسي',
-      pricing: 'الأسعار',
-      slogan: 'Luna29 — فسيولوجيا الشعور.',
-      disclaimerLabel: 'إخلاء مسؤولية',
-    },
-    he: {
-      sanctuary: 'מרחב ביולוגי מוגן. Luna29 בגישת local-first: הנתונים העיקריים במכשיר, חשבון ואבטחה בשרת מוגן בעת הצורך.',
-      terms: 'תנאי שירות',
-      about: 'אודות Luna29',
-      privacy: 'הודעת פרטיות',
-      medical: 'הצהרת אחריות',
-      cookies: 'הודעת cookies',
-      dataRights: 'זכויות נתונים',
-      howItWorks: 'איך זה עובד',
-      faq: 'שאלות נפוצות',
-      learning: 'לימוד',
-      relationships: 'יחסים',
-      ritualPath: 'נתיב טקסי',
-      pricing: 'מחירים',
-      slogan: 'Luna29 — הפיזיולוגיה של תחושה.',
-      disclaimerLabel: 'הצהרת אחריות',
-    },
+const normalizeExternalUrl = (value: unknown) => {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  try {
+    const url = new URL(raw);
+    if (url.protocol === 'https:' || url.protocol === 'http:') return url.toString();
+  } catch {
+    return '';
+  }
+  return '';
+};
+
+export const AppFooter: React.FC<AppFooterProps> = ({
+  ui,
+  lang,
+  theme,
+  setLang,
+  setTheme,
+  navigateTo,
+  onOpenLive,
+}) => {
+  const [showInstallGuideModal, setShowInstallGuideModal] = useState(false);
+  const [isStandaloneMode, setIsStandaloneMode] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [mobilePlatform, setMobilePlatform] = useState<'ios' | 'android' | 'other'>('other');
+
+  const appStoreUrl = normalizeExternalUrl(import.meta.env.VITE_APP_STORE_URL);
+  const googlePlayUrl = normalizeExternalUrl(import.meta.env.VITE_GOOGLE_PLAY_URL);
+
+  useEffect(() => {
+    const standalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (typeof (window.navigator as Navigator & { standalone?: boolean }).standalone === 'boolean' &&
+        Boolean((window.navigator as Navigator & { standalone?: boolean }).standalone));
+    setIsStandaloneMode(standalone);
+
+    const ua = window.navigator.userAgent.toLowerCase();
+    if (/iphone|ipad|ipod/.test(ua)) setMobilePlatform('ios');
+    else if (/android/.test(ua)) setMobilePlatform('android');
+    else setMobilePlatform('other');
+
+    const onBeforeInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      setDeferredPrompt(event as BeforeInstallPromptEvent);
+    };
+    window.addEventListener('beforeinstallprompt', onBeforeInstallPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', onBeforeInstallPrompt);
+  }, []);
+
+  const runMemberInstall = async () => {
+    if (!deferredPrompt) {
+      setShowInstallGuideModal(true);
+      return;
+    }
+    await deferredPrompt.prompt();
+    setDeferredPrompt(null);
   };
 
-  const footerCopy = getLang(footerCopyByLang, lang) || footerCopyByLang.en;
+  const memberNav = getMemberNavCopy(lang);
+  const homeStory = getLandingNarratives(lang).homeStory;
+  const footerMicroRitual = getFooterMicroRitual(lang);
+  const footerTrustLine = getFooterTrustLine(lang);
+  const footerSpiritActions = getFooterSpiritActions(lang);
+  const footerMoonAccent = getFooterMoonAccent(lang);
+  const legalNav = getLegalNavLabels(lang);
 
-  const memberLinks: Array<{ id: TabType; label: string }> = [
-    { id: 'dashboard', label: ui.navigation.home },
-    { id: 'cycle', label: ui.navigation.cycle },
-    { id: 'labs', label: ui.navigation.labs },
-    { id: 'meds', label: ui.navigation.meds },
-    { id: 'profile', label: ui.navigation.profile },
-    { id: 'history', label: ui.navigation.history },
-    { id: 'reflections', label: ui.navigation.reflections },
-    { id: 'voice_files', label: ui.navigation.voiceFiles || 'My Voice Files' },
-    { id: 'creative', label: ui.navigation.creative },
-    { id: 'library', label: ui.navigation.library },
-    { id: 'bridge', label: ui.navigation.bridge || 'The Bridge' },
-    { id: 'relationships', label: footerCopy.relationships },
-    { id: 'family', label: ui.navigation.family },
-    { id: 'partner_faq', label: ui.bridge.partnerFAQ.title },
-    { id: 'faq', label: ui.navigation.faq },
-    { id: 'contact', label: ui.navigation.contact },
-    { id: 'crisis', label: ui.navigation.crisis },
-    { id: 'about', label: footerCopy.about },
-    { id: 'how_it_works', label: footerCopy.howItWorks },
-    { id: 'privacy', label: footerCopy.privacy },
-    { id: 'terms', label: footerCopy.terms },
-    { id: 'medical', label: footerCopy.medical },
-    { id: 'cookies', label: footerCopy.cookies },
-    { id: 'data_rights', label: footerCopy.dataRights },
-  ];
+  const footerSectionTitlesByLang: LangCopy<{ explore: string; legal: string; install: string; preferences: string }> = {
+    en: { explore: 'Explore', legal: 'Legal', install: 'Install App', preferences: 'Language & Theme' },
+    ru: { explore: 'Разделы', legal: 'Юридический раздел', install: 'Установить App', preferences: 'Язык и тема' },
+    uk: { explore: 'Розділи', legal: 'Юридичний розділ', install: 'Встановити App', preferences: 'Мова і тема' },
+    es: { explore: 'Secciones', legal: 'Legal', install: 'Instalar App', preferences: 'Idioma y tema' },
+    fr: { explore: 'Sections', legal: 'Juridique', install: 'Installer App', preferences: 'Langue et theme' },
+    de: { explore: 'Bereiche', legal: 'Rechtliches', install: 'App installieren', preferences: 'Sprache und Design' },
+    zh: { explore: '页面', legal: '法律信息', install: '安装 App', preferences: '语言与主题' },
+    ja: { explore: 'ページ', legal: '法務情報', install: 'App をインストール', preferences: '言語とテーマ' },
+    pt: { explore: 'Secoes', legal: 'Legal', install: 'Instalar App', preferences: 'Idioma e tema' },
+    ar: { explore: 'استكشاف', legal: 'قانوني', install: 'تثبيت التطبيق', preferences: 'اللغة والمظهر' },
+    he: { explore: 'חקירה', legal: 'משפטי', install: 'התקנת אפליקציה', preferences: 'שפה וערכת נושא' },
+  };
 
-  const publicLinks = [
-    { href: '/', label: ui.publicHome.tabs.home },
-    { href: '/luna-balance', label: ui.publicHome.tabs.map },
-    { href: '/rhythm-calendar', label: getMemberNavCopy(lang).rhythmCalendar },
-    { href: '/ritual-path', label: footerCopy.ritualPath },
-    { href: '/the-bridge', label: ui.navigation.bridge || 'The Bridge' },
-    { href: '/pricing', label: footerCopy.pricing },
-    { href: '/how-it-works', label: footerCopy.howItWorks },
-    { href: '/faq', label: footerCopy.faq },
-    { href: '/learning', label: footerCopy.learning },
-  ];
+  const pricingLabelByLang: LangCopy<string> = {
+    en: 'Pricing', ru: 'Тарифы', uk: 'Тарифи', es: 'Precios', fr: 'Tarifs', de: 'Preise', zh: '价格', ja: '料金', pt: 'Preços', ar: 'الأسعار', he: 'מחירים',
+  };
+  const aboutLabelByLang: LangCopy<string> = {
+    en: 'About', ru: 'О проекте', uk: 'Про проект', es: 'Acerca', fr: 'A propos', de: 'Uber', zh: '关于', ja: '概要', pt: 'Sobre', ar: 'حول Luna29', he: 'אודות Luna29',
+  };
+  const howItWorksLabelByLang: LangCopy<string> = {
+    en: 'How It Works', ru: 'Как это работает', uk: 'Як це працює', es: 'Cómo funciona', fr: 'Comment ça marche', de: 'So funktioniert es', zh: '如何运作', ja: '使い方', pt: 'Como funciona', ar: 'كيف يعمل', he: 'איך זה עובד',
+  };
+  const faqLabelByLang: LangCopy<string> = {
+    en: 'FAQ', ru: 'FAQ', uk: 'FAQ', es: 'FAQ', fr: 'FAQ', de: 'FAQ', zh: '常见问题', ja: 'FAQ', pt: 'FAQ', ar: 'الأسئلة الشائعة', he: 'שאלות נפוצות',
+  };
+  const learningLabelByLang: LangCopy<string> = {
+    en: 'Learning', ru: 'Обучение', uk: 'Навчання', es: 'Aprendizaje', fr: 'Apprentissage', de: 'Lernen', zh: '学习', ja: '学習', pt: 'Aprendizagem', ar: 'التعلّم', he: 'לימוד',
+  };
+
+  const publicHomeNavLabelsByLang: LangCopy<{ ritual: string }> = {
+    en: { ritual: 'Ritual Path' },
+    ru: { ritual: 'Ритуальный путь' },
+    uk: { ritual: 'Ритуальний шлях' },
+    es: { ritual: 'Ruta ritual' },
+    fr: { ritual: 'Chemin rituel' },
+    de: { ritual: 'Ritualpfad' },
+    zh: { ritual: '仪式路径' },
+    ja: { ritual: 'リチュアルパス' },
+    pt: { ritual: 'Caminho ritual' },
+    ar: { ritual: 'المسار الطقسي' },
+    he: { ritual: 'נתיב טקסי' },
+  };
+
+  const themeLabelByLang: LangCopy<string> = {
+    en: 'Theme', ru: 'Тема', uk: 'Тема', es: 'Tema', fr: 'Thème', de: 'Thema', zh: '主题', ja: 'テーマ', pt: 'Tema', ar: 'المظهر', he: 'ערכת נושא',
+  };
+
+  const installActionsByLang: LangCopy<{ android: string; desktop: string; social: string }> = {
+    en: { android: 'Android Install', desktop: 'Install on Desktop', social: 'Social' },
+    ru: { android: 'Установить на Android', desktop: 'Установить на компьютер', social: 'Соцсети' },
+    uk: { android: 'Встановити на Android', desktop: 'Встановити на компʼютер', social: 'Соцмережі' },
+    es: { android: 'Instalar en Android', desktop: 'Instalar en escritorio', social: 'Social' },
+    fr: { android: 'Installer Android', desktop: 'Installer sur ordinateur', social: 'Social' },
+    de: { android: 'Android installieren', desktop: 'Auf Desktop installieren', social: 'Social' },
+    zh: { android: 'Android 安装', desktop: '桌面安装', social: '社交' },
+    ja: { android: 'Android にインストール', desktop: 'デスクトップにインストール', social: 'SNS' },
+    pt: { android: 'Instalar no Android', desktop: 'Instalar no desktop', social: 'Social' },
+    ar: { android: 'تثبيت Android', desktop: 'تثبيت على سطح المكتب', social: 'Social' },
+    he: { android: 'התקנה ב-Android', desktop: 'התקנה במחשב', social: 'Social' },
+  };
+
+  const storeBadgesByLang: LangCopy<{ appStore: string; googlePlay: string; soon: string }> = {
+    en: { appStore: 'App Store', googlePlay: 'Google Play', soon: 'Store links coming soon.' },
+    ru: { appStore: 'App Store', googlePlay: 'Google Play', soon: 'Ссылки на магазины скоро появятся.' },
+    uk: { appStore: 'App Store', googlePlay: 'Google Play', soon: 'Посилання на магазини зʼявляться незабаром.' },
+    es: { appStore: 'App Store', googlePlay: 'Google Play', soon: 'Enlaces de tiendas próximamente.' },
+    fr: { appStore: 'App Store', googlePlay: 'Google Play', soon: 'Liens stores bientôt disponibles.' },
+    de: { appStore: 'App Store', googlePlay: 'Google Play', soon: 'Store-Links folgen in Kürze.' },
+    zh: { appStore: 'App Store', googlePlay: 'Google Play', soon: '商店链接即将上线。' },
+    ja: { appStore: 'App Store', googlePlay: 'Google Play', soon: 'ストアリンクは近日公開。' },
+    pt: { appStore: 'App Store', googlePlay: 'Google Play', soon: 'Links das lojas em breve.' },
+    ar: { appStore: 'App Store', googlePlay: 'Google Play', soon: 'روابط المتاجر قريباً.' },
+    he: { appStore: 'App Store', googlePlay: 'Google Play', soon: 'קישורי החנות יופיעו בקרוב.' },
+  };
+
+  const installGuideModalByLang: LangCopy<{ title: string; close: string }> = {
+    en: { title: 'Install Luna29', close: 'Close' },
+    ru: { title: 'Установить Luna29', close: 'Закрыть' },
+    uk: { title: 'Встановити Luna29', close: 'Закрити' },
+    es: { title: 'Instalar Luna29', close: 'Cerrar' },
+    fr: { title: 'Installer Luna29', close: 'Fermer' },
+    de: { title: 'Luna29 installieren', close: 'Schließen' },
+    zh: { title: '安装 Luna29', close: '关闭' },
+    ja: { title: 'Luna29 をインストール', close: '閉じる' },
+    pt: { title: 'Instalar Luna29', close: 'Fechar' },
+    ar: { title: 'تثبيت Luna29', close: 'إغلاق' },
+    he: { title: 'התקנת Luna29', close: 'סגירה' },
+  };
+
+  const footerSectionTitles = getLang(footerSectionTitlesByLang, lang) || footerSectionTitlesByLang.en;
+  const publicHomeNavLabels = getLang(publicHomeNavLabelsByLang, lang) || publicHomeNavLabelsByLang.en;
+  const installActions = getLang(installActionsByLang, lang) || installActionsByLang.en;
+  const storeBadges = getLang(storeBadgesByLang, lang) || storeBadgesByLang.en;
+  const installGuideModal = getLang(installGuideModalByLang, lang) || installGuideModalByLang.en;
+
+  const exploreLabel = (id: TabType): string => {
+    if (id === 'dashboard') return ui.publicHome.tabs.home;
+    if (id === 'cycle') return ui.publicHome.tabs.map;
+    if (id === 'rhythm_calendar') return memberNav.rhythmCalendar;
+    if (id === 'ritual_path') return publicHomeNavLabels.ritual;
+    if (id === 'bridge') return ui.navigation.bridge || 'The Bridge';
+    if (id === 'pricing') return getLang(pricingLabelByLang, lang) || 'Pricing';
+    if (id === 'about') return getLang(aboutLabelByLang, lang) || 'About';
+    if (id === 'how_it_works') return getLang(howItWorksLabelByLang, lang) || 'How It Works';
+    if (id === 'faq') return getLang(faqLabelByLang, lang) || 'FAQ';
+    if (id === 'learning') return getLang(learningLabelByLang, lang) || 'Learning';
+    return id;
+  };
+
+  const footerExploreLinks: FooterTabLink[] = useMemo(
+    () =>
+      MEMBER_FOOTER_EXPLORE_TABS.map((item) => ({
+        id: item.id,
+        testId: item.testId,
+        label: exploreLabel(item.id),
+      })),
+    [lang, memberNav.rhythmCalendar, publicHomeNavLabels.ritual, ui.navigation.bridge, ui.publicHome.tabs.home, ui.publicHome.tabs.map]
+  );
+
+  const footerLegalLinks: FooterTabLink[] = useMemo(
+    () => [
+      { id: 'privacy', label: legalNav.privacy, testId: 'privacy' },
+      { id: 'terms', label: legalNav.terms, testId: 'terms' },
+      { id: 'medical', label: legalNav.medical, testId: 'medical' },
+      { id: 'cookies', label: legalNav.cookies, testId: 'cookies' },
+      { id: 'data_rights', label: legalNav.data_rights, testId: 'data_rights' },
+    ],
+    [legalNav]
+  );
+
+  const footerExploreMid = Math.ceil(footerExploreLinks.length / 2);
+  const footerExploreColumns = [footerExploreLinks.slice(0, footerExploreMid), footerExploreLinks.slice(footerExploreMid)];
+  const footerLegalMid = Math.ceil(footerLegalLinks.length / 2);
+  const footerLegalColumns = [footerLegalLinks.slice(0, footerLegalMid), footerLegalLinks.slice(footerLegalMid)];
 
   const socialLinks = [
-    { href: 'https://facebook.com', label: 'Facebook', icon: Facebook, iconColor: 'text-[#1877F2]' },
-    { href: 'https://instagram.com', label: 'Instagram', icon: Instagram, iconColor: 'text-[#DD2A7B]' },
-    { href: 'https://youtube.com', label: 'YouTube', icon: Youtube, iconColor: 'text-[#FF0000]' },
-    { href: 'https://tiktok.com', label: 'TikTok', icon: Music2, iconColor: 'text-[#111111] dark:text-white' },
+    { id: 'facebook', href: 'https://facebook.com', label: 'Facebook', icon: Facebook, iconBg: 'bg-[#1877F2]/15', iconColor: 'text-[#1877F2]' },
+    { id: 'instagram', href: 'https://instagram.com', label: 'Instagram', icon: Instagram, iconBg: 'bg-[#DD2A7B]/15', iconColor: 'text-[#DD2A7B]' },
+    { id: 'youtube', href: 'https://youtube.com', label: 'YouTube', icon: Youtube, iconBg: 'bg-[#FF0000]/15', iconColor: 'text-[#FF0000]' },
+    { id: 'tiktok', href: 'https://tiktok.com', label: 'TikTok', icon: Music2, iconBg: 'bg-slate-900/10 dark:bg-white/10', iconColor: 'text-slate-900 dark:text-white' },
   ];
 
-  const footerCategoriesByLang: LangCopy< { member: string; tools: string; support: string; legal: string; public: string; account: string }> = {
-    en: { member: 'Member Zone', tools: 'Tools', support: 'Support', legal: 'Legal', public: 'Public', account: 'Account' },
-    ru: { member: 'Мембер Зона', tools: 'Инструменты', support: 'Поддержка', legal: 'Юридически', public: 'Публично', account: 'Аккаунт' },
-    uk: { member: 'Мембер Зона', tools: 'Інструменти', support: 'Підтримка', legal: 'Юридично', public: 'Публічно', account: 'Акаунт' },
-    es: { member: 'Member Zone', tools: 'Herramientas', support: 'Soporte', legal: 'Legal', public: 'Público', account: 'Cuenta' },
-    fr: { member: 'Member Zone', tools: 'Outils', support: 'Support', legal: 'Légal', public: 'Public', account: 'Compte' },
-    de: { member: 'Member Zone', tools: 'Tools', support: 'Support', legal: 'Rechtlich', public: 'Öffentlich', account: 'Konto' },
-    zh: { member: '会员区', tools: '工具', support: '支持', legal: '法律', public: '公开', account: '账户' },
-    ja: { member: 'メンバーゾーン', tools: 'ツール', support: 'サポート', legal: '法務', public: '公開', account: 'アカウント' },
-    pt: { member: 'Member Zone', tools: 'Ferramentas', support: 'Suporte', legal: 'Legal', public: 'Público', account: 'Conta' },
-  ar: { member: 'Member Zone', tools: 'Tools', support: 'Support', legal: 'Legal', public: 'Public', account: 'Account' },
-  he: { member: 'Member Zone', tools: 'Tools', support: 'Support', legal: 'Legal', public: 'Public', account: 'Account' },};
-  const category = getLang(footerCategoriesByLang, lang) || footerCategoriesByLang.en;
+  const renderExploreLink = (link: FooterTabLink, key: string) => (
+    <button
+      key={key}
+      type="button"
+      data-testid={link.testId ? `footer-nav-${link.testId}` : `footer-nav-${link.id}`}
+      onClick={() => navigateTo(link.id)}
+      className="text-left"
+    >
+      <LunaMenuLabel text={link.label} muted className="font-light" />
+    </button>
+  );
 
-  const memberCategoryLinks: Array<{ title: string; items: Array<{ id: TabType; label: string; danger?: boolean }> }> = [
-    {
-      title: category.member,
-      items: [
-        { id: 'dashboard', label: ui.navigation.home },
-        { id: 'cycle', label: ui.navigation.cycle },
-        { id: 'history', label: ui.navigation.history },
-        { id: 'profile', label: ui.navigation.profile },
-      ],
-    },
-    {
-      title: category.tools,
-      items: [
-        { id: 'labs', label: ui.navigation.labs },
-        { id: 'meds', label: ui.navigation.meds },
-        { id: 'reflections', label: ui.navigation.reflections },
-        { id: 'voice_files', label: ui.navigation.voiceFiles || 'My Voice Files' },
-        { id: 'creative', label: ui.navigation.creative },
-        { id: 'library', label: ui.navigation.library },
-        { id: 'bridge', label: ui.navigation.bridge || 'The Bridge' },
-        { id: 'relationships', label: footerCopy.relationships },
-        { id: 'family', label: ui.navigation.family },
-        { id: 'partner_faq', label: 'Partner FAQ' },
-      ],
-    },
-    {
-      title: category.support,
-      items: [
-        { id: 'faq', label: ui.navigation.faq },
-        { id: 'contact', label: ui.navigation.contact },
-        { id: 'crisis', label: ui.navigation.crisis, danger: true },
-      ],
-    },
-    {
-      title: category.legal,
-      items: [
-        { id: 'about', label: footerCopy.about },
-        { id: 'how_it_works', label: footerCopy.howItWorks },
-        { id: 'privacy', label: footerCopy.privacy },
-        { id: 'terms', label: footerCopy.terms },
-        { id: 'medical', label: footerCopy.medical },
-        { id: 'cookies', label: footerCopy.cookies },
-        { id: 'data_rights', label: footerCopy.dataRights },
-      ],
-    },
-  ];
+  const renderLegalLink = (link: FooterTabLink, key: string) => (
+    <button
+      key={key}
+      type="button"
+      data-testid={link.testId ? `footer-nav-${link.testId}` : undefined}
+      onClick={() => navigateTo(link.id)}
+      className="text-left"
+    >
+      <LunaMenuLabel text={link.label} muted className="font-light" />
+    </button>
+  );
 
   return (
-    <footer className="w-full border-t border-slate-300 dark:border-white/10 py-16 px-6 glass mt-auto relative overflow-hidden">
-      <div className="max-w-7xl mx-auto space-y-8 relative z-10">
-        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
-          <div className="space-y-3">
+    <>
+      <footer className={`w-full border-t-2 ${footerMoonAccent.borderClass} py-16 px-6 md:px-8 glass bg-slate-200/55 dark:bg-slate-950/72 mt-auto relative overflow-visible`}>
+        <div className="max-w-7xl mx-auto space-y-14 relative z-10">
+          <div className="space-y-4 max-w-2xl">
             <div className="flex items-center gap-0.5 origin-left scale-[1.12]">
               <img src={getBrandAssetUrl('icon')} alt="" aria-hidden="true" className="h-16 w-auto md:h-[4.5rem] object-contain select-none pointer-events-none" />
-              <Logo size="md" className="text-7xl leading-none" />
+              <Logo size="sm" className="cursor-default text-4xl md:text-5xl leading-none" />
             </div>
-            <p className="text-base font-bold text-slate-700 dark:text-slate-400 italic">{footerCopy.slogan}</p>
-            <p className="text-sm font-semibold text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl">{footerCopy.sanctuary}</p>
+            <p className="text-base md:text-lg font-semibold text-slate-800 dark:text-slate-400">{homeStory.heroLead}</p>
+            <p className="text-sm font-light italic leading-relaxed text-slate-600 dark:text-slate-400">{footerMicroRitual}</p>
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-1">
+              <button type="button" onClick={() => navigateTo('about')} className="text-[13px] font-light underline underline-offset-4">
+                <LunaMenuLabel text={footerSpiritActions.whyLuna29} muted />
+              </button>
+              {onOpenLive && (
+                <button type="button" onClick={onOpenLive} className="text-[13px] font-light underline underline-offset-4">
+                  <LunaMenuLabel text={footerSpiritActions.askLuna} muted />
+                </button>
+              )}
+            </div>
+            <p className="text-[12px] font-normal leading-relaxed text-slate-600 dark:text-slate-400">{footerTrustLine}</p>
+            <div className="flex items-center gap-2 text-[11px] font-light text-slate-500 dark:text-slate-400">
+              <span className={`inline-block w-2 h-2 rounded-full shrink-0 ${footerMoonAccent.dotClass} ${footerMoonAccent.glowClass}`} aria-hidden="true" />
+              <span>{footerMoonAccent.label}</span>
+            </div>
           </div>
-          <div className="flex items-center gap-4">
-            {socialLinks.map((social) => {
-              const Icon = social.icon;
-              return (
-                <a
-                  key={social.href}
-                  href={social.href}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label={social.label}
-                  title={social.label}
-                  className="transition-transform hover:scale-110"
-                >
-                  <Icon className={`w-5 h-5 ${social.iconColor}`} />
-                </a>
-              );
-            })}
-          </div>
-        </div>
 
-        <div className="rounded-2xl border border-slate-300/70 dark:border-slate-700/70 bg-slate-100/85 dark:bg-slate-900/45 p-5 md:p-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-6">
-            {memberCategoryLinks.map((group) => (
-              <div key={group.title} className="space-y-2">
-                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500 dark:text-slate-300">{group.title}</p>
-                <div className="flex flex-col items-start gap-1.5">
-                  {group.items.map((item) => (
-                    <button
-                      key={item.id}
-                      data-testid={`footer-nav-${item.id}`}
-                      onClick={() => navigateTo(item.id)}
-                      className={`${footerLinkClass} text-left ${item.danger ? 'text-rose-600 hover:text-rose-700' : ''}`}
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-8 sm:gap-x-12 gap-y-10 sm:gap-y-12 min-w-0">
+            <nav className="space-y-4 min-w-0 sm:col-span-2 xl:col-span-1">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em]">
+                <LunaShimmerText text={footerSectionTitles.explore} className="opacity-90 font-semibold" />
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5 text-[13px] font-light">
+                {footerExploreColumns.map((column, columnIndex) => (
+                  <div key={`footer-explore-col-${columnIndex}`} className="flex flex-col gap-2.5">
+                    {column.map((link) => renderExploreLink(link, `footer-explore-${columnIndex}-${link.id}`))}
+                  </div>
+                ))}
+              </div>
+            </nav>
+
+            <nav className="space-y-4 min-w-0 sm:col-span-2 xl:col-span-1">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em]">
+                <LunaShimmerText text={footerSectionTitles.legal} className="opacity-90 font-semibold" />
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5 text-[13px] font-light">
+                {footerLegalColumns.map((column, columnIndex) => (
+                  <div key={`footer-legal-col-${columnIndex}`} className="flex flex-col gap-2.5">
+                    {column.map((link) => renderLegalLink(link, `footer-legal-${columnIndex}-${link.id}`))}
+                  </div>
+                ))}
+              </div>
+            </nav>
+
+            <nav className="space-y-4 min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em]">
+                <LunaShimmerText text={footerSectionTitles.install} className="opacity-90 font-semibold" />
+              </p>
+              <div className="flex flex-col gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setShowInstallGuideModal(true)}
+                  className="text-left text-[13px] font-light tracking-[0.03em] underline underline-offset-4"
+                >
+                  <LunaMenuLabel text={installGuideModal.title} muted className="font-light" />
+                </button>
+                {!isStandaloneMode && (
+                  <button
+                    type="button"
+                    onClick={() => void runMemberInstall()}
+                    className="text-left text-[12px] font-semibold"
+                  >
+                    <LunaMenuLabel
+                      text={mobilePlatform === 'other' ? installActions.desktop : installActions.android}
+                      muted
+                      className="font-semibold"
+                    />
+                  </button>
+                )}
+                {appStoreUrl && (
+                  <a href={appStoreUrl} target="_blank" rel="noreferrer" className="text-left text-[12px] font-semibold">
+                    <LunaMenuLabel text={storeBadges.appStore} muted className="font-semibold" />
+                  </a>
+                )}
+                {googlePlayUrl && (
+                  <a href={googlePlayUrl} target="_blank" rel="noreferrer" className="text-left text-[12px] font-semibold">
+                    <LunaMenuLabel text={storeBadges.googlePlay} muted className="font-semibold" />
+                  </a>
+                )}
+                {!appStoreUrl && !googlePlayUrl && (
+                  <p className="text-[11px] font-light text-slate-500 dark:text-slate-400">{storeBadges.soon}</p>
+                )}
+              </div>
+              <div className="pt-4 border-t border-slate-300/70 dark:border-slate-700/70 space-y-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em]">
+                  <LunaShimmerText text={installActions.social} className="opacity-90 font-semibold" />
+                </p>
+                <div className="flex items-center gap-3">
+                  {socialLinks.map((social) => (
+                    <a
+                      key={social.id}
+                      href={social.href}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label={social.label}
+                      className="text-slate-700 dark:text-slate-300 hover:-translate-y-[1px] transition-transform"
                     >
-                      {item.label}
-                    </button>
+                      <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full ${social.iconBg}`}>
+                        <social.icon size={14} className={social.iconColor} />
+                      </span>
+                    </a>
                   ))}
                 </div>
               </div>
-            ))}
+            </nav>
 
-            <div className="space-y-2">
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500 dark:text-slate-300">{category.public}</p>
-              <div className="flex flex-col items-start gap-1.5">
-                {publicLinks.map((item) => (
-                  <a key={item.href} href={item.href} className={`${footerLinkClass} text-left`}>
-                    {item.label}
-                  </a>
-                ))}
+            <nav className="space-y-4 min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em]">
+                <LunaShimmerText text={footerSectionTitles.preferences} className="opacity-90 font-semibold" />
+              </p>
+              <div className="flex flex-col gap-4">
+                <LanguageSelector current={lang} onSelect={setLang} variant="footer" menuAlign="left" menuPlacement="top" />
+                <div className="flex items-center gap-3">
+                  <LunaMenuLabel
+                    text={getLang(themeLabelByLang, lang) || themeLabelByLang.en}
+                    muted
+                    className="text-[13px] font-light tracking-[0.03em]"
+                  />
+                  <ThemeToggle theme={theme} toggle={() => setTheme(theme === 'light' ? 'dark' : 'light')} />
+                </div>
               </div>
-            </div>
+            </nav>
+          </div>
 
+          <div className="pt-8 border-t border-slate-300 dark:border-slate-800">
             <div className="space-y-2">
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500 dark:text-slate-300">{category.account}</p>
-              <div className="flex flex-col items-start gap-1.5">
-                <button
-                  data-testid="footer-nav-admin"
-                  onClick={() => navigateTo('admin')}
-                  className={`${footerLinkClass} text-left ${canAccessAdmin ? 'text-luna-purple' : 'text-slate-400 hover:text-slate-500'}`}
-                >
-                  {ui.navigation.admin || 'Admin'}
-                </button>
-              </div>
+              <p className="text-[9px] font-black uppercase tracking-[0.35em] text-slate-700 dark:text-slate-400">{ui.publicHome.footerCopy}</p>
+              <p className="text-[11px] font-medium text-slate-700 dark:text-slate-400 leading-relaxed">{ui.shared.disclaimer}</p>
             </div>
           </div>
         </div>
+      </footer>
 
-        <div className="pt-6 border-t border-slate-300 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">© 2026 LUNA29 BALANCE SYSTEMS</p>
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-700">v5.0.1</span>
+      {showInstallGuideModal && (
+        <div
+          className="fixed inset-0 z-[900] bg-slate-950/55 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setShowInstallGuideModal(false)}
+        >
+          <div
+            className="w-full max-w-lg rounded-[2rem] border border-slate-200/80 dark:border-slate-700/80 bg-white/95 dark:bg-slate-900/95 p-6 md:p-8 shadow-[0_30px_80px_rgba(0,0,0,0.35)] space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="text-xs font-black uppercase tracking-[0.24em] text-luna-purple">{installGuideModal.title}</p>
+            <p className="text-sm font-semibold text-slate-600 dark:text-slate-300 leading-relaxed">
+              {mobilePlatform === 'ios'
+                ? 'Safari → Share → Add to Home Screen.'
+                : mobilePlatform === 'android'
+                  ? 'Chrome menu → Install App.'
+                  : 'Use Chrome or Edge menu → Install Luna29.'}
+            </p>
+            {!isStandaloneMode && (
+              <button
+                type="button"
+                onClick={() => void runMemberInstall()}
+                className="px-5 py-2.5 rounded-full bg-luna-purple text-white text-[10px] font-black uppercase tracking-widest"
+              >
+                {mobilePlatform === 'other' ? installActions.desktop : installActions.android}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setShowInstallGuideModal(false)}
+              className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 underline underline-offset-4"
+            >
+              {installGuideModal.close}
+            </button>
+          </div>
         </div>
-
-        <div className="rounded-2xl border border-slate-300/70 dark:border-slate-700/70 bg-slate-100/85 dark:bg-slate-900/45 p-4">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 dark:text-slate-300">{footerCopy.disclaimerLabel}</p>
-          <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400 leading-relaxed">{ui.shared.disclaimer}</p>
-        </div>
-      </div>
-    </footer>
+      )}
+    </>
   );
 };

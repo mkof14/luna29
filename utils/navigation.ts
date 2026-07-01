@@ -25,13 +25,15 @@ export type TabType =
   | 'crisis'
   | 'partner_faq'
   | 'relationships'
-  | 'admin'
   | 'how_it_works'
   | 'terms'
   | 'medical'
   | 'cookies'
   | 'data_rights'
-  | 'rhythm_calendar';
+  | 'rhythm_calendar'
+  | 'learning'
+  | 'pricing'
+  | 'ritual_path';
 
 type NavItem = {
   id: TabType;
@@ -48,7 +50,7 @@ type NavigationUi = {
   navigation: Partial<{ admin?: string }> & Record<string, string>;
 };
 
-export const buildSidebarGroups = (ui: NavigationUi, includeAdmin = false, lang: Language = 'en'): NavGroup[] => {
+export const buildSidebarGroups = (ui: NavigationUi, lang: Language = 'en'): NavGroup[] => {
   const nav = getMemberNavCopy(lang);
   const groups: NavGroup[] = [
     {
@@ -98,13 +100,6 @@ export const buildSidebarGroups = (ui: NavigationUi, includeAdmin = false, lang:
       ],
     },
   ];
-
-  if (includeAdmin) {
-    groups.push({
-      title: nav.groupAdmin,
-      items: [{ id: 'admin', label: ui.navigation.admin || nav.adminConsole, icon: '🛠️' }],
-    });
-  }
 
   return groups;
 };
