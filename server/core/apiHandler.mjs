@@ -12,6 +12,7 @@ import { buildTrialRecord } from './billingTrial.mjs';
 import { sendCalendarReminderEmail, isCalendarEmailEnabled } from './calendarEmail.mjs';
 import { dispatchDueEmailReminders } from './calendarReminders.mjs';
 import { createRateLimiter, isUpstashRateLimitEnabled } from './rateLimit.mjs';
+import { createAdminRouter, createAdminStateStore } from '../admin/index.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -101,47 +102,6 @@ const ALLOWED_ORIGINS = new Set(
 const rateLimit = createRateLimiter();
 const sessions = new Map();
 let lastSessionPurgeAt = 0;
-
-const DEFAULT_ADMIN_STATE = {
-  services: [
-    { id: 'svc-auth', name: 'Auth Gateway', status: 'Healthy', owner: 'Ops', uptime: '99.98%' },
-    { id: 'svc-ai', name: 'Narrative Engine', status: 'Healthy', owner: 'AI', uptime: '99.87%' },
-    { id: 'svc-sync', name: 'Sync Queue', status: 'Degraded', owner: 'Platform', uptime: '98.62%' },
-    { id: 'svc-mail', name: 'Mail Dispatch', status: 'Healthy', owner: 'Growth', uptime: '99.91%' },
-  ],
-  content: [],
-  templates: [],
-  templateHistory: {},
-  admins: [
-    { id: 'adm-0', name: 'Luna29 Primary Admin', email: PRIMARY_SUPER_ADMIN_EMAIL, role: 'super_admin', active: true },
-    { id: 'adm-1', name: 'Luna29 Owner', email: 'owner@luna.app', role: 'super_admin', active: true },
-    { id: 'adm-2', name: 'Ops Control', email: 'ops@luna.app', role: 'operator', active: true },
-    { id: 'adm-3', name: 'Growth Team', email: 'marketing@luna.app', role: 'content_manager', active: true },
-    { id: 'adm-4', name: 'Finance Board', email: 'finance@luna.app', role: 'finance_manager', active: true },
-  ],
-  testHistory: [
-    'Smoke tests: PASS (2026-03-03 08:20)',
-    'Email template lint: PASS (2026-03-03 08:16)',
-    'Analytics sync check: WARN (2026-03-03 07:54)',
-  ],
-  financialMetrics: {
-    mrr: 48240,
-    arr: 578880,
-    churn: 2.4,
-    ltv: 386,
-    cac: 59,
-    conversion: 6.8,
-    activeSubscribers: 2148,
-    trialToPaid: 41.7,
-  },
-  technicalMetrics: {
-    apiP95: 183,
-    errorRate: 0.31,
-    queueLag: 12,
-  },
-  metricsHistory: [],
-  audit: [],
-};
 
 const normalizeEmail = (email) => String(email || '').trim().toLowerCase();
 
@@ -772,119 +732,6 @@ const extractLabTextFromPdf = async ({ dataUrl, mimeType = 'application/pdf' }) 
   };
 };
 
-const sanitizeAdminState = (raw) => {
-  const next = { ...DEFAULT_ADMIN_STATE };
-  if (!raw || typeof raw !== 'object') return next;
-
-  if (Array.isArray(raw.services)) {
-    next.services = raw.services.map((item, index) => ({
-      id: safeText(item.id || `svc-${index}`, 80),
-      name: safeText(item.name || 'Service', 120),
-      status: ['Healthy', 'Degraded', 'Down'].includes(item.status) ? item.status : 'Healthy',
-      owner: safeText(item.owner || 'Ops', 80),
-      uptime: safeText(item.uptime || '99.00%', 20),
-    }));
-  }
-
-  if (Array.isArray(raw.content)) {
-    next.content = raw.content.slice(0, 500);
-  }
-
-  if (Array.isArray(raw.templates)) {
-    next.templates = raw.templates.slice(0, 500);
-  }
-
-  if (raw.templateHistory && typeof raw.templateHistory === 'object') {
-    next.templateHistory = raw.templateHistory;
-  }
-
-  if (Array.isArray(raw.admins)) {
-    next.admins = raw.admins.map((item, index) => ({
-      id: safeText(item.id || `adm-${index}`, 80),
-      name: safeText(item.name || 'Admin', 120),
-      email: normalizeEmail(item.email || ''),
-      role: ROLE_PERMISSIONS[item.role] ? item.role : 'viewer',
-      active: Boolean(item.active),
-    }));
-  }
-
-  if (Array.isArray(raw.testHistory)) {
-    next.testHistory = raw.testHistory.map((item) => safeText(item, 300)).filter(Boolean).slice(0, 100);
-  }
-
-  if (raw.financialMetrics && typeof raw.financialMetrics === 'object') {
-    next.financialMetrics = {
-      mrr: numberOr(raw.financialMetrics.mrr, 48240),
-      arr: numberOr(raw.financialMetrics.arr, 578880),
-      churn: numberOr(raw.financialMetrics.churn, 2.4),
-      ltv: numberOr(raw.financialMetrics.ltv, 386),
-      cac: numberOr(raw.financialMetrics.cac, 59),
-      conversion: numberOr(raw.financialMetrics.conversion, 6.8),
-      activeSubscribers: numberOr(raw.financialMetrics.activeSubscribers, 2148),
-      trialToPaid: numberOr(raw.financialMetrics.trialToPaid, 41.7),
-    };
-  }
-
-  if (raw.technicalMetrics && typeof raw.technicalMetrics === 'object') {
-    next.technicalMetrics = {
-      apiP95: numberOr(raw.technicalMetrics.apiP95, 183),
-      errorRate: numberOr(raw.technicalMetrics.errorRate, 0.31),
-      queueLag: numberOr(raw.technicalMetrics.queueLag, 12),
-    };
-  }
-
-  if (Array.isArray(raw.metricsHistory)) {
-    next.metricsHistory = raw.metricsHistory.slice(0, 365).map((item) => ({
-      at: safeText(item.at || '', 64),
-      mrr: numberOr(item.mrr, 0),
-      churn: numberOr(item.churn, 0),
-      subscribers: numberOr(item.subscribers, 0),
-      apiP95: numberOr(item.apiP95, 0),
-      errorRate: numberOr(item.errorRate, 0),
-    }));
-  }
-
-  if (Array.isArray(raw.audit)) {
-    next.audit = raw.audit.slice(0, 500);
-  }
-
-  return next;
-};
-
-const pushAudit = (adminState, entry) => {
-  const nextEntry = {
-    id: `aud-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-    at: new Date().toISOString(),
-    ...entry,
-  };
-  adminState.audit = [nextEntry, ...(adminState.audit || [])].slice(0, 500);
-};
-
-const updateAdminStateByPermissions = (adminState, incoming, sessionPayload) => {
-  const allowed = {
-    services: sessionPayload.permissions.includes('manage_services'),
-    content: sessionPayload.permissions.includes('manage_marketing'),
-    templates: sessionPayload.permissions.includes('manage_email_templates'),
-    templateHistory: sessionPayload.permissions.includes('manage_email_templates'),
-    admins: sessionPayload.permissions.includes('manage_admin_roles'),
-    testHistory: sessionPayload.permissions.includes('manage_services'),
-    financialMetrics: sessionPayload.permissions.includes('manage_admin_roles'),
-    technicalMetrics: sessionPayload.permissions.includes('manage_admin_roles'),
-    metricsHistory: sessionPayload.permissions.includes('manage_admin_roles'),
-  };
-
-  const changed = [];
-
-  for (const key of Object.keys(allowed)) {
-    if (!allowed[key]) continue;
-    if (typeof incoming[key] === 'undefined') continue;
-    adminState[key] = incoming[key];
-    changed.push(key);
-  }
-
-  return changed;
-};
-
 const stripeConfigError = () => {
   if (!BILLING_ENABLED) return 'Stripe billing is disabled. Set STRIPE_BILLING_ENABLED=true.';
   if (!STRIPE_SECRET_KEY) return 'Missing STRIPE_SECRET_KEY.';
@@ -954,7 +801,25 @@ const start = async () => {
   let users = await readJson(DATA_FILE, []);
   if (!Array.isArray(users)) users = [];
 
-  let adminState = sanitizeAdminState(await readJson(ADMIN_DATA_FILE, DEFAULT_ADMIN_STATE));
+  const adminStore = createAdminStateStore({
+    readJson,
+    writeJson,
+    filePath: ADMIN_DATA_FILE,
+    helpers: { safeText, normalizeEmail, numberOr },
+  });
+  await adminStore.load();
+  const handleAdminApi = createAdminRouter(adminStore, {
+    safeText,
+    normalizeEmail,
+    SUPER_ADMIN_EMAILS,
+    isNonEmptyArray,
+    toCsv,
+    send,
+    sendText,
+    readBody,
+    buildSessionPayload,
+  });
+
   let contactSubmissions = await readJson(CONTACTS_FILE, []);
   if (!Array.isArray(contactSubmissions)) contactSubmissions = [];
   let privacyRequests = await readJson(PRIVACY_REQUESTS_FILE, []);
@@ -974,7 +839,6 @@ const start = async () => {
   const didPurgeOnBoot = purgeExpiredSessions();
 
   const saveUsers = async () => writeJson(DATA_FILE, users);
-  const saveAdminState = async () => writeJson(ADMIN_DATA_FILE, adminState);
   const saveContacts = async () => writeJson(CONTACTS_FILE, contactSubmissions);
   const saveSessions = async () => writeJson(SESSIONS_FILE, serializeSessions());
   const savePrivacyRequests = async () => writeJson(PRIVACY_REQUESTS_FILE, privacyRequests);
@@ -2383,345 +2247,7 @@ const start = async () => {
       return;
     }
 
-    if (method === 'POST' && url.pathname === '/api/admin/role') {
-      const auth = await requireSession(req, res, headers);
-      if (!auth) return;
-
-      if (!auth.sessionPayload.permissions.includes('manage_admin_roles')) {
-        send(res, 403, { error: 'Permission denied.' }, headers);
-        return;
-      }
-
-      try {
-        const body = await readBody(req);
-        const email = normalizeEmail(body.email);
-        const role = String(body.role || '');
-        if (!email || !ROLE_PERMISSIONS[role]) {
-          send(res, 400, { error: 'Invalid role update request.' }, headers);
-          return;
-        }
-        if (SUPER_ADMIN_EMAILS.has(email) && role !== 'super_admin') {
-          send(res, 403, { error: 'Primary super admin role is protected and cannot be downgraded.' }, headers);
-          return;
-        }
-
-        const targetUser = users.find((item) => item.email === email);
-        if (!targetUser) {
-          send(res, 404, { error: 'Target account not found.' }, headers);
-          return;
-        }
-
-        targetUser.roleOverride = role;
-        await saveUsers();
-
-        pushAudit(adminState, {
-          actorEmail: auth.sessionPayload.email,
-          actorRole: auth.sessionPayload.role,
-          action: 'admin.role.update',
-          details: `Assigned ${role} to ${email}`,
-        });
-        await saveAdminState();
-
-        send(res, 200, { session: buildSessionPayload(targetUser) }, headers);
-      } catch (error) {
-        send(res, 400, { error: error instanceof Error ? error.message : 'Unable to update role.' }, headers);
-      }
-      return;
-    }
-
-    if (method === 'GET' && url.pathname === '/api/admin/state') {
-      const auth = await requireSession(req, res, headers);
-      if (!auth) return;
-
-      if (!hasAnyPermission(auth.sessionPayload, ['manage_services', 'manage_marketing', 'manage_email_templates', 'manage_admin_roles', 'view_financials', 'view_technical_metrics'])) {
-        send(res, 403, { error: 'Permission denied.' }, headers);
-        return;
-      }
-
-      send(res, 200, {
-        services: adminState.services,
-        content: adminState.content,
-        templates: adminState.templates,
-        templateHistory: adminState.templateHistory,
-        admins: adminState.admins,
-        testHistory: adminState.testHistory,
-        financialMetrics: adminState.financialMetrics,
-        technicalMetrics: adminState.technicalMetrics,
-        metricsHistory: adminState.metricsHistory,
-      }, headers);
-      return;
-    }
-
-    if (method === 'POST' && url.pathname === '/api/admin/state') {
-      const auth = await requireSession(req, res, headers);
-      if (!auth) return;
-
-      try {
-        const body = await readBody(req);
-        const incoming = sanitizeAdminState(body || {});
-        const changed = updateAdminStateByPermissions(adminState, incoming, auth.sessionPayload);
-
-        if (!isNonEmptyArray(changed)) {
-          send(res, 403, { error: 'No permitted fields in update payload.' }, headers);
-          return;
-        }
-
-        pushAudit(adminState, {
-          actorEmail: auth.sessionPayload.email,
-          actorRole: auth.sessionPayload.role,
-          action: 'admin.state.update',
-          details: `Updated fields: ${changed.join(', ')}`,
-        });
-        await saveAdminState();
-
-        send(res, 200, { ok: true, changed }, headers);
-      } catch (error) {
-        send(res, 400, { error: error instanceof Error ? error.message : 'Unable to update admin state.' }, headers);
-      }
-      return;
-    }
-
-    if (method === 'GET' && url.pathname === '/api/admin/audit') {
-      const auth = await requireSession(req, res, headers);
-      if (!auth) return;
-
-      if (!hasAnyPermission(auth.sessionPayload, ['manage_admin_roles', 'manage_services'])) {
-        send(res, 403, { error: 'Permission denied.' }, headers);
-        return;
-      }
-
-      send(res, 200, { audit: adminState.audit || [] }, headers);
-      return;
-    }
-
-    if (method === 'GET' && url.pathname === '/api/admin/metrics') {
-      const auth = await requireSession(req, res, headers);
-      if (!auth) return;
-
-      if (!hasAnyPermission(auth.sessionPayload, ['view_financials', 'view_technical_metrics', 'manage_services', 'manage_admin_roles'])) {
-        send(res, 403, { error: 'Permission denied.' }, headers);
-        return;
-      }
-
-      send(
-        res,
-        200,
-        {
-          financial: adminState.financialMetrics,
-          technical: adminState.technicalMetrics,
-          history: adminState.metricsHistory || [],
-        },
-        headers
-      );
-      return;
-    }
-
-    if (method === 'POST' && url.pathname === '/api/admin/metrics/check') {
-      const auth = await requireSession(req, res, headers);
-      if (!auth) return;
-
-      if (!hasAnyPermission(auth.sessionPayload, ['manage_services', 'manage_admin_roles'])) {
-        send(res, 403, { error: 'Permission denied.' }, headers);
-        return;
-      }
-
-      const now = new Date();
-      const nextApiP95 = Math.max(120, Math.round(adminState.technicalMetrics.apiP95 + (Math.random() * 16 - 8)));
-      const nextErrorRate = Math.max(0.1, Number((adminState.technicalMetrics.errorRate + (Math.random() * 0.08 - 0.04)).toFixed(2)));
-      const nextQueueLag = Math.max(3, Math.round(adminState.technicalMetrics.queueLag + (Math.random() * 4 - 2)));
-
-      adminState.technicalMetrics = {
-        ...adminState.technicalMetrics,
-        apiP95: nextApiP95,
-        errorRate: nextErrorRate,
-        queueLag: nextQueueLag,
-      };
-
-      const checkLine = `System probes: PASS (${now.toLocaleString('en-US', { timeZone: 'UTC' })} UTC)`;
-      adminState.testHistory = [checkLine, ...(adminState.testHistory || [])].slice(0, 100);
-      adminState.metricsHistory = [
-        {
-          at: now.toISOString(),
-          mrr: adminState.financialMetrics.mrr,
-          churn: adminState.financialMetrics.churn,
-          subscribers: adminState.financialMetrics.activeSubscribers,
-          apiP95: adminState.technicalMetrics.apiP95,
-          errorRate: adminState.technicalMetrics.errorRate,
-        },
-        ...(adminState.metricsHistory || []),
-      ].slice(0, 365);
-
-      pushAudit(adminState, {
-        actorEmail: auth.sessionPayload.email,
-        actorRole: auth.sessionPayload.role,
-        action: 'admin.metrics.check',
-        details: `Updated technical metrics (p95=${nextApiP95}ms, err=${nextErrorRate}%, queue=${nextQueueLag}s)`,
-      });
-      await saveAdminState();
-
-      send(
-        res,
-        200,
-        {
-          ok: true,
-          technical: adminState.technicalMetrics,
-          testHistory: adminState.testHistory,
-          history: adminState.metricsHistory,
-        },
-        headers
-      );
-      return;
-    }
-
-    if (method === 'POST' && url.pathname === '/api/admin/social/connect-all') {
-      const auth = await requireSession(req, res, headers);
-      if (!auth) return;
-      if (!hasAnyPermission(auth.sessionPayload, ['manage_services', 'manage_admin_roles'])) {
-        send(res, 403, { error: 'Permission denied.' }, headers);
-        return;
-      }
-      pushAudit(adminState, {
-        actorEmail: auth.sessionPayload.email,
-        actorRole: auth.sessionPayload.role,
-        action: 'admin.social.connect_all',
-        details: 'Connected all social channels via mobile admin.',
-      });
-      await saveAdminState();
-      send(res, 200, { ok: true }, headers);
-      return;
-    }
-
-    if (method === 'POST' && url.pathname === '/api/admin/social/pending-review') {
-      const auth = await requireSession(req, res, headers);
-      if (!auth) return;
-      if (!hasAnyPermission(auth.sessionPayload, ['manage_services', 'manage_admin_roles'])) {
-        send(res, 403, { error: 'Permission denied.' }, headers);
-        return;
-      }
-      pushAudit(adminState, {
-        actorEmail: auth.sessionPayload.email,
-        actorRole: auth.sessionPayload.role,
-        action: 'admin.social.pending_review',
-        details: 'Set social channels to pending review via mobile admin.',
-      });
-      await saveAdminState();
-      send(res, 200, { ok: true }, headers);
-      return;
-    }
-
-    if (method === 'GET' && url.pathname === '/api/admin/social/analytics') {
-      const auth = await requireSession(req, res, headers);
-      if (!auth) return;
-      if (!hasAnyPermission(auth.sessionPayload, ['manage_services', 'manage_admin_roles', 'view_technical_metrics'])) {
-        send(res, 403, { error: 'Permission denied.' }, headers);
-        return;
-      }
-      send(res, 200, { reach: 12400, engagement: 4.8, growth: 2.1 }, headers);
-      return;
-    }
-
-    if (method === 'POST' && url.pathname === '/api/admin/templates/preview') {
-      const auth = await requireSession(req, res, headers);
-      if (!auth) return;
-      if (!hasAnyPermission(auth.sessionPayload, ['manage_email_templates', 'manage_admin_roles'])) {
-        send(res, 403, { error: 'Permission denied.' }, headers);
-        return;
-      }
-      pushAudit(adminState, {
-        actorEmail: auth.sessionPayload.email,
-        actorRole: auth.sessionPayload.role,
-        action: 'admin.templates.preview',
-        details: 'Opened template preview via mobile admin.',
-      });
-      await saveAdminState();
-      send(res, 200, { ok: true }, headers);
-      return;
-    }
-
-    if (method === 'POST' && url.pathname === '/api/admin/invites/admin') {
-      const auth = await requireSession(req, res, headers);
-      if (!auth) return;
-      if (!hasAnyPermission(auth.sessionPayload, ['manage_admin_roles'])) {
-        send(res, 403, { error: 'Permission denied.' }, headers);
-        return;
-      }
-      pushAudit(adminState, {
-        actorEmail: auth.sessionPayload.email,
-        actorRole: auth.sessionPayload.role,
-        action: 'admin.invite.send',
-        details: 'Sent admin invite via mobile admin.',
-      });
-      await saveAdminState();
-      send(res, 200, { ok: true }, headers);
-      return;
-    }
-
-    if (method === 'GET' && url.pathname === '/api/admin/export') {
-      const auth = await requireSession(req, res, headers);
-      if (!auth) return;
-
-      const type = safeText(url.searchParams.get('type') || 'audit', 32);
-      const format = safeText(url.searchParams.get('format') || 'json', 16).toLowerCase();
-
-      let rows = [];
-      let filename = '';
-      let neededPermissions = [];
-
-      if (type === 'audit') {
-        neededPermissions = ['manage_admin_roles', 'manage_services'];
-        rows = (adminState.audit || []).map((entry) => ({
-          at: entry.at,
-          actorEmail: entry.actorEmail,
-          actorRole: entry.actorRole,
-          action: entry.action,
-          details: entry.details,
-        }));
-        filename = 'luna-admin-audit';
-      } else if (type === 'metrics') {
-        neededPermissions = ['view_financials', 'view_technical_metrics', 'manage_services', 'manage_admin_roles'];
-        rows = (adminState.metricsHistory || []).map((entry) => ({
-          at: entry.at,
-          mrr: entry.mrr,
-          churn: entry.churn,
-          subscribers: entry.subscribers,
-          apiP95: entry.apiP95,
-          errorRate: entry.errorRate,
-        }));
-        filename = 'luna-admin-metrics';
-      } else {
-        send(res, 400, { error: 'Unsupported export type.' }, headers);
-        return;
-      }
-
-      if (!hasAnyPermission(auth.sessionPayload, neededPermissions)) {
-        send(res, 403, { error: 'Permission denied.' }, headers);
-        return;
-      }
-
-      if (format === 'csv') {
-        const csv = toCsv(rows);
-        sendText(
-          res,
-          200,
-          csv,
-          {
-            ...headers,
-            'Content-Type': 'text/csv; charset=utf-8',
-            'Content-Disposition': `attachment; filename=\"${filename}.csv\"`,
-          }
-        );
-        return;
-      }
-
-      send(
-        res,
-        200,
-        { type, exportedAt: new Date().toISOString(), rows },
-        {
-          ...headers,
-          'Content-Disposition': `attachment; filename=\"${filename}.json\"`,
-        }
-      );
+    if (await handleAdminApi(req, res, { method, url, headers, requireSession, users, saveUsers })) {
       return;
     }
 

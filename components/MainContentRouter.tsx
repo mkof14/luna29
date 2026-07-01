@@ -1,15 +1,13 @@
 import React, { Suspense, lazy } from 'react';
 import { dataService } from '../services/dataService';
-import { AdminRole, AuthSession, CyclePhase, HealthEvent, HormoneData, RuleOutput, SystemState } from '../types';
+import { AuthSession, CyclePhase, HealthEvent, HormoneData, RuleOutput, SystemState } from '../types';
 import { Language, TranslationSchema, LangCopy, getLang } from '../constants';
 import { langMap } from '../utils/languages';
 import { TabType } from '../utils/navigation';
 import CycleTimeline from './CycleTimeline';
 import { DashboardView } from './DashboardView';
 import { DEFAULT_CYCLE_LENGTH, DEFAULT_USER_AGE } from '../constants/appDefaults';
-import { authService } from '../services/authService';
 import { MemberPageHero } from './MemberPageHero';
-import { AdminPanelView } from './AdminPanelView';
 
 const LabsView = lazy(() => import('./LabsView').then((m) => ({ default: m.LabsView })));
 const MedicationsView = lazy(() => import('./MedicationsView').then((m) => ({ default: m.MedicationsView })));
@@ -164,7 +162,6 @@ interface MainContentRouterProps {
   setLog: (log: HealthEvent[]) => void;
   navigateTo: (tab: TabType) => void;
   session: AuthSession | null;
-  onRoleChange: (role: AdminRole) => void;
   onLogout: () => void;
 }
 
@@ -185,79 +182,8 @@ export const MainContentRouter: React.FC<MainContentRouterProps> = ({
   setLog,
   navigateTo,
   session,
-  onRoleChange,
   onLogout,
 }) => {
-  const canAccessAdmin = authService.canAccessAdminWorkspace(session);
-  const copyByLang: LangCopy< { accessRestricted: string; permissionRequired: string; permissionBody: string; backHome: string }> = {
-    en: {
-      accessRestricted: 'Access Restricted',
-      permissionRequired: 'Admin Permission Required',
-      permissionBody: 'Your account currently does not have admin access. Contact the Luna29 owner to request access.',
-      backHome: 'Back to Home'
-    },
-    ru: {
-      accessRestricted: 'Доступ ограничен',
-      permissionRequired: 'Требуются права администратора',
-      permissionBody: 'У вашего аккаунта пока нет доступа к админ-пространству. Обратитесь к владельцу Luna29 для выдачи прав.',
-      backHome: 'На главную'
-    },
-    uk: {
-      accessRestricted: 'Доступ обмежено',
-      permissionRequired: 'Потрібні права адміністратора',
-      permissionBody: 'Ваш акаунт поки не має доступу до адмін-простору. Зверніться до власника Luna29 для надання прав.',
-      backHome: 'На головну'
-    },
-    es: {
-      accessRestricted: 'Acceso restringido',
-      permissionRequired: 'Se requieren permisos de administrador',
-      permissionBody: 'Tu cuenta no tiene acceso al espacio admin. Contacta al propietario de Luna29 para solicitar permisos.',
-      backHome: 'Volver al inicio'
-    },
-    fr: {
-      accessRestricted: 'Accès restreint',
-      permissionRequired: "Permission administrateur requise",
-      permissionBody: "Votre compte n'a pas encore accès à l'espace admin. Contactez le propriétaire de Luna29 pour obtenir les droits.",
-      backHome: "Retour à l'accueil"
-    },
-    de: {
-      accessRestricted: 'Zugriff eingeschränkt',
-      permissionRequired: 'Admin-Rechte erforderlich',
-      permissionBody: 'Dein Konto hat derzeit keinen Admin-Zugang. Kontaktiere die Luna29-Inhaberin für die Freigabe.',
-      backHome: 'Zur Startseite'
-    },
-    zh: {
-      accessRestricted: '访问受限',
-      permissionRequired: '需要管理员权限',
-      permissionBody: '你的账户目前没有管理员访问权限。请联系 Luna29 管理员开通权限。',
-      backHome: '返回主页'
-    },
-    ja: {
-      accessRestricted: 'アクセス制限',
-      permissionRequired: '管理者権限が必要です',
-      permissionBody: '現在のアカウントには管理者アクセスがありません。Luna29管理者に権限付与を依頼してください。',
-      backHome: 'ホームへ戻る'
-    },
-    pt: {
-      accessRestricted: 'Acesso restrito',
-      permissionRequired: 'Permissão de admin necessária',
-      permissionBody: 'Sua conta ainda não possui acesso admin. Contate o responsável do Luna29 para liberação.',
-      backHome: 'Voltar ao início'
-    },
-    ar: {
-      accessRestricted: 'الوصول مقيّد',
-      permissionRequired: 'مطلوبة صلاحية إدارية',
-      permissionBody: 'حسابكِ لا يملك وصولاً إدارياً حالياً. تواصلِي مع مالكة Luna29 لطلب الصلاحية.',
-      backHome: 'العودة للرئيسية'
-    },
-    he: {
-      accessRestricted: 'הגישה מוגבלת',
-      permissionRequired: 'נדרשת הרשאת מנהלת',
-      permissionBody: 'לחשבון שלך אין עדיין גישה למרחב הניהול. פני לבעלות Luna29 לקבלת הרשאה.',
-      backHome: 'חזרה לדף הבית'
-    },};
-  const copy = getLang(copyByLang, lang);
-
   return (
     <main data-testid={`member-tab-${activeTab}`} className="flex-grow max-w-7xl mx-auto w-full px-6 pt-12 pb-40 relative z-10">
       <div className="pointer-events-none absolute -top-16 left-10 w-72 h-72 rounded-full bg-[#f2ccda]/20 dark:bg-luna-purple/18 blur-[90px]" />
@@ -366,22 +292,6 @@ export const MainContentRouter: React.FC<MainContentRouterProps> = ({
         {activeTab === 'contact' && <ContactView ui={ui} lang={lang} onBack={() => navigateTo('today_mirror')} />}
         {activeTab === 'crisis' && <CrisisCenterView lang={lang} onBack={() => navigateTo('today_mirror')} />}
         {activeTab === 'how_it_works' && <HowItWorksView lang={lang} onBack={() => navigateTo('today_mirror')} />}
-        {activeTab === 'admin' && (
-          canAccessAdmin ? (
-            <AdminPanelView lang={lang} session={session} onBack={() => navigateTo('today_mirror')} onLogout={onLogout} onRoleChange={onRoleChange} />
-          ) : (
-            <section className="min-h-[50vh] flex flex-col items-center justify-center text-center space-y-5">
-              <p className="text-xs font-black uppercase tracking-[0.4em] text-rose-400">{copy.accessRestricted}</p>
-              <h2 className="text-4xl font-black uppercase tracking-tight">{copy.permissionRequired}</h2>
-              <p className="max-w-lg text-slate-500 font-semibold">
-                {copy.permissionBody}
-              </p>
-              <button onClick={() => navigateTo('today_mirror')} className="px-6 py-3 rounded-full bg-luna-purple text-white text-[10px] font-black uppercase tracking-widest">
-                {copy.backHome}
-              </button>
-            </section>
-          )
-        )}
       </Suspense>
       </MemberContentErrorBoundary>
     </main>

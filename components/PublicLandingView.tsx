@@ -127,21 +127,19 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
   };
   const appStoreUrl = normalizeExternalUrl(import.meta.env.VITE_APP_STORE_URL);
   const googlePlayUrl = normalizeExternalUrl(import.meta.env.VITE_GOOGLE_PLAY_URL);
-  const expoPreviewUrl = normalizeExternalUrl(import.meta.env.VITE_EXPO_PREVIEW_URL || 'https://expo.dev/accounts/mkof14/projects/luna-mobile');
-  const showPreviewLink = (!appStoreUrl || !googlePlayUrl) && Boolean(expoPreviewUrl);
 
-  const storeBadgeCopyByLang: LangCopy< { title: string; appStore: string; googlePlay: string; preview: string; soon: string }> = {
-    en: { title: 'Luna29 Mobile', appStore: 'Download on the App Store', googlePlay: 'Get it on Google Play', preview: 'Open Mobile Preview', soon: 'Store links will be active after release.' },
-    ru: { title: 'Luna29 Mobile', appStore: 'Скачать в App Store', googlePlay: 'Скачать в Google Play', preview: 'Открыть мобильный превью', soon: 'Ссылки станут активны после релиза.' },
-    uk: { title: 'Luna29 Mobile', appStore: 'Завантажити в App Store', googlePlay: 'Отримати в Google Play', preview: 'Відкрити мобільне превʼю', soon: 'Посилання стануть активними після релізу.' },
-    es: { title: 'Luna29 Mobile', appStore: 'Descargar en App Store', googlePlay: 'Disponible en Google Play', preview: 'Abrir vista previa móvil', soon: 'Los enlaces estarán activos tras el lanzamiento.' },
-    fr: { title: 'Luna29 Mobile', appStore: 'Télécharger sur App Store', googlePlay: 'Disponible sur Google Play', preview: 'Ouvrir aperçu mobile', soon: 'Les liens seront actifs après la sortie.' },
-    de: { title: 'Luna29 Mobile', appStore: 'Im App Store laden', googlePlay: 'Bei Google Play', preview: 'Mobile Vorschau öffnen', soon: 'Store-Links werden nach dem Release aktiviert.' },
-    zh: { title: 'Luna29 Mobile', appStore: 'App Store 下载', googlePlay: 'Google Play 获取', preview: '打开移动预览', soon: '发布后将启用商店链接。' },
-    ja: { title: 'Luna29 Mobile', appStore: 'App Store で入手', googlePlay: 'Google Play で入手', preview: 'モバイルプレビューを開く', soon: 'リリース後にストアリンクを有効化します。' },
-    pt: { title: 'Luna29 Mobile', appStore: 'Baixar na App Store', googlePlay: 'Disponível no Google Play', preview: 'Abrir prévia móvel', soon: 'Os links serão ativados após o lançamento.' },
-  ar: { title: 'Luna29 Mobile', appStore: 'تنزيل من App Store', googlePlay: 'احصلي عليه من Google Play', preview: 'فتح المعاينة على الجوال', soon: 'ستُفعّل روابط المتجر بعد الإصدار.' },
-  he: { title: 'Luna29 Mobile', appStore: 'הורדה מ-App Store', googlePlay: 'קבלי ב-Google Play', preview: 'פתיחת תצוגה מקדימה בנייד', soon: 'קישורי החנות יופעלו לאחר השקה.' },};
+  const storeBadgeCopyByLang: LangCopy< { title: string; appStore: string; googlePlay: string; soon: string }> = {
+    en: { title: 'Luna29 Mobile', appStore: 'Download on the App Store', googlePlay: 'Get it on Google Play', soon: 'Store links will be active after release.' },
+    ru: { title: 'Luna29 Mobile', appStore: 'Скачать в App Store', googlePlay: 'Скачать в Google Play', soon: 'Ссылки станут активны после релиза.' },
+    uk: { title: 'Luna29 Mobile', appStore: 'Завантажити в App Store', googlePlay: 'Отримати в Google Play', soon: 'Посилання стануть активними після релізу.' },
+    es: { title: 'Luna29 Mobile', appStore: 'Descargar en App Store', googlePlay: 'Disponible en Google Play', soon: 'Los enlaces estarán activos tras el lanzamiento.' },
+    fr: { title: 'Luna29 Mobile', appStore: 'Télécharger sur App Store', googlePlay: 'Disponible sur Google Play', soon: 'Les liens seront actifs après la sortie.' },
+    de: { title: 'Luna29 Mobile', appStore: 'Im App Store laden', googlePlay: 'Bei Google Play', soon: 'Store-Links werden nach dem Release aktiviert.' },
+    zh: { title: 'Luna29 Mobile', appStore: 'App Store 下载', googlePlay: 'Google Play 获取', soon: '发布后将启用商店链接。' },
+    ja: { title: 'Luna29 Mobile', appStore: 'App Store で入手', googlePlay: 'Google Play で入手', soon: 'リリース後にストアリンクを有効化します。' },
+    pt: { title: 'Luna29 Mobile', appStore: 'Baixar na App Store', googlePlay: 'Disponível no Google Play', soon: 'Os links serão ativados após o lançamento.' },
+  ar: { title: 'Luna29 Mobile', appStore: 'تنزيل من App Store', googlePlay: 'احصلي عليه من Google Play', soon: 'ستُفعّل روابط المتجر بعد الإصدار.' },
+  he: { title: 'Luna29 Mobile', appStore: 'הורדה מ-App Store', googlePlay: 'קבלי ב-Google Play', soon: 'קישורי החנות יופעלו לאחר השקה.' },};
   const storeBadges = getLang(storeBadgeCopyByLang, lang) || storeBadgeCopyByLang.en;
 
   const loadingLabelByLang: LangCopy< string> = {
@@ -2163,40 +2161,27 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
                     />
                   </button>
                 )}
-                {(appStoreUrl || (showPreviewLink && mobilePlatform === 'ios')) && (
+                {appStoreUrl && (
                   <a
-                    href={appStoreUrl || expoPreviewUrl}
+                    href={appStoreUrl}
                     target="_blank"
                     rel="noreferrer"
                     className="text-left text-[12px] font-semibold"
                   >
-                    <LunaMenuLabel
-                      text={appStoreUrl ? storeBadges.appStore : storeBadges.preview}
-                      muted
-                      className="font-semibold"
-                    />
+                    <LunaMenuLabel text={storeBadges.appStore} muted className="font-semibold" />
                   </a>
                 )}
-                {(googlePlayUrl || (showPreviewLink && mobilePlatform === 'android')) && (
+                {googlePlayUrl && (
                   <a
-                    href={googlePlayUrl || expoPreviewUrl}
+                    href={googlePlayUrl}
                     target="_blank"
                     rel="noreferrer"
                     className="text-left text-[12px] font-semibold"
                   >
-                    <LunaMenuLabel
-                      text={googlePlayUrl ? storeBadges.googlePlay : storeBadges.preview}
-                      muted
-                      className="font-semibold"
-                    />
+                    <LunaMenuLabel text={storeBadges.googlePlay} muted className="font-semibold" />
                   </a>
                 )}
-                {showPreviewLink && mobilePlatform === 'other' && (
-                  <a href={expoPreviewUrl} target="_blank" rel="noreferrer" className="text-left text-[12px] font-semibold">
-                    <LunaMenuLabel text={storeBadges.preview} muted className="font-semibold" />
-                  </a>
-                )}
-                {!appStoreUrl && !googlePlayUrl && !showPreviewLink && (
+                {!appStoreUrl && !googlePlayUrl && (
                   <p className="text-[11px] font-light text-slate-500 dark:text-slate-400">{storeBadges.soon}</p>
                 )}
               </div>
@@ -2303,11 +2288,6 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
                 </article>
               )}
             </div>
-            {showPreviewLink && (
-              <a href={expoPreviewUrl} target="_blank" rel="noreferrer" className="inline-flex text-sm font-semibold text-luna-purple underline underline-offset-4">
-                {storeBadges.preview}
-              </a>
-            )}
             <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">{installGuideModal.fallback}</p>
             {installFeedback && <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{installFeedback}</p>}
             <div className="pt-2">

@@ -802,7 +802,6 @@ export const SCENE_BY_TAB: Partial<Record<TabType, React.FC<SceneProps>>> = {
   crisis: ResetScene,
   faq: FaqScene,
   partner_faq: PartnerScene,
-  admin: AdminScene,
   contact: ContactScene,
   about: AboutScene,
   how_it_works: HowScene,

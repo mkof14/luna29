@@ -143,6 +143,7 @@ export const FAQView: React.FC<{ lang?: Language; onBack?: () => void; mode?: 'p
       onBack={onBack}
       footerTitle={copy.promiseTitle}
       footerQuote={copy.promiseQuote}
+      heroPage="faq"
     >
       <AccordionSections categories={categories} openFirst variant="knowledge" />
 

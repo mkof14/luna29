@@ -23,7 +23,6 @@ const RAW_MEMBER_HERO_IMAGES: Partial<Record<TabType, string>> = {
   crisis: '/images/heroes/r2/crisis.webp',
   faq: '/images/heroes/r2/faq.webp',
   partner_faq: '/images/heroes/r2/partner_faq.webp',
-  admin: '/images/heroes/r2/admin.webp',
   contact: '/images/heroes/r2/contact.webp',
   about: '/images/heroes/r2/about.webp',
   how_it_works: '/images/heroes/r2/how_it_works.webp',

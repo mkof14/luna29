@@ -129,6 +129,7 @@ export const LearningView: React.FC<LearningViewProps> = ({ lang, onBack }) => {
       onBack={onBack}
       footerTitle={copy.promiseTitle}
       footerQuote={copy.promiseQuote}
+      heroPage="learning"
     >
       <AccordionSections categories={categories} openFirst variant="knowledge" />
     </KnowledgePageShell>

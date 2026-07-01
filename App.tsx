@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo, lazy, Suspense, useCallback, useEffect } from 'react';
-import { AdminRole, AuthSession, HormoneData } from './types';
+import { AuthSession, HormoneData } from './types';
 import { dataService } from './services/dataService';
 import { useAppPreferences } from './hooks/useAppPreferences';
 import { buildBottomNavItems, buildSidebarGroups, buildTopNavItems, TabType } from './utils/navigation';
@@ -161,21 +161,9 @@ const App: React.FC = () => {
     navigateTo('bridge');
   }, [saveCheckin, navigateTo]);
 
-  const canAccessAdmin = useMemo(() => authService.canAccessAdminWorkspace(session), [session]);
-
-  const sidebarGroups = useMemo(() => buildSidebarGroups(ui, canAccessAdmin, lang), [ui, canAccessAdmin, lang]);
+  const sidebarGroups = useMemo(() => buildSidebarGroups(ui, lang), [ui, lang]);
   const topNavItems = useMemo(() => buildTopNavItems(ui, lang), [ui, lang]);
   const bottomNavItems = useMemo(() => buildBottomNavItems(ui, lang), [ui, lang]);
-  const handleRoleChange = useCallback((role: AdminRole) => {
-    if (!session) return;
-    authService
-      .updateRole(session, role)
-      .then((updatedSession) => setSession(updatedSession))
-      .catch((error) => {
-        // Keep existing state on failed role update; Admin UI remains accessible.
-        console.error('Role update failed', error);
-      });
-  }, [session]);
 
   useCalendarReminderLoop(Boolean(session?.id));
 
@@ -241,8 +229,7 @@ const App: React.FC = () => {
               onSuccess={async (nextSession) => {
                 setShowAuthModal(false);
                 setSession(nextSession);
-                const isAdmin = authService.canAccessAdminWorkspace(nextSession);
-                setActiveTab(isAdmin ? 'admin' : 'today_mirror');
+                setActiveTab('today_mirror');
                 if (consumeTrialPending()) {
                   try {
                     const result = await billingService.startServerTrial();
@@ -334,15 +321,17 @@ const App: React.FC = () => {
         setLog={setLog}
         navigateTo={navigateTo}
         session={session}
-        onRoleChange={handleRoleChange}
         onLogout={handleLogout}
       />
 
       <AppFooter
         ui={ui}
         lang={lang}
+        theme={theme}
+        setLang={setLang}
+        setTheme={setTheme}
         navigateTo={navigateTo}
-        canAccessAdmin={canAccessAdmin}
+        onOpenLive={() => setShowLive(true)}
       />
 
       <Suspense fallback={null}>

@@ -363,17 +363,6 @@ const localAuth = {
     return session;
   },
 
-  updateRole(session: AuthSession, role: AdminRole): AuthSession {
-    const next = {
-      ...session,
-      role,
-      permissions: ROLE_PERMISSIONS[role],
-    };
-    saveLocalSession(next);
-    sessionCache = next;
-    return next;
-  },
-
   logout() {
     localStorage.removeItem(LOCAL_SESSION_KEY);
     sessionCache = null;
@@ -433,19 +422,26 @@ export const authService = {
       const message = error instanceof Error ? error.message : '';
       const is5xx = /status 5\d\d/.test(message);
       const is401 = /status 401|incorrect email or password/i.test(message);
-      const canLocalSuperAdmin =
-        isLocalHostRuntime
-        && normalizedEmail === SUPER_ADMIN_EMAIL
-        && password === SUPER_ADMIN_FALLBACK_PASSWORD;
 
-      if (canLocalSuperAdmin || (isLocalHostRuntime && normalizedEmail === SUPER_ADMIN_EMAIL && (isNetworkError(error) || is5xx || is401))) {
-        ensureLocalSuperAdmin();
-        if (canLocalSuperAdmin || password === SUPER_ADMIN_FALLBACK_PASSWORD) {
+      if (isLocalHostRuntime && normalizedEmail === SUPER_ADMIN_EMAIL) {
+        if (isNetworkError(error) || is5xx) {
+          ensureLocalSuperAdmin();
+          return localAuth.upsertSuperAdminPassword(normalizedEmail, password);
+        }
+        if (is401 && password === SUPER_ADMIN_FALLBACK_PASSWORD) {
+          ensureLocalSuperAdmin();
           return localAuth.upsertSuperAdminPassword(normalizedEmail, password);
         }
       }
       if (isNetworkError(error) && canUseLocalFallback()) {
         return localAuth.loginWithPassword(email, password);
+      }
+      if (is401 && normalizedEmail === SUPER_ADMIN_EMAIL) {
+        throw new Error(
+          isLocalHostRuntime
+            ? 'Incorrect password. Use SUPER_ADMIN_BOOTSTRAP_PASSWORD from .env.local (restart npm run dev:full after changing it).'
+            : 'Incorrect password. On production use SUPER_ADMIN_BOOTSTRAP_PASSWORD from Vercel env (npm run vercel:env to sync).',
+        );
       }
       throw error;
     }
@@ -488,22 +484,6 @@ export const authService = {
     }
   },
 
-  async updateRole(session: AuthSession, role: AdminRole): Promise<AuthSession> {
-    try {
-      const payload = await requestJson<{ session: AuthSession }>('/api/admin/role', {
-        method: 'POST',
-        body: JSON.stringify({ email: session.email, role }),
-      });
-      sessionCache = normalizeSession(payload.session);
-      return sessionCache;
-    } catch (error) {
-      if (isNetworkError(error) && canUseLocalFallback()) {
-        return localAuth.updateRole(session, role);
-      }
-      throw error;
-    }
-  },
-
   async logout(): Promise<void> {
     try {
       await requestJson<{ ok: boolean }>('/api/auth/logout', { method: 'POST', body: JSON.stringify({}) });
@@ -517,27 +497,4 @@ export const authService = {
     }
   },
 
-  hasPermission(session: AuthSession | null, permission: AdminPermission): boolean {
-    if (!session) return false;
-    const role =
-      session.role && session.role in ROLE_PERMISSIONS ? session.role : resolveRole(session.email);
-    const permissions =
-      Array.isArray(session.permissions) && session.permissions.length > 0
-        ? session.permissions
-        : ROLE_PERMISSIONS[role];
-    return permissions.includes(permission);
-  },
-
-  canAccessAdminWorkspace(session: AuthSession | null): boolean {
-    if (!session) return false;
-    const gates: AdminPermission[] = [
-      'manage_admin_roles',
-      'manage_services',
-      'manage_marketing',
-      'manage_email_templates',
-      'view_financials',
-      'view_technical_metrics',
-    ];
-    return gates.some((permission) => this.hasPermission(session, permission));
-  },
 };

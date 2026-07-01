@@ -24,7 +24,6 @@ const MEMBER_TABS = new Set<TabType>([
   'crisis',
   'partner_faq',
   'relationships',
-  'admin',
   'rhythm_calendar',
 ]);
 

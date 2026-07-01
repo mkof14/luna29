@@ -4,6 +4,13 @@ import { Logo } from './Logo';
 import { AuthCopy } from '../types/uiCopy';
 import { AuthSession } from '../types';
 import { authService } from '../services/authService';
+import {
+  bindGoogleIdentityHandlers,
+  cancelGoogleIdentityPrompt,
+  ensureGoogleIdentityClient,
+  loadGoogleIdentityScript,
+  renderGoogleSignInButton,
+} from '../utils/googleIdentity';
 
 interface AuthViewProps {
   ui: AuthCopy;
@@ -13,41 +20,6 @@ interface AuthViewProps {
   onBack?: () => void;
 }
 
-type GoogleCredentialResponse = { credential?: string };
-
-type GoogleIdClient = {
-  initialize: (config: {
-    client_id: string;
-    callback: (response: GoogleCredentialResponse) => void;
-    context?: 'signin' | 'signup' | 'use';
-    cancel_on_tap_outside?: boolean;
-    itp_support?: boolean;
-    use_fedcm_for_prompt?: boolean;
-  }) => void;
-  renderButton: (
-    parent: HTMLElement,
-    options: {
-      type?: 'standard' | 'icon';
-      theme?: 'outline' | 'filled_blue' | 'filled_black';
-      size?: 'large' | 'medium' | 'small';
-      text?: 'signin_with' | 'signup_with' | 'continue_with' | 'signin';
-      shape?: 'rectangular' | 'pill' | 'circle' | 'square';
-      width?: number;
-    }
-  ) => void;
-};
-
-declare global {
-  interface Window {
-    google?: {
-      accounts?: {
-        id?: GoogleIdClient;
-      };
-    };
-  }
-}
-
-const GOOGLE_SCRIPT_ID = 'luna-google-identity-sdk';
 const DEFAULT_EMAIL = 'dnainform@gmail.com';
 
 export const AuthView: React.FC<AuthViewProps> = ({ ui, onSuccess, initialMode = 'signin', onClose, onBack }) => {
@@ -68,7 +40,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ ui, onSuccess, initialMode =
     return typeof envValue === 'string' ? envValue.trim() : '';
   }, []);
 
-  const onGoogleCredential = useCallback(async (response: GoogleCredentialResponse) => {
+  const onGoogleCredential = useCallback(async (response: { credential?: string }) => {
     setAuthError(null);
     setIsLoading(true);
     try {
@@ -81,65 +53,65 @@ export const AuthView: React.FC<AuthViewProps> = ({ ui, onSuccess, initialMode =
       const message = error instanceof Error ? error.message : 'Google sign-in failed.';
       const origin = typeof window !== 'undefined' ? window.location.origin : '';
       setAuthError(
-        /origin|oauth|400/i.test(message) && origin
+        /origin|oauth|400|audience|javascript/i.test(message) && origin
           ? `Google sign-in failed for ${origin}. Add this exact URL to Authorized JavaScript origins in Google Cloud Console.`
-          : message
+          : message,
       );
     } finally {
       setIsLoading(false);
     }
   }, [onSuccess]);
 
+  const onGoogleError = useCallback((message: string) => {
+    setIsLoading(false);
+    if (/popup_closed|cancel/i.test(message)) return;
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    if (/origin_mismatch|doesn't comply|authorized javascript origins/i.test(message) && origin) {
+      setAuthError(
+        `Google OAuth origin_mismatch for ${origin}. In Google Cloud Console → Credentials → your Web client → Authorized JavaScript origins, add exactly: ${origin}`,
+      );
+      return;
+    }
+    setAuthError(message);
+  }, []);
+
   useEffect(() => {
     if (!googleClientId) return;
+    let alive = true;
 
-    const markReady = () => setGoogleReady(true);
-    if (window.google?.accounts?.id) {
-      markReady();
-      return;
-    }
+    loadGoogleIdentityScript()
+      .then(() => {
+        if (alive) setGoogleReady(true);
+      })
+      .catch((error) => {
+        if (alive) {
+          setAuthError(error instanceof Error ? error.message : 'Could not load Google sign-in.');
+        }
+      });
 
-    const existingScript = document.getElementById(GOOGLE_SCRIPT_ID) as HTMLScriptElement | null;
-    if (existingScript) {
-      existingScript.addEventListener('load', markReady);
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.id = GOOGLE_SCRIPT_ID;
-    script.src = 'https://accounts.google.com/gsi/client';
-    script.async = true;
-    script.defer = true;
-    script.onload = markReady;
-    script.onerror = () => setAuthError('Could not load Google sign-in.');
-    document.head.appendChild(script);
+    return () => {
+      alive = false;
+    };
   }, [googleClientId]);
 
   useEffect(() => {
-    if (!googleClientId || !googleReady || !window.google?.accounts?.id) return;
+    if (!googleClientId) return;
+    return bindGoogleIdentityHandlers(onGoogleCredential, onGoogleError);
+  }, [googleClientId, onGoogleCredential, onGoogleError]);
+
+  useEffect(() => {
+    if (!googleClientId || !googleReady) return;
     const mount = googleButtonRef.current;
     if (!mount) return;
 
-    mount.innerHTML = '';
-    window.google.accounts.id.initialize({
-      client_id: googleClientId,
-      callback: onGoogleCredential,
-      context: isLogin ? 'signin' : 'signup',
-      cancel_on_tap_outside: true,
-      itp_support: true,
-      use_fedcm_for_prompt: true,
-    });
+    const context = isLogin ? 'signin' : 'signup';
+    ensureGoogleIdentityClient(googleClientId, context);
+    renderGoogleSignInButton(mount, { width: mount.offsetWidth, context });
 
-    const width = Math.max(280, Math.min(mount.offsetWidth || 360, 420));
-    window.google.accounts.id.renderButton(mount, {
-      type: 'standard',
-      theme: 'outline',
-      size: 'large',
-      text: 'continue_with',
-      shape: 'pill',
-      width,
-    });
-  }, [googleClientId, googleReady, isLogin, onGoogleCredential]);
+    return () => {
+      cancelGoogleIdentityPrompt();
+    };
+  }, [googleClientId, googleReady, isLogin]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

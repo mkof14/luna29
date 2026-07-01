@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Language, LangCopy, getLang } from '../constants';
 import { versionedStaticAsset } from '../utils/staticAssetUrl';
+import { PublicPageArtHeader } from './public/PublicPageArtHeader';
 
 interface AboutLunaViewProps {
   lang: Language;
@@ -61,11 +62,14 @@ export const AboutLunaView: React.FC<AboutLunaViewProps> = ({ lang, mode = 'publ
   const wrapperClass = mode === 'public' ? 'luna-page-shell luna-page-knowledge p-6 md:p-8' : 'max-w-6xl mx-auto pb-24';
 
   return (
-    <section className={`${wrapperClass} animate-in fade-in duration-500 space-y-7`}>
+    <section className={`${wrapperClass} animate-in fade-in duration-500 space-y-7 max-w-6xl mx-auto`}>
       {onBack && (
         <button onClick={onBack} className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-luna-purple transition-all">
           ← Back
         </button>
+      )}
+      {mode === 'public' && (
+        <PublicPageArtHeader page="about" eyebrow={about.eyebrow} title={about.title} />
       )}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         <article className="lg:col-span-3 rounded-[2.8rem] border border-slate-300/75 dark:border-slate-800/90 bg-gradient-to-br from-slate-200/95 via-slate-100/95 to-indigo-100/70 dark:from-[#040a18] dark:via-[#081127] dark:to-[#0b1b3a] p-7 md:p-10 space-y-5 shadow-[0_18px_46px_rgba(71,85,105,0.22)] dark:shadow-[0_22px_60px_rgba(2,6,23,0.78)]">

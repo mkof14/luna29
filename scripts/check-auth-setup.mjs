@@ -52,6 +52,11 @@ if (!env.VITE_GOOGLE_CLIENT_ID) {
   }
 }
 
-if (!env.SUPER_ADMIN_BOOTSTRAP_PASSWORD) {
+  if (!env.SUPER_ADMIN_BOOTSTRAP_PASSWORD) {
   console.log('\nEmail login: set SUPER_ADMIN_BOOTSTRAP_PASSWORD=YourPassword8+ in .env.local');
+} else {
+  console.log('\nSuper admin email: dnainform@gmail.com');
+  console.log('Password login uses SUPER_ADMIN_BOOTSTRAP_PASSWORD from .env.local (server) — min 8 characters.');
+  console.log('After changing .env.local: restart npm run dev:full');
+  console.log('Production: npm run vercel:env — then redeploy');
 }
