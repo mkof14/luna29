@@ -1,4 +1,4 @@
-import { versionedAbsoluteAsset } from './staticAssetUrl';
+import { versionedAbsoluteAsset, versionedStaticAsset } from './staticAssetUrl';
 
 const CANONICAL_SITE_URL = 'https://www.luna29.com';
 
@@ -48,6 +48,12 @@ export const LUNA_BRAND_PATHS = {
   appIcon: '/brand/luna-app-icon.png',
   appIcon192: '/brand/luna-app-icon-192.png',
 } as const;
+
+export type LunaBrandAssetKey = keyof typeof LUNA_BRAND_PATHS;
+
+/** Versioned /brand/* path for in-app <img> tags. */
+export const getBrandAssetUrl = (key: LunaBrandAssetKey): string =>
+  versionedStaticAsset(LUNA_BRAND_PATHS[key]);
 
 export type LunaBrandUrls = {
   icon: string;

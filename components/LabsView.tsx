@@ -4,6 +4,7 @@ import { dataService } from '../services/dataService';
 import { HealthEvent } from '../types';
 import { Logo } from './Logo';
 import { versionedAbsoluteAsset, versionedStaticAsset } from '../utils/staticAssetUrl';
+import { getBrandAssetUrl, LUNA_BRAND_PATHS } from '../utils/lunaBrandAssets';
 import { isSupportedLabFile } from '../utils/runtimeGuards';
 import { copyTextSafely, shareTextSafely } from '../utils/share';
 import { Language } from '../constants';
@@ -742,7 +743,7 @@ export const LabsView: React.FC<{ day: number; age: number; lang: Language; user
 
   const handleSampleDownload = async () => {
     const { buildLocalizedSampleReportHtml } = await import('../utils/reportSampleTemplate');
-    const logoUrl = versionedAbsoluteAsset(window.location.origin, '/images/Luna%20logo3.png');
+    const logoUrl = versionedAbsoluteAsset(window.location.origin, LUNA_BRAND_PATHS.lockup);
     const phaseArcImageUrl = versionedAbsoluteAsset(window.location.origin, '/images/moon_phases_arc.webp');
     const sampleRows = [
       { marker: 'Estradiol (E2)', value: '148 pg/mL', reference: '30-400', status: 'normal', category: markerCategory('Estradiol (E2)'), explanation: detailedUi.statusNormal, accent: hormoneTopic('Estradiol (E2)').accent },
@@ -1185,7 +1186,7 @@ export const LabsView: React.FC<{ day: number; age: number; lang: Language; user
 
           <article ref={reportSectionRef} className="rounded-[2rem] border border-slate-200/80 dark:border-slate-700/70 bg-gradient-to-br from-[#f3e5f4]/95 via-[#eee8fb]/92 to-[#e3edf9]/90 dark:from-[#0d1f3f]/95 dark:via-[#132a50]/93 dark:to-[#17345f]/92 p-6 shadow-luna-rich space-y-4">
             <div className="flex items-center gap-3">
-              <img src={versionedStaticAsset('/images/Luna%20logo3.png')} alt="Luna29 symbol" className="h-10 w-10 object-contain" />
+              <img src={getBrandAssetUrl('icon')} alt="Luna29 symbol" className="h-10 w-10 object-contain" />
               <div>
                 <p className="text-sm md:text-base font-black uppercase tracking-[0.14em] text-luna-purple">{reportUi.reportTitle}</p>
                 <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">{reportUi.reportSubtitle}</p>

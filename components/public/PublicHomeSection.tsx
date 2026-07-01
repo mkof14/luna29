@@ -2,7 +2,7 @@ import React from 'react';
 import { Calendar, Heart, MapPin, Mic, Sparkles, Users } from 'lucide-react';
 import { Logo } from '../Logo';
 import { PUBLIC_BTN_PRIMARY, PUBLIC_BTN_PRIMARY_GLOW, PUBLIC_BTN_SECONDARY } from './publicButtonStyles';
-import { LUNA_BRAND_PATHS } from '../../utils/lunaBrandAssets';
+import { getBrandAssetUrl } from '../../utils/lunaBrandAssets';
 import type { HomeStory } from '../../utils/publicLandingNarratives';
 import type { PublicHomeContent } from '../../utils/publicHomeContent';
 
@@ -111,7 +111,7 @@ export const PublicHomeSection: React.FC<PublicHomeSectionProps> = ({
 
           <div className="relative overflow-hidden rounded-[2.2rem] border border-slate-200/70 dark:border-slate-700/70 shadow-luna-deep">
             <img
-              src={LUNA_BRAND_PATHS.hero}
+              src={getBrandAssetUrl('hero')}
               alt="Luna29"
               loading="eager"
               fetchPriority="high"

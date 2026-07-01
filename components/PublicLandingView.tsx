@@ -18,7 +18,7 @@ import {
 } from './public/publicPageStyles';
 import { PublicHomeSection } from './public/PublicHomeSection';
 import { getMemberNavCopy } from '../utils/memberNavLabels';
-import { LUNA_BRAND_PATHS } from '../utils/lunaBrandAssets';
+import { getBrandAssetUrl } from '../utils/lunaBrandAssets';
 import { getLegalHubLabel, getLegalNavLabels, LEGAL_ENTITY_NAME, LegalNavDocType } from '../utils/legal';
 import { getPublicHomeContent } from '../utils/publicHomeContent';
 import { resolveHeroAbVariant } from '../utils/publicHomeAb';
@@ -1918,7 +1918,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       >
         <div className="max-w-[1160px] mx-auto px-3 sm:px-4 md:px-6 h-14 sm:h-16 md:h-[4.5rem] flex items-center justify-between gap-2 sm:gap-4 min-w-0">
           <button type="button" onClick={() => setActivePage('home')} className="flex items-center gap-1 min-w-0 shrink origin-left scale-[1.14] hover:scale-[1.18] active:scale-[1.1] transition-transform overflow-visible pr-1.5">
-            <img src={LUNA_BRAND_PATHS.icon} alt="" aria-hidden="true" className="h-10 sm:h-14 w-auto md:h-16 object-contain select-none pointer-events-none shrink-0" />
+            <img src={getBrandAssetUrl('icon')} alt="" aria-hidden="true" className="h-10 sm:h-14 w-auto md:h-16 object-contain select-none pointer-events-none shrink-0" />
             <Logo size="sm" className="cursor-default text-3xl sm:text-5xl leading-none shrink-0" />
           </button>
           <nav className="hidden md:flex items-center gap-4 min-w-0">
@@ -2071,7 +2071,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
         <div className="max-w-7xl mx-auto space-y-14 relative z-10">
           <div className="space-y-4 max-w-2xl">
             <div className="flex items-center gap-0.5 origin-left scale-[1.12]">
-              <img src={LUNA_BRAND_PATHS.icon} alt="" aria-hidden="true" className="h-16 w-auto md:h-[4.5rem] object-contain select-none pointer-events-none" />
+              <img src={getBrandAssetUrl('icon')} alt="" aria-hidden="true" className="h-16 w-auto md:h-[4.5rem] object-contain select-none pointer-events-none" />
               <Logo size="sm" className="cursor-default text-4xl md:text-5xl leading-none" />
             </div>
             <p className="text-base md:text-lg font-semibold text-slate-800 dark:text-slate-400">{homeStory.heroLead}</p>
