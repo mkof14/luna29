@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => {
     __LUNA_APP_RELEASE__: JSON.stringify(
       process.env.VITE_APP_RELEASE ||
         process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 8) ||
-        'hero2',
+        'shell3',
     ),
     __LUNA_GA4_ID__: JSON.stringify(process.env.VITE_GA4_MEASUREMENT_ID || ''),
     __LUNA_VITE_DEV__: JSON.stringify(mode === 'development'),

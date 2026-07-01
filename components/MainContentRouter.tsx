@@ -264,6 +264,7 @@ export const MainContentRouter: React.FC<MainContentRouterProps> = ({
       <div className="pointer-events-none absolute top-1/3 right-0 w-96 h-96 rounded-full bg-[#d6dff7]/24 dark:bg-[#1e3a7a]/20 blur-[120px]" />
       <MemberPageHero activeTab={activeTab} lang={lang} ui={ui} />
       <MemberContentErrorBoundary lang={lang} resetKey={`${activeTab}:${lang}`} onBackHome={() => navigateTo('today_mirror')}>
+      <div className="member-tab-content">
       <Suspense fallback={<LoadingFallback lang={lang} />}>
         {activeTab === 'dashboard' && (
           <DashboardView
@@ -383,6 +384,7 @@ export const MainContentRouter: React.FC<MainContentRouterProps> = ({
           )
         )}
       </Suspense>
+      </div>
       </MemberContentErrorBoundary>
     </main>
   );

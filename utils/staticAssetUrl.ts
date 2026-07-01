@@ -1,6 +1,6 @@
 declare const __LUNA_APP_RELEASE__: string;
 
-const FALLBACK_VERSION = 'hero2';
+const FALLBACK_VERSION = 'shell3';
 
 function resolveStaticAssetVersion(): string {
   if (typeof __LUNA_APP_RELEASE__ !== 'undefined') {
