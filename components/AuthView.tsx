@@ -22,6 +22,7 @@ type GoogleIdClient = {
     context?: 'signin' | 'signup' | 'use';
     cancel_on_tap_outside?: boolean;
     itp_support?: boolean;
+    use_fedcm_for_prompt?: boolean;
   }) => void;
   renderButton: (
     parent: HTMLElement,
@@ -126,6 +127,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ ui, onSuccess, initialMode =
       context: isLogin ? 'signin' : 'signup',
       cancel_on_tap_outside: true,
       itp_support: true,
+      use_fedcm_for_prompt: true,
     });
 
     const width = Math.max(280, Math.min(mount.offsetWidth || 360, 420));
