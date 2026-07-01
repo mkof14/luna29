@@ -219,11 +219,16 @@ const requestJson = async <T>(path: string, init?: RequestInit): Promise<T> => {
 };
 
 const normalizeSession = (session: AuthSession): AuthSession => {
-  const nextRole = resolveRole(session.email);
+  const role =
+    session.role && session.role in ROLE_PERMISSIONS ? session.role : resolveRole(session.email);
+  const permissions =
+    Array.isArray(session.permissions) && session.permissions.length > 0
+      ? session.permissions
+      : ROLE_PERMISSIONS[role];
   return {
     ...session,
-    role: nextRole,
-    permissions: ROLE_PERMISSIONS[nextRole],
+    role,
+    permissions,
   };
 };
 
@@ -514,10 +519,12 @@ export const authService = {
 
   hasPermission(session: AuthSession | null, permission: AdminPermission): boolean {
     if (!session) return false;
-    const role = resolveRole(session.email);
-    const permissions = Array.isArray(session.permissions) && session.permissions.length > 0
-      ? session.permissions
-      : ROLE_PERMISSIONS[role];
+    const role =
+      session.role && session.role in ROLE_PERMISSIONS ? session.role : resolveRole(session.email);
+    const permissions =
+      Array.isArray(session.permissions) && session.permissions.length > 0
+        ? session.permissions
+        : ROLE_PERMISSIONS[role];
     return permissions.includes(permission);
   },
 
@@ -531,12 +538,6 @@ export const authService = {
       'view_financials',
       'view_technical_metrics',
     ];
-    return gates.some((permission) => {
-      const role = resolveRole(session.email);
-      const permissions = Array.isArray(session.permissions) && session.permissions.length > 0
-        ? session.permissions
-        : ROLE_PERMISSIONS[role];
-      return permissions.includes(permission);
-    });
+    return gates.some((permission) => this.hasPermission(session, permission));
   },
 };

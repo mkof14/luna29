@@ -161,7 +161,7 @@ const App: React.FC = () => {
     navigateTo('bridge');
   }, [saveCheckin, navigateTo]);
 
-  const canAccessAdmin = useMemo(() => authService.hasPermission(session, 'manage_services') || authService.hasPermission(session, 'manage_admin_roles'), [session]);
+  const canAccessAdmin = useMemo(() => authService.canAccessAdminWorkspace(session), [session]);
 
   const sidebarGroups = useMemo(() => buildSidebarGroups(ui, canAccessAdmin, lang), [ui, canAccessAdmin, lang]);
   const topNavItems = useMemo(() => buildTopNavItems(ui, lang), [ui, lang]);
@@ -241,9 +241,7 @@ const App: React.FC = () => {
               onSuccess={async (nextSession) => {
                 setShowAuthModal(false);
                 setSession(nextSession);
-                const isAdmin =
-                  authService.hasPermission(nextSession, 'manage_services') ||
-                  authService.hasPermission(nextSession, 'manage_admin_roles');
+                const isAdmin = authService.canAccessAdminWorkspace(nextSession);
                 setActiveTab(isAdmin ? 'admin' : 'today_mirror');
                 if (consumeTrialPending()) {
                   try {
