@@ -79,16 +79,40 @@ root.render(
 );
 
 if ('serviceWorker' in navigator) {
-  if (import.meta.env.DEV) {
-    navigator.serviceWorker.getRegistrations().then((regs) => {
-      regs.forEach((reg) => reg.unregister());
-    });
-    if ('caches' in window) {
-      caches.keys().then((keys) => Promise.all(keys.map((key) => caches.delete(key)))).catch(() => undefined);
+  const purgeLegacyCaches = async () => {
+    try {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map((reg) => reg.unregister()));
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((key) => caches.delete(key)));
+      }
+    } catch {
+      // ignore
     }
+  };
+
+  if (import.meta.env.DEV) {
+    purgeLegacyCaches();
   } else {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js').catch(() => undefined);
-    });
+    const resetKey = 'luna_cache_reset_v3';
+    const needsReset = (() => {
+      try {
+        return localStorage.getItem(resetKey) !== '1';
+      } catch {
+        return true;
+      }
+    })();
+
+    if (needsReset) {
+      purgeLegacyCaches().finally(() => {
+        try {
+          localStorage.setItem(resetKey, '1');
+        } catch {
+          // ignore
+        }
+        window.location.reload();
+      });
+    }
   }
 }

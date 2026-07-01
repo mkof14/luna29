@@ -9,7 +9,6 @@ import { DashboardView } from './DashboardView';
 import { DEFAULT_CYCLE_LENGTH, DEFAULT_USER_AGE } from '../constants/appDefaults';
 import { authService } from '../services/authService';
 import { MemberPageHero } from './MemberPageHero';
-import { AdminPanelView } from './AdminPanelView';
 
 const LabsView = lazy(() => import('./LabsView').then((m) => ({ default: m.LabsView })));
 const MedicationsView = lazy(() => import('./MedicationsView').then((m) => ({ default: m.MedicationsView })));
@@ -366,21 +365,15 @@ export const MainContentRouter: React.FC<MainContentRouterProps> = ({
         {activeTab === 'contact' && <ContactView ui={ui} lang={lang} onBack={() => navigateTo('today_mirror')} />}
         {activeTab === 'crisis' && <CrisisCenterView lang={lang} onBack={() => navigateTo('today_mirror')} />}
         {activeTab === 'how_it_works' && <HowItWorksView lang={lang} onBack={() => navigateTo('today_mirror')} />}
-        {activeTab === 'admin' && (
-          canAccessAdmin ? (
-            <AdminPanelView lang={lang} session={session} onBack={() => navigateTo('today_mirror')} onLogout={onLogout} onRoleChange={onRoleChange} />
-          ) : (
-            <section className="min-h-[50vh] flex flex-col items-center justify-center text-center space-y-5">
-              <p className="text-xs font-black uppercase tracking-[0.4em] text-rose-400">{copy.accessRestricted}</p>
-              <h2 className="text-4xl font-black uppercase tracking-tight">{copy.permissionRequired}</h2>
-              <p className="max-w-lg text-slate-500 font-semibold">
-                {copy.permissionBody}
-              </p>
-              <button onClick={() => navigateTo('today_mirror')} className="px-6 py-3 rounded-full bg-luna-purple text-white text-[10px] font-black uppercase tracking-widest">
-                {copy.backHome}
-              </button>
-            </section>
-          )
+        {activeTab === 'admin' && !canAccessAdmin && (
+          <section className="min-h-[50vh] flex flex-col items-center justify-center text-center space-y-5">
+            <p className="text-xs font-black uppercase tracking-[0.4em] text-rose-400">{copy.accessRestricted}</p>
+            <h2 className="text-4xl font-black uppercase tracking-tight">{copy.permissionRequired}</h2>
+            <p className="max-w-lg text-slate-500 font-semibold">{copy.permissionBody}</p>
+            <button onClick={() => navigateTo('today_mirror')} className="px-6 py-3 rounded-full bg-luna-purple text-white text-[10px] font-black uppercase tracking-widest">
+              {copy.backHome}
+            </button>
+          </section>
         )}
       </Suspense>
       </MemberContentErrorBoundary>

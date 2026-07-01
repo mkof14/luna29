@@ -13,6 +13,8 @@ interface AdminPanelViewProps {
   onBack: () => void;
   onLogout: () => void;
   onRoleChange: (role: AdminRole) => void;
+  embedded?: boolean;
+  onFeedback?: (message: string | null) => void;
 }
 
 type ServiceStatus = 'Healthy' | 'Degraded' | 'Down';
@@ -937,7 +939,15 @@ const openPrintPreview = (title: string, htmlBody: string): boolean => {
   return true;
 };
 
-export const AdminPanelView: React.FC<AdminPanelViewProps> = ({ session, lang, onBack, onLogout, onRoleChange }) => {
+export const AdminPanelView: React.FC<AdminPanelViewProps> = ({
+  session,
+  lang,
+  onBack,
+  onLogout,
+  onRoleChange,
+  embedded = false,
+  onFeedback,
+}) => {
   const labels = getAdminPanelLabels(lang);
   const { copy, channelLabels, campaignStatusLabels, statusLabels } = labels;
   const adminUi = getLang(ADMIN_UI_COPY as LangCopy<(typeof ADMIN_UI_COPY)['en']>, lang);
@@ -999,6 +1009,9 @@ export const AdminPanelView: React.FC<AdminPanelViewProps> = ({ session, lang, o
   const [isTemplateLocalizing, setIsTemplateLocalizing] = useState(false);
   const [preview, setPreview] = useState<PreviewState | null>(null);
   const [actionFeedback, setActionFeedback] = useState<string | null>(null);
+  useEffect(() => {
+    if (embedded) onFeedback?.(actionFeedback);
+  }, [actionFeedback, embedded, onFeedback]);
   const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(null);
   const availableVariableTokens = useMemo(() => {
     const tokens = parseVariableInput(newTemplateVariables);
@@ -1833,7 +1846,8 @@ export const AdminPanelView: React.FC<AdminPanelViewProps> = ({ session, lang, o
   };
 
   return (
-    <article className="max-w-7xl mx-auto space-y-12 pb-40 animate-in fade-in duration-700">
+    <article className={`${embedded ? 'space-y-10 pb-16' : 'max-w-7xl mx-auto space-y-12 pb-40'} animate-in fade-in duration-700`}>
+      {!embedded ? (
       <header className="p-8 md:p-12 rounded-[3rem] bg-white/75 dark:bg-[#111c33]/72 backdrop-blur-xl border border-white/60 dark:border-white/12 shadow-[0_26px_80px_rgba(17,24,39,0.16)] dark:shadow-[0_28px_80px_rgba(2,6,23,0.55)] space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <button onClick={onBack} className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-luna-purple transition-all">← {copy.dashboard}</button>
@@ -1858,8 +1872,9 @@ export const AdminPanelView: React.FC<AdminPanelViewProps> = ({ session, lang, o
         </div>
         {actionFeedback && <p className="text-xs font-bold text-luna-purple">{actionFeedback}</p>}
       </header>
+      ) : null}
 
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <section id="admin-section-overview" className="scroll-mt-28 grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="p-6 rounded-[2rem] bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200/60 dark:border-emerald-700/30">
           <p className="text-[10px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-300">{statusLabels.Healthy}</p>
           <p className="text-4xl font-black text-emerald-900 dark:text-emerald-100">{totals.healthy}</p>

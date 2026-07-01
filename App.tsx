@@ -30,6 +30,7 @@ const HormoneDetail = lazy(() => import('./components/HormoneDetail'));
 const CheckinOverlay = lazy(() => import('./components/CheckinOverlay').then((m) => ({ default: m.CheckinOverlay })));
 const AuthView = lazy(() => import('./components/AuthView').then((m) => ({ default: m.AuthView })));
 const PublicLandingView = lazy(() => import('./components/PublicLandingView').then((m) => ({ default: m.PublicLandingView })));
+const AdminWorkspaceView = lazy(() => import('./components/AdminWorkspaceView').then((m) => ({ default: m.AdminWorkspaceView })));
 
 const App: React.FC = () => {
   const [showLaunchSplash, setShowLaunchSplash] = useState(false);
@@ -297,6 +298,28 @@ const App: React.FC = () => {
         />
         <StandaloneWelcomeOverlay lang={lang} />
         <InstallAppPrompt lang={lang} />
+      </>
+    );
+  }
+
+  if (activeTab === 'admin' && canAccessAdmin) {
+    return (
+      <>
+        <Suspense
+          fallback={
+            <div className="min-h-screen flex items-center justify-center bg-[#070b14] text-slate-400">
+              <div className="text-[10px] font-black uppercase tracking-[0.3em]">Loading Admin…</div>
+            </div>
+          }
+        >
+          <AdminWorkspaceView
+            session={session}
+            lang={lang}
+            onBack={() => navigateTo('today_mirror')}
+            onLogout={handleLogout}
+            onRoleChange={handleRoleChange}
+          />
+        </Suspense>
       </>
     );
   }

@@ -3,6 +3,7 @@ import { Facebook, Instagram, Music2, Youtube } from 'lucide-react';
 import { Logo } from './Logo';
 import { TabType } from '../utils/navigation';
 import { getMemberNavCopy } from '../utils/memberNavLabels';
+import { getBrandAssetUrl } from '../utils/lunaBrandAssets';
 import { Language, TranslationSchema, LangCopy, getLang } from '../constants';
 
 interface AppFooterProps {
@@ -319,8 +320,8 @@ export const AppFooter: React.FC<AppFooterProps> = ({ ui, lang, navigateTo, canA
       <div className="max-w-7xl mx-auto space-y-8 relative z-10">
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
           <div className="space-y-3">
-            <div className="flex items-center gap-0.5">
-              <img src="/images/luna-logo-transparent.webp" alt="" aria-hidden="true" className="h-16 w-auto md:h-20 object-contain select-none pointer-events-none" />
+            <div className="flex items-center gap-0.5 origin-left scale-[1.12]">
+              <img src={getBrandAssetUrl('icon')} alt="" aria-hidden="true" className="h-16 w-auto md:h-[4.5rem] object-contain select-none pointer-events-none" />
               <Logo size="md" className="text-7xl leading-none" />
             </div>
             <p className="text-base font-bold text-slate-700 dark:text-slate-400 italic">{footerCopy.slogan}</p>
