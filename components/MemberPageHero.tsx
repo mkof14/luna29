@@ -1,7 +1,7 @@
 import React from 'react';
 import { Language, TranslationSchema, LangCopy, getLang } from '../constants';
 import { TabType } from '../utils/navigation';
-import { MemberHeroArt } from './memberHero/MemberHeroArt';
+import { getMemberHeroImage } from '../utils/memberHeroImages';
 
 type HeroConfig = {
   title: string;
@@ -435,12 +435,21 @@ export const MemberPageHero: React.FC<{
   };
 
   const config = configs[activeTab];
+  const heroImage = getMemberHeroImage(activeTab);
 
   return (
-    <section className="mb-8 md:mb-10 rounded-[2.5rem] border border-slate-200/70 dark:border-slate-700/70 overflow-hidden shadow-[0_30px_75px_rgba(71,62,105,0.22)] dark:shadow-[0_34px_84px_rgba(0,0,0,0.58)] relative min-h-[230px] md:min-h-[260px]">
-      <MemberHeroArt variant={activeTab} />
-      <div className="absolute inset-x-0 top-0 z-30 h-28 bg-gradient-to-b from-black/28 to-transparent dark:from-black/48 dark:to-transparent pointer-events-none" />
-      <div className="absolute left-6 right-6 bottom-5 z-40 space-y-1">
+    <section className="mb-8 md:mb-10 rounded-[2.5rem] border border-slate-200/70 dark:border-slate-700/70 overflow-hidden shadow-[0_30px_75px_rgba(71,62,105,0.22)] dark:shadow-[0_34px_84px_rgba(0,0,0,0.58)] relative min-h-[300px] md:min-h-[360px]">
+      <img
+        src={heroImage}
+        alt=""
+        aria-hidden
+        decoding="async"
+        loading="eager"
+        className={`absolute inset-0 h-full w-full object-cover ${config.objectPositionClass || 'object-[center_32%]'}`}
+      />
+      <div className="absolute inset-x-0 top-0 z-20 h-24 bg-gradient-to-b from-black/35 to-transparent dark:from-black/55 pointer-events-none" />
+      <div className="absolute inset-x-0 bottom-0 z-20 h-20 bg-gradient-to-t from-slate-100/90 via-slate-100/35 to-transparent dark:from-slate-950/90 dark:via-slate-950/35 pointer-events-none" />
+      <div className="absolute left-6 right-6 bottom-6 z-30 space-y-1">
         <p className="text-[10px] font-black uppercase tracking-[0.35em] text-white/85 dark:text-slate-200/90">{config.subtitle}</p>
         <h2 className="text-2xl md:text-3xl font-black tracking-tight text-white dark:text-slate-100 drop-shadow-[0_3px_16px_rgba(0,0,0,0.42)]">
           {config.title}

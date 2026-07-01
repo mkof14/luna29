@@ -3,7 +3,8 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './styles.css';
-import { isLocalRuntimeHost, prepareLocalDevRuntime, purgeServiceWorkerCaches, shouldBypassServiceWorker } from './utils/devRuntime';
+import { prepareLocalDevRuntime, purgeServiceWorkerCaches, shouldBypassServiceWorker } from './utils/devRuntime';
+import { ensureFreshAppShell } from './utils/appShellVersion';
 
 class RootErrorBoundary extends React.Component<{ children: React.ReactNode }, { error: Error | null }> {
   constructor(props: { children: React.ReactNode }) {
@@ -84,33 +85,15 @@ const bootstrap = async () => {
   const bootState = await prepareLocalDevRuntime();
   if (bootState === 'reloading') return;
 
+  const shellState = await ensureFreshAppShell();
+  if (shellState === 'reloading') return;
+
   mountApp();
 
-  if ('serviceWorker' in navigator) {
-    if (shouldBypassServiceWorker()) {
-      window.addEventListener('load', () => {
-        purgeServiceWorkerCaches().catch(() => undefined);
-      });
-    } else {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker
-          .register('/sw.js')
-          .then((registration) => {
-            registration.update().catch(() => undefined);
-            registration.addEventListener('updatefound', () => {
-              const worker = registration.installing;
-              if (!worker) return;
-              worker.addEventListener('statechange', () => {
-                if (worker.state !== 'installed') return;
-                if (!navigator.serviceWorker.controller) return;
-                worker.postMessage({ type: 'SKIP_WAITING' });
-                window.location.reload();
-              });
-            });
-          })
-          .catch(() => undefined);
-      });
-    }
+  if ('serviceWorker' in navigator && shouldBypassServiceWorker()) {
+    window.addEventListener('load', () => {
+      purgeServiceWorkerCaches().catch(() => undefined);
+    });
   }
 };
 

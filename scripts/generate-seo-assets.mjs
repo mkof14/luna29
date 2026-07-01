@@ -40,6 +40,14 @@ Sitemap: ${siteUrl}/sitemap.xml
 await fs.writeFile(path.join(root, 'public', 'sitemap.xml'), sitemap, 'utf8');
 await fs.writeFile(path.join(root, 'public', 'robots.txt'), robots, 'utf8');
 
+const heroesDir = path.join(root, 'public', 'images', 'heroes');
+const heroesR2Dir = path.join(heroesDir, 'r2');
+await fs.mkdir(heroesR2Dir, { recursive: true });
+const heroFiles = (await fs.readdir(heroesDir)).filter((name) => name.endsWith('.webp'));
+await Promise.all(
+  heroFiles.map((name) => fs.copyFile(path.join(heroesDir, name), path.join(heroesR2Dir, name))),
+);
+
 const pkg = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'));
 const releaseTag = String(
   process.env.VERCEL_GIT_COMMIT_SHA
