@@ -88,7 +88,22 @@ if ('serviceWorker' in navigator) {
     }
   } else {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js').catch(() => undefined);
+      navigator.serviceWorker
+        .register('/sw.js')
+        .then((registration) => {
+          registration.update().catch(() => undefined);
+          registration.addEventListener('updatefound', () => {
+            const worker = registration.installing;
+            if (!worker) return;
+            worker.addEventListener('statechange', () => {
+              if (worker.state !== 'installed') return;
+              if (!navigator.serviceWorker.controller) return;
+              worker.postMessage({ type: 'SKIP_WAITING' });
+              window.location.reload();
+            });
+          });
+        })
+        .catch(() => undefined);
     });
   }
 }
