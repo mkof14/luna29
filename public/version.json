@@ -1,0 +1,9 @@
+{
+  "semver": "1.1.0",
+  "release": "deploy/2026-07-02-0112-launch-ready",
+  "cacheKey": "20260702lr",
+  "status": "completed",
+  "completedAt": "2026-07-02T01:12:23Z",
+  "label": "Pre-launch audit, branding, deploy checks",
+  "builtAt": "2026-07-02T01:13:02.774Z"
+}

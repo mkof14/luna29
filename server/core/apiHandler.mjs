@@ -1589,6 +1589,7 @@ const start = async () => {
         const email = normalizeEmail(body.email);
         const password = String(body.password || '');
         const name = typeof body.name === 'string' && body.name.trim() ? safeText(body.name, 120) : normalizeName(email);
+        const inviteToken = safeText(body.inviteToken || body.invite || '', 80);
 
         if (!email || !email.includes('@')) {
           send(res, 400, { error: 'Provide a valid email.' }, headers);
@@ -1605,18 +1606,36 @@ const start = async () => {
           return;
         }
 
+        let roleOverride = null;
+        if (inviteToken) {
+          const invite = (adminStore.getState().invites || []).find((item) => item.id === inviteToken);
+          if (invite?.kind === 'admin') {
+            const inviteRole = invite.role && ROLE_PERMISSIONS[invite.role] ? invite.role : null;
+            const emailMatches = !invite.email || invite.email === email;
+            if (inviteRole && emailMatches) roleOverride = inviteRole;
+          }
+        }
+
         const user = {
           id: randomBytes(12).toString('hex'),
           email,
           name,
           passwordHash: hashPassword(password),
           createdAt: new Date().toISOString(),
-          roleOverride: null,
+          roleOverride,
           lastProvider: 'password',
           avatarUrl: undefined,
         };
         users = [user, ...users];
         await saveUsers();
+
+        if (inviteToken && roleOverride) {
+          const adminState = adminStore.getState();
+          adminState.invites = (adminState.invites || []).map((item) =>
+            item.id === inviteToken ? { ...item, status: 'accepted', acceptedAt: new Date().toISOString() } : item,
+          );
+          await adminStore.save();
+        }
 
         const token = createSession(user);
         await saveSessions();
@@ -2247,7 +2266,7 @@ const start = async () => {
       return;
     }
 
-    if (await handleAdminApi(req, res, { method, url, headers, requireSession, users, saveUsers })) {
+    if (await handleAdminApi(req, res, { method, url, headers, requireSession, users, saveUsers, billingState, contactSubmissions, saveContacts })) {
       return;
     }
 

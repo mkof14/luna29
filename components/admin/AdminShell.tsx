@@ -2,13 +2,16 @@ import React, { useState } from 'react';
 import { Language, getLang } from '../../constants';
 import { AdminRole, AuthSession } from '../../types';
 import { ADMIN_WORKSPACE_COPY, AdminWorkspaceTab, tabLabel } from '../../utils/adminWorkspaceI18n';
+import { ADMIN_ZONE_COPY } from '../../utils/adminZoneCopy';
 import { AdminSidebar } from './AdminSidebar';
 import { AdminThemeProvider, useAdminTheme } from './AdminThemeContext';
+import LanguageSelector from '../LanguageSelector';
 import { adminBtnSecondary, adminShellBg, adminTopbarBg } from './adminStyles';
 
 type AdminShellInnerProps = {
   session: AuthSession | null;
   lang: Language;
+  setLang: (lang: Language) => void;
   activeTab: AdminWorkspaceTab;
   onTabChange: (tab: AdminWorkspaceTab) => void;
   onBack: () => void;
@@ -23,6 +26,7 @@ type AdminShellInnerProps = {
 const AdminShellInner: React.FC<AdminShellInnerProps> = ({
   session,
   lang,
+  setLang,
   activeTab,
   onTabChange,
   onBack,
@@ -34,6 +38,7 @@ const AdminShellInner: React.FC<AdminShellInnerProps> = ({
   children,
 }) => {
   const copy = getLang(ADMIN_WORKSPACE_COPY, lang);
+  const zoneCopy = getLang(ADMIN_ZONE_COPY, lang);
   const { mode, toggle } = useAdminTheme();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
@@ -41,9 +46,11 @@ const AdminShellInner: React.FC<AdminShellInnerProps> = ({
     <div className={`min-h-screen flex ${adminShellBg(mode)} ${mode === 'dark' ? 'dark' : ''}`}>
       <AdminSidebar
         lang={lang}
+        onLangChange={setLang}
         active={activeTab}
         onChange={onTabChange}
         permissions={session?.permissions || []}
+        role={session?.role}
         collapsed={sidebarCollapsed}
         onToggleCollapse={() => setSidebarCollapsed((prev) => !prev)}
       />
@@ -71,6 +78,9 @@ const AdminShellInner: React.FC<AdminShellInnerProps> = ({
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
+              <div className="hidden sm:block">
+                <LanguageSelector current={lang} onSelect={setLang} variant="default" menuAlign="right" />
+              </div>
               <button type="button" onClick={toggle} className={adminBtnSecondary(mode)} title={mode === 'dark' ? copy.themeLight : copy.themeDark}>
                 {mode === 'dark' ? '☀' : '🌙'}
               </button>
@@ -78,9 +88,13 @@ const AdminShellInner: React.FC<AdminShellInnerProps> = ({
                 ← {copy.backToSite}
               </button>
               <button type="button" onClick={onLogout} className={adminBtnSecondary(mode)}>
-                Logout
+                {zoneCopy.logout}
               </button>
             </div>
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-center gap-2 sm:hidden">
+            <LanguageSelector current={lang} onSelect={setLang} variant="footer" menuAlign="left" menuPlacement="bottom" />
           </div>
 
           <div className="mt-3 flex flex-wrap items-center gap-2">

@@ -7,6 +7,7 @@ export type AdminWorkspaceTab =
   | 'analytics'
   | 'finance'
   | 'mail'
+  | 'invites'
   | 'campaigns'
   | 'templates'
   | 'team'
@@ -30,6 +31,7 @@ export type AdminWorkspaceCopy = {
   tabAnalytics: string;
   tabFinance: string;
   tabMail: string;
+  tabInvites: string;
   tabCampaigns: string;
   tabTemplates: string;
   tabTeam: string;
@@ -122,6 +124,7 @@ const base = (overrides: Partial<AdminWorkspaceCopy>): AdminWorkspaceCopy => ({
   tabAnalytics: 'Analytics',
   tabFinance: 'Finance',
   tabMail: 'Mail & invites',
+  tabInvites: 'Invitations',
   tabCampaigns: 'Campaigns',
   tabTemplates: 'Templates',
   tabTeam: 'Team',
@@ -217,6 +220,7 @@ export const ADMIN_WORKSPACE_COPY: LangCopy<AdminWorkspaceCopy> = {
     tabAnalytics: 'Аналитика',
     tabFinance: 'Финансы',
     tabMail: 'Почта и приглашения',
+    tabInvites: 'Приглашения',
     tabCampaigns: 'Кампании',
     tabTemplates: 'Шаблоны',
     tabTeam: 'Команда',
@@ -239,7 +243,7 @@ export const ADMIN_WORKSPACE_COPY: LangCopy<AdminWorkspaceCopy> = {
     configured: 'Настроено',
     missing: 'Не настроено',
   }),
-  uk: base({ tabOverview: 'Огляд', tabServices: 'Сервіси', tabIntegrations: 'Інтеграції', tabAnalytics: 'Аналітика', tabCampaigns: 'Кампанії', tabTemplates: 'Шаблони', tabTeam: 'Команда', tabContacts: 'Контакти', tabAudit: 'Аудит', tabSettings: 'Налаштування', brandTitle: 'Luna29' }),
+  uk: base({ tabOverview: 'Огляд', tabInvites: 'Запрошення', tabServices: 'Сервіси', tabIntegrations: 'Інтеграції', tabAnalytics: 'Аналітика', tabCampaigns: 'Кампанії', tabTemplates: 'Шаблони', tabTeam: 'Команда', tabContacts: 'Контакти', tabAudit: 'Аудит', tabSettings: 'Налаштування', brandTitle: 'Luna29' }),
   es: base({ tabOverview: 'Resumen', tabServices: 'Servicios', tabIntegrations: 'Integraciones', tabAnalytics: 'Analitica', tabCampaigns: 'Campanas', tabTemplates: 'Plantillas', tabTeam: 'Equipo', tabContacts: 'Contactos', tabAudit: 'Auditoria', tabSettings: 'Ajustes', brandTitle: 'Luna29' }),
   fr: base({ tabOverview: 'Apercu', tabServices: 'Services', tabIntegrations: 'Integrations', tabAnalytics: 'Analytique', tabCampaigns: 'Campagnes', tabTemplates: 'Modeles', tabTeam: 'Equipe', tabContacts: 'Contacts', tabAudit: 'Audit', tabSettings: 'Parametres', brandTitle: 'Luna29' }),
   de: base({ tabOverview: 'Ueberblick', tabServices: 'Dienste', tabIntegrations: 'Integrationen', tabAnalytics: 'Analytik', tabCampaigns: 'Kampagnen', tabTemplates: 'Vorlagen', tabTeam: 'Team', tabContacts: 'Kontakte', tabAudit: 'Audit', tabSettings: 'Einstellungen', brandTitle: 'Luna29' }),
@@ -257,6 +261,7 @@ export const ADMIN_NAV: Array<{ tab: AdminWorkspaceTab; group: AdminNavGroup }> 
   { tab: 'integrations', group: 'platform' },
   { tab: 'analytics', group: 'platform' },
   { tab: 'mail', group: 'platform' },
+  { tab: 'invites', group: 'people' },
   { tab: 'campaigns', group: 'content' },
   { tab: 'templates', group: 'content' },
   { tab: 'team', group: 'people' },
@@ -273,6 +278,7 @@ export const tabLabel = (copy: AdminWorkspaceCopy, tab: AdminWorkspaceTab): stri
     analytics: copy.tabAnalytics,
     finance: copy.tabFinance,
     mail: copy.tabMail,
+    invites: copy.tabInvites,
     campaigns: copy.tabCampaigns,
     templates: copy.tabTemplates,
     team: copy.tabTeam,

@@ -363,6 +363,17 @@ const localAuth = {
     return session;
   },
 
+  updateRole(session: AuthSession, role: AdminRole): AuthSession {
+    const next = {
+      ...session,
+      role,
+      permissions: ROLE_PERMISSIONS[role],
+    };
+    saveLocalSession(next);
+    sessionCache = next;
+    return next;
+  },
+
   logout() {
     localStorage.removeItem(LOCAL_SESSION_KEY);
     sessionCache = null;
@@ -447,11 +458,15 @@ export const authService = {
     }
   },
 
-  async signupWithPassword(email: string, password: string): Promise<AuthSession> {
+  async signupWithPassword(email: string, password: string, inviteToken?: string | null): Promise<AuthSession> {
     try {
       const payload = await requestJson<{ session: AuthSession }>('/api/auth/signup', {
         method: 'POST',
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          email,
+          password,
+          ...(inviteToken ? { inviteToken } : {}),
+        }),
       });
       sessionCache = normalizeSession(payload.session);
       saveLocalSession(sessionCache);
@@ -484,6 +499,23 @@ export const authService = {
     }
   },
 
+  async updateRole(session: AuthSession, role: AdminRole): Promise<AuthSession> {
+    try {
+      const payload = await requestJson<{ session: AuthSession }>('/api/admin/role', {
+        method: 'POST',
+        body: JSON.stringify({ email: session.email, role }),
+      });
+      sessionCache = normalizeSession(payload.session);
+      saveLocalSession(sessionCache);
+      return sessionCache;
+    } catch (error) {
+      if (isNetworkError(error) && canUseLocalFallback()) {
+        return localAuth.updateRole(session, role);
+      }
+      throw error;
+    }
+  },
+
   async logout(): Promise<void> {
     try {
       await requestJson<{ ok: boolean }>('/api/auth/logout', { method: 'POST', body: JSON.stringify({}) });
@@ -497,4 +529,27 @@ export const authService = {
     }
   },
 
+  hasPermission(session: AuthSession | null, permission: AdminPermission): boolean {
+    if (!session) return false;
+    const role =
+      session.role && session.role in ROLE_PERMISSIONS ? session.role : resolveRole(session.email);
+    const permissions =
+      Array.isArray(session.permissions) && session.permissions.length > 0
+        ? session.permissions
+        : ROLE_PERMISSIONS[role];
+    return permissions.includes(permission);
+  },
+
+  canAccessAdminWorkspace(session: AuthSession | null): boolean {
+    if (!session) return false;
+    const gates: AdminPermission[] = [
+      'manage_admin_roles',
+      'manage_services',
+      'manage_marketing',
+      'manage_email_templates',
+      'view_financials',
+      'view_technical_metrics',
+    ];
+    return gates.some((permission) => this.hasPermission(session, permission));
+  },
 };

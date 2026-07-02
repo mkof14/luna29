@@ -41,6 +41,7 @@ export const LUNA_TAGLINE = 'Private rhythm awareness & care';
 export const LUNA_BRAND_PATHS = {
   icon: '/brand/luna-icon.png',
   iconEmail: '/brand/luna-icon-email.png',
+  moonLockup: '/brand/luna-moon-lockup.png',
   wordmark: '/brand/luna-wordmark.png',
   wordmarkPurple: '/brand/luna-wordmark-purple.png',
   wordmarkCoral: '/brand/luna-wordmark-coral.png',
@@ -60,6 +61,7 @@ export const getBrandAssetUrl = (key: LunaBrandAssetKey): string =>
 export type LunaBrandUrls = {
   icon: string;
   iconEmail: string;
+  moonLockup: string;
   wordmark: string;
   wordmarkPurple: string;
   wordmarkCoral: string;
@@ -71,6 +73,7 @@ export type LunaBrandUrls = {
 export const buildLunaBrandUrls = (baseUrl = resolveLunaAssetBaseUrl()): LunaBrandUrls => ({
   icon: versionedAbsoluteAsset(baseUrl, LUNA_BRAND_PATHS.icon),
   iconEmail: versionedAbsoluteAsset(baseUrl, LUNA_BRAND_PATHS.iconEmail),
+  moonLockup: versionedAbsoluteAsset(baseUrl, LUNA_BRAND_PATHS.moonLockup),
   wordmark: versionedAbsoluteAsset(baseUrl, LUNA_BRAND_PATHS.wordmark),
   wordmarkPurple: versionedAbsoluteAsset(baseUrl, LUNA_BRAND_PATHS.wordmarkPurple),
   wordmarkCoral: versionedAbsoluteAsset(baseUrl, LUNA_BRAND_PATHS.wordmarkCoral),
@@ -79,17 +82,15 @@ export const buildLunaBrandUrls = (baseUrl = resolveLunaAssetBaseUrl()): LunaBra
   heroWide: versionedAbsoluteAsset(baseUrl, LUNA_BRAND_PATHS.heroWide),
 });
 
-/** Email-safe header: moon icon + Luna wordmark in purple and coral. */
+/** Email-safe header — single Luna29 lockup on dark bar. */
 export const buildEmailBrandHeaderHtml = (brand: LunaBrandUrls, subtitle?: string): string => {
-  const subtitleHtml = subtitle
-    ? `<p style="margin:8px 0 0;font-size:11px;letter-spacing:0.22em;text-transform:uppercase;color:#64748b">${subtitle}</p>`
-    : '';
-  return `<table role="presentation" cellspacing="0" cellpadding="0"><tr><td width="58" valign="middle" style="padding-right:14px"><img src="${brand.iconEmail}" alt="Luna" width="52" height="52" style="display:block;border-radius:14px;width:52px;height:52px;object-fit:contain"/></td><td valign="middle"><img src="${brand.wordmarkPurple}" alt="Luna" height="34" style="display:block;height:34px;width:auto;max-width:160px"/><img src="${brand.wordmarkCoral}" alt="" height="26" style="display:block;height:26px;width:auto;max-width:148px;margin-top:-2px;opacity:0.95"/>${subtitleHtml}</td></tr></table>`;
+  const tagline = subtitle || 'Private rhythm awareness & care';
+  return `<table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr><td align="center" style="padding:8px 0"><img src="${brand.lockup}" alt="Luna29" height="48" style="display:block;height:48px;width:auto;max-width:220px;margin:0 auto"/></td></tr><tr><td align="center" style="font-family:sans-serif;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:#94a3b8;padding-top:8px">${tagline}</td></tr></table>`;
 };
 
-/** Compact brand row for email footers. */
-export const buildEmailBrandFooterHtml = (brand: LunaBrandUrls, copyright: string): string =>
-  `<table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr><td width="36" valign="middle"><img src="${brand.iconEmail}" alt="" width="32" height="32" style="display:block;border-radius:10px;width:32px;height:32px;object-fit:contain"/></td><td valign="middle" style="padding-left:10px"><img src="${brand.wordmarkPurple}" alt="Luna" height="20" style="display:inline-block;height:20px;width:auto;vertical-align:middle"/><img src="${brand.wordmarkCoral}" alt="" height="16" style="display:inline-block;height:16px;width:auto;margin-left:6px;vertical-align:middle;opacity:0.9"/></td></tr><tr><td colspan="2" style="padding-top:10px"><p style="margin:0 0 6px;font-size:12px;line-height:1.6;color:#cbd5e1">Luna29 — private reflective space for rhythm awareness.</p><p style="margin:0;font-size:11px;color:#94a3b8">${copyright}</p></td></tr></table>`;
+/** Dark footer with address, copyright, and links. */
+export const buildEmailBrandFooterHtml = (_brand: LunaBrandUrls, copyright: string): string =>
+  `<table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr><td align="center" style="padding:24px;background:#050508"><p style="margin:0 0 6px;font-family:sans-serif;font-size:11px;color:#cbd5e1">Rhythm & Balance · www.luna29.com</p><p style="margin:0;font-family:sans-serif;font-size:10px;color:#64748b">${copyright}</p></td></tr></table>`;
 
 export const LUNA_SITE_URL = resolveLunaSiteUrl();
 export const LUNA_BRAND_URLS = buildLunaBrandUrls();

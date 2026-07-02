@@ -39,6 +39,8 @@ export const DEFAULT_ADMIN_STATE = {
   },
   metricsHistory: [],
   audit: [],
+  invites: [],
+  campaignQueue: [],
 };
 
 export const sanitizeAdminState = (raw, { safeText, normalizeEmail, numberOr }) => {
@@ -107,6 +109,37 @@ export const sanitizeAdminState = (raw, { safeText, normalizeEmail, numberOr }) 
 
   if (Array.isArray(raw.audit)) next.audit = raw.audit.slice(0, 500);
 
+  if (Array.isArray(raw.invites)) {
+    next.invites = raw.invites.slice(0, 500).map((item, index) => ({
+      id: safeText(item.id || `inv-${index}`, 80),
+      email: normalizeEmail(item.email || ''),
+      kind: item.kind === 'admin' ? 'admin' : 'site',
+      role: safeText(item.role || '', 40) || undefined,
+      inviteLink: safeText(item.inviteLink || '', 500),
+      delivered: Boolean(item.delivered),
+      createdAt: safeText(item.createdAt || '', 40),
+      createdBy: safeText(item.createdBy || '', 120),
+    }));
+  }
+
+  if (Array.isArray(raw.campaignQueue)) {
+    next.campaignQueue = raw.campaignQueue.slice(0, 200).map((item, index) => ({
+      id: safeText(item.id || `cq-${index}`, 80),
+      name: safeText(item.name || 'Campaign', 160),
+      subject: safeText(item.subject || '', 200),
+      body: safeText(item.body || '', 8000),
+      templateId: safeText(item.templateId || 'tpl-newsletter', 80),
+      recipients: Array.isArray(item.recipients)
+        ? item.recipients.map((row) => normalizeEmail(String(row || ''))).filter((row) => row.includes('@')).slice(0, 200)
+        : [],
+      sendAt: safeText(item.sendAt || '', 40),
+      status: ['scheduled', 'sent', 'failed', 'cancelled'].includes(item.status) ? item.status : 'scheduled',
+      createdAt: safeText(item.createdAt || '', 40),
+      sentAt: item.sentAt ? safeText(item.sentAt, 40) : null,
+      error: item.error ? safeText(item.error, 300) : null,
+    }));
+  }
+
   return next;
 };
 
@@ -130,6 +163,8 @@ export const updateAdminStateByPermissions = (adminState, incoming, sessionPaylo
     financialMetrics: sessionPayload.permissions.includes('manage_admin_roles'),
     technicalMetrics: sessionPayload.permissions.includes('manage_admin_roles'),
     metricsHistory: sessionPayload.permissions.includes('manage_admin_roles'),
+    invites: sessionPayload.permissions.includes('manage_admin_roles') || sessionPayload.permissions.includes('manage_marketing'),
+    campaignQueue: sessionPayload.permissions.includes('manage_marketing'),
   };
 
   const changed = [];

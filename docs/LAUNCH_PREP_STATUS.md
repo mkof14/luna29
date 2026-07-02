@@ -1,8 +1,18 @@
 # Luna Launch Prep Status
 
-Updated: 2026-06-28
+Updated: 2026-07-02 · **Release v1.1.0 completed** (`deploy/2026-07-02-0112-launch-ready`)
 
-## Completed in This Block
+## Completed in This Block (2026-07-02)
+
+### Pre-launch audit remediation (status: completed)
+- Broken assets fixed (`f5.webp`, hero preload), social links gated by env.
+- Lang boot from URL, dynamic OG/canonical, i18n audit pass, deep-link routing.
+- Perf budget pass, service worker registration (production), admin invite role on signup.
+- Logo in menu/footer: moon mark only (no duplicate «Luna» under icon).
+- Deploy checks: `status:prod` pass, local build + prerender pass.
+- Version index: `release/version.json` + `/version.json` at build.
+
+## Completed in Earlier Block (2026-06-28)
 
 ### Product & Messaging
 - Privacy messaging aligned with architecture (local-first health data + optional server account/billing/AI).
@@ -55,6 +65,10 @@ Updated: 2026-06-28
 - [ ] Store IAP / Play Billing integration.
 - [ ] Real push dispatch provider.
 - [ ] App Store + Play metadata and submission.
+
+## Storage note (Vercel / ephemeral)
+
+When `DATABASE_URL` is not configured, server-side admin state, invites, billing snapshots, and contact submissions persist to JSON files under the runtime data directory. On Vercel serverless, `/tmp` is ephemeral and size-limited (~512 MB); data may reset between cold starts or deployments. For production, wire Postgres (`DATABASE_URL`) before relying on admin invites, audit logs, or billing state durability.
 
 ## Quality Gate
 

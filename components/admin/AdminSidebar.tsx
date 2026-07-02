@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Language, getLang } from '../../constants';
-import { AdminPermission } from '../../types';
+import { AdminPermission, AdminRole } from '../../types';
+import LanguageSelector from '../LanguageSelector';
 import {
   ADMIN_NAV,
   ADMIN_WORKSPACE_COPY,
@@ -9,21 +10,24 @@ import {
   groupLabel,
   tabLabel,
 } from '../../utils/adminWorkspaceI18n';
+import { ADMIN_ZONE_COPY } from '../../utils/adminZoneCopy';
 import { useAdminTheme } from './AdminThemeContext';
 import { getBrandAssetUrl } from '../../utils/lunaBrandAssets';
 import { adminNavItem, adminSidebarBg } from './adminStyles';
 
 type AdminSidebarProps = {
   lang: Language;
+  onLangChange: (lang: Language) => void;
   active: AdminWorkspaceTab;
   onChange: (tab: AdminWorkspaceTab) => void;
   permissions: AdminPermission[];
+  role?: AdminRole;
   collapsed?: boolean;
   onToggleCollapse?: () => void;
 };
 
-const tabAllowed = (tab: AdminWorkspaceTab, permissions: AdminPermission[]): boolean => {
-  if (permissions.includes('super_admin' as AdminPermission)) return true;
+const tabAllowed = (tab: AdminWorkspaceTab, permissions: AdminPermission[], role?: AdminRole): boolean => {
+  if (role === 'super_admin') return true;
   switch (tab) {
     case 'overview':
     case 'services':
@@ -31,7 +35,9 @@ const tabAllowed = (tab: AdminWorkspaceTab, permissions: AdminPermission[]): boo
     case 'integrations':
     case 'analytics':
     case 'mail':
-      return permissions.some((p) => ['manage_services', 'manage_admin_roles', 'manage_email_templates'].includes(p));
+      return permissions.some((p) => ['manage_services', 'manage_admin_roles', 'manage_email_templates', 'manage_marketing'].includes(p));
+    case 'invites':
+      return permissions.some((p) => ['manage_admin_roles', 'manage_marketing', 'manage_services'].includes(p));
     case 'finance':
       return permissions.some((p) => ['view_financials', 'manage_admin_roles', 'manage_services'].includes(p));
     case 'campaigns':
@@ -56,6 +62,7 @@ const NAV_ICON: Record<AdminWorkspaceTab, string> = {
   analytics: '📊',
   finance: '💎',
   mail: '✉',
+  invites: '✦',
   campaigns: '✦',
   templates: '✉',
   team: '👥',
@@ -68,17 +75,20 @@ const GROUPS: AdminNavGroup[] = ['main', 'platform', 'content', 'people', 'repor
 
 export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   lang,
+  onLangChange,
   active,
   onChange,
   permissions,
+  role,
   collapsed = false,
 }) => {
   const copy = getLang(ADMIN_WORKSPACE_COPY, lang);
+  const zoneCopy = getLang(ADMIN_ZONE_COPY, lang);
   const { mode } = useAdminTheme();
 
   const items = useMemo(
-    () => ADMIN_NAV.filter((item) => tabAllowed(item.tab, permissions)),
-    [permissions],
+    () => ADMIN_NAV.filter((item) => tabAllowed(item.tab, permissions, role)),
+    [permissions, role],
   );
 
   return (
@@ -90,11 +100,11 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       <div className={`p-4 border-b ${mode === 'dark' ? 'border-white/[0.08]' : 'border-slate-200/90'}`}>
         <div className="flex items-center gap-3">
           <img
-            src={getBrandAssetUrl('icon')}
+            src={getBrandAssetUrl('moonLockup')}
             alt="Luna29"
             width={40}
             height={40}
-            className="w-10 h-10 rounded-xl shrink-0 object-cover"
+            className="w-10 h-10 rounded-xl shrink-0 object-cover object-top"
           />
           {!collapsed ? (
             <div className="min-w-0">
@@ -139,12 +149,23 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
           );
         })}
       </nav>
+
+      <div className={`p-3 border-t ${mode === 'dark' ? 'border-white/[0.08]' : 'border-slate-200/90'}`}>
+        {!collapsed ? (
+          <p className={`px-3 mb-2 text-[10px] font-bold uppercase tracking-[0.2em] ${mode === 'dark' ? 'text-slate-600' : 'text-slate-400'}`}>
+            {zoneCopy.language}
+          </p>
+        ) : null}
+        <div className="px-2">
+          <LanguageSelector current={lang} onSelect={onLangChange} variant="footer" menuAlign="left" menuPlacement="top" />
+        </div>
+      </div>
     </aside>
   );
 };
 
-export const pickDefaultAdminTab = (permissions: AdminPermission[]): AdminWorkspaceTab => {
-  const tabs = ADMIN_NAV.filter((item) => tabAllowed(item.tab, permissions)).map((item) => item.tab);
+export const pickDefaultAdminTab = (permissions: AdminPermission[], role?: AdminRole): AdminWorkspaceTab => {
+  const tabs = ADMIN_NAV.filter((item) => tabAllowed(item.tab, permissions, role)).map((item) => item.tab);
   return tabs[0] || 'overview';
 };
 

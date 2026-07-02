@@ -29,6 +29,7 @@ import {
   getFooterTrustLine,
 } from '../utils/publicFooterSpirit';
 import { markCheckoutPending, markTrialPending } from '../utils/subscriptionAccess';
+import { buildPublicPageUrl, resolveSiteUrl, updatePageMeta } from '../utils/pageMeta';
 
 const HowItWorksView = lazy(() => import('./HowItWorksView').then((m) => ({ default: m.HowItWorksView })));
 const FAQView = lazy(() => import('./FAQView').then((m) => ({ default: m.FAQView })));
@@ -1105,40 +1106,26 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
   };
   const installGuideModal = getLang(installGuideModalByLang, lang) || installGuideModalByLang.en!;
 
-  const socialLinks = [
-    {
-      id: 'facebook',
-      label: 'Facebook',
-      href: 'https://facebook.com',
-      icon: Facebook,
-      iconBg: 'bg-[#1877F2]/15',
-      iconColor: 'text-[#1877F2]',
-    },
-    {
-      id: 'instagram',
-      label: 'Instagram',
-      href: 'https://instagram.com',
-      icon: Instagram,
-      iconBg: 'bg-gradient-to-br from-[#F58529]/20 via-[#DD2A7B]/20 to-[#8134AF]/20',
-      iconColor: 'text-[#DD2A7B]',
-    },
-    {
-      id: 'youtube',
-      label: 'YouTube',
-      href: 'https://youtube.com',
-      icon: Youtube,
-      iconBg: 'bg-[#FF0000]/15',
-      iconColor: 'text-[#FF0000]',
-    },
-    {
-      id: 'tiktok',
-      label: 'TikTok',
-      href: 'https://tiktok.com',
-      icon: Music2,
-      iconBg: 'bg-[#111111]/15 dark:bg-white/10',
-      iconColor: 'text-[#111111] dark:text-white',
-    },
-  ];
+  const socialLinks = useMemo(() => {
+    const normalizeExternalUrl = (value: unknown) => {
+      const raw = String(value || '').trim();
+      if (!raw) return '';
+      try {
+        const url = new URL(raw);
+        if (url.protocol === 'https:' || url.protocol === 'http:') return url.toString();
+      } catch {
+        return '';
+      }
+      return '';
+    };
+    const candidates = [
+      { id: 'facebook', label: 'Facebook', href: normalizeExternalUrl(import.meta.env.VITE_SOCIAL_FACEBOOK), icon: Facebook, iconBg: 'bg-[#1877F2]/15', iconColor: 'text-[#1877F2]' },
+      { id: 'instagram', label: 'Instagram', href: normalizeExternalUrl(import.meta.env.VITE_SOCIAL_INSTAGRAM), icon: Instagram, iconBg: 'bg-gradient-to-br from-[#F58529]/20 via-[#DD2A7B]/20 to-[#8134AF]/20', iconColor: 'text-[#DD2A7B]' },
+      { id: 'youtube', label: 'YouTube', href: normalizeExternalUrl(import.meta.env.VITE_SOCIAL_YOUTUBE), icon: Youtube, iconBg: 'bg-[#FF0000]/15', iconColor: 'text-[#FF0000]' },
+      { id: 'tiktok', label: 'TikTok', href: normalizeExternalUrl(import.meta.env.VITE_SOCIAL_TIKTOK), icon: Music2, iconBg: 'bg-[#111111]/15 dark:bg-white/10', iconColor: 'text-[#111111] dark:text-white' },
+    ];
+    return candidates.filter((item) => item.href);
+  }, []);
   const aboutLabelByLang: LangCopy< string> = {
     en: 'About',
     ru: 'О проекте',
@@ -1836,23 +1823,25 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     const titleByPage = getLang(titleByPageByLang, lang) || titleByPageByLang.en;
     const descriptionByPage = getLang(descriptionByPageByLang, lang) || descriptionByPageByLang.en;
 
-    document.title =
+    const title =
       activePage === 'calendar'
         ? getLang(calendarSeoTitleByLang, lang) || calendarSeoTitleByLang.en
         : activePage === 'legal'
           ? `${legalHubLabel} | Luna29`
           : titleByPage[activePage];
-    const descriptionEl = document.querySelector('meta[name="description"]');
-    if (descriptionEl) {
-      descriptionEl.setAttribute(
-        'content',
-        activePage === 'calendar'
-          ? getLang(calendarSeoDescriptionByLang, lang) || calendarSeoDescriptionByLang.en
-          : activePage === 'legal'
-            ? `${LEGAL_ENTITY_NAME} legal center: Privacy, Terms, Wellness Notice, Cookies, and Your Data.`
-            : descriptionByPage[activePage],
-      );
-    }
+    const description =
+      activePage === 'calendar'
+        ? getLang(calendarSeoDescriptionByLang, lang) || calendarSeoDescriptionByLang.en
+        : activePage === 'legal'
+          ? `${LEGAL_ENTITY_NAME} legal center: Privacy, Terms, Wellness Notice, Cookies, and Your Data.`
+          : descriptionByPage[activePage];
+    const siteUrl = resolveSiteUrl();
+    const pagePath = resolvePathFromPage(activePage);
+    updatePageMeta({
+      title,
+      description,
+      url: buildPublicPageUrl(siteUrl, pagePath, lang),
+    });
   }, [activePage, calendarSeoDescriptionByLang, calendarSeoTitleByLang, lang, legalHubLabel]);
 
   const heroBackgroundStyle = useMemo<React.CSSProperties>(() => {
@@ -1916,7 +1905,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       >
         <div className="max-w-[1160px] mx-auto px-3 sm:px-4 md:px-6 h-14 sm:h-16 md:h-[4.5rem] flex items-center justify-between gap-2 sm:gap-4 min-w-0">
           <button type="button" onClick={() => setActivePage('home')} className="flex items-center gap-1 min-w-0 shrink origin-left scale-[1.14] hover:scale-[1.18] active:scale-[1.1] transition-transform overflow-visible pr-1.5">
-            <img src={getBrandAssetUrl('icon')} alt="" aria-hidden="true" className="h-10 sm:h-14 w-auto md:h-16 object-contain select-none pointer-events-none shrink-0" />
+            <img src={getBrandAssetUrl('appIcon')} alt="" aria-hidden="true" className="h-10 sm:h-14 w-auto md:h-16 object-contain select-none pointer-events-none shrink-0" />
             <Logo size="sm" className="cursor-default text-3xl sm:text-5xl leading-none shrink-0" />
           </button>
           <nav className="hidden md:flex items-center gap-4 min-w-0">
@@ -2069,7 +2058,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
         <div className="max-w-7xl mx-auto space-y-14 relative z-10">
           <div className="space-y-4 max-w-2xl">
             <div className="flex items-center gap-0.5 origin-left scale-[1.12]">
-              <img src={getBrandAssetUrl('icon')} alt="" aria-hidden="true" className="h-16 w-auto md:h-[4.5rem] object-contain select-none pointer-events-none" />
+              <img src={getBrandAssetUrl('appIcon')} alt="" aria-hidden="true" className="h-16 w-auto md:h-[4.5rem] object-contain select-none pointer-events-none" />
               <Logo size="sm" className="cursor-default text-4xl md:text-5xl leading-none" />
             </div>
             <p className="text-base md:text-lg font-semibold text-slate-800 dark:text-slate-400">{homeStory.heroLead}</p>
@@ -2185,27 +2174,29 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
                   <p className="text-[11px] font-light text-slate-500 dark:text-slate-400">{storeBadges.soon}</p>
                 )}
               </div>
-              <div className="pt-4 border-t border-slate-300/70 dark:border-slate-700/70 space-y-3">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em]">
-                  <LunaShimmerText text={installActions.social} className="opacity-90 font-semibold" />
-                </p>
-                <div className="flex items-center gap-3">
-                  {socialLinks.map((social) => (
-                    <a
-                      key={social.id}
-                      href={social.href}
-                      target="_blank"
-                      rel="noreferrer"
-                      aria-label={social.label}
-                      className="text-slate-700 dark:text-slate-300 hover:-translate-y-[1px] transition-transform"
-                    >
-                      <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full ${social.iconBg}`}>
-                        <social.icon size={14} className={social.iconColor} />
-                      </span>
-                    </a>
-                  ))}
+              {socialLinks.length > 0 && (
+                <div className="pt-4 border-t border-slate-300/70 dark:border-slate-700/70 space-y-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em]">
+                    <LunaShimmerText text={installActions.social} className="opacity-90 font-semibold" />
+                  </p>
+                  <div className="flex items-center gap-3">
+                    {socialLinks.map((social) => (
+                      <a
+                        key={social.id}
+                        href={social.href}
+                        target="_blank"
+                        rel="noreferrer"
+                        aria-label={social.label}
+                        className="text-slate-700 dark:text-slate-300 hover:-translate-y-[1px] transition-transform"
+                      >
+                        <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full ${social.iconBg}`}>
+                          <social.icon size={14} className={social.iconColor} />
+                        </span>
+                      </a>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </nav>
 
             <nav className="space-y-4 min-w-0">

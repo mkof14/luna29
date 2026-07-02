@@ -2,6 +2,7 @@
 
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
+import { readReleaseManifest, resolveCacheKey, resolveReleaseTag } from './releaseManifest.mjs';
 
 const root = process.cwd();
 const siteUrl = String(process.env.VITE_SITE_URL || 'https://www.luna29.com').trim().replace(/\/+$/, '');
@@ -48,14 +49,25 @@ await Promise.all(
   heroFiles.map((name) => fs.copyFile(path.join(heroesDir, name), path.join(heroesR2Dir, name))),
 );
 
-const pkg = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'));
-const releaseTag = String(
-  process.env.VERCEL_GIT_COMMIT_SHA
-  || process.env.VERCEL_DEPLOYMENT_ID
-  || process.env.VITE_APP_RELEASE
-  || pkg.version
-  || 'dev',
-).trim().slice(0, 12);
+const manifest = readReleaseManifest();
+const releaseTag = resolveCacheKey(manifest);
+const releaseFull = resolveReleaseTag(manifest);
+
+const versionPayload = {
+  semver: manifest.semver,
+  release: releaseFull,
+  cacheKey: releaseTag,
+  status: manifest.status,
+  completedAt: manifest.completedAt,
+  label: manifest.label || '',
+  builtAt: new Date().toISOString(),
+};
+
+await fs.writeFile(
+  path.join(root, 'public', 'version.json'),
+  `${JSON.stringify(versionPayload, null, 2)}\n`,
+  'utf8',
+);
 
 // Shell-only SW: purge stale caches on deploy. Do not intercept navigations or cache index.html.
 const swSource = `const CACHE_NAME = 'luna-shell-${releaseTag}';
@@ -83,4 +95,4 @@ self.addEventListener('message', (event) => {
 
 await fs.writeFile(path.join(root, 'public', 'sw.js'), swSource, 'utf8');
 console.log(`SEO assets generated for ${siteUrl}`);
-console.log(`Service worker cache tag: luna-shell-${releaseTag}`);
+console.log(`Release ${releaseFull} (${manifest.status}) · cache luna-shell-${releaseTag}`);

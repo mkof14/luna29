@@ -31,6 +31,7 @@ interface AppFooterProps {
   setTheme: (theme: 'light' | 'dark') => void;
   navigateTo: (tab: TabType) => void;
   onOpenLive?: () => void;
+  canAccessAdmin?: boolean;
 }
 
 type FooterTabLink = { id: TabType; label: string; testId?: string };
@@ -55,6 +56,7 @@ export const AppFooter: React.FC<AppFooterProps> = ({
   setTheme,
   navigateTo,
   onOpenLive,
+  canAccessAdmin = false,
 }) => {
   const [showInstallGuideModal, setShowInstallGuideModal] = useState(false);
   const [isStandaloneMode, setIsStandaloneMode] = useState(false);
@@ -116,19 +118,69 @@ export const AppFooter: React.FC<AppFooterProps> = ({
   };
 
   const pricingLabelByLang: LangCopy<string> = {
-    en: 'Pricing', ru: 'Тарифы', uk: 'Тарифи', es: 'Precios', fr: 'Tarifs', de: 'Preise', zh: '价格', ja: '料金', pt: 'Preços', ar: 'الأسعار', he: 'מחירים',
+    en: 'Pricing',
+    ru: 'Тарифы',
+    uk: 'Тарифи',
+    es: 'Precios',
+    fr: 'Tarifs',
+    de: 'Preise',
+    zh: '价格',
+    ja: '料金',
+    pt: 'Preços',
+    ar: 'الأسعار',
+    he: 'מחירים',
   };
   const aboutLabelByLang: LangCopy<string> = {
-    en: 'About', ru: 'О проекте', uk: 'Про проект', es: 'Acerca', fr: 'A propos', de: 'Uber', zh: '关于', ja: '概要', pt: 'Sobre', ar: 'حول Luna29', he: 'אודות Luna29',
+    en: 'About',
+    ru: 'О проекте',
+    uk: 'Про проект',
+    es: 'Acerca',
+    fr: 'A propos',
+    de: 'Uber',
+    zh: '关于',
+    ja: '概要',
+    pt: 'Sobre',
+    ar: 'حول Luna29',
+    he: 'אודות Luna29',
   };
   const howItWorksLabelByLang: LangCopy<string> = {
-    en: 'How It Works', ru: 'Как это работает', uk: 'Як це працює', es: 'Cómo funciona', fr: 'Comment ça marche', de: 'So funktioniert es', zh: '如何运作', ja: '使い方', pt: 'Como funciona', ar: 'كيف يعمل', he: 'איך זה עובד',
+    en: 'How It Works',
+    ru: 'Как это работает',
+    uk: 'Як це працює',
+    es: 'Cómo funciona',
+    fr: 'Comment ça marche',
+    de: 'So funktioniert es',
+    zh: '如何运作',
+    ja: '使い方',
+    pt: 'Como funciona',
+    ar: 'كيف يعمل',
+    he: 'איך זה עובד',
   };
   const faqLabelByLang: LangCopy<string> = {
-    en: 'FAQ', ru: 'FAQ', uk: 'FAQ', es: 'FAQ', fr: 'FAQ', de: 'FAQ', zh: '常见问题', ja: 'FAQ', pt: 'FAQ', ar: 'الأسئلة الشائعة', he: 'שאלות נפוצות',
+    en: 'FAQ',
+    ru: 'FAQ',
+    uk: 'FAQ',
+    es: 'FAQ',
+    fr: 'FAQ',
+    de: 'FAQ',
+    zh: '常见问题',
+    ja: 'FAQ',
+    pt: 'FAQ',
+    ar: 'الأسئلة الشائعة',
+    he: 'שאלות נפוצות',
   };
   const learningLabelByLang: LangCopy<string> = {
-    en: 'Learning', ru: 'Обучение', uk: 'Навчання', es: 'Aprendizaje', fr: 'Apprentissage', de: 'Lernen', zh: '学习', ja: '学習', pt: 'Aprendizagem', ar: 'التعلّم', he: 'לימוד',
+    en: 'Learning',
+    ru: 'Обучение',
+    uk: 'Навчання',
+    es: 'Aprendizaje',
+    fr: 'Apprentissage',
+    de: 'Lernen',
+    zh: '学习',
+    ja: '学習',
+    pt: 'Aprendizagem',
+    ar: 'التعلّم',
+    he: 'לימוד',
   };
 
   const publicHomeNavLabelsByLang: LangCopy<{ ritual: string }> = {
@@ -146,7 +198,17 @@ export const AppFooter: React.FC<AppFooterProps> = ({
   };
 
   const themeLabelByLang: LangCopy<string> = {
-    en: 'Theme', ru: 'Тема', uk: 'Тема', es: 'Tema', fr: 'Thème', de: 'Thema', zh: '主题', ja: 'テーマ', pt: 'Tema', ar: 'المظهر', he: 'ערכת נושא',
+    en: 'Theme',
+    ru: 'Тема',
+    uk: 'Тема',
+    es: 'Tema',
+    fr: 'Thème',
+    de: 'Thema',
+    zh: '主题',
+    ja: 'テーマ',
+    pt: 'Tema',
+    ar: 'المظهر',
+    he: 'ערכת נושא',
   };
 
   const installActionsByLang: LangCopy<{ android: string; desktop: string; social: string }> = {
@@ -208,17 +270,27 @@ export const AppFooter: React.FC<AppFooterProps> = ({
     if (id === 'how_it_works') return getLang(howItWorksLabelByLang, lang) || 'How It Works';
     if (id === 'faq') return getLang(faqLabelByLang, lang) || 'FAQ';
     if (id === 'learning') return getLang(learningLabelByLang, lang) || 'Learning';
+    if (id === 'admin') return ui.navigation.admin || memberNav.adminConsole;
     return id;
   };
 
   const footerExploreLinks: FooterTabLink[] = useMemo(
-    () =>
-      MEMBER_FOOTER_EXPLORE_TABS.map((item) => ({
+    () => {
+      const links = MEMBER_FOOTER_EXPLORE_TABS.map((item) => ({
         id: item.id,
         testId: item.testId,
         label: exploreLabel(item.id),
-      })),
-    [lang, memberNav.rhythmCalendar, publicHomeNavLabels.ritual, ui.navigation.bridge, ui.publicHome.tabs.home, ui.publicHome.tabs.map]
+      }));
+      if (canAccessAdmin) {
+        links.push({
+          id: 'admin',
+          testId: 'admin',
+          label: ui.navigation.admin || memberNav.adminConsole,
+        });
+      }
+      return links;
+    },
+    [lang, memberNav.adminConsole, memberNav.rhythmCalendar, publicHomeNavLabels.ritual, ui.navigation.admin, ui.navigation.bridge, ui.publicHome.tabs.home, ui.publicHome.tabs.map, canAccessAdmin]
   );
 
   const footerLegalLinks: FooterTabLink[] = useMemo(
@@ -237,12 +309,15 @@ export const AppFooter: React.FC<AppFooterProps> = ({
   const footerLegalMid = Math.ceil(footerLegalLinks.length / 2);
   const footerLegalColumns = [footerLegalLinks.slice(0, footerLegalMid), footerLegalLinks.slice(footerLegalMid)];
 
-  const socialLinks = [
-    { id: 'facebook', href: 'https://facebook.com', label: 'Facebook', icon: Facebook, iconBg: 'bg-[#1877F2]/15', iconColor: 'text-[#1877F2]' },
-    { id: 'instagram', href: 'https://instagram.com', label: 'Instagram', icon: Instagram, iconBg: 'bg-[#DD2A7B]/15', iconColor: 'text-[#DD2A7B]' },
-    { id: 'youtube', href: 'https://youtube.com', label: 'YouTube', icon: Youtube, iconBg: 'bg-[#FF0000]/15', iconColor: 'text-[#FF0000]' },
-    { id: 'tiktok', href: 'https://tiktok.com', label: 'TikTok', icon: Music2, iconBg: 'bg-slate-900/10 dark:bg-white/10', iconColor: 'text-slate-900 dark:text-white' },
-  ];
+  const socialLinks = useMemo(() => {
+    const candidates = [
+      { id: 'facebook', href: normalizeExternalUrl(import.meta.env.VITE_SOCIAL_FACEBOOK), label: 'Facebook', icon: Facebook, iconBg: 'bg-[#1877F2]/15', iconColor: 'text-[#1877F2]' },
+      { id: 'instagram', href: normalizeExternalUrl(import.meta.env.VITE_SOCIAL_INSTAGRAM), label: 'Instagram', icon: Instagram, iconBg: 'bg-[#DD2A7B]/15', iconColor: 'text-[#DD2A7B]' },
+      { id: 'youtube', href: normalizeExternalUrl(import.meta.env.VITE_SOCIAL_YOUTUBE), label: 'YouTube', icon: Youtube, iconBg: 'bg-[#FF0000]/15', iconColor: 'text-[#FF0000]' },
+      { id: 'tiktok', href: normalizeExternalUrl(import.meta.env.VITE_SOCIAL_TIKTOK), label: 'TikTok', icon: Music2, iconBg: 'bg-slate-900/10 dark:bg-white/10', iconColor: 'text-slate-900 dark:text-white' },
+    ];
+    return candidates.filter((item) => item.href);
+  }, []);
 
   const renderExploreLink = (link: FooterTabLink, key: string) => (
     <button
@@ -274,7 +349,7 @@ export const AppFooter: React.FC<AppFooterProps> = ({
         <div className="max-w-7xl mx-auto space-y-14 relative z-10">
           <div className="space-y-4 max-w-2xl">
             <div className="flex items-center gap-0.5 origin-left scale-[1.12]">
-              <img src={getBrandAssetUrl('icon')} alt="" aria-hidden="true" className="h-16 w-auto md:h-[4.5rem] object-contain select-none pointer-events-none" />
+              <img src={getBrandAssetUrl('appIcon')} alt="" aria-hidden="true" className="h-16 w-auto md:h-[4.5rem] object-contain select-none pointer-events-none" />
               <Logo size="sm" className="cursor-default text-4xl md:text-5xl leading-none" />
             </div>
             <p className="text-base md:text-lg font-semibold text-slate-800 dark:text-slate-400">{homeStory.heroLead}</p>
@@ -362,27 +437,29 @@ export const AppFooter: React.FC<AppFooterProps> = ({
                   <p className="text-[11px] font-light text-slate-500 dark:text-slate-400">{storeBadges.soon}</p>
                 )}
               </div>
-              <div className="pt-4 border-t border-slate-300/70 dark:border-slate-700/70 space-y-3">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em]">
-                  <LunaShimmerText text={installActions.social} className="opacity-90 font-semibold" />
-                </p>
-                <div className="flex items-center gap-3">
-                  {socialLinks.map((social) => (
-                    <a
-                      key={social.id}
-                      href={social.href}
-                      target="_blank"
-                      rel="noreferrer"
-                      aria-label={social.label}
-                      className="text-slate-700 dark:text-slate-300 hover:-translate-y-[1px] transition-transform"
-                    >
-                      <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full ${social.iconBg}`}>
-                        <social.icon size={14} className={social.iconColor} />
-                      </span>
-                    </a>
-                  ))}
+              {socialLinks.length > 0 && (
+                <div className="pt-4 border-t border-slate-300/70 dark:border-slate-700/70 space-y-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em]">
+                    <LunaShimmerText text={installActions.social} className="opacity-90 font-semibold" />
+                  </p>
+                  <div className="flex items-center gap-3">
+                    {socialLinks.map((social) => (
+                      <a
+                        key={social.id}
+                        href={social.href}
+                        target="_blank"
+                        rel="noreferrer"
+                        aria-label={social.label}
+                        className="text-slate-700 dark:text-slate-300 hover:-translate-y-[1px] transition-transform"
+                      >
+                        <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full ${social.iconBg}`}>
+                          <social.icon size={14} className={social.iconColor} />
+                        </span>
+                      </a>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </nav>
 
             <nav className="space-y-4 min-w-0">

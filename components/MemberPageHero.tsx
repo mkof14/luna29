@@ -388,6 +388,7 @@ export const MemberPageHero: React.FC<{
     learning: 'knowledge',
     pricing: 'home',
     ritual_path: 'how',
+    admin: 'support',
   };
   const descriptions = getLang(descriptionByLang, lang) || descriptionByLang.en;
 
@@ -439,6 +440,7 @@ export const MemberPageHero: React.FC<{
     learning: { title: exploreTitles.learning, subtitle, description: descriptions[descriptionKeyByTab.learning] },
     pricing: { title: exploreTitles.pricing, subtitle, description: descriptions[descriptionKeyByTab.pricing] },
     ritual_path: { title: exploreTitles.ritual, subtitle, description: descriptions[descriptionKeyByTab.ritual_path] },
+    admin: { title: ui.navigation.admin || 'Admin', subtitle, description: descriptions[descriptionKeyByTab.admin] },
   };
 
   const config = configs[activeTab];

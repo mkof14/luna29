@@ -1,5 +1,22 @@
 # Changelog
 
+## v1.1.0 — launch-ready (2026-07-02)
+
+**Release:** `deploy/2026-07-02-0112-launch-ready` · **Status:** completed
+
+### Pre-launch audit & branding
+- Fixed broken public assets and placeholder social links.
+- SEO: lang URL boot, OG/canonical per route, hreflang sync.
+- i18n strict audit pass; extended member deep-link routing.
+- Perf budget pass; production service worker registration.
+- Admin invite role applied on signup; ephemeral storage documented.
+- Menu/footer logo: moon mark only (removed duplicate wordmark under icon).
+
+### Release indexing
+- Canonical manifest: `release/version.json`.
+- Build emits `/version.json` and SW cache tag from release manifest.
+- Restore point documented in `docs/DEPLOY_RESTORE_POINTS.md`.
+
 ## v1.0.0-commercial (2026-03-09)
 
 ### Commercial readiness and release operations

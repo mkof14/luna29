@@ -90,7 +90,11 @@ const bootstrap = async () => {
 
   mountApp();
 
-  if ('serviceWorker' in navigator && shouldBypassServiceWorker()) {
+  if ('serviceWorker' in navigator && !shouldBypassServiceWorker()) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(() => undefined);
+    });
+  } else if ('serviceWorker' in navigator && shouldBypassServiceWorker()) {
     window.addEventListener('load', () => {
       purgeServiceWorkerCaches().catch(() => undefined);
     });

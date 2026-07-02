@@ -35,12 +35,19 @@ const MEMBER_TABS = new Set<TabType>([
   'medical',
   'cookies',
   'data_rights',
+  'admin',
 ]);
 
 export const readLangFromUrl = (): Language | null => {
   if (typeof window === 'undefined') return null;
   const lang = new URLSearchParams(window.location.search).get('lang');
   return isSupportedLanguage(lang) ? lang : null;
+};
+
+export const readInviteFromUrl = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  const invite = new URLSearchParams(window.location.search).get('invite')?.trim();
+  return invite || null;
 };
 
 export const readTabFromUrl = (): TabType | null => {

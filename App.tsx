@@ -1,14 +1,14 @@
 
 import React, { useState, useMemo, lazy, Suspense, useCallback, useEffect } from 'react';
-import { AuthSession, HormoneData } from './types';
+import { AuthSession, HormoneData, AdminRole } from './types';
 import { dataService } from './services/dataService';
 import { useAppPreferences } from './hooks/useAppPreferences';
 import { buildBottomNavItems, buildSidebarGroups, buildTopNavItems, TabType } from './utils/navigation';
-import { readLangFromUrl, readTabFromUrl, syncUrlState } from './utils/urlRouting';
+import { readTabFromUrl, syncUrlState, updateHreflangLinks } from './utils/urlRouting';
+import { resolveSiteUrl } from './utils/pageMeta';
 import { pathnameToMemberTab } from './utils/memberFooterNavigation';
 import { type MemberNavigateOptions, MEMBER_HUB_TAB } from './utils/memberNavigation';
 import { AppShellNav } from './components/AppShellNav';
-import { AppFooter } from './components/AppFooter';
 import { AppMobileNav } from './components/AppMobileNav';
 import { MainContentRouter } from './components/MainContentRouter';
 import { OnboardingGate } from './components/OnboardingGate';
@@ -21,10 +21,6 @@ import { conversionEvents } from './utils/conversionEvents';
 import { billingService } from './services/billingService';
 import { applyServerTrialToLocal, consumeTrialPending, markTrialPending } from './utils/subscriptionAccess';
 import { useCalendarReminderLoop } from './hooks/useCalendarReminders';
-import { InstallAppPrompt } from './components/InstallAppPrompt';
-import { StandaloneWelcomeOverlay } from './components/StandaloneWelcomeOverlay';
-import { StandaloneLaunchSplash } from './components/StandaloneLaunchSplash';
-import { DevRuntimeBadge } from './components/DevRuntimeBadge';
 
 // SHARED COMPONENTS
 import { LunaLiveButton } from './components/LunaLiveButton';
@@ -33,6 +29,12 @@ const HormoneDetail = lazy(() => import('./components/HormoneDetail'));
 const CheckinOverlay = lazy(() => import('./components/CheckinOverlay').then((m) => ({ default: m.CheckinOverlay })));
 const AuthView = lazy(() => import('./components/AuthView').then((m) => ({ default: m.AuthView })));
 const PublicLandingView = lazy(() => import('./components/PublicLandingView').then((m) => ({ default: m.PublicLandingView })));
+const AdminWorkspaceView = lazy(() => import('./components/AdminWorkspaceView').then((m) => ({ default: m.AdminWorkspaceView })));
+const AppFooter = lazy(() => import('./components/AppFooter').then((m) => ({ default: m.AppFooter })));
+const InstallAppPrompt = lazy(() => import('./components/InstallAppPrompt').then((m) => ({ default: m.InstallAppPrompt })));
+const StandaloneWelcomeOverlay = lazy(() => import('./components/StandaloneWelcomeOverlay').then((m) => ({ default: m.StandaloneWelcomeOverlay })));
+const StandaloneLaunchSplash = lazy(() => import('./components/StandaloneLaunchSplash').then((m) => ({ default: m.StandaloneLaunchSplash })));
+const DevRuntimeBadge = lazy(() => import('./components/DevRuntimeBadge').then((m) => ({ default: m.DevRuntimeBadge })));
 
 const App: React.FC = () => {
   const [showLaunchSplash, setShowLaunchSplash] = useState(false);
@@ -57,6 +59,10 @@ const App: React.FC = () => {
   });
   
   const { lang, setLang, theme, setTheme, ui } = useAppPreferences();
+
+  useEffect(() => {
+    updateHreflangLinks(resolveSiteUrl(), lang);
+  }, [lang]);
 
   useEffect(() => {
     const standalone =
@@ -180,9 +186,21 @@ const App: React.FC = () => {
     navigateTo('bridge');
   }, [saveCheckin, navigateTo]);
 
-  const sidebarGroups = useMemo(() => buildSidebarGroups(ui, lang), [ui, lang]);
+  const canAccessAdmin = useMemo(() => authService.canAccessAdminWorkspace(session), [session]);
+
+  const sidebarGroups = useMemo(() => buildSidebarGroups(ui, canAccessAdmin, lang), [ui, canAccessAdmin, lang]);
   const topNavItems = useMemo(() => buildTopNavItems(ui, lang), [ui, lang]);
   const bottomNavItems = useMemo(() => buildBottomNavItems(ui, lang), [ui, lang]);
+
+  const handleRoleChange = useCallback((role: AdminRole) => {
+    if (!session) return;
+    authService
+      .updateRole(session, role)
+      .then((updatedSession) => setSession(updatedSession))
+      .catch((error) => {
+        console.error('Role update failed', error);
+      });
+  }, [session]);
 
   useCalendarReminderLoop(Boolean(session?.id));
 
@@ -197,7 +215,11 @@ const App: React.FC = () => {
   }, []);
 
   if (showLaunchSplash) {
-    return <StandaloneLaunchSplash lang={lang} />;
+    return (
+      <Suspense fallback={null}>
+        <StandaloneLaunchSplash lang={lang} />
+      </Suspense>
+    );
   }
 
   const awaitingSessionRestore = isAuthLoading && !session && (() => {
@@ -248,7 +270,8 @@ const App: React.FC = () => {
               onSuccess={async (nextSession) => {
                 setShowAuthModal(false);
                 setSession(nextSession);
-                setActiveTab('today_mirror');
+                const isAdmin = authService.canAccessAdminWorkspace(nextSession);
+                setActiveTab(isAdmin ? 'admin' : 'today_mirror');
                 if (consumeTrialPending()) {
                   try {
                     const result = await billingService.startServerTrial();
@@ -262,8 +285,10 @@ const App: React.FC = () => {
             />
           )}
         </Suspense>
-        <StandaloneWelcomeOverlay lang={lang} />
-        <InstallAppPrompt lang={lang} />
+        <Suspense fallback={null}>
+          <StandaloneWelcomeOverlay lang={lang} />
+          <InstallAppPrompt lang={lang} />
+        </Suspense>
         <PrivacyControls lang={lang} isAuthenticated={false} />
         <LunaLiveButton onClick={() => setShowLive(true)} isActive={showLive} />
         <Suspense fallback={null}>
@@ -285,7 +310,9 @@ const App: React.FC = () => {
             }}
           />
         </Suspense>
-        <DevRuntimeBadge />
+        <Suspense fallback={null}>
+          <DevRuntimeBadge />
+        </Suspense>
       </div>
     );
   }
@@ -301,8 +328,36 @@ const App: React.FC = () => {
             setActiveTab('today_mirror');
           }}
         />
-        <StandaloneWelcomeOverlay lang={lang} />
-        <InstallAppPrompt lang={lang} />
+        <Suspense fallback={null}>
+          <StandaloneWelcomeOverlay lang={lang} />
+          <InstallAppPrompt lang={lang} />
+        </Suspense>
+      </>
+    );
+  }
+
+  if (activeTab === 'admin' && canAccessAdmin) {
+    return (
+      <>
+        <Suspense
+          fallback={
+            <div className="min-h-screen flex items-center justify-center bg-[#070b14] text-slate-400">
+              <div className="text-[10px] font-black uppercase tracking-[0.3em]">Loading Admin…</div>
+            </div>
+          }
+        >
+          <AdminWorkspaceView
+            session={session}
+            lang={lang}
+            setLang={setLang}
+            onBack={() => navigateTo('today_mirror')}
+            onLogout={handleLogout}
+            onRoleChange={handleRoleChange}
+          />
+        </Suspense>
+        <Suspense fallback={null}>
+          <DevRuntimeBadge />
+        </Suspense>
       </>
     );
   }
@@ -345,15 +400,18 @@ const App: React.FC = () => {
         onLogout={handleLogout}
       />
 
-      <AppFooter
-        ui={ui}
-        lang={lang}
-        theme={theme}
-        setLang={setLang}
-        setTheme={setTheme}
-        navigateTo={navigateTo}
-        onOpenLive={() => setShowLive(true)}
-      />
+      <Suspense fallback={null}>
+        <AppFooter
+          ui={ui}
+          lang={lang}
+          theme={theme}
+          setLang={setLang}
+          setTheme={setTheme}
+          navigateTo={navigateTo}
+          onOpenLive={() => setShowLive(true)}
+          canAccessAdmin={canAccessAdmin}
+        />
+      </Suspense>
       </div>
 
       <Suspense fallback={null}>
@@ -387,10 +445,14 @@ const App: React.FC = () => {
         navigateTo={navigateTo}
         setShowSidebar={setShowSidebar}
       />
-      <StandaloneWelcomeOverlay lang={lang} />
-      <InstallAppPrompt lang={lang} />
+      <Suspense fallback={null}>
+        <StandaloneWelcomeOverlay lang={lang} />
+        <InstallAppPrompt lang={lang} />
+      </Suspense>
       <PrivacyControls lang={lang} isAuthenticated />
-      <DevRuntimeBadge />
+      <Suspense fallback={null}>
+        <DevRuntimeBadge />
+      </Suspense>
     </div>
   );
 };

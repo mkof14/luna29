@@ -41,7 +41,14 @@ const vars = {
   VITE_SITE_URL: PRODUCTION_SITE,
   VITE_SENTRY_DSN: local.VITE_SENTRY_DSN,
   VITE_SENTRY_ENV: 'production',
-  VITE_APP_RELEASE: local.VITE_APP_RELEASE || release,
+  VITE_APP_RELEASE: local.VITE_APP_RELEASE || (() => {
+    try {
+      const manifest = JSON.parse(readFileSync(resolve(root, 'release/version.json'), 'utf8'));
+      return manifest.release || release;
+    } catch {
+      return release;
+    }
+  })(),
   VITE_GA4_MEASUREMENT_ID: local.VITE_GA4_MEASUREMENT_ID,
   VITE_GOOGLE_CLIENT_ID: local.VITE_GOOGLE_CLIENT_ID,
   VITE_APP_STORE_URL: local.VITE_APP_STORE_URL,

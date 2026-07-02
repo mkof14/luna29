@@ -1,8 +1,13 @@
 declare const __LUNA_APP_RELEASE__: string;
+declare const __LUNA_SHELL_CACHE_KEY__: string;
 
 const FALLBACK_VERSION = 'shell4';
 
 function resolveStaticAssetVersion(): string {
+  if (typeof __LUNA_SHELL_CACHE_KEY__ !== 'undefined') {
+    const key = String(__LUNA_SHELL_CACHE_KEY__ || '').trim();
+    if (key) return key.slice(0, 12);
+  }
   if (typeof __LUNA_APP_RELEASE__ !== 'undefined') {
     const release = String(__LUNA_APP_RELEASE__ || '').trim();
     if (release) return release.slice(0, 12);

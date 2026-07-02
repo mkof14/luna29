@@ -11,6 +11,7 @@ import {
   loadGoogleIdentityScript,
   renderGoogleSignInButton,
 } from '../utils/googleIdentity';
+import { readInviteFromUrl } from '../utils/urlRouting';
 
 interface AuthViewProps {
   ui: AuthCopy;
@@ -121,7 +122,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ ui, onSuccess, initialMode =
     try {
       const session = isLogin
         ? await authService.loginWithPassword(email, password)
-        : await authService.signupWithPassword(email, password);
+        : await authService.signupWithPassword(email, password, readInviteFromUrl());
       onSuccess(session);
     } catch (error) {
       setAuthError(error instanceof Error ? error.message : 'Sign-in failed.');

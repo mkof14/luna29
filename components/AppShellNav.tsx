@@ -188,7 +188,7 @@ export const AppShellNav: React.FC<AppShellNavProps> = ({
     <>
       <header className="flex justify-between items-center mb-10">
         <div className="flex items-center gap-0.5">
-          <img src={getBrandAssetUrl('icon')} alt="" aria-hidden="true" className="h-14 w-auto object-contain select-none pointer-events-none" />
+          <img src={getBrandAssetUrl('appIcon')} alt="" aria-hidden="true" className="h-14 w-auto object-contain select-none pointer-events-none" />
           <Logo size="sm" className="text-4xl leading-none" />
         </div>
         <button
@@ -301,7 +301,7 @@ export const AppShellNav: React.FC<AppShellNavProps> = ({
               onClick={() => navigateTo('today_mirror')}
               className="flex items-center gap-0.5 origin-left scale-[1.12] hover:scale-[1.16] active:scale-[1.08] transition-transform"
             >
-              <img src={getBrandAssetUrl('icon')} alt="" aria-hidden="true" className="h-16 w-auto md:h-20 object-contain select-none pointer-events-none" />
+              <img src={getBrandAssetUrl('appIcon')} alt="" aria-hidden="true" className="h-16 w-auto md:h-20 object-contain select-none pointer-events-none" />
               <Logo size="sm" className="text-5xl leading-none" />
             </button>
           </div>

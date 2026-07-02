@@ -35,6 +35,7 @@ const RAW_MEMBER_HERO_IMAGES: Partial<Record<TabType, string>> = {
   learning: '/images/heroes/r2/library.webp',
   pricing: '/images/heroes/r2/insights_paywall.webp',
   ritual_path: '/images/heroes/r2/my_day.webp',
+  admin: '/images/heroes/r2/admin.webp',
 };
 
 export const MEMBER_HERO_IMAGES = Object.fromEntries(

@@ -29,9 +29,17 @@ export const pathnameToMemberTab = (pathname: string): TabType | null => {
     '/pricing': 'pricing',
     '/luna-balance': 'cycle',
     '/ritual-path': 'ritual_path',
+    '/the-bridge': 'bridge',
+    '/rhythm-calendar': 'rhythm_calendar',
     '/how-it-works': 'how_it_works',
     '/faq': 'faq',
     '/about': 'about',
+    '/privacy': 'privacy',
+    '/terms': 'terms',
+    '/disclaimer': 'medical',
+    '/cookies': 'cookies',
+    '/data-rights': 'data_rights',
+    '/legal': 'privacy',
   };
   return map[path] ?? null;
 };

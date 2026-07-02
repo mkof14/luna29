@@ -4,6 +4,7 @@ Use this list to roll back Vercel or local checkout to a known good release.
 
 | Version | UTC | Branch | Notes |
 | --- | --- | --- | --- |
+| `deploy/2026-07-02-0112-launch-ready` | 2026-07-02T01:12:23Z | `main` | **Completed** v1.1.0 — pre-launch audit, branding (logo/footer), SEO/i18n/PWA fixes, deploy smoke pass |
 | `deploy/2026-07-01-1856-member-unify` | 2026-07-01T22:56:54Z | `restore/june30-break-a934c88` | Member zone unify, Health Reports i18n split, sidebar light/dark contrast |
 
 ## Roll back locally
@@ -21,4 +22,6 @@ git checkout deploy/2026-07-01-1856-member-unify
 
 ## App release string
 
-Set `VITE_APP_RELEASE=deploy/2026-07-01-1856-member-unify` in Vercel Production env when pinning this build in monitoring.
+Set `VITE_APP_RELEASE=deploy/2026-07-02-0112-launch-ready` in Vercel Production env when pinning this build in monitoring.
+
+Canonical release record: `release/version.json` · public index: `/version.json` (generated at build).
