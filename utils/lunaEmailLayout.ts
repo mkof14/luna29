@@ -115,7 +115,7 @@ export const buildLunaEmailDocumentHtml = ({
           <tr><td style="padding:20px 24px 16px;background:#050508;border-bottom:1px solid #1e1b4b;">${header}</td></tr>
           <tr>
             <td style="padding:0;line-height:0;font-size:0;">
-              <img src="${heroUrl}" alt="" width="600" style="display:block;width:100%;max-width:600px;height:auto;max-height:280px;object-fit:cover;object-position:center 40%;border:0;" />
+              <img src="${heroUrl}" alt="${safeSubject}" width="600" style="display:block;width:100%;max-width:600px;height:auto;max-height:280px;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic;" />
             </td>
           </tr>
           <tr>

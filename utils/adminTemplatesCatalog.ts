@@ -1,4 +1,5 @@
 import { Language } from '../constants';
+import { buildEmailHeroUrl } from './emailHeroAssets';
 
 /** Hero art filename under /images/heroes/r2/ — one visual theme per email type. */
 export type AdminTemplateDef = {
@@ -162,8 +163,7 @@ export const ADMIN_EMAIL_TEMPLATES: AdminTemplateDef[] = [
 
 export const getTemplateById = (id: string) => ADMIN_EMAIL_TEMPLATES.find((t) => t.id === id);
 
-export const templateHeroUrl = (heroFile: string, baseUrl: string) =>
-  `${baseUrl.replace(/\/$/, '')}/images/heroes/r2/${heroFile}`;
+export const templateHeroUrl = (heroFile: string, baseUrl: string) => buildEmailHeroUrl(heroFile, baseUrl);
 
 // Silence unused L warning
 void L;

@@ -1,7 +1,7 @@
 import React from 'react';
 import { HelpCircle, MessageCircle, Shield } from 'lucide-react';
 import { Language, LangCopy, TRANSLATIONS, getLang } from '../../constants';
-import { PUBLIC_BTN_PRIMARY, PUBLIC_BTN_PRIMARY_GLOW, PUBLIC_BTN_SECONDARY } from './publicButtonStyles';
+import { PUBLIC_BTN_PRIMARY, PUBLIC_BTN_PRIMARY_GLOW, PUBLIC_BTN_SECONDARY, PUBLIC_BTN_SECONDARY_ACCENT } from './publicButtonStyles';
 import { PublicHeroBlock } from './PublicHeroBlock';
 import { PUBLIC_PAGE_ART } from '../../utils/publicPageArt';
 import {
@@ -148,7 +148,7 @@ export const PublicBridgeSection: React.FC<PublicBridgeSectionProps> = ({ onSign
                 </div>
               ))}
             </div>
-            <button type="button" onClick={onSignIn} className={`${PUBLIC_BTN_SECONDARY} px-5 py-2.5 text-sm tracking-[0.06em] text-luna-purple`}>
+            <button type="button" onClick={onSignIn} className={`${PUBLIC_BTN_SECONDARY_ACCENT} px-5 py-2.5 text-sm tracking-[0.06em]`}>
               {faqTeaser.fullCta}
             </button>
           </article>
@@ -158,7 +158,7 @@ export const PublicBridgeSection: React.FC<PublicBridgeSectionProps> = ({ onSign
               <span className={PUBLIC_BTN_PRIMARY_GLOW} />
               <span className="relative z-10">{actions.enterMember}</span>
             </button>
-            <button type="button" onClick={onSignIn} className={`${PUBLIC_BTN_SECONDARY} px-5 py-3 text-sm tracking-[0.08em] text-luna-purple`}>
+            <button type="button" onClick={onSignIn} className={`${PUBLIC_BTN_SECONDARY_ACCENT} px-5 py-3 text-sm tracking-[0.08em]`}>
               {actions.memberSignIn}
             </button>
           </div>

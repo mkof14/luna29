@@ -2071,6 +2071,45 @@ const start = async () => {
       return;
     }
 
+    if (method === 'POST' && url.pathname === '/api/privacy/consent') {
+      const auth = await requireSession(req, res, headers);
+      if (!auth) return;
+      try {
+        const body = await readBody(req);
+        const rawScopes = body.scopes && typeof body.scopes === 'object' ? body.scopes : {};
+        const scopes = {
+          analytics: rawScopes.analytics === true,
+          ai_processing: rawScopes.ai_processing !== false,
+          personalization: rawScopes.personalization !== false,
+        };
+        const action = safeText(body.action || 'save', 32);
+        const source = safeText(body.source || 'privacy_controls', 64);
+        const consentVersion = Math.max(1, Number(body.version) || 1);
+        const requestId = `consent-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        privacyRequests = [
+          {
+            id: requestId,
+            type: 'consent',
+            status: 'completed',
+            requestedAt: new Date().toISOString(),
+            completedAt: new Date().toISOString(),
+            email: auth.sessionPayload.email,
+            actor: auth.sessionPayload.email,
+            action,
+            source,
+            scopes,
+            consentVersion,
+          },
+          ...privacyRequests,
+        ].slice(0, 2000);
+        await savePrivacyRequests();
+        send(res, 200, { requestId, ok: true }, headers);
+      } catch (error) {
+        send(res, 400, { error: error instanceof Error ? error.message : 'Unable to record consent event.' }, headers);
+      }
+      return;
+    }
+
     if (method === 'GET' && url.pathname === '/api/privacy/requests') {
       const auth = await requireSession(req, res, headers);
       if (!auth) return;

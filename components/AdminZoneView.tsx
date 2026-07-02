@@ -31,6 +31,7 @@ import {
 } from './admin/adminStyles';
 import { AdminMemberLookup } from './admin/AdminMemberLookup';
 import { mergeTemplateLocalized, parseTemplateOverrides, type TemplateOverride } from '../utils/adminTemplateMerge';
+import { copyTextSafely } from '../utils/share';
 
 type AdminZoneViewProps = {
   lang: Language;
@@ -72,6 +73,7 @@ export const AdminZoneView: React.FC<AdminZoneViewProps> = ({ lang, session, act
 
   const [marketingItems, setMarketingItems] = useState<MarketingItem[]>([]);
   const [templateOverrides, setTemplateOverrides] = useState<TemplateOverride[]>([]);
+  const [templateSendTo, setTemplateSendTo] = useState('');
 
   const persistMarketing = useCallback(async (items: MarketingItem[]) => {
     setMarketingItems(items);
@@ -182,44 +184,77 @@ export const AdminZoneView: React.FC<AdminZoneViewProps> = ({ lang, session, act
 
   const sendSiteInvite = async () => {
     const email = inviteUserEmail.trim().toLowerCase();
-    if (!email.includes('@')) return feedback('Valid email required.');
+    if (!email.includes('@')) return feedback(zone.marketingSendNeedEmail);
     try {
       const result = await adminService.sendSiteInvite({ email });
       setInviteLog((prev) => [{ id: result.inviteLink, email, kind: 'site' as const, at: new Date().toISOString() }, ...prev].slice(0, 20));
       setInviteUserEmail('');
-      feedback(result.delivered ? `Site invite sent to ${email}.` : `Invite link copied for ${email} (configure Resend for delivery).`);
+      if (!result.delivered) await copyTextSafely(result.inviteLink).catch(() => undefined);
+      feedback(result.delivered
+        ? zone.invitesSiteDelivered.replace('{email}', email)
+        : zone.invitesSiteCopied.replace('{email}', email));
       void adminService.getInvites().then((r) => setServerInvites(r.invites || [])).catch(() => undefined);
     } catch (e) {
-      feedback(e instanceof Error ? e.message : 'Invite failed.');
+      feedback(e instanceof Error ? e.message : zone.invitesSiteFailed);
     }
   };
 
   const sendAdminInvite = async () => {
     const email = inviteAdminEmail.trim().toLowerCase();
-    if (!email.includes('@')) return feedback('Valid email required.');
+    if (!email.includes('@')) return feedback(zone.marketingSendNeedEmail);
     try {
       const result = await adminService.sendAdminInvite({ email, role: inviteAdminRole });
       setInviteLog((prev) => [{ id: result.inviteLink, email, kind: 'admin' as const, role: inviteAdminRole, at: new Date().toISOString() }, ...prev].slice(0, 20));
       setInviteAdminEmail('');
-      feedback(result.delivered ? `Admin invite sent to ${email}.` : `Admin link ready for ${email}.`);
+      if (!result.delivered) await copyTextSafely(result.inviteLink).catch(() => undefined);
+      feedback(result.delivered
+        ? zone.invitesAdminDelivered.replace('{email}', email)
+        : zone.invitesAdminCopied.replace('{email}', email));
       void adminService.getInvites().then((r) => setServerInvites(r.invites || [])).catch(() => undefined);
     } catch (e) {
-      feedback(e instanceof Error ? e.message : 'Admin invite failed.');
+      feedback(e instanceof Error ? e.message : zone.invitesAdminFailed);
     }
   };
 
   const sendSingleMail = async () => {
-    if (!mailTo.includes('@')) return feedback('Valid recipient required.');
+    if (!mailTo.includes('@')) return feedback(zone.marketingSendNeedEmail);
     try {
-      await adminService.sendMail({
+      const result = await adminService.sendMail({
         to: mailTo,
         subject: mailSubject,
+        preheader: selectedLocalized?.preheader,
         body: mailBody,
+        ctaLabel: selectedLocalized?.ctaLabel,
         templateId: selectedTemplateId,
+        hero: selectedTemplate?.hero,
       });
-      feedback(`Email queued for ${mailTo}.`);
+      feedback(result.delivered
+        ? zone.mailSendDelivered.replace('{email}', mailTo)
+        : zone.mailSendNotDelivered);
     } catch (e) {
-      feedback(e instanceof Error ? e.message : 'Send failed.');
+      feedback(e instanceof Error ? e.message : zone.mailSendFailed);
+    }
+  };
+
+  const sendTemplateMail = async () => {
+    const to = templateSendTo.trim().toLowerCase();
+    if (!to.includes('@')) return feedback(zone.marketingSendNeedEmail);
+    if (!selectedTemplate || !selectedLocalized) return;
+    try {
+      const result = await adminService.sendMail({
+        to,
+        subject: selectedLocalized.subject,
+        preheader: selectedLocalized.preheader,
+        body: selectedLocalized.body,
+        ctaLabel: selectedLocalized.ctaLabel,
+        templateId: selectedTemplate.id,
+        hero: selectedTemplate.hero,
+      });
+      feedback(result.delivered
+        ? zone.mailSendDelivered.replace('{email}', to)
+        : zone.mailSendNotDelivered);
+    } catch (e) {
+      feedback(e instanceof Error ? e.message : zone.mailSendFailed);
     }
   };
 
@@ -376,6 +411,21 @@ export const AdminZoneView: React.FC<AdminZoneViewProps> = ({ lang, session, act
               {built ? (
                 <AdminActionBar copy={zone} title={built.subject} html={built.html} text={built.text} filename={selectedTemplateId} onFeedback={feedback} />
               ) : null}
+              <div className={`pt-3 space-y-2 border-t ${mode === 'dark' ? 'border-white/10' : 'border-slate-200'}`}>
+                <p className={adminLabel(mode)}>{zone.templatesSend}</p>
+                <p className={`text-xs ${adminMuted(mode)}`}>{zone.templatesSendHint}</p>
+                <div className="flex flex-wrap gap-2 items-center">
+                  <input
+                    className={`flex-1 min-w-[200px] ${adminInput(mode)}`}
+                    placeholder={zone.invitesEmail}
+                    value={templateSendTo}
+                    onChange={(e) => setTemplateSendTo(e.target.value)}
+                  />
+                  <button type="button" className={adminBtnPrimary} onClick={() => void sendTemplateMail()}>
+                    {zone.templatesSend}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -408,7 +458,26 @@ export const AdminZoneView: React.FC<AdminZoneViewProps> = ({ lang, session, act
           className={adminBtnPrimary}
           onClick={() => {
             const list = bulkEmails.split(/\n/).map((e) => e.trim()).filter((e) => e.includes('@'));
-            void Promise.all(list.map((to) => adminService.sendMail({ to, subject: mailSubject, body: mailBody, templateId: selectedTemplateId }))).then(() => feedback(`Bulk sent: ${list.length}`));
+            if (list.length === 0) return feedback(zone.marketingSendNeedEmail);
+            void Promise.all(list.map((to) => adminService.sendMail({
+              to,
+              subject: mailSubject,
+              preheader: selectedLocalized?.preheader,
+              body: mailBody,
+              ctaLabel: selectedLocalized?.ctaLabel,
+              templateId: selectedTemplateId,
+              hero: selectedTemplate?.hero,
+            }))).then((results) => {
+              const delivered = results.filter((row) => row.delivered).length;
+              feedback(delivered === list.length
+                ? zone.mailSendDelivered.replace('{email}', `${delivered} recipients`)
+                : zone.mailBulkPartialDelivered
+                  .replace('{delivered}', String(delivered))
+                  .replace('{total}', String(list.length))
+                  .replace('{hint}', zone.mailSendNotDelivered));
+            }).catch((e) => {
+              feedback(e instanceof Error ? e.message : zone.mailBulkSendFailed);
+            });
           }}
         >
           {ws.mailSendBulk}

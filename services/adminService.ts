@@ -99,8 +99,12 @@ export type CampaignQueueItem = {
   id: string;
   name: string;
   subject: string;
+  preheader?: string;
   body: string;
   templateId: string;
+  hero?: string;
+  ctaLabel?: string;
+  ctaUrl?: string;
   recipients: string[];
   sendAt: string;
   status: 'scheduled' | 'sent' | 'failed' | 'cancelled';
@@ -182,6 +186,7 @@ export const adminService = {
 
   async renderTemplate(payload: {
     templateId?: string;
+    hero?: string;
     subject?: string;
     preheader?: string;
     body?: string;
@@ -200,6 +205,7 @@ export const adminService = {
     body: string;
     preheader?: string;
     templateId?: string;
+    hero?: string;
     ctaLabel?: string;
     ctaUrl?: string;
   }): Promise<{ ok: boolean; delivered: boolean; reason?: string | null }> {
@@ -267,8 +273,12 @@ export const adminService = {
   async scheduleCampaign(payload: {
     name: string;
     subject: string;
+    preheader?: string;
     body: string;
     templateId: string;
+    hero?: string;
+    ctaLabel?: string;
+    ctaUrl?: string;
     recipients: string[] | string;
     sendAt?: string;
   }): Promise<{ ok: boolean; entry: CampaignQueueItem }> {

@@ -2,6 +2,7 @@
 
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
+import sharp from 'sharp';
 import { readReleaseManifest, resolveCacheKey, resolveReleaseTag } from './releaseManifest.mjs';
 
 const root = process.cwd();
@@ -49,6 +50,25 @@ await Promise.all(
   heroFiles.map((name) => fs.copyFile(path.join(heroesDir, name), path.join(heroesR2Dir, name))),
 );
 
+const emailHeroDir = path.join(heroesDir, 'email');
+await fs.mkdir(emailHeroDir, { recursive: true });
+let emailHeroCount = 0;
+for (const name of heroFiles) {
+  if (!name.endsWith('.webp')) continue;
+  const stem = name.replace(/\.webp$/i, '');
+  const dest = path.join(emailHeroDir, `${stem}.jpg`);
+  try {
+    await sharp(path.join(heroesR2Dir, name))
+      .rotate()
+      .resize({ width: 1200, withoutEnlargement: true })
+      .jpeg({ quality: 84, mozjpeg: true })
+      .toFile(dest);
+    emailHeroCount += 1;
+  } catch (error) {
+    console.warn(`[email-heroes] skip ${name}:`, error instanceof Error ? error.message : error);
+  }
+}
+
 const manifest = readReleaseManifest();
 const releaseTag = resolveCacheKey(manifest);
 const releaseFull = resolveReleaseTag(manifest);
@@ -95,4 +115,5 @@ self.addEventListener('message', (event) => {
 
 await fs.writeFile(path.join(root, 'public', 'sw.js'), swSource, 'utf8');
 console.log(`SEO assets generated for ${siteUrl}`);
+console.log(`Email hero JPEGs: ${emailHeroCount} files in /images/heroes/email/`);
 console.log(`Release ${releaseFull} (${manifest.status}) · cache luna-shell-${releaseTag}`);

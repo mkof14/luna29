@@ -11,6 +11,7 @@ import {
   savePrivacyConsent,
 } from '../utils/privacyCompliance';
 import { refreshAnalyticsConsent } from '../services/analyticsService';
+import { logPrivacyConsentEvent } from '../services/privacyService';
 
 type Copy = {
   bannerTitle: string;
@@ -330,6 +331,11 @@ export const PrivacyControls: React.FC<{ lang: Language; isAuthenticated: boolea
   const [personalization, setPersonalization] = useState(initialConsent?.scopes.personalization ?? true);
   const [feedback, setFeedback] = useState('');
 
+  const recordConsentAudit = (next: ReturnType<typeof savePrivacyConsent>, action: 'accept_all' | 'essential_only' | 'save') => {
+    if (!isAuthenticated) return;
+    logPrivacyConsentEvent(next.scopes, action, next.version);
+  };
+
   const onAcceptAll = () => {
     const next = acceptAllPrivacyScopes();
     setAnalytics(next.scopes.analytics);
@@ -337,6 +343,7 @@ export const PrivacyControls: React.FC<{ lang: Language; isAuthenticated: boolea
     setPersonalization(next.scopes.personalization);
     setShowBanner(false);
     setFeedback(copy.done);
+    recordConsentAudit(next, 'accept_all');
     refreshAnalyticsConsent().catch(() => undefined);
   };
 
@@ -347,13 +354,15 @@ export const PrivacyControls: React.FC<{ lang: Language; isAuthenticated: boolea
     setPersonalization(next.scopes.personalization);
     setShowBanner(false);
     setFeedback(copy.done);
+    recordConsentAudit(next, 'essential_only');
     refreshAnalyticsConsent().catch(() => undefined);
   };
 
   const onSave = () => {
-    savePrivacyConsent({ analytics, ai_processing: aiProcessing, personalization });
+    const next = savePrivacyConsent({ analytics, ai_processing: aiProcessing, personalization });
     setShowBanner(false);
     setFeedback(copy.done);
+    recordConsentAudit(next, 'save');
     refreshAnalyticsConsent().catch(() => undefined);
   };
 

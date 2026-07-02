@@ -4,6 +4,8 @@ import { Language, LangCopy, getLang } from '../constants';
 import { CyclePhase, HealthEvent, SystemState } from '../types';
 import { dataService } from '../services/dataService';
 import { shareTextSafely } from '../utils/share';
+import { useTimeOfDayTick } from '../hooks/useTimeOfDayTick';
+import { getMemberTimeGreeting } from '../utils/timeOfDayGreeting';
 
 interface TodayMirrorViewProps {
   lang: Language;
@@ -608,13 +610,12 @@ export const TodayMirrorView: React.FC<TodayMirrorViewProps> = ({
       continuityRecent: (line) => `לאחרונה שיתפת ${line}`,
     },};
   const copy = getLang(copyByLang, lang) || copyByLang.en;
+  const timeTick = useTimeOfDayTick();
 
-  const greeting = useMemo(() => {
-    const hour = new Date().getHours();
-    if (hour < 12) return copy.morning;
-    if (hour < 18) return copy.afternoon;
-    return copy.evening;
-  }, [copy.afternoon, copy.evening, copy.morning]);
+  const greeting = useMemo(
+    () => getMemberTimeGreeting(lang, new Date(timeTick)),
+    [lang, timeTick],
+  );
 
   const profileName = systemState.profile?.name?.trim() || 'Anna';
   const sleepValue = systemState.lastCheckin?.metrics?.sleep;

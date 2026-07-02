@@ -5,7 +5,7 @@ import { Language, TranslationSchema, LangCopy, getLang } from '../constants';
 import LanguageSelector from './LanguageSelector';
 import { LunaMenuLabel, LunaShimmerText } from './SmoothLangText';
 import ThemeToggle from './ThemeToggle';
-import { PUBLIC_BTN_PRIMARY, PUBLIC_BTN_PRIMARY_GLOW, PUBLIC_BTN_SECONDARY } from './public/publicButtonStyles';
+import { PUBLIC_BTN_PRIMARY, PUBLIC_BTN_PRIMARY_GLOW, PUBLIC_BTN_SECONDARY, PUBLIC_BTN_SECONDARY_ACCENT } from './public/publicButtonStyles';
 import {
   PUBLIC_BODY,
   PUBLIC_CARD_SOFT,
@@ -122,9 +122,15 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
   const [mobilePlatform, setMobilePlatform] = useState<'ios' | 'android' | 'other'>('other');
   const [heroAbVariant] = useState(() => resolveHeroAbVariant());
   const normalizeExternalUrl = (value: unknown) => {
-    const next = String(value || '').trim();
-    if (!next || next === '#') return '';
-    return next;
+    const raw = String(value || '').trim();
+    if (!raw || raw === '#') return '';
+    try {
+      const url = new URL(raw);
+      if (url.protocol === 'https:' || url.protocol === 'http:') return url.toString();
+    } catch {
+      return '';
+    }
+    return '';
   };
   const appStoreUrl = normalizeExternalUrl(import.meta.env.VITE_APP_STORE_URL);
   const googlePlayUrl = normalizeExternalUrl(import.meta.env.VITE_GOOGLE_PLAY_URL);
@@ -2252,7 +2258,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
                 <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">{installGuideModal.androidStep2}</p>
                 <button
                   onClick={() => void runPublicInstall()}
-                  className={`${PUBLIC_BTN_SECONDARY} mt-2 px-3 py-2 text-[10px] tracking-[0.14em] text-luna-purple`}
+                  className={`${PUBLIC_BTN_SECONDARY_ACCENT} mt-2 px-3 py-2 text-[10px] tracking-[0.14em]`}
                 >
                   {installGuideModal.openPrompt}
                 </button>
@@ -2271,7 +2277,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
                   {!isStandaloneMode && (
                     <button
                       onClick={() => void runPublicInstall()}
-                      className={`${PUBLIC_BTN_SECONDARY} mt-2 px-3 py-2 text-[10px] tracking-[0.14em] text-luna-purple`}
+                      className={`${PUBLIC_BTN_SECONDARY_ACCENT} mt-2 px-3 py-2 text-[10px] tracking-[0.14em]`}
                     >
                       {installGuideModal.openDesktopPrompt || installActions.desktop}
                     </button>

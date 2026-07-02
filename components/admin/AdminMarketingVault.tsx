@@ -3,7 +3,7 @@ import { Language, getLang } from '../../constants';
 import { adminService, CampaignQueueItem } from '../../services/adminService';
 import { ADMIN_WORKSPACE_COPY } from '../../utils/adminWorkspaceI18n';
 import { ADMIN_ZONE_COPY, AdminZoneCopy } from '../../utils/adminZoneCopy';
-import { getTemplateById } from '../../utils/adminTemplatesCatalog';
+import { getTemplateById, getTemplateLocalized } from '../../utils/adminTemplatesCatalog';
 import { buildBrandedAdminEmailHtml, buildBrandedAdminEmailPreviewHtml } from '../../utils/adminEmailBranding';
 import { downloadTextFile } from '../../utils/adminDocumentActions';
 import { versionedStaticAsset } from '../../utils/staticAssetUrl';
@@ -96,23 +96,28 @@ export const AdminMarketingVault: React.FC<AdminMarketingVaultProps> = ({
   const scheduleDraft = async () => {
     const recipients = scheduleRecipients.split(/[\n,;]+/).map((row) => row.trim()).filter(Boolean);
     if (!subject.trim() || !body.trim() || recipients.length === 0) {
-      notify('Subject, body, and at least one recipient are required.');
+      notify(zone.marketingScheduleNeedFields);
       return;
     }
     try {
+      const tpl = getTemplateById(templateId) || getTemplateById('tpl-newsletter')!;
+      const loc = getTemplateLocalized({ ...tpl, hero: hero.replace(/^.*\//, '') }, lang);
       await adminService.scheduleCampaign({
         name: name.trim() || subject.trim(),
         subject: subject.trim(),
+        preheader: loc.preheader,
         body: body.trim(),
         templateId,
+        hero,
+        ctaLabel: loc.ctaLabel,
         recipients,
         sendAt: scheduleAt || undefined,
       });
-      notify('Campaign scheduled.');
+      notify(zone.marketingCampaignScheduled);
       setScheduleRecipients('');
       await loadQueue();
     } catch (e) {
-      notify(e instanceof Error ? e.message : 'Schedule failed.');
+      notify(e instanceof Error ? e.message : zone.marketingScheduleFailed);
     }
   };
 
@@ -120,9 +125,12 @@ export const AdminMarketingVault: React.FC<AdminMarketingVaultProps> = ({
     try {
       const result = await adminService.processDueCampaigns();
       setQueue(result.queue || []);
-      notify(`Processed ${result.processed} · sent ${result.sent} · failed ${result.failed}`);
+      notify(zone.marketingProcessResult
+        .replace('{processed}', String(result.processed))
+        .replace('{sent}', String(result.sent))
+        .replace('{failed}', String(result.failed)));
     } catch (e) {
-      notify(e instanceof Error ? e.message : 'Process failed.');
+      notify(e instanceof Error ? e.message : zone.marketingProcessFailed);
     }
   };
 
@@ -205,16 +213,23 @@ export const AdminMarketingVault: React.FC<AdminMarketingVaultProps> = ({
     const to = sendEmail.trim().toLowerCase();
     if (!to.includes('@')) return notify(zone.marketingSendNeedEmail);
     const built = buildItemEmail(item);
+    const tpl = getTemplateById(item.templateId) || getTemplateById('tpl-newsletter')!;
+    const loc = getTemplateLocalized({ ...tpl, hero: item.hero.replace(/^.*\//, '') }, lang);
     try {
-      await adminService.sendMail({
+      const result = await adminService.sendMail({
         to,
         subject: built.subject,
+        preheader: built.preheader,
         body: item.body,
+        ctaLabel: loc.ctaLabel,
         templateId: item.templateId,
+        hero: item.hero,
       });
-      notify(`${ws.mailSendOne}: ${to}`);
+      notify(result.delivered
+        ? zone.mailSendDelivered.replace('{email}', to)
+        : zone.mailSendNotDelivered);
     } catch (e) {
-      notify(e instanceof Error ? e.message : 'Send failed.');
+      notify(e instanceof Error ? e.message : zone.mailSendFailed);
     }
   };
 

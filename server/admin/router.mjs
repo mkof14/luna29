@@ -281,12 +281,17 @@ export const createAdminRouter = (store, deps) => {
         }
         const sendAtRaw = safeText(body.sendAt || '', 40);
         const sendAt = sendAtRaw ? new Date(sendAtRaw).toISOString() : new Date().toISOString();
+        const brand = getBrandMeta();
         const entry = {
           id: `cq-${Date.now()}`,
           name: safeText(body.name || 'Scheduled campaign', 160),
           subject: safeText(body.subject || 'Update', 200),
+          preheader: safeText(body.preheader || body.subject || 'Update', 220),
           body: safeText(body.body || '', 8000),
           templateId: safeText(body.templateId || 'tpl-newsletter', 80),
+          hero: safeText(body.hero || body.heroFile || '', 80),
+          ctaLabel: safeText(body.ctaLabel || 'Open Luna29', 80),
+          ctaUrl: safeText(body.ctaUrl || brand.siteUrl, 400),
           recipients: recipients.slice(0, 200),
           sendAt,
           status: 'scheduled',
@@ -323,25 +328,50 @@ export const createAdminRouter = (store, deps) => {
       let sent = 0;
       let failed = 0;
 
+      const brand = getBrandMeta();
+
       for (const item of queue) {
         if (item.status !== 'scheduled') continue;
         const dueTs = Date.parse(item.sendAt || '');
         if (!Number.isFinite(dueTs) || dueTs > now) continue;
         processed += 1;
+        const preheader = safeText(item.preheader || item.subject || '', 220);
+        const heroFile = safeText(item.hero || '', 80);
+        const ctaLabel = safeText(item.ctaLabel || 'Open Luna29', 80);
+        const ctaUrl = safeText(item.ctaUrl || brand.siteUrl, 400);
         try {
+          const failures = [];
           for (const to of item.recipients || []) {
             const html = renderBrandedEmailHtml({
               templateId: item.templateId,
+              heroFile,
+              subject: item.subject,
+              preheader,
+              body: item.body,
+              ctaLabel,
+              ctaUrl,
+            });
+            const text = renderPlainEmailText({
               subject: item.subject,
               body: item.body,
+              ctaLabel,
+              ctaUrl,
             });
-            const text = renderPlainEmailText({ subject: item.subject, body: item.body });
-            await sendCalendarReminderEmail({ to, subject: item.subject, text, html });
+            const mailResult = await sendCalendarReminderEmail({ to, subject: item.subject, text, html });
+            if (!mailResult.ok) {
+              failures.push(`${to}: ${mailResult.reason || 'send_failed'}`);
+            }
           }
-          item.status = 'sent';
-          item.sentAt = new Date().toISOString();
-          item.error = null;
-          sent += 1;
+          if (failures.length === 0) {
+            item.status = 'sent';
+            item.sentAt = new Date().toISOString();
+            item.error = null;
+            sent += 1;
+          } else {
+            item.status = 'failed';
+            item.error = failures.join('; ');
+            failed += 1;
+          }
         } catch (error) {
           item.status = 'failed';
           item.error = error instanceof Error ? error.message : 'Send failed';
@@ -630,6 +660,7 @@ export const createAdminRouter = (store, deps) => {
       try {
         const body = await readBody(req);
         const templateId = safeText(body.templateId || 'tpl-welcome', 80);
+        const heroFile = safeText(body.hero || body.heroFile || '', 80);
         const subject = safeText(body.subject || 'Luna29', 180);
         const preheader = safeText(body.preheader || subject, 220);
         const emailBody = safeText(body.body || 'Your Luna29 message.', 4000);
@@ -638,6 +669,7 @@ export const createAdminRouter = (store, deps) => {
         const brand = getBrandMeta();
         const html = renderBrandedEmailHtml({
           templateId,
+          heroFile,
           subject,
           preheader,
           body: emailBody,
@@ -658,7 +690,7 @@ export const createAdminRouter = (store, deps) => {
         send(
           res,
           200,
-          { html, text, heroPath: resolveTemplateHeroPath(templateId), brand },
+          { html, text, heroPath: resolveTemplateHeroPath(templateId, heroFile), brand },
           headers
         );
       } catch (error) {
@@ -682,6 +714,7 @@ export const createAdminRouter = (store, deps) => {
         const preheader = safeText(body.preheader || subject, 220);
         const emailBody = safeText(body.body || '', 4000);
         const templateId = safeText(body.templateId || 'tpl-campaign', 80);
+        const heroFile = safeText(body.hero || body.heroFile || '', 80);
         const ctaLabel = safeText(body.ctaLabel || 'Open Luna29', 80);
         const ctaUrl = safeText(body.ctaUrl || getBrandMeta().siteUrl, 400);
 
@@ -692,6 +725,7 @@ export const createAdminRouter = (store, deps) => {
 
         const html = renderBrandedEmailHtml({
           templateId,
+          heroFile,
           subject,
           preheader,
           body: emailBody,
@@ -738,7 +772,7 @@ export const createAdminRouter = (store, deps) => {
         const subject = 'You are invited to Luna29';
         const emailBody = 'A gentle invitation to join Luna29 — your private rhythm map. Create your account and start with one calm check-in.';
         const html = renderBrandedEmailHtml({
-          templateId: 'tpl-invite-member',
+          templateId: 'tpl-site-invite',
           subject,
           preheader: 'Your Luna29 journey can start today.',
           body: emailBody,
@@ -808,7 +842,7 @@ export const createAdminRouter = (store, deps) => {
         const subject = 'Luna29 Admin Console invitation';
         const emailBody = `You have been invited to the Luna29 Admin Console with the ${role} role. Use the secure link below to sign in and activate your workspace access.`;
         const html = renderBrandedEmailHtml({
-          templateId: 'tpl-invite-admin',
+          templateId: 'tpl-admin-invite',
           subject,
           preheader: 'Admin workspace access prepared for you.',
           body: emailBody,

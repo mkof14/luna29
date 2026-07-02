@@ -55,6 +55,24 @@ export type AdminZoneCopy = {
   marketingDuplicate: string;
   marketingSend: string;
   marketingSendNeedEmail: string;
+  templatesSend: string;
+  templatesSendHint: string;
+  mailSendDelivered: string;
+  mailSendNotDelivered: string;
+  mailSendFailed: string;
+  mailBulkSendFailed: string;
+  mailBulkPartialDelivered: string;
+  invitesSiteDelivered: string;
+  invitesSiteCopied: string;
+  invitesAdminDelivered: string;
+  invitesAdminCopied: string;
+  invitesSiteFailed: string;
+  invitesAdminFailed: string;
+  marketingScheduleNeedFields: string;
+  marketingCampaignScheduled: string;
+  marketingScheduleFailed: string;
+  marketingProcessResult: string;
+  marketingProcessFailed: string;
   marketingExportAll: string;
   marketingExported: string;
   marketingDeleted: string;
@@ -105,7 +123,7 @@ const base = (overrides: Partial<AdminZoneCopy>): AdminZoneCopy => ({
   templatesHint: 'Every template includes Luna logo, studio address, copyright, and themed hero art.',
   templatesTrigger: 'Trigger',
   templatesHero: 'Hero image',
-  templatesBrandNote: 'Moon lockup · purple Luna script · coral accent · hero from /images/heroes/r2/',
+  templatesBrandNote: 'Moon lockup · purple Luna script · coral accent · themed hero JPEG from /images/heroes/email/',
   templatePickerLabel: 'Choose email template',
   templatePickerSearch: 'Search templates…',
   templatePickerEmpty: 'No templates match your search.',
@@ -122,6 +140,24 @@ const base = (overrides: Partial<AdminZoneCopy>): AdminZoneCopy => ({
   marketingDuplicate: 'Duplicate',
   marketingSend: 'Send email',
   marketingSendNeedEmail: 'Enter a valid recipient email.',
+  templatesSend: 'Send live email',
+  templatesSendHint: 'Delivers branded HTML via Resend — Luna logo, themed hero, and CTA button.',
+  mailSendDelivered: 'Branded email sent to {email}.',
+  mailSendNotDelivered: 'Email not delivered — configure RESEND_API_KEY in production for live sending.',
+  mailSendFailed: 'Send failed.',
+  mailBulkSendFailed: 'Bulk send failed.',
+  mailBulkPartialDelivered: '{delivered}/{total} delivered. {hint}',
+  invitesSiteDelivered: 'Site invite sent to {email}.',
+  invitesSiteCopied: 'Invite link copied for {email} (configure Resend for delivery).',
+  invitesAdminDelivered: 'Admin invite sent to {email}.',
+  invitesAdminCopied: 'Admin link copied for {email} (configure Resend for delivery).',
+  invitesSiteFailed: 'Site invite failed.',
+  invitesAdminFailed: 'Admin invite failed.',
+  marketingScheduleNeedFields: 'Subject, body, and at least one recipient are required.',
+  marketingCampaignScheduled: 'Campaign scheduled.',
+  marketingScheduleFailed: 'Schedule failed.',
+  marketingProcessResult: 'Processed {processed} · sent {sent} · failed {failed}',
+  marketingProcessFailed: 'Process failed.',
   marketingExportAll: 'Export vault JSON',
   marketingExported: 'Vault exported.',
   marketingDeleted: 'Material removed.',
@@ -149,7 +185,7 @@ export const ADMIN_ZONE_COPY: LangCopy<AdminZoneCopy> = {
     invitesAdminTitle: 'Приглашения в админку', invitesAdminHint: 'Назначьте роль до первого входа в консоль.',
     invitesEmail: 'Email', invitesRole: 'Роль', invitesSendUser: 'Отправить на сайт', invitesSendAdmin: 'Отправить в админку',
     templatesTitle: 'Шаблоны писем', templatesHint: 'Лого, адрес, копирайт и hero-картинка по теме каждого письма.',
-    templatesBrandNote: 'Лого · адрес · © Luna29 · hero из /images/heroes/r2/',
+    templatesBrandNote: 'Лого · адрес · © Luna29 · hero JPEG из /images/heroes/email/ по теме письма',
     templatePickerLabel: 'Выбор шаблона письма',
     templatePickerSearch: 'Поиск шаблонов…',
     templatePickerEmpty: 'Шаблоны не найдены.',
@@ -163,6 +199,25 @@ export const ADMIN_ZONE_COPY: LangCopy<AdminZoneCopy> = {
     marketingDelete: 'Удалить',
     marketingDuplicate: 'Дублировать',
     marketingSend: 'Отправить',
+    marketingSendNeedEmail: 'Укажите корректный email получателя.',
+    templatesSend: 'Отправить письмо',
+    templatesSendHint: 'Отправка живого HTML через Resend — лого Luna, hero-картинка и кнопка CTA.',
+    mailSendDelivered: 'Письмо отправлено на {email}.',
+    mailSendNotDelivered: 'Письмо не доставлено — добавьте RESEND_API_KEY в production для живой отправки.',
+    mailSendFailed: 'Не удалось отправить.',
+    mailBulkSendFailed: 'Массовая отправка не удалась.',
+    mailBulkPartialDelivered: '{delivered}/{total} доставлено. {hint}',
+    invitesSiteDelivered: 'Приглашение на сайт отправлено на {email}.',
+    invitesSiteCopied: 'Ссылка скопирована для {email} (настройте Resend для доставки).',
+    invitesAdminDelivered: 'Админ-приглашение отправлено на {email}.',
+    invitesAdminCopied: 'Админ-ссылка скопирована для {email} (настройте Resend для доставки).',
+    invitesSiteFailed: 'Не удалось отправить приглашение на сайт.',
+    invitesAdminFailed: 'Не удалось отправить админ-приглашение.',
+    marketingScheduleNeedFields: 'Нужны тема, текст и хотя бы один получатель.',
+    marketingCampaignScheduled: 'Кампания запланирована.',
+    marketingScheduleFailed: 'Не удалось запланировать.',
+    marketingProcessResult: 'Обработано {processed} · отправлено {sent} · ошибок {failed}',
+    marketingProcessFailed: 'Не удалось обработать очередь.',
     marketingExportAll: 'Экспорт JSON',
     marketingExported: 'Хранилище экспортировано.',
     marketingDeleted: 'Материал удалён.',

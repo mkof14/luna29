@@ -1,6 +1,12 @@
 /**
  * Branded admin/marketing email — single Luna29 lockup wordmark.
  */
+import {
+  buildEmailHeroPath,
+  resolveEmailHeroFile,
+  resolveTemplateHeroPath,
+} from './emailHeroAssets.mjs';
+
 const BRAND = {
   name: 'Luna29',
   tagline: 'Private rhythm awareness & care',
@@ -20,34 +26,6 @@ const resolveSiteUrl = () => {
   const vercel = String(process.env.VERCEL_URL || '').trim();
   if (vercel) return `https://${vercel.replace(/^https?:\/\//, '')}`;
   return 'https://www.luna29.com';
-};
-
-const HERO_BY_TEMPLATE = {
-  'tpl-welcome': 'dashboard.webp',
-  'tpl-reset': 'profile.webp',
-  'tpl-renewal': 'insights_paywall.webp',
-  'tpl-churn-save': 'bridge.webp',
-  'tpl-verify-email': 'profile.webp',
-  'tpl-magic-link': 'profile.webp',
-  'tpl-new-device-alert': 'crisis.webp',
-  'tpl-trial-start': 'today_mirror.webp',
-  'tpl-trial-ending': 'insights_paywall.webp',
-  'tpl-payment-failed': 'insights_paywall.webp',
-  'tpl-payment-receipt': 'insights_paywall.webp',
-  'tpl-invite-member': 'dashboard.webp',
-  'tpl-site-invite': 'dashboard.webp',
-  'tpl-invite-admin': 'admin.webp',
-  'tpl-admin-invite': 'admin.webp',
-  'tpl-newsletter': 'library.webp',
-  'tpl-cycle-reminder': 'cycle.webp',
-  'tpl-report-ready': 'labs.webp',
-  'tpl-partner-invite': 'relationships.webp',
-  'tpl-campaign': 'creative.webp',
-};
-
-export const resolveTemplateHeroPath = (templateId = '') => {
-  const file = HERO_BY_TEMPLATE[String(templateId || '').trim()] || 'admin.webp';
-  return `/images/heroes/r2/${file}`;
 };
 
 const escapeHtml = (value) =>
@@ -86,17 +64,21 @@ const buildFooter = (siteUrl) => {
 </table>`;
 };
 
+export { resolveTemplateHeroPath } from './emailHeroAssets.mjs';
+
 export const renderBrandedEmailHtml = ({
   subject = 'Luna29',
   preheader = '',
   body = '',
   templateId = '',
+  heroFile = '',
   ctaLabel = '',
   ctaUrl = '',
   siteUrl = resolveSiteUrl(),
 } = {}) => {
   const assetBase = siteUrl.replace(/\/$/, '');
-  const heroUrl = `${assetBase}${resolveTemplateHeroPath(templateId)}`;
+  const resolvedHero = resolveEmailHeroFile(templateId, heroFile);
+  const heroUrl = `${assetBase}${buildEmailHeroPath(resolvedHero)}`;
   const safeSubject = escapeHtml(subject);
   const safePreheader = escapeHtml(preheader || subject);
   const safeBody = escapeHtml(body).replace(/\n/g, '<br/>');
@@ -115,7 +97,7 @@ export const renderBrandedEmailHtml = ({
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#fff;border-radius:24px;overflow:hidden;border:1px solid rgba(30,27,75,0.12);box-shadow:0 24px 60px rgba(49,46,129,0.12);">
 <tr><td style="height:4px;background:linear-gradient(90deg,#7c3aed,#c026d3,#fb7185);">&nbsp;</td></tr>
 <tr><td style="padding:20px 24px 16px;background:#050508;border-bottom:1px solid #1e1b4b;">${header}</td></tr>
-<tr><td style="padding:0;line-height:0;"><img src="${heroUrl}" alt="" width="600" style="display:block;width:100%;max-width:600px;height:auto;max-height:280px;object-fit:cover;object-position:center 40%;"/></td></tr>
+<tr><td style="padding:0;line-height:0;font-size:0;"><img src="${heroUrl}" alt="${safeSubject}" width="600" style="display:block;width:100%;max-width:600px;height:auto;max-height:280px;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic;"/></td></tr>
 <tr><td style="padding:32px 28px 20px;background:#fff;"><h1 style="margin:0 0 14px;font-size:24px;line-height:1.3;color:#0f172a;font-weight:700;">${safeSubject}</h1><p style="margin:0;font-size:16px;line-height:1.7;color:#475569;">${safeBody}</p>${ctaBlock}</td></tr>
 <tr><td style="padding:0;">${footer}</td></tr>
 </table></td></tr></table></body></html>`;

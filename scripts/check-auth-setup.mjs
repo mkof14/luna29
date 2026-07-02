@@ -33,6 +33,21 @@ for (const [key, value, purpose] of checks) {
   console.log(`${ok ? 'OK' : 'MISSING'}  ${key} — ${purpose}`);
 }
 
+if (env.AUTH_ALLOW_UNVERIFIED_GOOGLE === 'true') {
+  console.log('\nWARN  AUTH_ALLOW_UNVERIFIED_GOOGLE=true — dev only; set false on production (Vercel).');
+}
+
+if (env.VITE_GOOGLE_CLIENT_ID && env.AUTH_GOOGLE_CLIENT_IDS) {
+  const viteIds = new Set(env.VITE_GOOGLE_CLIENT_ID.split(',').map((id) => id.trim()).filter(Boolean));
+  const authIds = env.AUTH_GOOGLE_CLIENT_IDS.split(',').map((id) => id.trim()).filter(Boolean);
+  const mismatched = authIds.filter((id) => !viteIds.has(id));
+  if (mismatched.length > 0) {
+    console.log('\nWARN  AUTH_GOOGLE_CLIENT_IDS includes client IDs not listed in VITE_GOOGLE_CLIENT_ID.');
+  } else {
+    console.log('\nOK  VITE_GOOGLE_CLIENT_ID and AUTH_GOOGLE_CLIENT_IDS align.');
+  }
+}
+
 if (!env.VITE_GOOGLE_CLIENT_ID) {
   console.log('\nGoogle OAuth setup:');
   console.log('1. https://console.cloud.google.com/apis/credentials');
@@ -52,7 +67,7 @@ if (!env.VITE_GOOGLE_CLIENT_ID) {
   }
 }
 
-  if (!env.SUPER_ADMIN_BOOTSTRAP_PASSWORD) {
+if (!env.SUPER_ADMIN_BOOTSTRAP_PASSWORD) {
   console.log('\nEmail login: set SUPER_ADMIN_BOOTSTRAP_PASSWORD=YourPassword8+ in .env.local');
 } else {
   console.log('\nSuper admin email: dnainform@gmail.com');

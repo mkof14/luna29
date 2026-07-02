@@ -1,7 +1,7 @@
 import React from 'react';
 import { Calendar, Heart, MapPin, Mic, Sparkles, Users } from 'lucide-react';
 import { Logo } from '../Logo';
-import { PUBLIC_BTN_PRIMARY, PUBLIC_BTN_PRIMARY_GLOW, PUBLIC_BTN_SECONDARY } from './publicButtonStyles';
+import { PUBLIC_BTN_PRIMARY, PUBLIC_BTN_PRIMARY_GLOW, PUBLIC_BTN_SECONDARY, PUBLIC_BTN_SECONDARY_ACCENT } from './publicButtonStyles';
 import { getBrandAssetUrl } from '../../utils/lunaBrandAssets';
 import type { HomeStory } from '../../utils/publicLandingNarratives';
 import type { PublicHomeContent } from '../../utils/publicHomeContent';
@@ -171,7 +171,7 @@ export const PublicHomeSection: React.FC<PublicHomeSectionProps> = ({
           <button
             type="button"
             onClick={() => onNavigate('bridge')}
-            className={`${PUBLIC_BTN_SECONDARY} px-6 py-3 text-sm tracking-[0.06em] text-luna-purple shrink-0`}
+            className={`${PUBLIC_BTN_SECONDARY_ACCENT} px-6 py-3 text-sm tracking-[0.06em] shrink-0`}
           >
             {homeContent.bridgeTeaserCta}
           </button>
@@ -257,7 +257,7 @@ export const PublicHomeSection: React.FC<PublicHomeSectionProps> = ({
             <button
               type="button"
               onClick={() => onNavigate('pricing')}
-              className="px-4 py-3 text-sm font-semibold text-luna-purple underline underline-offset-4 hover:opacity-80"
+              className="px-4 py-3 text-sm font-semibold text-luna-purple dark:text-violet-200 underline underline-offset-4 hover:opacity-80"
             >
               {homeContent.pricingLink}
             </button>

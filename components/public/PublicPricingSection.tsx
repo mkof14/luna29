@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PUBLIC_BTN_PRIMARY, PUBLIC_BTN_PRIMARY_GLOW, PUBLIC_BTN_SECONDARY } from './publicButtonStyles';
+import { PUBLIC_BTN_PRIMARY, PUBLIC_BTN_PRIMARY_GLOW, PUBLIC_BTN_SECONDARY, PUBLIC_BTN_SECONDARY_ACCENT } from './publicButtonStyles';
 import { PublicHeroBlock } from './PublicHeroBlock';
 import { PUBLIC_PAGE_ART } from '../../utils/publicPageArt';
 import {
@@ -171,7 +171,7 @@ export const PublicPricingSection: React.FC<PublicPricingSectionProps> = ({
                 <span className={PUBLIC_BTN_PRIMARY_GLOW} />
                 <span className="relative z-10">{trialState?.status === 'active' ? pricingUi.continueTrial : pricingUi.startTrial}</span>
               </button>
-              <button type="button" onClick={onSubscribe} className={`${PUBLIC_BTN_SECONDARY} w-full px-8 py-3 text-sm tracking-[0.06em] text-luna-purple`}>
+              <button type="button" onClick={onSubscribe} className={`${PUBLIC_BTN_SECONDARY_ACCENT} w-full px-8 py-3 text-sm tracking-[0.06em]`}>
                 {subscribeLabel}
               </button>
               <button type="button" onClick={onSignUp} className="w-full text-center text-sm font-semibold text-slate-600 dark:text-slate-300 underline underline-offset-4 hover:text-luna-purple transition-colors">
@@ -239,7 +239,7 @@ export const PublicPricingSection: React.FC<PublicPricingSectionProps> = ({
                 const ok = await previewPublicSampleReport(lang);
                 setSampleFeedback(ok ? reportUi.sampleTitle : reportUi.reportSubtitle);
               }}
-              className={`${PUBLIC_BTN_SECONDARY} px-5 py-2.5 text-sm tracking-[0.06em] text-luna-purple`}
+              className={`${PUBLIC_BTN_SECONDARY_ACCENT} px-5 py-2.5 text-sm tracking-[0.06em]`}
             >
               {reportUi.sampleTitle}
             </button>

@@ -14,6 +14,7 @@ import { TabType } from '../utils/navigation';
 import { dataService } from '../services/dataService';
 import { HormoneTestingGuide } from './HormoneTestingGuide';
 import { billingService, BillingStatusPayload } from '../services/billingService';
+import { getMemberTimeGreeting } from '../utils/timeOfDayGreeting';
 
 interface DashboardViewProps {
   lang: Language;
@@ -461,12 +462,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   const profileName = useMemo(() => projectedState.profile?.name?.trim() || 'Anna', [projectedState]);
 
-  const dayPart = useMemo(() => {
-    const hour = new Date().getHours();
-    if (hour < 12) return dm.dayMorning;
-    if (hour < 18) return dm.dayAfternoon;
-    return dm.dayEvening;
-  }, [dm.dayAfternoon, dm.dayEvening, dm.dayMorning, tick]);
+  const dayPart = useMemo(
+    () => getMemberTimeGreeting(lang, new Date(tick)),
+    [lang, tick],
+  );
 
   const latestCheckin = useMemo(() => projectedState.lastCheckin?.metrics || null, [projectedState]);
 

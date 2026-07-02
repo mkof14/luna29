@@ -10,6 +10,8 @@ import { MemberIconBackButton } from './member/MemberIconBackButton';
 import { MemberPageIntro } from './member/MemberPageIntro';
 import { LunaPageContentSection } from './shared/LunaPageContentSection';
 import { getLunaPageTheme } from '../utils/lunaPageThemes';
+import { useTimeOfDayTick } from '../hooks/useTimeOfDayTick';
+import { getMemberTimeGreeting } from '../utils/timeOfDayGreeting';
 
 type SpeechRecognitionAlternativeLike = {
   transcript: string;
@@ -1152,12 +1154,12 @@ export const AudioReflection: React.FC<{ onBack: () => void, lang?: Language }> 
     }
   }, []);
 
-  const greeting = useMemo(() => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 18) return 'Good afternoon';
-    return 'Good evening';
-  }, []);
+  const timeTick = useTimeOfDayTick();
+
+  const greeting = useMemo(
+    () => getMemberTimeGreeting(lang, new Date(timeTick)),
+    [lang, timeTick],
+  );
 
   const projectedState = useMemo(() => {
     try {

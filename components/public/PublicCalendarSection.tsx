@@ -3,7 +3,7 @@ import { Language, LangCopy, getLang } from '../../constants';
 import { DEFAULT_CYCLE_LENGTH } from '../../constants/appDefaults';
 import { LunaRhythmCalendar } from '../LunaRhythmCalendar';
 import { PUBLIC_PAGE_ART } from '../../utils/publicPageArt';
-import { PUBLIC_BTN_PRIMARY, PUBLIC_BTN_PRIMARY_GLOW, PUBLIC_BTN_SECONDARY } from './publicButtonStyles';
+import { PUBLIC_BTN_PRIMARY, PUBLIC_BTN_PRIMARY_GLOW, PUBLIC_BTN_SECONDARY, PUBLIC_BTN_SECONDARY_ACCENT } from './publicButtonStyles';
 import {
   PUBLIC_BODY,
   PUBLIC_CHIP,
@@ -195,7 +195,7 @@ export const PublicCalendarSection: React.FC<PublicCalendarSectionProps> = ({
                 <span className={PUBLIC_BTN_PRIMARY_GLOW} />
                 <span className="relative z-10">{copy.enterMember}</span>
               </button>
-              <button type="button" onClick={onSignIn} className={`${PUBLIC_BTN_SECONDARY} px-5 py-3 text-sm tracking-[0.08em] text-luna-purple`}>
+              <button type="button" onClick={onSignIn} className={`${PUBLIC_BTN_SECONDARY_ACCENT} px-5 py-3 text-sm tracking-[0.08em]`}>
                 {copy.memberSignIn}
               </button>
             </div>

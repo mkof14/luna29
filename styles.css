@@ -771,6 +771,15 @@ input[type='range'] {
   color: #6b3d9a !important;
 }
 
+.dark .luna-public-baseline .luna-page-shell :where(.text-luna-purple, [class*='text-luna-purple']) {
+  color: #e9d5ff !important;
+}
+
+.dark .luna-public-baseline .luna-page-shell :where(button, [role='button']).text-luna-purple,
+.dark .luna-public-baseline .luna-page-shell :where(button, [role='button'])[class*='text-luna-purple'] {
+  color: #faf5ff !important;
+}
+
 .luna-public-baseline .luna-page-shell article {
   min-width: 0;
 }
