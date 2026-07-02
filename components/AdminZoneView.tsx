@@ -294,7 +294,7 @@ export const AdminZoneView: React.FC<AdminZoneViewProps> = ({ lang, session, act
               <p className={`text-xs ${adminMuted(mode)}`}>{zone.invitesUserHint}</p>
               <input className={`w-full ${adminInput(mode)}`} placeholder={zone.invitesEmail} value={inviteUserEmail} onChange={(e) => setInviteUserEmail(e.target.value)} />
               <button type="button" className={adminBtnPrimary} onClick={() => void sendSiteInvite()}>{zone.invitesSendUser}</button>
-              <iframe title="site-invite-preview" srcDoc={sitePreview} className="w-full h-64 rounded-xl border bg-white" sandbox="" />
+              <iframe title="site-invite-preview" srcDoc={sitePreview} className="w-full h-64 rounded-xl border bg-white" sandbox="allow-same-origin" />
               <AdminActionBar copy={zone} title="site-invite" html={sitePreview} onFeedback={feedback} compact />
             </div>
             <div className={`p-5 space-y-4 ${adminCardInner(mode)}`}>
@@ -307,7 +307,7 @@ export const AdminZoneView: React.FC<AdminZoneViewProps> = ({ lang, session, act
                 ))}
               </select>
               <button type="button" className={adminBtnPrimary} onClick={() => void sendAdminInvite()}>{zone.invitesSendAdmin}</button>
-              <iframe title="admin-invite-preview" srcDoc={adminPreview} className="w-full h-64 rounded-xl border bg-white" sandbox="" />
+              <iframe title="admin-invite-preview" srcDoc={adminPreview} className="w-full h-64 rounded-xl border bg-white" sandbox="allow-same-origin" />
               <AdminActionBar copy={zone} title="admin-invite" html={adminPreview} onFeedback={feedback} compact />
             </div>
           </div>
@@ -372,7 +372,7 @@ export const AdminZoneView: React.FC<AdminZoneViewProps> = ({ lang, session, act
             />
             <div className={`p-4 space-y-3 ${adminCardInner(mode)}`}>
               <p className={adminLabel(mode)}>{zone.previewPanel}</p>
-              <iframe title="template-preview" srcDoc={previewHtml} className="w-full h-[380px] rounded-xl border bg-white" sandbox="" />
+              <iframe title="template-preview" srcDoc={previewHtml} className="w-full h-[380px] rounded-xl border bg-white" sandbox="allow-same-origin" />
               {built ? (
                 <AdminActionBar copy={zone} title={built.subject} html={built.html} text={built.text} filename={selectedTemplateId} onFeedback={feedback} />
               ) : null}

@@ -32,13 +32,15 @@
     {
       "source": "/images/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=604800, must-revalidate" }
+        { "key": "Cache-Control", "value": "public, max-age=604800, must-revalidate" },
+        { "key": "Cross-Origin-Resource-Policy", "value": "cross-origin" }
       ]
     },
     {
       "source": "/brand/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=604800, must-revalidate" }
+        { "key": "Cache-Control", "value": "public, max-age=604800, must-revalidate" },
+        { "key": "Cross-Origin-Resource-Policy", "value": "cross-origin" }
       ]
     },
     {

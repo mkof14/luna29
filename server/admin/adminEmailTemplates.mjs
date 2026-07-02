@@ -13,7 +13,9 @@ const BRAND_PATHS = {
 };
 
 const resolveSiteUrl = () => {
-  const explicit = String(process.env.SITE_URL || process.env.PUBLIC_SITE_URL || '').trim();
+  const explicit = String(
+    process.env.VITE_SITE_URL || process.env.SITE_URL || process.env.PUBLIC_SITE_URL || '',
+  ).trim();
   if (explicit) return explicit.replace(/\/$/, '');
   const vercel = String(process.env.VERCEL_URL || '').trim();
   if (vercel) return `https://${vercel.replace(/^https?:\/\//, '')}`;

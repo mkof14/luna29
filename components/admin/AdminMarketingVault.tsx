@@ -249,7 +249,7 @@ export const AdminMarketingVault: React.FC<AdminMarketingVaultProps> = ({
 
           <div className={`p-4 space-y-3 ${adminCardInner(mode)}`}>
             <p className={adminLabel(mode)}>{zone.marketingDraftPreview}</p>
-            <iframe title="marketing-draft" srcDoc={draftPreview} className="w-full h-[360px] rounded-xl border bg-white" sandbox="" />
+            <iframe title="marketing-draft" srcDoc={draftPreview} className="w-full h-[360px] rounded-xl border bg-white" sandbox="allow-same-origin" />
             <AdminActionBar
               copy={zone}
               title={subject || name || 'draft'}
@@ -306,7 +306,7 @@ export const AdminMarketingVault: React.FC<AdminMarketingVaultProps> = ({
 
                   {open && (
                     <div className={`px-4 pb-4 space-y-3 border-t ${mode === 'dark' ? 'border-white/10' : 'border-slate-200'}`}>
-                      <iframe title={`mkt-${item.id}`} srcDoc={preview} className="w-full h-[320px] rounded-xl border bg-white" sandbox="" />
+                      <iframe title={`mkt-${item.id}`} srcDoc={preview} className="w-full h-[320px] rounded-xl border bg-white" sandbox="allow-same-origin" />
                       <AdminActionBar
                         copy={zone}
                         title={item.name}

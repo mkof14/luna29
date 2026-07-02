@@ -69,10 +69,10 @@ export const buildBrandedAdminEmailHtml = ({
   return { html, text, subject, preheader };
 };
 
-/** Same-origin preview for admin iframe. */
+/** Same-origin preview for admin iframe — assets always from production CDN. */
 export const buildBrandedAdminEmailPreviewHtml = (input: BrandedEmailInput): string => {
   const siteUrl = resolveLunaSiteUrl();
-  const assetBase = typeof window !== 'undefined' ? window.location.origin : siteUrl;
+  const assetBase = resolveLunaEmailAssetBaseUrl();
   const brand = brandForBase(assetBase);
   const loc = getTemplateLocalized(input.template, input.lang);
   const subject = input.subjectOverride || loc.subject;
