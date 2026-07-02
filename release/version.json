@@ -1,8 +1,8 @@
 {
-  "semver": "1.1.0",
-  "release": "deploy/2026-07-02-0112-launch-ready",
-  "cacheKey": "20260702lr",
+  "semver": "1.2.0",
+  "release": "deploy/2026-07-02-1901-soft-launch-final",
+  "cacheKey": "20260702sf",
   "status": "completed",
-  "completedAt": "2026-07-02T01:12:23Z",
-  "label": "Pre-launch audit, branding, deploy checks"
+  "completedAt": "2026-07-02T19:01:18Z",
+  "label": "Soft launch final — time greetings, live email sends, consent audit, email hero JPEGs"
 }

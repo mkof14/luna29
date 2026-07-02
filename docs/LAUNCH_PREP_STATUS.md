@@ -1,8 +1,16 @@
 # Luna Launch Prep Status
 
-Updated: 2026-07-02 · **Release v1.1.0 completed** (`deploy/2026-07-02-0112-launch-ready`)
+Updated: 2026-07-02 · **Release v1.2.0 completed** (`deploy/2026-07-02-1901-soft-launch-final`)
 
-## Completed in This Block (2026-07-02)
+## Completed in This Block (2026-07-02 final)
+
+### Soft launch final deploy
+- Time-of-day member greetings (11 langs), live branded email sends from admin templates.
+- Email hero JPEG pipeline, campaign mail reliability, consent audit logging.
+- Google auth verified on production; `status:prod` + post-deploy smoke pass.
+- Version index: `release/version.json` → `/version.json` + service worker cache key at build.
+
+## Completed in Earlier Block (2026-07-02)
 
 ### Pre-launch audit remediation (status: completed)
 - Broken assets fixed (`f5.webp`, hero preload), social links gated by env.

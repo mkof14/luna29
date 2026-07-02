@@ -1,4 +1,4 @@
-const CACHE_NAME = 'luna-shell-20260702lr';
+const CACHE_NAME = 'luna-shell-20260702sf';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
