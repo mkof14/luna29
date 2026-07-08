@@ -13,6 +13,16 @@ import { sendCalendarReminderEmail, isCalendarEmailEnabled } from './calendarEma
 import { dispatchDueEmailReminders } from './calendarReminders.mjs';
 import { createRateLimiter, isUpstashRateLimitEnabled } from './rateLimit.mjs';
 import { createAdminRouter, createAdminStateStore } from '../admin/index.mjs';
+import {
+  createPersonalEventsStore,
+  normalizePersonalEventInput,
+  syncLocalEventsForUser,
+  isPersonalEventsStoreAvailable,
+  PERSONAL_EVENT_STORE_UNAVAILABLE,
+  MAX_EVENTS_PER_REQUEST,
+  DEFAULT_LIST_LIMIT,
+  MAX_LIST_LIMIT,
+} from './personalEventsStore.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,6 +40,7 @@ let MOBILE_REPORTS_FILE = path.join(DATA_DIR, 'mobile-reports.json');
 let MOBILE_STATE_FILE = path.join(DATA_DIR, 'mobile-state.json');
 let MOBILE_PUSH_FILE = path.join(DATA_DIR, 'mobile-push.json');
 let CALENDAR_DATA_FILE = path.join(DATA_DIR, 'calendar-data.json');
+let PERSONAL_EVENTS_FILE = path.join(DATA_DIR, 'personal-events.json');
 
 const configureStoragePaths = (dataDir, environment) => {
   DATA_DIR = dataDir;
@@ -45,6 +56,7 @@ const configureStoragePaths = (dataDir, environment) => {
   MOBILE_STATE_FILE = path.join(DATA_DIR, 'mobile-state.json');
   MOBILE_PUSH_FILE = path.join(DATA_DIR, 'mobile-push.json');
   CALENDAR_DATA_FILE = path.join(DATA_DIR, 'calendar-data.json');
+  PERSONAL_EVENTS_FILE = path.join(DATA_DIR, 'personal-events.json');
 };
 
 const SESSION_COOKIE = 'luna_sid';
@@ -599,7 +611,7 @@ const corsHeaders = (origin) => {
     'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Credentials': 'true',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-luna-mobile-id',
-    'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+    'Access-Control-Allow-Methods': 'GET,POST,DELETE,OPTIONS',
     Vary: 'Origin',
   };
 };
@@ -848,6 +860,23 @@ const start = async () => {
   const saveMobileStateStore = async () => writeJson(MOBILE_STATE_FILE, mobileStateStore);
   const saveMobilePushStore = async () => writeJson(MOBILE_PUSH_FILE, mobilePushStore);
   const saveCalendarStore = async () => writeJson(CALENDAR_DATA_FILE, calendarStore);
+  const personalEventsStoreHandle = await createPersonalEventsStore(PERSONAL_EVENTS_FILE, {
+    runtimeEnvironment,
+  });
+  const personalEventsStore = personalEventsStoreHandle.store;
+  const personalEventsStoreAvailable = isPersonalEventsStoreAvailable(personalEventsStoreHandle);
+  const sendPersonalEventsUnavailable = (res, headers) => {
+    send(
+      res,
+      503,
+      {
+        error: 'Personal event store unavailable.',
+        code: PERSONAL_EVENT_STORE_UNAVAILABLE,
+      },
+      headers,
+    );
+  };
+
 
   const sanitizeCalendarBundle = (raw) => {
     if (!raw || typeof raw !== 'object') return null;
@@ -911,18 +940,38 @@ const start = async () => {
     };
   };
 
-  const resolveMobileProfile = async (req, ip) => {
+  /**
+   * Canonical authenticated identity for mobile personal data.
+   * Cookie session (web) OR verified Bearer token (mobile) only.
+   * Never trusts x-luna-mobile-id, x-user-id, body/query userId, or IP.
+   */
+  const getVerifiedRequestUser = async (req) => {
     const cookieSession = await getSessionUser(req, users);
-    const bearerSession = getMobileAuthUser(req, users);
-    const mobileAuth = cookieSession || bearerSession;
-    const mobileIdHeader = safeId(req.headers['x-luna-mobile-id'], 160);
-    const profileKey = mobileAuth?.user?.id
-      ? `user:${safeId(mobileAuth.user.id, 120)}`
-      : mobileIdHeader
-        ? `device:${mobileIdHeader}`
-        : `guest:${safeId(ip, 120)}`;
+    if (cookieSession) return cookieSession;
+    return getMobileAuthUser(req, users);
+  };
 
-    const defaultName = mobileAuth?.user?.name ? safeText(mobileAuth.user.name, 80) : 'Anna';
+  const requireMobileSession = async (req, res, headers) => {
+    const current = await getVerifiedRequestUser(req);
+    if (!current?.user?.id) {
+      send(res, 401, { error: 'Not authenticated.' }, headers);
+      return null;
+    }
+    return { current, sessionPayload: buildSessionPayload(current.user) };
+  };
+
+  const resolveAuthenticatedMobileProfile = async (req, res, headers) => {
+    const auth = await requireMobileSession(req, res, headers);
+    if (!auth) return null;
+
+    const userId = safeId(auth.current.user.id, 120);
+    if (!userId) {
+      send(res, 401, { error: 'Not authenticated.' }, headers);
+      return null;
+    }
+
+    const profileKey = `user:${userId}`;
+    const defaultName = auth.current.user.name ? safeText(auth.current.user.name, 80) : 'Anna';
     if (!mobileReflections.profiles[profileKey]) {
       mobileReflections.profiles[profileKey] = createMobileProfile(defaultName);
       await saveMobileReflections();
@@ -933,34 +982,40 @@ const start = async () => {
       profile.name = defaultName;
     }
 
-    return { profile, profileKey };
+    return { auth, profile, profileKey };
   };
 
-  const resolveMobileReportsProfile = async (req, ip) => {
-    const { profileKey } = await resolveMobileProfile(req, ip);
+  const resolveAuthenticatedMobileReportsProfile = async (req, res, headers) => {
+    const resolved = await resolveAuthenticatedMobileProfile(req, res, headers);
+    if (!resolved) return null;
+    const { profileKey } = resolved;
     if (!mobileReports.profiles[profileKey]) {
       mobileReports.profiles[profileKey] = [];
       await saveMobileReports();
     }
-    return { profileKey, reports: mobileReports.profiles[profileKey] };
+    return { ...resolved, reports: mobileReports.profiles[profileKey] };
   };
 
-  const resolveMobileStateProfile = async (req, ip) => {
-    const { profileKey } = await resolveMobileProfile(req, ip);
+  const resolveAuthenticatedMobileStateProfile = async (req, res, headers) => {
+    const resolved = await resolveAuthenticatedMobileProfile(req, res, headers);
+    if (!resolved) return null;
+    const { profileKey } = resolved;
     if (!mobileStateStore.profiles[profileKey]) {
       mobileStateStore.profiles[profileKey] = { sections: {}, updatedAt: new Date().toISOString() };
       await saveMobileStateStore();
     }
-    return { profileKey, profile: mobileStateStore.profiles[profileKey] };
+    return { ...resolved, stateProfile: mobileStateStore.profiles[profileKey] };
   };
 
-  const resolveMobilePushProfile = async (req, ip) => {
-    const { profileKey } = await resolveMobileProfile(req, ip);
+  const resolveAuthenticatedMobilePushProfile = async (req, res, headers) => {
+    const resolved = await resolveAuthenticatedMobileProfile(req, res, headers);
+    if (!resolved) return null;
+    const { profileKey } = resolved;
     if (!mobilePushStore.profiles[profileKey]) {
       mobilePushStore.profiles[profileKey] = { tokens: [], updatedAt: new Date().toISOString() };
       await saveMobilePushStore();
     }
-    return { profileKey, profile: mobilePushStore.profiles[profileKey] };
+    return { ...resolved, pushProfile: mobilePushStore.profiles[profileKey] };
   };
 
   let didBootstrapSuperAdmin = false;
@@ -1158,7 +1213,9 @@ const start = async () => {
     }
 
     if (method === 'GET' && url.pathname === '/api/mobile/today') {
-      const { profile } = await resolveMobileProfile(req, ip);
+      const resolved = await resolveAuthenticatedMobileProfile(req, res, headers);
+      if (!resolved) return;
+      const { profile } = resolved;
       const storyEntries = mapStoryEntries(profile.entries);
       send(
         res,
@@ -1181,7 +1238,9 @@ const start = async () => {
     }
 
     if (method === 'GET' && url.pathname === '/api/mobile/reflection-result') {
-      const { profile } = await resolveMobileProfile(req, ip);
+      const resolved = await resolveAuthenticatedMobileProfile(req, res, headers);
+      if (!resolved) return;
+      const { profile } = resolved;
       const latest = profile.entries[0];
       send(
         res,
@@ -1198,12 +1257,13 @@ const start = async () => {
     }
 
     if (method === 'GET' && url.pathname === '/api/mobile/story') {
-      const { profile } = await resolveMobileProfile(req, ip);
+      const resolved = await resolveAuthenticatedMobileProfile(req, res, headers);
+      if (!resolved) return;
       send(
         res,
         200,
         {
-          entries: mapStoryEntries(profile.entries),
+          entries: mapStoryEntries(resolved.profile.entries),
         },
         headers,
       );
@@ -1211,7 +1271,9 @@ const start = async () => {
     }
 
     if (method === 'POST' && url.pathname === '/api/mobile/reflection') {
-      if (!(await rateLimit(`mobile-reflection:${ip}`, 40, 60_000))) {
+      const resolved = await resolveAuthenticatedMobileProfile(req, res, headers);
+      if (!resolved) return;
+      if (!(await rateLimit(`mobile-reflection:${ip}:${resolved.auth.current.user.id}`, 40, 60_000))) {
         send(res, 429, { error: 'Too many reflection updates. Try again in a minute.' }, headers);
         return;
       }
@@ -1225,7 +1287,8 @@ const start = async () => {
           return;
         }
 
-        const { profile } = await resolveMobileProfile(req, ip);
+        // Ownership is always the authenticated user — never body.userId / headers.
+        const { profile } = resolved;
         profile.entries = [
           {
             id: `mob-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -1319,6 +1382,8 @@ const start = async () => {
     }
 
     if (method === 'POST' && url.pathname === '/api/mobile/reports/save') {
+      const resolved = await resolveAuthenticatedMobileReportsProfile(req, res, headers);
+      if (!resolved) return;
       try {
         const body = await readBody(req);
         const id = safeText(body.id, 120);
@@ -1329,11 +1394,10 @@ const start = async () => {
           return;
         }
 
-        const { reports } = await resolveMobileReportsProfile(req, ip);
+        const { reports, profileKey } = resolved;
         const next = [{ id, generatedAt, text }, ...(Array.isArray(reports) ? reports : [])]
           .filter((item, index, arr) => arr.findIndex((target) => target.id === item.id) === index)
           .slice(0, 100);
-        const { profileKey } = await resolveMobileReportsProfile(req, ip);
         mobileReports.profiles[profileKey] = next;
         await saveMobileReports();
         send(res, 200, { ok: true }, headers);
@@ -1344,7 +1408,9 @@ const start = async () => {
     }
 
     if (method === 'GET' && url.pathname === '/api/mobile/reports/history') {
-      const { reports } = await resolveMobileReportsProfile(req, ip);
+      const resolved = await resolveAuthenticatedMobileReportsProfile(req, res, headers);
+      if (!resolved) return;
+      const { reports } = resolved;
       send(res, 200, Array.isArray(reports) ? reports.slice(0, 20) : [], headers);
       return;
     }
@@ -1371,12 +1437,16 @@ const start = async () => {
         send(res, 400, { error: 'State section is required.' }, headers);
         return;
       }
-      const { profile } = await resolveMobileStateProfile(req, ip);
-      send(res, 200, { section, data: profile.sections?.[section] ?? null }, headers);
+      const resolved = await resolveAuthenticatedMobileStateProfile(req, res, headers);
+      if (!resolved) return;
+      const { stateProfile } = resolved;
+      send(res, 200, { section, data: stateProfile.sections?.[section] ?? null }, headers);
       return;
     }
 
     if (method === 'POST' && url.pathname === '/api/mobile/state') {
+      const resolved = await resolveAuthenticatedMobileStateProfile(req, res, headers);
+      if (!resolved) return;
       try {
         const body = await readBody(req);
         const section = safeId(body.section, 80);
@@ -1384,10 +1454,10 @@ const start = async () => {
           send(res, 400, { error: 'State section is required.' }, headers);
           return;
         }
-        const { profile } = await resolveMobileStateProfile(req, ip);
-        profile.sections = profile.sections && typeof profile.sections === 'object' ? profile.sections : {};
-        profile.sections[section] = body.data ?? null;
-        profile.updatedAt = new Date().toISOString();
+        const { stateProfile } = resolved;
+        stateProfile.sections = stateProfile.sections && typeof stateProfile.sections === 'object' ? stateProfile.sections : {};
+        stateProfile.sections[section] = body.data ?? null;
+        stateProfile.updatedAt = new Date().toISOString();
         await saveMobileStateStore();
         send(res, 200, { ok: true }, headers);
       } catch (error) {
@@ -1397,15 +1467,17 @@ const start = async () => {
     }
 
     if (method === 'GET' && url.pathname === '/api/mobile/push/status') {
-      const { profile } = await resolveMobilePushProfile(req, ip);
-      const tokens = Array.isArray(profile.tokens) ? profile.tokens : [];
+      const resolved = await resolveAuthenticatedMobilePushProfile(req, res, headers);
+      if (!resolved) return;
+      const { pushProfile } = resolved;
+      const tokens = Array.isArray(pushProfile.tokens) ? pushProfile.tokens : [];
       send(
         res,
         200,
         {
           registered: tokens.length > 0,
           count: tokens.length,
-          updatedAt: profile.updatedAt || null,
+          updatedAt: pushProfile.updatedAt || null,
         },
         headers,
       );
@@ -1413,6 +1485,8 @@ const start = async () => {
     }
 
     if (method === 'POST' && url.pathname === '/api/mobile/push/register') {
+      const resolved = await resolveAuthenticatedMobilePushProfile(req, res, headers);
+      if (!resolved) return;
       try {
         const body = await readBody(req);
         const token = safeText(body.token, 512);
@@ -1422,15 +1496,15 @@ const start = async () => {
           send(res, 400, { error: 'Push token is required.' }, headers);
           return;
         }
-        const { profile } = await resolveMobilePushProfile(req, ip);
+        const { pushProfile } = resolved;
         const next = [
           { token, platform, deviceName, updatedAt: new Date().toISOString() },
-          ...(Array.isArray(profile.tokens) ? profile.tokens : []),
+          ...(Array.isArray(pushProfile.tokens) ? pushProfile.tokens : []),
         ]
           .filter((item, index, arr) => arr.findIndex((candidate) => candidate.token === item.token) === index)
           .slice(0, 10);
-        profile.tokens = next;
-        profile.updatedAt = new Date().toISOString();
+        pushProfile.tokens = next;
+        pushProfile.updatedAt = new Date().toISOString();
         await saveMobilePushStore();
         send(res, 200, { ok: true, registered: true, count: next.length }, headers);
       } catch (error) {
@@ -1440,8 +1514,10 @@ const start = async () => {
     }
 
     if (method === 'POST' && url.pathname === '/api/mobile/push/test') {
-      const { profile } = await resolveMobilePushProfile(req, ip);
-      const count = Array.isArray(profile.tokens) ? profile.tokens.length : 0;
+      const resolved = await resolveAuthenticatedMobilePushProfile(req, res, headers);
+      if (!resolved) return;
+      const { pushProfile } = resolved;
+      const count = Array.isArray(pushProfile.tokens) ? pushProfile.tokens.length : 0;
       send(
         res,
         200,
@@ -1468,6 +1544,177 @@ const start = async () => {
         },
         headers,
       );
+      return;
+    }
+
+
+    // --- Authenticated personal event foundation (Task 2) ---
+    if (method === 'POST' && url.pathname === '/api/personal/events') {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
+      if (!personalEventsStoreAvailable) {
+        sendPersonalEventsUnavailable(res, headers);
+        return;
+      }
+      if (!(await rateLimit(`personal-events-create:${ip}:${auth.current.user.id}`, 60, 60_000))) {
+        send(res, 429, { error: 'Too many personal event writes. Try again in a minute.' }, headers);
+        return;
+      }
+      try {
+        const body = await readBody(req);
+        const items = Array.isArray(body?.events) ? body.events : [body];
+        if (!items.length) {
+          send(res, 400, { error: 'Provide an event object or events array.' }, headers);
+          return;
+        }
+        if (items.length > MAX_EVENTS_PER_REQUEST) {
+          send(res, 400, { error: `At most ${MAX_EVENTS_PER_REQUEST} events per request.` }, headers);
+          return;
+        }
+        const userId = auth.current.user.id;
+        const created = [];
+        const errors = [];
+        for (let i = 0; i < items.length; i += 1) {
+          const normalized = normalizePersonalEventInput(items[i], { defaultSource: 'api' });
+          if (normalized.error) {
+            errors.push({ index: i, error: normalized.error });
+            continue;
+          }
+          const result = await personalEventsStore.create(userId, normalized.event);
+          created.push(result.event);
+        }
+        if (!created.length && errors.length) {
+          send(res, 400, { error: errors[0].error, errors }, headers);
+          return;
+        }
+        send(res, 200, { events: created, errors: errors.length ? errors : undefined }, headers);
+      } catch (error) {
+        if (error && typeof error === 'object' && error.code === PERSONAL_EVENT_STORE_UNAVAILABLE) {
+          sendPersonalEventsUnavailable(res, headers);
+          return;
+        }
+        send(res, 400, { error: error instanceof Error ? error.message : 'Could not create personal events.' }, headers);
+      }
+      return;
+    }
+
+    if (method === 'GET' && url.pathname === '/api/personal/events') {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
+      if (!personalEventsStoreAvailable) {
+        sendPersonalEventsUnavailable(res, headers);
+        return;
+      }
+      try {
+        const eventType = safeText(url.searchParams.get('event_type') || url.searchParams.get('type') || '', 80) || undefined;
+        const since = safeText(url.searchParams.get('since') || '', 64) || undefined;
+        const until = safeText(url.searchParams.get('until') || '', 64) || undefined;
+        if (since && Number.isNaN(Date.parse(since))) {
+          send(res, 400, { error: 'Invalid since timestamp.' }, headers);
+          return;
+        }
+        if (until && Number.isNaN(Date.parse(until))) {
+          send(res, 400, { error: 'Invalid until timestamp.' }, headers);
+          return;
+        }
+        // Ignore any client-supplied user_id query — ownership is auth only.
+        const limitRaw = Number(url.searchParams.get('limit') || DEFAULT_LIST_LIMIT);
+        const offsetRaw = Number(url.searchParams.get('offset') || 0);
+        const limit = Number.isFinite(limitRaw) ? Math.min(MAX_LIST_LIMIT, Math.max(1, Math.floor(limitRaw))) : DEFAULT_LIST_LIMIT;
+        const offset = Number.isFinite(offsetRaw) ? Math.max(0, Math.floor(offsetRaw)) : 0;
+        const result = await personalEventsStore.list(auth.current.user.id, {
+          eventType,
+          since,
+          until,
+          limit,
+          offset,
+        });
+        send(res, 200, result, headers);
+      } catch (error) {
+        if (error && typeof error === 'object' && error.code === PERSONAL_EVENT_STORE_UNAVAILABLE) {
+          sendPersonalEventsUnavailable(res, headers);
+          return;
+        }
+        send(res, 400, { error: error instanceof Error ? error.message : 'Could not list personal events.' }, headers);
+      }
+      return;
+    }
+
+    if (method === 'DELETE' && /^\/api\/personal\/events\/[^/]+$/.test(url.pathname)) {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
+      if (!personalEventsStoreAvailable) {
+        sendPersonalEventsUnavailable(res, headers);
+        return;
+      }
+      const eventId = safeId(url.pathname.split('/').pop() || '', 120);
+      if (!eventId) {
+        send(res, 400, { error: 'Event id is required.' }, headers);
+        return;
+      }
+      const deleted = await personalEventsStore.softDelete(auth.current.user.id, eventId);
+      if (!deleted) {
+        // Do not reveal whether another user's event exists.
+        send(res, 404, { error: 'Event not found.' }, headers);
+        return;
+      }
+      send(res, 200, { ok: true, event: deleted }, headers);
+      return;
+    }
+
+    if (method === 'POST' && /^\/api\/personal\/events\/[^/]+\/delete$/.test(url.pathname)) {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
+      if (!personalEventsStoreAvailable) {
+        sendPersonalEventsUnavailable(res, headers);
+        return;
+      }
+      const parts = url.pathname.split('/');
+      const eventId = safeId(parts[parts.length - 2] || '', 120);
+      if (!eventId) {
+        send(res, 400, { error: 'Event id is required.' }, headers);
+        return;
+      }
+      const deleted = await personalEventsStore.softDelete(auth.current.user.id, eventId);
+      if (!deleted) {
+        send(res, 404, { error: 'Event not found.' }, headers);
+        return;
+      }
+      send(res, 200, { ok: true, event: deleted }, headers);
+      return;
+    }
+
+    if (method === 'POST' && url.pathname === '/api/personal/events/sync-local') {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
+      if (!personalEventsStoreAvailable) {
+        sendPersonalEventsUnavailable(res, headers);
+        return;
+      }
+      if (!(await rateLimit(`personal-events-sync:${ip}:${auth.current.user.id}`, 20, 60_000))) {
+        send(res, 429, { error: 'Too many sync attempts. Try again in a minute.' }, headers);
+        return;
+      }
+      try {
+        const body = await readBody(req);
+        const items = Array.isArray(body?.events) ? body.events : Array.isArray(body) ? body : [];
+        if (!items.length) {
+          send(res, 400, { error: 'Provide events array from localStorage.' }, headers);
+          return;
+        }
+        if (items.length > MAX_EVENTS_PER_REQUEST) {
+          send(res, 400, { error: `At most ${MAX_EVENTS_PER_REQUEST} events per sync request.` }, headers);
+          return;
+        }
+        const result = await syncLocalEventsForUser(personalEventsStore, auth.current.user.id, items);
+        send(res, 200, result, headers);
+      } catch (error) {
+        if (error && typeof error === 'object' && error.code === PERSONAL_EVENT_STORE_UNAVAILABLE) {
+          sendPersonalEventsUnavailable(res, headers);
+          return;
+        }
+        send(res, 400, { error: error instanceof Error ? error.message : 'Could not sync local events.' }, headers);
+      }
       return;
     }
 

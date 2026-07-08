@@ -14,3 +14,7 @@ test-results/
 server/data/*.json
 .vercel
 .env*
+
+# Local personal event file store (dev/test opt-in only)
+personal-events.json
+**/personal-events.json
