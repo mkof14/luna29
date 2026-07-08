@@ -23,6 +23,15 @@ import {
   DEFAULT_LIST_LIMIT,
   MAX_LIST_LIMIT,
 } from './personalEventsStore.mjs';
+import {
+  createObservationWithExtraction,
+  listObservationsForUser,
+  listSignalsForUser,
+  confirmSignalForUser,
+  rejectSignalForUser,
+  correctSignalForUser,
+  MAX_OBSERVATION_TEXT_CHARS,
+} from './observationSignalsService.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -1714,6 +1723,241 @@ const start = async () => {
           return;
         }
         send(res, 400, { error: error instanceof Error ? error.message : 'Could not sync local events.' }, headers);
+      }
+      return;
+    }
+
+    // --- Authenticated observation + structured signal extraction (Task 3) ---
+    if (method === 'POST' && url.pathname === '/api/personal/observations') {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
+      if (!personalEventsStoreAvailable) {
+        sendPersonalEventsUnavailable(res, headers);
+        return;
+      }
+      if (!(await rateLimit(`personal-observations:${ip}:${auth.current.user.id}`, 30, 60_000))) {
+        send(res, 429, { error: 'Too many observation writes. Try again in a minute.' }, headers);
+        return;
+      }
+      try {
+        const body = await readBody(req);
+        // Ignore any client-supplied user_id — ownership is auth only.
+        const rawText = typeof body?.raw_text === 'string' ? body.raw_text : typeof body?.text === 'string' ? body.text : '';
+        if (!String(rawText || '').trim()) {
+          send(res, 400, { error: 'raw_text is required.' }, headers);
+          return;
+        }
+        if (String(rawText).length > MAX_OBSERVATION_TEXT_CHARS) {
+          send(res, 400, { error: `raw_text exceeds ${MAX_OBSERVATION_TEXT_CHARS} characters.` }, headers);
+          return;
+        }
+        const extract =
+          body?.extract === false || body?.extract === 'false' || body?.run_extraction === false
+            ? false
+            : true;
+        const result = await createObservationWithExtraction({
+          store: personalEventsStore,
+          userId: auth.current.user.id,
+          input: {
+            raw_text: rawText,
+            observation_kind: body?.observation_kind || body?.kind,
+            input_mode: body?.input_mode || body?.mode,
+            source_surface: body?.source_surface || body?.surface,
+            language: body?.language || body?.lang,
+            transcript_status: body?.transcript_status,
+            original_event_id: body?.original_event_id,
+            session_id: body?.session_id,
+            client_event_id: body?.client_event_id || body?.id,
+            occurred_at: body?.occurred_at || body?.timestamp,
+            source: body?.source || 'api',
+          },
+          extract,
+        });
+        if (result.error && !result.observation) {
+          send(res, 400, { error: result.error }, headers);
+          return;
+        }
+        send(res, 200, {
+          observation: result.observation,
+          signals: result.signals,
+          extraction: result.extraction,
+          created: result.created,
+        }, headers);
+      } catch (error) {
+        if (error && typeof error === 'object' && error.code === PERSONAL_EVENT_STORE_UNAVAILABLE) {
+          sendPersonalEventsUnavailable(res, headers);
+          return;
+        }
+        send(res, 400, { error: 'Could not create observation.' }, headers);
+      }
+      return;
+    }
+
+    if (method === 'GET' && url.pathname === '/api/personal/observations') {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
+      if (!personalEventsStoreAvailable) {
+        sendPersonalEventsUnavailable(res, headers);
+        return;
+      }
+      try {
+        const since = safeText(url.searchParams.get('since') || '', 64) || undefined;
+        const until = safeText(url.searchParams.get('until') || '', 64) || undefined;
+        if (since && Number.isNaN(Date.parse(since))) {
+          send(res, 400, { error: 'Invalid since timestamp.' }, headers);
+          return;
+        }
+        if (until && Number.isNaN(Date.parse(until))) {
+          send(res, 400, { error: 'Invalid until timestamp.' }, headers);
+          return;
+        }
+        const limitRaw = Number(url.searchParams.get('limit') || DEFAULT_LIST_LIMIT);
+        const offsetRaw = Number(url.searchParams.get('offset') || 0);
+        const limit = Number.isFinite(limitRaw) ? Math.min(MAX_LIST_LIMIT, Math.max(1, Math.floor(limitRaw))) : DEFAULT_LIST_LIMIT;
+        const offset = Number.isFinite(offsetRaw) ? Math.max(0, Math.floor(offsetRaw)) : 0;
+        const result = await listObservationsForUser(personalEventsStore, auth.current.user.id, {
+          since,
+          until,
+          limit,
+          offset,
+          observationKind: safeText(url.searchParams.get('observation_kind') || '', 40) || undefined,
+          sourceSurface: safeText(url.searchParams.get('source_surface') || '', 40) || undefined,
+        });
+        send(res, 200, result, headers);
+      } catch (error) {
+        if (error && typeof error === 'object' && error.code === PERSONAL_EVENT_STORE_UNAVAILABLE) {
+          sendPersonalEventsUnavailable(res, headers);
+          return;
+        }
+        send(res, 400, { error: 'Could not list observations.' }, headers);
+      }
+      return;
+    }
+
+    if (method === 'GET' && url.pathname === '/api/personal/signals') {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
+      if (!personalEventsStoreAvailable) {
+        sendPersonalEventsUnavailable(res, headers);
+        return;
+      }
+      try {
+        const since = safeText(url.searchParams.get('since') || '', 64) || undefined;
+        const until = safeText(url.searchParams.get('until') || '', 64) || undefined;
+        if (since && Number.isNaN(Date.parse(since))) {
+          send(res, 400, { error: 'Invalid since timestamp.' }, headers);
+          return;
+        }
+        if (until && Number.isNaN(Date.parse(until))) {
+          send(res, 400, { error: 'Invalid until timestamp.' }, headers);
+          return;
+        }
+        const limitRaw = Number(url.searchParams.get('limit') || DEFAULT_LIST_LIMIT);
+        const offsetRaw = Number(url.searchParams.get('offset') || 0);
+        const limit = Number.isFinite(limitRaw) ? Math.min(MAX_LIST_LIMIT, Math.max(1, Math.floor(limitRaw))) : DEFAULT_LIST_LIMIT;
+        const offset = Number.isFinite(offsetRaw) ? Math.max(0, Math.floor(offsetRaw)) : 0;
+        const result = await listSignalsForUser(personalEventsStore, auth.current.user.id, {
+          since,
+          until,
+          limit,
+          offset,
+          signalType: safeText(url.searchParams.get('signal_type') || '', 40) || undefined,
+          userStatus: safeText(url.searchParams.get('user_status') || '', 40) || undefined,
+          sourceObservationId: safeId(url.searchParams.get('source_observation_id') || '', 120) || undefined,
+        });
+        send(res, 200, result, headers);
+      } catch (error) {
+        if (error && typeof error === 'object' && error.code === PERSONAL_EVENT_STORE_UNAVAILABLE) {
+          sendPersonalEventsUnavailable(res, headers);
+          return;
+        }
+        send(res, 400, { error: 'Could not list signals.' }, headers);
+      }
+      return;
+    }
+
+    if (method === 'POST' && /^\/api\/personal\/signals\/[^/]+\/confirm$/.test(url.pathname)) {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
+      if (!personalEventsStoreAvailable) {
+        sendPersonalEventsUnavailable(res, headers);
+        return;
+      }
+      const parts = url.pathname.split('/');
+      const signalId = safeId(parts[parts.length - 2] || '', 120);
+      if (!signalId) {
+        send(res, 400, { error: 'Signal id is required.' }, headers);
+        return;
+      }
+      const result = await confirmSignalForUser(personalEventsStore, auth.current.user.id, signalId);
+      if (result.error || !result.signal) {
+        send(res, result.error === 'Signal not found.' ? 404 : 400, { error: result.error || 'Signal not found.' }, headers);
+        return;
+      }
+      send(res, 200, { ok: true, signal: result.signal }, headers);
+      return;
+    }
+
+    if (method === 'POST' && /^\/api\/personal\/signals\/[^/]+\/reject$/.test(url.pathname)) {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
+      if (!personalEventsStoreAvailable) {
+        sendPersonalEventsUnavailable(res, headers);
+        return;
+      }
+      const parts = url.pathname.split('/');
+      const signalId = safeId(parts[parts.length - 2] || '', 120);
+      if (!signalId) {
+        send(res, 400, { error: 'Signal id is required.' }, headers);
+        return;
+      }
+      const result = await rejectSignalForUser(personalEventsStore, auth.current.user.id, signalId);
+      if (result.error || !result.signal) {
+        send(res, result.error === 'Signal not found.' ? 404 : 400, { error: result.error || 'Signal not found.' }, headers);
+        return;
+      }
+      send(res, 200, { ok: true, signal: result.signal }, headers);
+      return;
+    }
+
+    if (
+      (method === 'PATCH' || method === 'POST') &&
+      /^\/api\/personal\/signals\/[^/]+\/correct$/.test(url.pathname)
+    ) {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
+      if (!personalEventsStoreAvailable) {
+        sendPersonalEventsUnavailable(res, headers);
+        return;
+      }
+      const parts = url.pathname.split('/');
+      const signalId = safeId(parts[parts.length - 2] || '', 120);
+      if (!signalId) {
+        send(res, 400, { error: 'Signal id is required.' }, headers);
+        return;
+      }
+      try {
+        const body = await readBody(req);
+        const result = await correctSignalForUser(personalEventsStore, auth.current.user.id, signalId, {
+          signal_type: body?.signal_type,
+          normalized_value: body?.normalized_value,
+          display_label: body?.display_label,
+          negated: body?.negated,
+          uncertain: body?.uncertain,
+          severity: body?.severity,
+          note: body?.note,
+        });
+        if (result.error || !result.signal) {
+          send(res, result.error === 'Signal not found.' ? 404 : 400, { error: result.error || 'Signal not found.' }, headers);
+          return;
+        }
+        send(res, 200, { ok: true, signal: result.signal }, headers);
+      } catch (error) {
+        if (error && typeof error === 'object' && error.code === PERSONAL_EVENT_STORE_UNAVAILABLE) {
+          sendPersonalEventsUnavailable(res, headers);
+          return;
+        }
+        send(res, 400, { error: 'Could not correct signal.' }, headers);
       }
       return;
     }

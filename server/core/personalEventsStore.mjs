@@ -49,6 +49,8 @@ export const ALLOWED_EVENT_TYPES = new Set([
   'insight',
   'user_correction',
   'note',
+  'observation',
+  'signal',
 ]);
 
 const ALLOWED_SOURCES = new Set([
@@ -145,33 +147,30 @@ export const normalizePersonalEventInput = (raw, { defaultSource = 'api' } = {})
   };
 };
 
+const unavailableError = (reason) =>
+  Object.assign(new Error('Personal event store unavailable.'), {
+    code: PERSONAL_EVENT_STORE_UNAVAILABLE,
+    reason,
+  });
+
 const createUnavailableStore = (reason) => ({
   available: false,
   mode: 'unavailable',
   reason,
   async create() {
-    throw Object.assign(new Error('Personal event store unavailable.'), {
-      code: PERSONAL_EVENT_STORE_UNAVAILABLE,
-      reason,
-    });
+    throw unavailableError(reason);
   },
   async list() {
-    throw Object.assign(new Error('Personal event store unavailable.'), {
-      code: PERSONAL_EVENT_STORE_UNAVAILABLE,
-      reason,
-    });
+    throw unavailableError(reason);
   },
   async softDelete() {
-    throw Object.assign(new Error('Personal event store unavailable.'), {
-      code: PERSONAL_EVENT_STORE_UNAVAILABLE,
-      reason,
-    });
+    throw unavailableError(reason);
   },
   async getOwned() {
-    throw Object.assign(new Error('Personal event store unavailable.'), {
-      code: PERSONAL_EVENT_STORE_UNAVAILABLE,
-      reason,
-    });
+    throw unavailableError(reason);
+  },
+  async updatePayload() {
+    throw unavailableError(reason);
   },
 });
 
@@ -360,6 +359,16 @@ const createFileStore = (filePath) => {
       const row = state.events.find((item) => item.id === eventId && item.user_id === userId);
       return row ? publicEvent(row) : null;
     },
+
+    async updatePayload(userId, eventId, payload) {
+      const state = await load();
+      const row = state.events.find((item) => item.id === eventId && item.user_id === userId && !item.deleted_at);
+      if (!row) return null;
+      row.payload = payload && typeof payload === 'object' ? payload : {};
+      row.updated_at = new Date().toISOString();
+      await save(state);
+      return publicEvent(row);
+    },
   };
 };
 
@@ -500,6 +509,17 @@ const createPgStore = (pool) => ({
     const result = await pool.query(
       `SELECT * FROM personal_events WHERE id = $1 AND user_id = $2 LIMIT 1`,
       [eventId, userId],
+    );
+    return result.rows[0] ? publicEvent(result.rows[0]) : null;
+  },
+
+  async updatePayload(userId, eventId, payload) {
+    const result = await pool.query(
+      `UPDATE personal_events
+       SET payload = $1::jsonb, updated_at = NOW()
+       WHERE id = $2 AND user_id = $3 AND deleted_at IS NULL
+       RETURNING *`,
+      [JSON.stringify(payload && typeof payload === 'object' ? payload : {}), eventId, userId],
     );
     return result.rows[0] ? publicEvent(result.rows[0]) : null;
   },

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Mic, Square, Save, Share2, X, Sparkles, RefreshCw } from 'lucide-react';
 import { dataService } from '../services/dataService';
+import { observationSignalsService } from '../services/observationSignalsService';
 import { generatePsychologistResponse } from '../services/geminiService';
 import { isVoiceAiEnabled, requestLunaVoiceResponse } from '../services/voiceConversationService';
 import { isAiProcessingAllowed } from '../utils/aiConsent';
@@ -1069,6 +1070,23 @@ export const AudioReflection: React.FC<{ onBack: () => void, lang?: Language }> 
       }
     }
     dataService.logEvent('AUDIO_REFLECTION', { text: transcription, ai_response: aiResponse });
+    // Task 3: authenticated observation + structured signal extraction (best-effort; never blocks local save).
+    const reflectionText = String(transcription || '').trim();
+    if (reflectionText) {
+      void observationSignalsService
+        .createObservationWithExtraction({
+          raw_text: reflectionText,
+          observation_kind: 'voice_reflection',
+          input_mode: 'voice_transcript',
+          source_surface: 'voice_reflection',
+          language: lang,
+          transcript_status: 'final',
+          extract: true,
+        })
+        .catch(() => {
+          /* local save already succeeded; server persistence is optional here */
+        });
+    }
     setIsSavingRecording(false);
     setStatusMsg(ui.copied);
   };
