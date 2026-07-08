@@ -671,6 +671,10 @@ export const LiveAssistant: React.FC<{
         setMessages((prev) => [...prev, { role: 'luna', text: reply }]);
         speakReply(reply);
       } else if (isVoiceAiEnabled() && (voiceConfig?.enabled || voiceConfig?.ttsEnabled)) {
+        const clientMessageId =
+          typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+            ? crypto.randomUUID()
+            : `m_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 12)}`;
         const result = await requestLunaVoiceResponse({
           transcript: msg,
           lang,
@@ -679,6 +683,8 @@ export const LiveAssistant: React.FC<{
           history,
           context: { stateSnapshot },
           withAudio: !isSpeakerMuted,
+          clientMessageId,
+          inputMode: 'text',
         });
         setMessages((prev) => [...prev, { role: 'luna', text: result.text }]);
         if (result.audio) {

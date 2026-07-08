@@ -47,13 +47,18 @@ import {
   getPatternCandidate,
   confirmPatternCandidate,
   rejectPatternCandidate,
-  PATTERN_ENGINE_DEFAULT_WINDOW_DAYS,
-  PATTERN_ENGINE_MAX_WINDOW_DAYS,
+  PATTERN_EVAL_DEFAULT_WINDOW_DAYS,
+  PATTERN_EVAL_MAX_WINDOW_DAYS,
 } from './patternCandidatesService.mjs';
 import {
   buildPersonalContextPack,
   PERSONAL_CONTEXT_VERSION,
 } from './personalContextPackService.mjs';
+import {
+  attemptLunaLiveMemoryWrite,
+  isLunaLiveMemoryWriteEnabled,
+  summarizeMemoryWriteForLogs,
+} from './lunaLiveMemoryWriteService.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -2468,7 +2473,75 @@ const start = async () => {
           ...body,
           __server_personal_context: serverPack,
         });
-        send(res, 200, result, headers);
+
+        // Best-effort selective memory write AFTER reply generation.
+        // In-request with timeout (no fire-and-forget — Vercel may terminate after response).
+        // Chat success does not depend on memory write success.
+        let memoryMeta = {
+          memory_write_status: 'disabled',
+          eligible: false,
+          gate_reason: null,
+          matched_domain_count: 0,
+          observation_created: false,
+          signal_count: 0,
+          extraction_status: null,
+        };
+        try {
+          const clientMessageId =
+            typeof body?.client_message_id === 'string'
+              ? body.client_message_id
+              : typeof body?.clientMessageId === 'string'
+                ? body.clientMessageId
+                : undefined;
+          const inputModeHint =
+            body?.input_mode ||
+            body?.inputMode ||
+            (body?.context && typeof body.context === 'object' && body.context.input_mode) ||
+            'text';
+          if (!personalEventsStoreAvailable) {
+            memoryMeta = {
+              memory_write_status: isLunaLiveMemoryWriteEnabled() ? 'store_unavailable' : 'disabled',
+              eligible: false,
+              gate_reason: isLunaLiveMemoryWriteEnabled() ? 'store_unavailable' : 'flag_disabled',
+              matched_domain_count: 0,
+              observation_created: false,
+              signal_count: 0,
+              extraction_status: null,
+            };
+          } else {
+            memoryMeta = await attemptLunaLiveMemoryWrite({
+              store: personalEventsStore,
+              userId: auth.current.user.id,
+              text: transcript,
+              mode: typeof body?.mode === 'string' ? body.mode : 'live',
+              language: typeof body?.lang === 'string' ? body.lang : 'en',
+              inputMode: inputModeHint,
+              clientMessageId,
+            });
+          }
+          console.info('[voice] memory_write', JSON.stringify(summarizeMemoryWriteForLogs(memoryMeta)));
+        } catch {
+          memoryMeta = {
+            memory_write_status: 'failed',
+            eligible: false,
+            gate_reason: 'exception',
+            matched_domain_count: 0,
+            observation_created: false,
+            signal_count: 0,
+            extraction_status: null,
+          };
+          console.info('[voice] memory_write', JSON.stringify(summarizeMemoryWriteForLogs(memoryMeta)));
+        }
+
+        send(
+          res,
+          200,
+          {
+            ...result,
+            memory_write_status: memoryMeta.memory_write_status,
+          },
+          headers,
+        );
       } catch (error) {
         send(res, 500, { error: error instanceof Error ? error.message : 'Voice conversation failed.' }, headers);
       }

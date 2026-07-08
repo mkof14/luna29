@@ -395,6 +395,12 @@ export const normalizeObservationInput = (raw = {}) => {
         transcript_status: transcriptStatus,
         original_event_id: originalEventId,
         session_id: sessionId,
+        // Task 7 optional memory-gate metadata (never ownership; no matched raw fragments).
+        memory_gate_version: safeText(raw.memory_gate_version || '', 40) || null,
+        memory_gate_reason: safeText(raw.memory_gate_reason || '', 80) || null,
+        matched_domains: Array.isArray(raw.matched_domains)
+          ? raw.matched_domains.map((d) => safeText(d, 40)).filter(Boolean).slice(0, 12)
+          : null,
         extraction: {
           status: 'pending',
           extractor_version: EXTRACTOR_VERSION,

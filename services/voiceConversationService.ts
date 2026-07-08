@@ -118,6 +118,17 @@ export const fetchVoiceServiceConfig = async (): Promise<VoiceServiceConfig> => 
   }
 };
 
+const createClientMessageId = (): string => {
+  try {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID();
+    }
+  } catch {
+    // fall through
+  }
+  return `m_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 12)}`;
+};
+
 export const requestLunaVoiceResponse = async (params: {
   transcript: string;
   lang: Language;
@@ -126,6 +137,9 @@ export const requestLunaVoiceResponse = async (params: {
   history?: VoiceHistoryTurn[];
   context?: Record<string, unknown>;
   withAudio?: boolean;
+  /** Opaque idempotency key for selective memory write. Not ownership. */
+  clientMessageId?: string;
+  inputMode?: 'text' | 'voice_transcript' | 'voice';
 }): Promise<VoiceConversationResult> => {
   const {
     transcript,
@@ -135,6 +149,8 @@ export const requestLunaVoiceResponse = async (params: {
     history = [],
     context = {},
     withAudio = true,
+    clientMessageId = createClientMessageId(),
+    inputMode = 'text',
   } = params;
 
   if (voiceAiExplicitlyDisabled() || !isAiProcessingAllowed()) {
@@ -154,6 +170,8 @@ export const requestLunaVoiceResponse = async (params: {
         history,
         context,
         withAudio,
+        client_message_id: clientMessageId,
+        input_mode: inputMode,
       }),
     });
 
