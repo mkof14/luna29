@@ -32,6 +32,15 @@ import {
   correctSignalForUser,
   MAX_OBSERVATION_TEXT_CHARS,
 } from './observationSignalsService.mjs';
+import {
+  listTimeline,
+  getSignalHistory,
+  getRecentChanges,
+  getCoOccurrences,
+  getObservationContext,
+  getTimelineSummaryData,
+  TIMELINE_MAX_LIMIT,
+} from './timelineQueryService.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -1723,6 +1732,209 @@ const start = async () => {
           return;
         }
         send(res, 400, { error: error instanceof Error ? error.message : 'Could not sync local events.' }, headers);
+      }
+      return;
+    }
+
+
+    // --- Authenticated deterministic timeline query layer (Task 4) ---
+    if (method === 'GET' && url.pathname === '/api/personal/timeline') {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
+      if (!personalEventsStoreAvailable) {
+        sendPersonalEventsUnavailable(res, headers);
+        return;
+      }
+      try {
+        // Ignore any client-supplied user_id — ownership is auth only.
+        const result = await listTimeline(personalEventsStore, auth.current.user.id, {
+          event_type: url.searchParams.get('event_type') || url.searchParams.get('type') || undefined,
+          signal_type: url.searchParams.get('signal_type') || undefined,
+          since: url.searchParams.get('since') || undefined,
+          until: url.searchParams.get('until') || undefined,
+          include_candidates: url.searchParams.get('include_candidates'),
+          include_negated: url.searchParams.get('include_negated'),
+          source_surface: url.searchParams.get('source_surface') || undefined,
+          timezone: url.searchParams.get('timezone') || undefined,
+          limit: url.searchParams.get('limit'),
+          offset: url.searchParams.get('offset'),
+        });
+        if (result.error) {
+          send(res, result.status || 400, { error: result.error }, headers);
+          return;
+        }
+        send(res, 200, result, headers);
+      } catch (error) {
+        if (error && typeof error === 'object' && error.code === PERSONAL_EVENT_STORE_UNAVAILABLE) {
+          sendPersonalEventsUnavailable(res, headers);
+          return;
+        }
+        send(res, 400, { error: 'Could not load timeline.' }, headers);
+      }
+      return;
+    }
+
+    if (method === 'GET' && /^\/api\/personal\/timeline\/signals\/[^/]+$/.test(url.pathname)) {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
+      if (!personalEventsStoreAvailable) {
+        sendPersonalEventsUnavailable(res, headers);
+        return;
+      }
+      const signalType = safeText(url.pathname.split('/').pop() || '', 40);
+      try {
+        const result = await getSignalHistory(personalEventsStore, auth.current.user.id, signalType, {
+          subtype: url.searchParams.get('subtype') || url.searchParams.get('normalized_value') || undefined,
+          since: url.searchParams.get('since') || undefined,
+          until: url.searchParams.get('until') || undefined,
+          include_candidates: url.searchParams.get('include_candidates'),
+          include_negated: url.searchParams.get('include_negated'),
+          timezone: url.searchParams.get('timezone') || undefined,
+          repeated_threshold: url.searchParams.get('repeated_threshold'),
+        });
+        if (result.error) {
+          send(res, result.status || 400, { error: result.error }, headers);
+          return;
+        }
+        send(res, 200, result, headers);
+      } catch (error) {
+        if (error && typeof error === 'object' && error.code === PERSONAL_EVENT_STORE_UNAVAILABLE) {
+          sendPersonalEventsUnavailable(res, headers);
+          return;
+        }
+        send(res, 400, { error: 'Could not load signal history.' }, headers);
+      }
+      return;
+    }
+
+    if (method === 'GET' && url.pathname === '/api/personal/timeline/recent-changes') {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
+      if (!personalEventsStoreAvailable) {
+        sendPersonalEventsUnavailable(res, headers);
+        return;
+      }
+      try {
+        const result = await getRecentChanges(personalEventsStore, auth.current.user.id, {
+          signal_type: url.searchParams.get('signal_type') || undefined,
+          subtype: url.searchParams.get('subtype') || undefined,
+          window_days: url.searchParams.get('window_days'),
+          include_candidates: url.searchParams.get('include_candidates'),
+          include_negated: url.searchParams.get('include_negated'),
+          timezone: url.searchParams.get('timezone') || undefined,
+          as_of: url.searchParams.get('as_of') || undefined,
+        });
+        if (result.error) {
+          send(res, result.status || 400, { error: result.error }, headers);
+          return;
+        }
+        send(res, 200, result, headers);
+      } catch (error) {
+        if (error && typeof error === 'object' && error.code === PERSONAL_EVENT_STORE_UNAVAILABLE) {
+          sendPersonalEventsUnavailable(res, headers);
+          return;
+        }
+        send(res, 400, { error: 'Could not load recent changes.' }, headers);
+      }
+      return;
+    }
+
+    if (method === 'GET' && url.pathname === '/api/personal/timeline/co-occurrences') {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
+      if (!personalEventsStoreAvailable) {
+        sendPersonalEventsUnavailable(res, headers);
+        return;
+      }
+      try {
+        const result = await getCoOccurrences(personalEventsStore, auth.current.user.id, {
+          mode: url.searchParams.get('mode') || undefined,
+          signal_type_a: url.searchParams.get('signal_type_a') || undefined,
+          signal_type_b: url.searchParams.get('signal_type_b') || undefined,
+          subtype_a: url.searchParams.get('subtype_a') || undefined,
+          subtype_b: url.searchParams.get('subtype_b') || undefined,
+          within_hours: url.searchParams.get('within_hours'),
+          since: url.searchParams.get('since') || undefined,
+          until: url.searchParams.get('until') || undefined,
+          include_candidates: url.searchParams.get('include_candidates'),
+          include_negated: url.searchParams.get('include_negated'),
+          timezone: url.searchParams.get('timezone') || undefined,
+          limit: url.searchParams.get('limit'),
+        });
+        if (result.error) {
+          send(res, result.status || 400, { error: result.error }, headers);
+          return;
+        }
+        send(res, 200, result, headers);
+      } catch (error) {
+        if (error && typeof error === 'object' && error.code === PERSONAL_EVENT_STORE_UNAVAILABLE) {
+          sendPersonalEventsUnavailable(res, headers);
+          return;
+        }
+        send(res, 400, { error: 'Could not load co-occurrences.' }, headers);
+      }
+      return;
+    }
+
+    if (method === 'GET' && url.pathname === '/api/personal/timeline/summary') {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
+      if (!personalEventsStoreAvailable) {
+        sendPersonalEventsUnavailable(res, headers);
+        return;
+      }
+      try {
+        const result = await getTimelineSummaryData(personalEventsStore, auth.current.user.id, {
+          since: url.searchParams.get('since') || undefined,
+          until: url.searchParams.get('until') || undefined,
+          include_candidates: url.searchParams.get('include_candidates'),
+          include_negated: url.searchParams.get('include_negated'),
+          timezone: url.searchParams.get('timezone') || undefined,
+        });
+        if (result.error) {
+          send(res, result.status || 400, { error: result.error }, headers);
+          return;
+        }
+        send(res, 200, result, headers);
+      } catch (error) {
+        if (error && typeof error === 'object' && error.code === PERSONAL_EVENT_STORE_UNAVAILABLE) {
+          sendPersonalEventsUnavailable(res, headers);
+          return;
+        }
+        send(res, 400, { error: 'Could not load timeline summary.' }, headers);
+      }
+      return;
+    }
+
+    if (method === 'GET' && /^\/api\/personal\/timeline\/observations\/[^/]+$/.test(url.pathname)) {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
+      if (!personalEventsStoreAvailable) {
+        sendPersonalEventsUnavailable(res, headers);
+        return;
+      }
+      const observationId = safeId(url.pathname.split('/').pop() || '', 120);
+      if (!observationId) {
+        send(res, 400, { error: 'Observation id is required.' }, headers);
+        return;
+      }
+      try {
+        const result = await getObservationContext(personalEventsStore, auth.current.user.id, observationId, {
+          include_candidates: url.searchParams.get('include_candidates'),
+          include_negated: url.searchParams.get('include_negated'),
+        });
+        if (result.error) {
+          // Do not reveal whether another user's observation exists.
+          send(res, result.status || 404, { error: result.error }, headers);
+          return;
+        }
+        send(res, 200, result, headers);
+      } catch (error) {
+        if (error && typeof error === 'object' && error.code === PERSONAL_EVENT_STORE_UNAVAILABLE) {
+          sendPersonalEventsUnavailable(res, headers);
+          return;
+        }
+        send(res, 400, { error: 'Could not load observation context.' }, headers);
       }
       return;
     }

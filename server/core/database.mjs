@@ -110,6 +110,8 @@ export const ensurePersonalEventsTable = async () => {
         ON personal_events (user_id, occurred_at DESC);
       CREATE INDEX IF NOT EXISTS personal_events_user_type_idx
         ON personal_events (user_id, event_type);
+      CREATE INDEX IF NOT EXISTS personal_events_user_type_occurred_idx
+        ON personal_events (user_id, event_type, occurred_at DESC);
       CREATE UNIQUE INDEX IF NOT EXISTS personal_events_user_client_id_active_uidx
         ON personal_events (user_id, client_event_id)
         WHERE client_event_id IS NOT NULL AND deleted_at IS NULL;

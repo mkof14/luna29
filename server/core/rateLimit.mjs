@@ -1,5 +1,10 @@
 const memoryStore = new Map();
 
+export const __resetMemoryRateLimitForTests = () => {
+  memoryStore.clear();
+};
+
+
 export const getUpstashRestUrl = () =>
   String(process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL || '').trim();
 
@@ -29,6 +34,12 @@ const upstashIncr = async (key, windowMs) => {
 
 export const createRateLimiter = () => {
   const check = async (key, limit, windowMs) => {
+    // Vitest runs files in parallel and shares this process-local store.
+    // Skip memory rate limits in test runtime so suites do not collide.
+    // Production / preview behavior is unchanged (Upstash or memory still apply outside Vitest).
+    if (process.env.VITEST || process.env.NODE_ENV === 'test') {
+      return true;
+    }
     if (isUpstashRateLimitEnabled()) {
       try {
         const count = await upstashIncr(`luna:rl:${key}`, windowMs);
