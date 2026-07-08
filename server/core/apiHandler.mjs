@@ -59,6 +59,11 @@ import {
   isLunaLiveMemoryWriteEnabled,
   summarizeMemoryWriteForLogs,
 } from './lunaLiveMemoryWriteService.mjs';
+import {
+  runPatternReevaluationAfterMutation,
+  publicReevaluationMeta,
+  summarizeReevaluationForLogs,
+} from './patternReevaluationService.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -901,6 +906,26 @@ const start = async () => {
   });
   const personalEventsStore = personalEventsStoreHandle.store;
   const personalEventsStoreAvailable = isPersonalEventsStoreAvailable(personalEventsStoreHandle);
+
+  const reevaluateAfterSignalMutation = async (userId, before, after, mutationType) => {
+    try {
+      const meta = await runPatternReevaluationAfterMutation({
+        store: personalEventsStore,
+        userId,
+        before_signal: before,
+        after_signal: after,
+        mutation_type: mutationType,
+      });
+      console.info('[pattern] reevaluation', JSON.stringify(summarizeReevaluationForLogs(meta)));
+      return publicReevaluationMeta(meta);
+    } catch {
+      const failed = { pattern_reevaluation_status: 'failed', pattern_reevaluation_reason: 'unavailable' };
+      console.info('[pattern] reevaluation', JSON.stringify(summarizeReevaluationForLogs(failed)));
+      return failed;
+    }
+  };
+
+
   const sendPersonalEventsUnavailable = (res, headers) => {
     send(
       res,
@@ -1688,13 +1713,20 @@ const start = async () => {
         send(res, 400, { error: 'Event id is required.' }, headers);
         return;
       }
+      const beforeDelete = await personalEventsStore.getOwned(auth.current.user.id, eventId);
       const deleted = await personalEventsStore.softDelete(auth.current.user.id, eventId);
       if (!deleted) {
         // Do not reveal whether another user's event exists.
         send(res, 404, { error: 'Event not found.' }, headers);
         return;
       }
-      send(res, 200, { ok: true, event: deleted }, headers);
+      const reeval = await reevaluateAfterSignalMutation(
+        auth.current.user.id,
+        beforeDelete,
+        deleted,
+        'soft_delete',
+      );
+      send(res, 200, { ok: true, event: deleted, ...reeval }, headers);
       return;
     }
 
@@ -1711,12 +1743,19 @@ const start = async () => {
         send(res, 400, { error: 'Event id is required.' }, headers);
         return;
       }
+      const beforeDelete = await personalEventsStore.getOwned(auth.current.user.id, eventId);
       const deleted = await personalEventsStore.softDelete(auth.current.user.id, eventId);
       if (!deleted) {
         send(res, 404, { error: 'Event not found.' }, headers);
         return;
       }
-      send(res, 200, { ok: true, event: deleted }, headers);
+      const reeval = await reevaluateAfterSignalMutation(
+        auth.current.user.id,
+        beforeDelete,
+        deleted,
+        'soft_delete',
+      );
+      send(res, 200, { ok: true, event: deleted, ...reeval }, headers);
       return;
     }
 
@@ -2275,12 +2314,19 @@ const start = async () => {
         send(res, 400, { error: 'Signal id is required.' }, headers);
         return;
       }
+      const before = await personalEventsStore.getOwned(auth.current.user.id, signalId);
       const result = await confirmSignalForUser(personalEventsStore, auth.current.user.id, signalId);
       if (result.error || !result.signal) {
         send(res, result.error === 'Signal not found.' ? 404 : 400, { error: result.error || 'Signal not found.' }, headers);
         return;
       }
-      send(res, 200, { ok: true, signal: result.signal }, headers);
+      const reeval = await reevaluateAfterSignalMutation(
+        auth.current.user.id,
+        before,
+        result.signal,
+        'confirm',
+      );
+      send(res, 200, { ok: true, signal: result.signal, ...reeval }, headers);
       return;
     }
 
@@ -2297,12 +2343,19 @@ const start = async () => {
         send(res, 400, { error: 'Signal id is required.' }, headers);
         return;
       }
+      const before = await personalEventsStore.getOwned(auth.current.user.id, signalId);
       const result = await rejectSignalForUser(personalEventsStore, auth.current.user.id, signalId);
       if (result.error || !result.signal) {
         send(res, result.error === 'Signal not found.' ? 404 : 400, { error: result.error || 'Signal not found.' }, headers);
         return;
       }
-      send(res, 200, { ok: true, signal: result.signal }, headers);
+      const reeval = await reevaluateAfterSignalMutation(
+        auth.current.user.id,
+        before,
+        result.signal,
+        'reject',
+      );
+      send(res, 200, { ok: true, signal: result.signal, ...reeval }, headers);
       return;
     }
 
@@ -2324,6 +2377,7 @@ const start = async () => {
       }
       try {
         const body = await readBody(req);
+        const before = await personalEventsStore.getOwned(auth.current.user.id, signalId);
         const result = await correctSignalForUser(personalEventsStore, auth.current.user.id, signalId, {
           signal_type: body?.signal_type,
           normalized_value: body?.normalized_value,
@@ -2337,7 +2391,13 @@ const start = async () => {
           send(res, result.error === 'Signal not found.' ? 404 : 400, { error: result.error || 'Signal not found.' }, headers);
           return;
         }
-        send(res, 200, { ok: true, signal: result.signal }, headers);
+        const reeval = await reevaluateAfterSignalMutation(
+          auth.current.user.id,
+          before,
+          result.signal,
+          'correct',
+        );
+        send(res, 200, { ok: true, signal: result.signal, ...reeval }, headers);
       } catch (error) {
         if (error && typeof error === 'object' && error.code === PERSONAL_EVENT_STORE_UNAVAILABLE) {
           sendPersonalEventsUnavailable(res, headers);
