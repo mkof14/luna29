@@ -1,9 +1,14 @@
 /**
- * Task 7 — Selective Luna Live memory write pipeline.
+ * Task 7 + Task 8 — Selective Luna Live memory write pipeline.
+ *
+ * Two-gate model:
+ *   Gate A: server feature flag LUNA_LIVE_MEMORY_WRITE_ENABLED (default OFF)
+ *   Gate B: authenticated per-user memory consent (default OFF)
+ * Write only when both are enabled. Consent uncertainty → no write.
  *
  * Chat success is independent of memory write success.
  * Uses Task 3 createObservationWithExtraction. No pattern re-eval on unreviewed writes.
- * Feature flag: LUNA_LIVE_MEMORY_WRITE_ENABLED (default OFF). Request cannot enable.
+ * Request body/query/headers cannot force either gate.
  */
 import {
   evaluateMemoryWriteEligibility,
@@ -13,6 +18,7 @@ import {
   createObservationWithExtraction,
   MAX_OBSERVATION_TEXT_CHARS,
 } from './observationSignalsService.mjs';
+import { getMemoryConsentForWrite } from './memoryConsentStore.mjs';
 
 export const LUNA_LIVE_MEMORY_WRITE_FLAG = 'LUNA_LIVE_MEMORY_WRITE_ENABLED';
 export const MEMORY_WRITE_TIMEOUT_MS = 14_000;
@@ -33,7 +39,7 @@ export const validateClientMessageId = (value) => {
 
 /**
  * Server-controlled flag. Request body/query/headers cannot set this.
- * Default OFF (including production) until consent/UI explicitly enables.
+ * Default OFF (including production) until ops explicitly enables.
  */
 export const isLunaLiveMemoryWriteEnabled = (env = process.env) => {
   const raw = String(env?.[LUNA_LIVE_MEMORY_WRITE_FLAG] ?? '').trim().toLowerCase();
@@ -73,9 +79,15 @@ const safeMeta = (partial) => ({
 /**
  * Best-effort selective memory write for authenticated Luna Live.
  * Never throws to caller — returns safe status object.
+ *
+ * @param {object} opts
+ * @param {object} opts.store - personal events store
+ * @param {object} [opts.consentStore] - memory consent store (required for Gate B)
+ * @param {string} opts.userId - authenticated session user id only
  */
 export const attemptLunaLiveMemoryWrite = async ({
   store,
+  consentStore = null,
   userId,
   text,
   mode,
@@ -88,11 +100,29 @@ export const attemptLunaLiveMemoryWrite = async ({
 } = {}) => {
   const started = Date.now();
   try {
+    // Gate A — server feature flag
     if (!isLunaLiveMemoryWriteEnabled(env)) {
-      return safeMeta({ status: 'disabled', eligible: false, gate_reason: 'flag_disabled' });
+      return safeMeta({ status: 'feature_disabled', eligible: false, gate_reason: 'flag_disabled' });
     }
     if (!store || !userId) {
       return safeMeta({ status: 'store_unavailable', eligible: false, gate_reason: 'missing_store_or_user' });
+    }
+
+    // Gate B — per-user memory consent (fail closed on uncertainty)
+    const consent = await getMemoryConsentForWrite(consentStore, userId);
+    if (!consent.available) {
+      return safeMeta({
+        status: 'consent_unavailable',
+        eligible: false,
+        gate_reason: consent.reason || 'consent_unavailable',
+      });
+    }
+    if (!consent.enabled) {
+      return safeMeta({
+        status: 'consent_disabled',
+        eligible: false,
+        gate_reason: 'consent_disabled',
+      });
     }
 
     const idCheck = validateClientMessageId(clientMessageId);
@@ -161,11 +191,14 @@ export const attemptLunaLiveMemoryWrite = async ({
     const extractionStatus = result?.extraction?.status || 'unknown';
     const signalCount = Array.isArray(result?.signals) ? result.signals.length : 0;
     const observationCreated = Boolean(result?.observation?.id);
+    const alreadyExists = result?.created === false && observationCreated;
 
-    let status = 'completed';
+    let status = alreadyExists ? 'already_exists' : 'written';
     if (extractionStatus === 'failed') status = 'extraction_failed';
     else if (extractionStatus === 'completed' && signalCount === 0) status = 'extraction_empty';
-    else if (extractionStatus === 'already_extracted') status = 'completed';
+    else if (extractionStatus === 'already_extracted' && alreadyExists) status = 'already_exists';
+    else if (extractionStatus === 'already_extracted') status = 'written';
+    else if (extractionStatus === 'completed' && observationCreated) status = alreadyExists ? 'already_exists' : 'written';
 
     return {
       ...safeMeta({
@@ -187,7 +220,7 @@ export const attemptLunaLiveMemoryWrite = async ({
     const status =
       code === 'memory_write_timeout'
         ? 'failed'
-        : /unavailable|PERSONAL_EVENT_STORE/i.test(String(code))
+        : /unavailable|PERSONAL_EVENT_STORE|CONSENT_STORE/i.test(String(code))
           ? 'store_unavailable'
           : 'failed';
     return {

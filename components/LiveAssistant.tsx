@@ -454,6 +454,9 @@ import {
   isPublicLiveLimitReached,
   publicLiveTurnsLeft,
 } from '../utils/liveAssistantAccess';
+import { MemoryControls } from './MemoryControls';
+import { getMemoryConsent, type MemoryConsentResponse } from '../services/memoryConsentService';
+import { trackEvent } from '../services/analyticsService';
 
 export type LiveAssistantAccessMode = 'member' | 'public';
 
@@ -491,6 +494,8 @@ export const LiveAssistant: React.FC<{
   const [isThinking, setIsThinking] = useState(false);
   const [publicTurnsLeft, setPublicTurnsLeft] = useState(() => publicLiveTurnsLeft());
   const publicLimitReached = isPublicPreview && publicTurnsLeft <= 0;
+  const [showMemory, setShowMemory] = useState(false);
+  const [memoryConsent, setMemoryConsent] = useState<MemoryConsentResponse | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const recognitionActiveRef = useRef(false);
@@ -892,6 +897,21 @@ export const LiveAssistant: React.FC<{
     }
   }, [isListening, idleBars]);
 
+  useEffect(() => {
+    if (!isOpen || isPublicPreview) return;
+    let alive = true;
+    getMemoryConsent()
+      .then((c) => {
+        if (alive) setMemoryConsent(c);
+      })
+      .catch(() => {
+        if (alive) setMemoryConsent({ status: 'consent_unavailable', memory_write_available: false });
+      });
+    return () => {
+      alive = false;
+    };
+  }, [isOpen, isPublicPreview, showMemory]);
+
   if (!isOpen) return null;
 
   return (
@@ -980,9 +1000,33 @@ export const LiveAssistant: React.FC<{
                   {assistantTheme === 'dark' ? <Moon size={14} /> : <Sun size={14} />}
                 </span>
               </button>
+              {!isPublicPreview && (
+                <button
+                  type="button"
+                  data-testid="luna-live-memory-entry"
+                  onClick={() => {
+                    setShowMemory((v) => !v);
+                    trackEvent('memory_settings_viewed', { surface: 'luna_live', action: 'open', result: 'ok' });
+                  }}
+                  className="px-2.5 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border border-inherit opacity-80 hover:opacity-100 transition-opacity"
+                >
+                  {memoryConsent?.status === 'enabled' ? 'Memory on' : memoryConsent?.status === 'consent_unavailable' ? 'Memory' : 'Memory off'}
+                </button>
+              )}
               <button onClick={() => { cleanup(); onClose(); }} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-500/10 transition-colors text-2xl font-light">×</button>
             </div>
           </nav>
+
+          {!isPublicPreview && showMemory && (
+            <div className="relative z-30 max-h-[45%] overflow-y-auto border-b border-inherit bg-inherit/90 backdrop-blur-md px-4 py-3" data-testid="luna-live-memory-panel">
+              <MemoryControls
+                lang={lang}
+                compact
+                surface="luna_live"
+                onConsentChange={(next) => setMemoryConsent(next)}
+              />
+            </div>
+          )}
 
           {isPublicPreview && status === 'CONNECTED' && !publicLimitReached && (
             <p className="relative z-20 px-6 py-2 text-[9px] font-black uppercase tracking-[0.18em] text-center text-amber-600 dark:text-amber-300 bg-amber-500/10 border-b border-amber-500/20">

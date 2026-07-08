@@ -99,6 +99,7 @@ describe('luna live memory write foundation (Task 7)', () => {
     originalEnv = { ...process.env };
     process.env.NODE_ENV = 'test';
     process.env.PERSONAL_EVENTS_STORAGE = 'file';
+    process.env.MEMORY_CONSENT_STORAGE = 'file';
     process.env[LUNA_LIVE_MEMORY_WRITE_FLAG] = 'true';
     delete process.env.DATABASE_URL;
     delete process.env.VERCEL_ENV;
@@ -114,10 +115,17 @@ describe('luna live memory write foundation (Task 7)', () => {
       env: process.env,
     });
     store = handle.store;
+    const { createMemoryConsentStore } = await import('../../server/core/memoryConsentStore.mjs');
+    const consentHandle = await createMemoryConsentStore(path.join(dataDir, 'memory-consent.json'), {
+      runtimeEnvironment: 'test',
+      env: process.env,
+    });
+    globalThis.__testConsentStore = consentHandle.store;
     mockExtract([fatigueSignal()]);
   });
 
   afterEach(async () => {
+    globalThis.__testConsentStore = null;
     __resetGenerateContentForTests?.();
     process.env = originalEnv;
     vi.resetModules();
@@ -158,6 +166,17 @@ describe('luna live memory write foundation (Task 7)', () => {
     return res.json?.events || [];
   };
 
+  const writeMem = async (opts) => {
+    const userId = opts.userId;
+    if (userId && globalThis.__testConsentStore) {
+      await globalThis.__testConsentStore.enable(userId, { source_surface: 'test' });
+    }
+    return attemptLunaLiveMemoryWrite({
+      consentStore: globalThis.__testConsentStore,
+      ...opts,
+    });
+  };
+
   const listSignalsApi = async (user) => {
     const res = await invoke(handler, {
       method: 'GET',
@@ -167,6 +186,20 @@ describe('luna live memory write foundation (Task 7)', () => {
     });
     expect(res.statusCode).toBe(200);
     return res.json?.events || [];
+  };
+
+
+  const enableMemoryConsent = async (user) => {
+    const res = await invoke(handler, {
+      method: 'POST',
+      path: '/api/personal/memory-consent/enable',
+      headers: user.authHeader,
+      body: { source_surface: 'test' },
+      ip: user.ip,
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json?.status).toBe('enabled');
+    return res;
   };
 
   const voiceRespond = async (user, body = {}) =>
@@ -199,7 +232,7 @@ describe('luna live memory write foundation (Task 7)', () => {
     });
     expect(off.statusCode).toBe(200);
     expect(off.json?.text).toBeTruthy();
-    expect(off.json?.memory_write_status).toBe('disabled');
+    expect(off.json?.memory_write_status).toBe('feature_disabled');
     expect(await listObsApi(user)).toHaveLength(0);
 
     const hdr = await invoke(handler, {
@@ -219,15 +252,17 @@ describe('luna live memory write foundation (Task 7)', () => {
       ip: user.ip,
     });
     expect(hdr.statusCode).toBe(200);
-    expect(hdr.json?.memory_write_status).toBe('disabled');
+    expect(hdr.json?.memory_write_status).toBe('feature_disabled');
 
     process.env[LUNA_LIVE_MEMORY_WRITE_FLAG] = 'true';
+    await enableMemoryConsent(user);
     const on = await voiceRespond(user, {
       transcript: 'I slept terribly last night.',
       client_message_id: 'flagon1234567',
     });
     expect(on.statusCode).toBe(200);
-    expect(on.json?.memory_write_status).not.toBe('disabled');
+    expect(on.json?.memory_write_status).not.toBe('feature_disabled');
+    expect(on.json?.memory_write_status).not.toBe('consent_disabled');
     expect((await listObsApi(user)).length).toBeGreaterThanOrEqual(1);
   });
 
@@ -235,6 +270,7 @@ describe('luna live memory write foundation (Task 7)', () => {
     process.env[LUNA_LIVE_MEMORY_WRITE_FLAG] = 'true';
     const a = await signup('own-a@test.com', 'A');
     const b = await signup('own-b@test.com', 'B');
+    await enableMemoryConsent(a);
 
     const ok = await voiceRespond(a, {
       transcript: 'I am exhausted again today.',
@@ -243,7 +279,8 @@ describe('luna live memory write foundation (Task 7)', () => {
       userId: b.userId,
     });
     expect(ok.statusCode).toBe(200);
-    expect(ok.json?.memory_write_status).not.toBe('disabled');
+    expect(ok.json?.memory_write_status).not.toBe('feature_disabled');
+    expect(ok.json?.memory_write_status).not.toBe('consent_disabled');
     expect((await listObsApi(a)).length).toBeGreaterThanOrEqual(1);
     expect(await listObsApi(b)).toHaveLength(0);
 
@@ -360,7 +397,7 @@ describe('luna live memory write foundation (Task 7)', () => {
         ],
       });
 
-    const r1 = await attemptLunaLiveMemoryWrite({
+    const r1 = await writeMem({
       store,
       userId: user.userId,
       text: 'I slept terribly last night.',
@@ -371,11 +408,11 @@ describe('luna live memory write foundation (Task 7)', () => {
       env: process.env,
       generateContent: sleepExtract,
     });
-    expect(r1.memory_write_status).toBe('completed');
+    expect(r1.memory_write_status).toBe('written');
     expect(r1.observation_created).toBe(true);
     expect(r1._observation_id).toBeTruthy();
 
-    const r2 = await attemptLunaLiveMemoryWrite({
+    const r2 = await writeMem({
       store,
       userId: user.userId,
       text: 'I slept terribly last night.',
@@ -388,14 +425,14 @@ describe('luna live memory write foundation (Task 7)', () => {
         throw new Error('should not re-extract');
       },
     });
-    expect(r2.memory_write_status).toBe('completed');
+    expect(['written', 'already_exists']).toContain(r2.memory_write_status);
     expect(r2.extraction_status).toBe('already_extracted');
     expect(r2._observation_id).toBe(r1._observation_id);
 
     const owned1 = await store.getOwned(user.userId, r1._observation_id);
     expect(owned1?.client_event_id).toBe(`luna_live:${id}`);
 
-    const r3 = await attemptLunaLiveMemoryWrite({
+    const r3 = await writeMem({
       store,
       userId: user.userId,
       text: 'I slept terribly last night.',
@@ -425,7 +462,7 @@ describe('luna live memory write foundation (Task 7)', () => {
     process.env[LUNA_LIVE_MEMORY_WRITE_FLAG] = 'true';
     const user = await signup('model@test.com');
     const { listSignalsForObservation } = await import('../../server/core/observationSignalsService.mjs');
-    const r = await attemptLunaLiveMemoryWrite({
+    const r = await writeMem({
       store,
       userId: user.userId,
       text: "I'm not tired today.",
@@ -487,7 +524,7 @@ describe('luna live memory write foundation (Task 7)', () => {
     process.env[LUNA_LIVE_MEMORY_WRITE_FLAG] = 'true';
     const user = await signup('failx@test.com');
     const { listSignalsForObservation } = await import('../../server/core/observationSignalsService.mjs');
-    const fail = await attemptLunaLiveMemoryWrite({
+    const fail = await writeMem({
       store,
       userId: user.userId,
       text: 'I slept terribly last night.',
@@ -521,9 +558,10 @@ describe('luna live memory write foundation (Task 7)', () => {
     });
     expect(disabled.statusCode).toBe(200);
     expect(disabled.json?.text).toBeTruthy();
-    expect(disabled.json?.memory_write_status).toBe('disabled');
+    expect(disabled.json?.memory_write_status).toBe('feature_disabled');
 
     process.env[LUNA_LIVE_MEMORY_WRITE_FLAG] = 'true';
+    await enableMemoryConsent(user);
     const ineligible = await voiceRespond(user, {
       transcript: 'hello there',
       client_message_id: 'iso-inel-0001',
@@ -532,7 +570,7 @@ describe('luna live memory write foundation (Task 7)', () => {
     expect(ineligible.json?.memory_write_status).toBe('ineligible');
 
     const log = summarizeMemoryWriteForLogs({
-      memory_write_status: 'completed',
+      memory_write_status: 'written',
       eligible: true,
       gate_reason: 'first_person_self_report',
       matched_domain_count: 1,
@@ -571,6 +609,7 @@ describe('luna live memory write foundation (Task 7)', () => {
 
     process.env[LUNA_LIVE_MEMORY_WRITE_FLAG] = 'true';
     const user = await signup('trust@test.com');
+    await enableMemoryConsent(user);
     const forged = await voiceRespond(user, {
       transcript: 'hello',
       client_message_id: 'forge-elig-01',

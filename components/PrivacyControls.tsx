@@ -40,7 +40,7 @@ type Copy = {
 const COPY_BY_LANG: LangCopy< Copy> = {
   en: {
     bannerTitle: 'Privacy Controls',
-    bannerBody: 'Health data stays on your device. Choose optional analytics and AI processing.',
+    bannerBody: 'Choose optional analytics and AI processing. Local health logs stay on this device; Luna Live memory is separate and off until you enable it.',
     acceptAll: 'Accept All',
     essentialOnly: 'Essential Only',
     manage: 'Manage',

@@ -94,6 +94,7 @@ describe('pattern reevaluation foundation (Task 7.1)', () => {
     originalEnv = { ...process.env };
     process.env.NODE_ENV = 'test';
     process.env.PERSONAL_EVENTS_STORAGE = 'file';
+    process.env.MEMORY_CONSENT_STORAGE = 'file';
     delete process.env.DATABASE_URL;
     delete process.env.VERCEL_ENV;
     delete process.env.GEMINI_API_KEY;
@@ -481,6 +482,14 @@ describe('pattern reevaluation foundation (Task 7.1)', () => {
     );
 
     const user = await signup('t7int@test.com');
+    const consentOn = await invoke(handler, {
+      method: 'POST',
+      path: '/api/personal/memory-consent/enable',
+      headers: user.authHeader,
+      body: { source_surface: 'test' },
+      ip: user.ip,
+    });
+    expect(consentOn.statusCode).toBe(200);
     const voice = await invoke(handler, {
       method: 'POST',
       path: '/api/voice/respond',
@@ -495,7 +504,7 @@ describe('pattern reevaluation foundation (Task 7.1)', () => {
       ip: user.ip,
     });
     expect(voice.statusCode).toBe(200);
-    expect(voice.json?.memory_write_status).toMatch(/completed|extraction_/);
+    expect(voice.json?.memory_write_status).toMatch(/written|already_exists|completed|extraction_/);
     // Voice respond must not include pattern reevaluation meta
     expect(voice.json?.pattern_reevaluation_status).toBeUndefined();
 

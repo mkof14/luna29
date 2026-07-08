@@ -64,6 +64,14 @@ import {
   publicReevaluationMeta,
   summarizeReevaluationForLogs,
 } from './patternReevaluationService.mjs';
+import {
+  createMemoryConsentStore,
+  getMemoryConsentForWrite,
+  toPublicMemoryConsent,
+  MEMORY_CONSENT_VERSION,
+  MEMORY_CONSENT_STORE_UNAVAILABLE,
+  isMemoryConsentStoreAvailable,
+} from './memoryConsentStore.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -82,6 +90,7 @@ let MOBILE_STATE_FILE = path.join(DATA_DIR, 'mobile-state.json');
 let MOBILE_PUSH_FILE = path.join(DATA_DIR, 'mobile-push.json');
 let CALENDAR_DATA_FILE = path.join(DATA_DIR, 'calendar-data.json');
 let PERSONAL_EVENTS_FILE = path.join(DATA_DIR, 'personal-events.json');
+let MEMORY_CONSENT_FILE = path.join(DATA_DIR, 'memory-consent.json');
 
 const configureStoragePaths = (dataDir, environment) => {
   DATA_DIR = dataDir;
@@ -98,6 +107,7 @@ const configureStoragePaths = (dataDir, environment) => {
   MOBILE_PUSH_FILE = path.join(DATA_DIR, 'mobile-push.json');
   CALENDAR_DATA_FILE = path.join(DATA_DIR, 'calendar-data.json');
   PERSONAL_EVENTS_FILE = path.join(DATA_DIR, 'personal-events.json');
+  MEMORY_CONSENT_FILE = path.join(DATA_DIR, 'memory-consent.json');
 };
 
 const SESSION_COOKIE = 'luna_sid';
@@ -907,6 +917,12 @@ const start = async () => {
   const personalEventsStore = personalEventsStoreHandle.store;
   const personalEventsStoreAvailable = isPersonalEventsStoreAvailable(personalEventsStoreHandle);
 
+  const memoryConsentStoreHandle = await createMemoryConsentStore(MEMORY_CONSENT_FILE, {
+    runtimeEnvironment,
+  });
+  const memoryConsentStore = memoryConsentStoreHandle.store;
+  const memoryConsentStoreAvailable = isMemoryConsentStoreAvailable(memoryConsentStoreHandle);
+
   const reevaluateAfterSignalMutation = async (userId, before, after, mutationType) => {
     try {
       const meta = await runPatternReevaluationAfterMutation({
@@ -936,6 +952,38 @@ const start = async () => {
       },
       headers,
     );
+  };
+
+  const sendMemoryConsentUnavailable = (res, headers) => {
+    send(
+      res,
+      503,
+      {
+        error: 'Memory consent store unavailable.',
+        code: MEMORY_CONSENT_STORE_UNAVAILABLE,
+        status: 'consent_unavailable',
+        consent_version: MEMORY_CONSENT_VERSION,
+        memory_write_available: false,
+      },
+      headers,
+    );
+  };
+
+  const buildMemoryConsentResponse = async (userId) => {
+    if (!memoryConsentStoreAvailable) {
+      return { unavailable: true };
+    }
+    try {
+      const record = await memoryConsentStore.get(userId);
+      return {
+        unavailable: false,
+        body: toPublicMemoryConsent(record, {
+          memoryWriteFeatureEnabled: isLunaLiveMemoryWriteEnabled(),
+        }),
+      };
+    } catch {
+      return { unavailable: true };
+    }
   };
 
 
@@ -2153,6 +2201,123 @@ const start = async () => {
     }
 
     // --- Authenticated observation + structured signal extraction (Task 3) ---
+    // Task 8 — authenticated per-user memory consent (dedicated authority).
+    if (method === 'GET' && url.pathname === '/api/personal/memory-consent') {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
+      // Ignore body/query user_id, device, IP — owner from session only.
+      void url.searchParams.get('user_id');
+      const result = await buildMemoryConsentResponse(auth.current.user.id);
+      if (result.unavailable) {
+        sendMemoryConsentUnavailable(res, headers);
+        return;
+      }
+      send(res, 200, result.body, headers);
+      return;
+    }
+
+    if (method === 'POST' && url.pathname === '/api/personal/memory-consent/enable') {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
+      if (!memoryConsentStoreAvailable) {
+        sendMemoryConsentUnavailable(res, headers);
+        return;
+      }
+      try {
+        const body = await readBody(req);
+        // Ignore client-selected owner fields.
+        void body?.user_id;
+        void body?.userId;
+        void url.searchParams.get('user_id');
+        const sourceSurface =
+          typeof body?.source_surface === 'string'
+            ? safeText(body.source_surface, 64) || 'memory_settings'
+            : 'memory_settings';
+        const record = await memoryConsentStore.enable(auth.current.user.id, {
+          source_surface: sourceSurface,
+          consent_version: MEMORY_CONSENT_VERSION,
+        });
+        console.info(
+          '[memory_consent] enable',
+          JSON.stringify({
+            status: record?.status || 'enabled',
+            consent_version: MEMORY_CONSENT_VERSION,
+            source_surface: sourceSurface,
+          }),
+        );
+        send(
+          res,
+          200,
+          toPublicMemoryConsent(record, {
+            memoryWriteFeatureEnabled: isLunaLiveMemoryWriteEnabled(),
+          }),
+          headers,
+        );
+      } catch (error) {
+        if (error && typeof error === 'object' && error.code === MEMORY_CONSENT_STORE_UNAVAILABLE) {
+          sendMemoryConsentUnavailable(res, headers);
+          return;
+        }
+        send(res, 503, {
+          error: 'Memory consent store unavailable.',
+          code: MEMORY_CONSENT_STORE_UNAVAILABLE,
+          status: 'consent_unavailable',
+          memory_write_available: false,
+        }, headers);
+      }
+      return;
+    }
+
+    if (method === 'POST' && url.pathname === '/api/personal/memory-consent/disable') {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
+      if (!memoryConsentStoreAvailable) {
+        sendMemoryConsentUnavailable(res, headers);
+        return;
+      }
+      try {
+        const body = await readBody(req);
+        void body?.user_id;
+        void body?.userId;
+        void url.searchParams.get('user_id');
+        const sourceSurface =
+          typeof body?.source_surface === 'string'
+            ? safeText(body.source_surface, 64) || 'memory_settings'
+            : 'memory_settings';
+        const record = await memoryConsentStore.disable(auth.current.user.id, {
+          source_surface: sourceSurface,
+        });
+        console.info(
+          '[memory_consent] disable',
+          JSON.stringify({
+            status: record?.status || 'disabled',
+            consent_version: MEMORY_CONSENT_VERSION,
+            source_surface: sourceSurface,
+          }),
+        );
+        send(
+          res,
+          200,
+          toPublicMemoryConsent(record, {
+            memoryWriteFeatureEnabled: isLunaLiveMemoryWriteEnabled(),
+          }),
+          headers,
+        );
+      } catch (error) {
+        if (error && typeof error === 'object' && error.code === MEMORY_CONSENT_STORE_UNAVAILABLE) {
+          sendMemoryConsentUnavailable(res, headers);
+          return;
+        }
+        send(res, 503, {
+          error: 'Memory consent store unavailable.',
+          code: MEMORY_CONSENT_STORE_UNAVAILABLE,
+          status: 'consent_unavailable',
+          memory_write_available: false,
+        }, headers);
+      }
+      return;
+    }
+
     if (method === 'POST' && url.pathname === '/api/personal/observations') {
       const auth = await requireMobileSession(req, res, headers);
       if (!auth) return;
@@ -2535,10 +2700,11 @@ const start = async () => {
         });
 
         // Best-effort selective memory write AFTER reply generation.
+        // Two-gate: server feature flag AND authenticated per-user memory consent.
         // In-request with timeout (no fire-and-forget — Vercel may terminate after response).
         // Chat success does not depend on memory write success.
         let memoryMeta = {
-          memory_write_status: 'disabled',
+          memory_write_status: 'feature_disabled',
           eligible: false,
           gate_reason: null,
           matched_domain_count: 0,
@@ -2558,27 +2724,23 @@ const start = async () => {
             body?.inputMode ||
             (body?.context && typeof body.context === 'object' && body.context.input_mode) ||
             'text';
-          if (!personalEventsStoreAvailable) {
-            memoryMeta = {
-              memory_write_status: isLunaLiveMemoryWriteEnabled() ? 'store_unavailable' : 'disabled',
-              eligible: false,
-              gate_reason: isLunaLiveMemoryWriteEnabled() ? 'store_unavailable' : 'flag_disabled',
-              matched_domain_count: 0,
-              observation_created: false,
-              signal_count: 0,
-              extraction_status: null,
-            };
-          } else {
-            memoryMeta = await attemptLunaLiveMemoryWrite({
-              store: personalEventsStore,
-              userId: auth.current.user.id,
-              text: transcript,
-              mode: typeof body?.mode === 'string' ? body.mode : 'live',
-              language: typeof body?.lang === 'string' ? body.lang : 'en',
-              inputMode: inputModeHint,
-              clientMessageId,
-            });
-          }
+          // Client cannot force feature flag or consent.
+          void body?.memory_consent;
+          void body?.memoryConsent;
+          void body?.consent_enabled;
+          void body?.LUNA_LIVE_MEMORY_WRITE_ENABLED;
+          void body?.luna_live_memory_write_enabled;
+
+          memoryMeta = await attemptLunaLiveMemoryWrite({
+            store: personalEventsStoreAvailable ? personalEventsStore : null,
+            consentStore: memoryConsentStoreAvailable ? memoryConsentStore : null,
+            userId: auth.current.user.id,
+            text: transcript,
+            mode: typeof body?.mode === 'string' ? body.mode : 'live',
+            language: typeof body?.lang === 'string' ? body.lang : 'en',
+            inputMode: inputModeHint,
+            clientMessageId,
+          });
           console.info('[voice] memory_write', JSON.stringify(summarizeMemoryWriteForLogs(memoryMeta)));
         } catch {
           memoryMeta = {
