@@ -437,8 +437,8 @@ describe('timeline query foundation (Task 4)', () => {
     expect(changes.previous_count).toBe(1);
     expect(changes.absolute_delta).toBe(3);
     expect(changes.recording_change).toBe('increased_recording');
-    expect(changes.semantics).toBe('recorded_observation_count_change');
-    expect(String(changes.safe_statement || '')).not.toMatch(/hormone|worsening|medical|cause/i);
+    expect(changes.semantics).toBe('recorded_observation_change_only');
+    expect(String(changes.statement || '')).not.toMatch(/hormone|worsening|medical|cause/i);
 
     // Newly recorded: only current window
     const uid2 = (await signup('newrec@test.com')).userId;
@@ -506,9 +506,11 @@ describe('timeline query foundation (Task 4)', () => {
       timezone: 'UTC',
     });
     expect(sameDay.semantics).toBe('co_occurrence_only');
-    expect(sameDay.pairs.length).toBeGreaterThanOrEqual(1);
-    expect(sameDay.pairs[0].co_occurrence_count).toBeGreaterThanOrEqual(1);
-    expect(JSON.stringify(sameDay)).not.toMatch(/correlation|causation|medical pattern/i);
+    expect(sameDay.co_occurrences.length).toBeGreaterThanOrEqual(1);
+    expect(sameDay.co_occurrences[0].co_occurrence_count).toBeGreaterThanOrEqual(1);
+    expect(sameDay.not_correlation).toBe(true);
+    expect(sameDay.not_causation).toBe(true);
+    expect(JSON.stringify(sameDay)).not.toMatch(/"correlation"|"causation"|"medical pattern"/i);
 
     const within = await getCoOccurrences(store, uid, {
       mode: 'within_hours',
@@ -517,18 +519,41 @@ describe('timeline query foundation (Task 4)', () => {
       signal_type_b: 'energy',
       timezone: 'UTC',
     });
-    expect(within.pairs.length).toBeGreaterThanOrEqual(1);
+    expect(within.co_occurrences.length).toBeGreaterThanOrEqual(1);
 
-    // Rejected mood should not appear in any pair
-    const allPairs = await getCoOccurrences(store, uid, {
+    // Rejected mood must not co-occur with sleep (eligibility excludes rejected).
+    // (Baseline test called getCoOccurrences without signal_type_a/b, which is a 400 —
+    // types are required by the Task 4 contract.)
+    const sleepMood = await getCoOccurrences(store, uid, {
       mode: 'same_local_day',
+      signal_type_a: 'sleep',
+      signal_type_b: 'mood',
       timezone: 'UTC',
     });
-    for (const pair of allPairs.pairs) {
-      expect(pair.signal_a.user_status).not.toBe('rejected');
-      expect(pair.signal_b.user_status).not.toBe('rejected');
-      expect(pair.signal_a.negated).not.toBe(true);
-      expect(pair.signal_b.negated).not.toBe(true);
+    expect(sleepMood.error).toBeUndefined();
+    expect(sleepMood.co_occurrences).toHaveLength(0);
+
+    // Negated confirmed fatigue is excluded from positive energy eligibility.
+    const energyMood = await getCoOccurrences(store, uid, {
+      mode: 'same_local_day',
+      signal_type_a: 'energy',
+      signal_type_b: 'mood',
+      timezone: 'UTC',
+    });
+    expect(energyMood.co_occurrences).toHaveLength(0);
+
+    for (const row of [...sameDay.co_occurrences, ...within.co_occurrences]) {
+      for (const sample of row.sample_statuses || []) {
+        expect(sample.a_status).not.toBe('rejected');
+        expect(sample.b_status).not.toBe('rejected');
+      }
+      // within_hours rows expose a_status/b_status directly
+      if (row.a_status) expect(row.a_status).not.toBe('rejected');
+      if (row.b_status) expect(row.b_status).not.toBe('rejected');
+      if (row.a_uncertain !== undefined) {
+        // negated signals never appear as eligible partners
+        expect(row).not.toHaveProperty('negated', true);
+      }
     }
   });
 
@@ -559,7 +584,7 @@ describe('timeline query foundation (Task 4)', () => {
       ip: a.ip,
     });
     expect(ok.statusCode).toBe(200);
-    expect(ok.json?.observation?.raw_text).toBe('I slept terribly again');
+    expect(ok.json?.observation?.payload?.raw_text).toBe('I slept terribly again');
     expect(ok.json?.linked_signals?.length).toBe(1);
     expect(ok.json?.linked_signals?.[0]?.source_observation_id).toBe(obs.id);
 

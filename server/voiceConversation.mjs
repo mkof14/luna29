@@ -112,6 +112,43 @@ const buildSystemPrompt = ({ lang, persona, mode, context }) => {
   const stateLine = context?.stateSnapshot ? `Recent state snapshot: ${context.stateSnapshot}.` : '';
   const teaserLine = mode === 'teaser' ? 'This is a short anonymous preview — one warm reply, invite creating an account gently if helpful.' : '';
 
+  // Server-built personal context only. Client-supplied personal_context is never trusted.
+  let personalContextBlock = '';
+  const pack = context?.personal_context;
+  if (pack && typeof pack === 'object' && pack.version === 'personal_context_v1') {
+    try {
+      // Lazy import avoided: format inline to keep voice module self-contained for prompt rules.
+      const items =
+        (pack.recent_signals?.length || 0) +
+        (pack.timeline_facts?.length || 0) +
+        (pack.confirmed_patterns?.length || 0) +
+        (pack.relevant_facts?.length || 0);
+      if (pack.status === 'ok' && items > 0) {
+        const serialized = JSON.stringify(pack);
+        if (serialized.length <= 8000) {
+          personalContextBlock = `
+
+<personal_context>
+${serialized}
+</personal_context>
+
+Personal context rules (mandatory):
+- Treat <personal_context> as historical user-provided/derived records only.
+- These are recorded observations/signals/patterns — not medical truth, diagnosis, or lab results.
+- Do not invent missing history. If a fact is absent, do not imply memory of it.
+- Do not claim causality, correlation, hormone effects, fertility, ovulation, or perimenopause.
+- Do not treat automatic pattern candidates as confirmed; only status=confirmed patterns are included.
+- Distinguish "recorded" from "medically true". Prefer language like "you recorded…" when referencing history.
+- Do not expose internal IDs or mention hidden context machinery.
+- If personal context is empty or status is not ok, do not imply long-term memory.
+- If the user asks what they previously said, answer only from available facts in <personal_context>.`;
+        }
+      }
+    } catch {
+      personalContextBlock = '';
+    }
+  }
+
   return `You are ${persona.name}, the living voice of Luna29 — an intelligent companion for women in real time.
 
 Identity & spirit:
@@ -125,6 +162,7 @@ Mode: ${mode || 'live'}.
 ${contextLine}
 ${stateLine}
 ${teaserLine}
+${personalContextBlock}
 
 Safety: If immediate danger or self-harm, urge contacting local emergency services first, then stay present.
 
@@ -290,7 +328,17 @@ export const handleVoiceConversation = async (body) => {
   const personaId = String(body?.personaId || 'luna').trim();
   const mode = String(body?.mode || 'live').trim().slice(0, 32);
   const history = body?.history;
-  const context = body?.context && typeof body.context === 'object' ? body.context : {};
+  const rawContext = body?.context && typeof body.context === 'object' ? body.context : {};
+  // Never trust client-supplied personal_context as authority.
+  const { personal_context: _ignoredClientPack, personalContext: _ignoredClientPack2, ...safeClientContext } = rawContext;
+  const serverPack =
+    body?.__server_personal_context && typeof body.__server_personal_context === 'object'
+      ? body.__server_personal_context
+      : null;
+  const context = {
+    ...safeClientContext,
+    ...(serverPack ? { personal_context: serverPack } : {}),
+  };
   const withAudio = body?.withAudio !== false;
 
   const textResult = await generateLunaTextReply({
@@ -316,6 +364,7 @@ export const handleVoiceConversation = async (body) => {
     }
   }
 
+  const packMeta = context?.personal_context;
   return {
     text: textResult.text,
     audio,
@@ -324,6 +373,10 @@ export const handleVoiceConversation = async (body) => {
     provider: audio ? `${textResult.provider}+elevenlabs` : textResult.provider,
     ttsProvider,
     degraded: Boolean(textResult.degraded),
+    // Safe operational meta only — no health content.
+    personal_context_status: packMeta?.status || 'none',
+    personal_context_item_count: Number(packMeta?.budget?.actual_items) || 0,
+    personal_context_truncated: Boolean(packMeta?.budget?.truncated),
   };
 };
 

@@ -34,10 +34,11 @@ const upstashIncr = async (key, windowMs) => {
 
 export const createRateLimiter = () => {
   const check = async (key, limit, windowMs) => {
-    // Vitest runs files in parallel and shares this process-local store.
-    // Skip memory rate limits in test runtime so suites do not collide.
-    // Production / preview behavior is unchanged (Upstash or memory still apply outside Vitest).
-    if (process.env.VITEST || process.env.NODE_ENV === 'test') {
+    // Vitest-only bypass: process-local store is shared across parallel test files.
+    // Requires VITEST (set by the Vitest runner). NODE_ENV=test alone is NOT enough,
+    // so preview/production cannot activate this path via env spoofing of NODE_ENV.
+    // Request headers/query/body cannot set process.env.VITEST.
+    if (process.env.VITEST) {
       return true;
     }
     if (isUpstashRateLimitEnabled()) {

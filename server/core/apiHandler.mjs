@@ -50,6 +50,10 @@ import {
   PATTERN_ENGINE_DEFAULT_WINDOW_DAYS,
   PATTERN_ENGINE_MAX_WINDOW_DAYS,
 } from './patternCandidatesService.mjs';
+import {
+  buildPersonalContextPack,
+  PERSONAL_CONTEXT_VERSION,
+} from './personalContextPackService.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -2393,15 +2397,77 @@ const start = async () => {
     }
 
     if (method === 'POST' && url.pathname === '/api/voice/respond') {
-      const auth = await requireSessionAndAi(req, res, headers);
+      // Cookie or Bearer + AI consent. Owner derived server-side only.
+      const auth = await requireMobileSession(req, res, headers);
       if (!auth) return;
+      if (!hasAiProcessingConsent(req)) {
+        send(res, 403, { error: 'AI processing consent required. Enable in Privacy settings.' }, headers);
+        return;
+      }
       if (!(await rateLimit(`voice-respond:${ip}:${auth.current.user.id}`, 30, 60_000))) {
         send(res, 429, { error: 'Too many voice requests. Try again in a minute.' }, headers);
         return;
       }
       try {
         const body = await readBody(req);
-        const result = await handleVoiceConversation(body);
+        // Ignore any client-supplied personal context / user_id as authority.
+        const transcript = typeof body?.transcript === 'string' ? body.transcript : typeof body?.text === 'string' ? body.text : '';
+        const timezone =
+          (body?.context && typeof body.context === 'object' && body.context.timezone) ||
+          body?.timezone ||
+          undefined;
+
+        let serverPack = null;
+        if (personalEventsStoreAvailable) {
+          try {
+            serverPack = await buildPersonalContextPack({
+              store: personalEventsStore,
+              userId: auth.current.user.id,
+              messageText: transcript,
+              timezone,
+            });
+          } catch {
+            serverPack = {
+              version: PERSONAL_CONTEXT_VERSION,
+              status: 'unavailable',
+              reason: 'context_build_failed',
+              recent_signals: [],
+              timeline_facts: [],
+              confirmed_patterns: [],
+              relevant_facts: [],
+              exclusions_applied: ['context_build_failed'],
+              budget: { max_items: 0, max_chars: 0, actual_items: 0, actual_chars: 0, truncated: false },
+            };
+          }
+        } else {
+          serverPack = {
+            version: PERSONAL_CONTEXT_VERSION,
+            status: 'unavailable',
+            reason: 'store_unavailable',
+            recent_signals: [],
+            timeline_facts: [],
+            confirmed_patterns: [],
+            relevant_facts: [],
+            exclusions_applied: ['store_unavailable'],
+            budget: { max_items: 0, max_chars: 0, actual_items: 0, actual_chars: 0, truncated: false },
+          };
+        }
+
+        // Safe operational log only — no health content.
+        console.info(
+          '[voice] personal_context',
+          JSON.stringify({
+            status: serverPack?.status || 'none',
+            items: Number(serverPack?.budget?.actual_items) || 0,
+            truncated: Boolean(serverPack?.budget?.truncated),
+            authenticated: true,
+          }),
+        );
+
+        const result = await handleVoiceConversation({
+          ...body,
+          __server_personal_context: serverPack,
+        });
         send(res, 200, result, headers);
       } catch (error) {
         send(res, 500, { error: error instanceof Error ? error.message : 'Voice conversation failed.' }, headers);

@@ -705,7 +705,8 @@ describe('observation + signal extraction foundation (Task 3)', () => {
     __setGenerateContentForTests(async () => {
       throw new Error('boom postgresql://user:password@host/db SECRET_HEALTH_PAYLOAD_XYZ');
     });
-    const user = await signup('leak@test.com');
+    const handler = await buildApiHandler({ dataDir, environment: 'test' });
+    const user = await signup(handler, 'leak@test.com', '198.51.100.23');
     const create = await invoke(handler, {
       method: 'POST',
       path: '/api/personal/observations',

@@ -286,9 +286,11 @@ describe('pattern candidates foundation (Task 5)', () => {
     let result = await evaluatePatternCandidates(store, uid, { timezone: 'UTC' });
     expect(ofType(result.candidates, 'repeated_signal')).toHaveLength(0);
 
-    for (let i = 0; i < 4; i += 1) {
+    // Span must meet min_span_days (7): four corrected days across >= 7 calendar days.
+    const correctedDays = ['2026-06-01', '2026-06-05', '2026-06-10', '2026-06-15'];
+    for (let i = 0; i < correctedDays.length; i += 1) {
       await seedSignal(uid, {
-        occurredAt: `2026-06-0${i + 1}T12:00:00.000Z`,
+        occurredAt: `${correctedDays[i]}T12:00:00.000Z`,
         clientEventId: `c-${i}`,
         payload: {
           user_status: 'corrected',
@@ -422,7 +424,7 @@ describe('pattern candidates foundation (Task 5)', () => {
     const asOfMs = Date.parse(asOf);
     const day = 86_400_000;
 
-    // Only one recent window with 2 events — not enough consecutive comparisons
+    // Only recent window with 2 events and empty prior — one supporting comparison, not two.
     await seedSignal(uid, {
       occurredAt: new Date(asOfMs - 3 * day).toISOString(),
       clientEventId: 'su-a1',
@@ -436,9 +438,14 @@ describe('pattern candidates foundation (Task 5)', () => {
     let result = await evaluatePatternCandidates(store, uid, { timezone: 'UTC', as_of: asOf });
     expect(ofType(result.candidates, 'sustained_recording_increase')).toHaveLength(0);
 
-    // Window0 (0-14d): 3, prior0 (14-28d): 1 → increase
-    // Window1 (14-28d): 1, prior1 (28-42d): 0 → newly/increase
-    // Need window1 current also >= 2 — seed more in 14-28d and fewer in 28-42d
+    // Window0 (0-14d): 3 vs prior (14-28d): 2 → increased_recording
+    // Window1 (14-28d): 2 vs prior (28-42d): 0 → newly_recorded
+    // Both windows need current_count >= min_current_window_occurrences (2).
+    await seedSignal(uid, {
+      occurredAt: new Date(asOfMs - 7 * day).toISOString(),
+      clientEventId: 'su-a3',
+      payload: { user_status: 'confirmed' },
+    });
     await seedSignal(uid, {
       occurredAt: new Date(asOfMs - 16 * day).toISOString(),
       clientEventId: 'su-b1',
@@ -447,17 +454,6 @@ describe('pattern candidates foundation (Task 5)', () => {
     await seedSignal(uid, {
       occurredAt: new Date(asOfMs - 18 * day).toISOString(),
       clientEventId: 'su-b2',
-      payload: { user_status: 'confirmed' },
-    });
-    await seedSignal(uid, {
-      occurredAt: new Date(asOfMs - 20 * day).toISOString(),
-      clientEventId: 'su-b3',
-      payload: { user_status: 'confirmed' },
-    });
-    // prior for second comparison: 1 only
-    await seedSignal(uid, {
-      occurredAt: new Date(asOfMs - 35 * day).toISOString(),
-      clientEventId: 'su-c1',
       payload: { user_status: 'confirmed' },
     });
     result = await evaluatePatternCandidates(store, uid, { timezone: 'UTC', as_of: asOf });
@@ -474,8 +470,13 @@ describe('pattern candidates foundation (Task 5)', () => {
     const c = findType(result.candidates, 'repeated_signal');
     expect(['low', 'moderate', 'strong']).toContain(c.confidence_band);
     expect(c.status).toBe('candidate');
-    expect(JSON.stringify(c)).not.toMatch(/0\.\d{2,}/);
+    // Band labels only — no numeric probability / confidence score fields.
+    // (Do not scan full JSON: ISO timestamps contain fractional seconds like .982.)
+    expect(c.confidence).toBeUndefined();
+    expect(c.confidence_score).toBeUndefined();
+    expect(c.probability).toBeUndefined();
     expect(c.confidence_band).not.toMatch(/\d/);
+    expect(JSON.stringify({ confidence_band: c.confidence_band, status: c.status })).not.toMatch(/0\.\d{2,}/);
   });
 
   it('27-30. confirm / reject / suppression / material evidence change', async () => {
