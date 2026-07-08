@@ -41,6 +41,15 @@ import {
   getTimelineSummaryData,
   TIMELINE_MAX_LIMIT,
 } from './timelineQueryService.mjs';
+import {
+  evaluatePatternCandidates,
+  listPatternCandidates,
+  getPatternCandidate,
+  confirmPatternCandidate,
+  rejectPatternCandidate,
+  PATTERN_ENGINE_DEFAULT_WINDOW_DAYS,
+  PATTERN_ENGINE_MAX_WINDOW_DAYS,
+} from './patternCandidatesService.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -1736,6 +1745,162 @@ const start = async () => {
       return;
     }
 
+
+
+    // --- Authenticated pattern candidate engine v1 (Task 5) ---
+    if (method === 'POST' && url.pathname === '/api/personal/pattern-candidates/evaluate') {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
+      if (!personalEventsStoreAvailable) {
+        sendPersonalEventsUnavailable(res, headers);
+        return;
+      }
+      if (!(await rateLimit(`pattern-eval:${ip}:${auth.current.user.id}`, 10, 60_000))) {
+        send(res, 429, { error: 'Too many pattern evaluations. Try again in a minute.' }, headers);
+        return;
+      }
+      try {
+        const body = await readBody(req);
+        // Ignore any client-supplied user_id — ownership is auth only.
+        const result = await evaluatePatternCandidates(personalEventsStore, auth.current.user.id, {
+          timezone: body?.timezone || url.searchParams.get('timezone') || undefined,
+          window_days: body?.window_days ?? url.searchParams.get('window_days') ?? undefined,
+          as_of: body?.as_of || url.searchParams.get('as_of') || undefined,
+        });
+        if (result.error) {
+          send(res, result.status || 400, { error: result.error }, headers);
+          return;
+        }
+        send(res, 200, result, headers);
+      } catch (error) {
+        if (error && typeof error === 'object' && error.code === PERSONAL_EVENT_STORE_UNAVAILABLE) {
+          sendPersonalEventsUnavailable(res, headers);
+          return;
+        }
+        send(res, 400, { error: 'Could not evaluate pattern candidates.' }, headers);
+      }
+      return;
+    }
+
+    if (method === 'GET' && url.pathname === '/api/personal/pattern-candidates') {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
+      if (!personalEventsStoreAvailable) {
+        sendPersonalEventsUnavailable(res, headers);
+        return;
+      }
+      try {
+        const result = await listPatternCandidates(personalEventsStore, auth.current.user.id, {
+          status: url.searchParams.get('status') || undefined,
+          candidate_type: url.searchParams.get('candidate_type') || undefined,
+          since: url.searchParams.get('since') || undefined,
+          limit: url.searchParams.get('limit'),
+          offset: url.searchParams.get('offset'),
+          timezone: url.searchParams.get('timezone') || undefined,
+        });
+        if (result.error) {
+          send(res, result.status || 400, { error: result.error }, headers);
+          return;
+        }
+        send(res, 200, result, headers);
+      } catch (error) {
+        if (error && typeof error === 'object' && error.code === PERSONAL_EVENT_STORE_UNAVAILABLE) {
+          sendPersonalEventsUnavailable(res, headers);
+          return;
+        }
+        send(res, 400, { error: 'Could not list pattern candidates.' }, headers);
+      }
+      return;
+    }
+
+    if (method === 'GET' && /^\/api\/personal\/pattern-candidates\/[^/]+$/.test(url.pathname)) {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
+      if (!personalEventsStoreAvailable) {
+        sendPersonalEventsUnavailable(res, headers);
+        return;
+      }
+      const candidateId = safeId(url.pathname.split('/').pop() || '', 120);
+      if (!candidateId) {
+        send(res, 400, { error: 'Candidate id is required.' }, headers);
+        return;
+      }
+      try {
+        const result = await getPatternCandidate(personalEventsStore, auth.current.user.id, candidateId);
+        if (result.error) {
+          send(res, result.status || 404, { error: result.error }, headers);
+          return;
+        }
+        send(res, 200, result, headers);
+      } catch (error) {
+        if (error && typeof error === 'object' && error.code === PERSONAL_EVENT_STORE_UNAVAILABLE) {
+          sendPersonalEventsUnavailable(res, headers);
+          return;
+        }
+        send(res, 400, { error: 'Could not load pattern candidate.' }, headers);
+      }
+      return;
+    }
+
+    if (method === 'POST' && /^\/api\/personal\/pattern-candidates\/[^/]+\/confirm$/.test(url.pathname)) {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
+      if (!personalEventsStoreAvailable) {
+        sendPersonalEventsUnavailable(res, headers);
+        return;
+      }
+      const parts = url.pathname.split('/');
+      const candidateId = safeId(parts[parts.length - 2] || '', 120);
+      if (!candidateId) {
+        send(res, 400, { error: 'Candidate id is required.' }, headers);
+        return;
+      }
+      try {
+        const result = await confirmPatternCandidate(personalEventsStore, auth.current.user.id, candidateId);
+        if (result.error) {
+          send(res, result.status || 404, { error: result.error }, headers);
+          return;
+        }
+        send(res, 200, { ok: true, candidate: result.candidate }, headers);
+      } catch (error) {
+        if (error && typeof error === 'object' && error.code === PERSONAL_EVENT_STORE_UNAVAILABLE) {
+          sendPersonalEventsUnavailable(res, headers);
+          return;
+        }
+        send(res, 400, { error: 'Could not confirm pattern candidate.' }, headers);
+      }
+      return;
+    }
+
+    if (method === 'POST' && /^\/api\/personal\/pattern-candidates\/[^/]+\/reject$/.test(url.pathname)) {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
+      if (!personalEventsStoreAvailable) {
+        sendPersonalEventsUnavailable(res, headers);
+        return;
+      }
+      const parts = url.pathname.split('/');
+      const candidateId = safeId(parts[parts.length - 2] || '', 120);
+      if (!candidateId) {
+        send(res, 400, { error: 'Candidate id is required.' }, headers);
+        return;
+      }
+      try {
+        const result = await rejectPatternCandidate(personalEventsStore, auth.current.user.id, candidateId);
+        if (result.error) {
+          send(res, result.status || 404, { error: result.error }, headers);
+          return;
+        }
+        send(res, 200, { ok: true, candidate: result.candidate }, headers);
+      } catch (error) {
+        if (error && typeof error === 'object' && error.code === PERSONAL_EVENT_STORE_UNAVAILABLE) {
+          sendPersonalEventsUnavailable(res, headers);
+          return;
+        }
+        send(res, 400, { error: 'Could not reject pattern candidate.' }, headers);
+      }
+      return;
+    }
 
     // --- Authenticated deterministic timeline query layer (Task 4) ---
     if (method === 'GET' && url.pathname === '/api/personal/timeline') {

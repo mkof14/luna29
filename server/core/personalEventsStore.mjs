@@ -51,6 +51,7 @@ export const ALLOWED_EVENT_TYPES = new Set([
   'note',
   'observation',
   'signal',
+  'pattern_candidate',
 ]);
 
 const ALLOWED_SOURCES = new Set([
