@@ -662,10 +662,15 @@ describe('API fail-closed + authz (WS1.5)', () => {
   it('25/27. unavailable storage returns 503 and health reports unavailable', async () => {
     process.env.NODE_ENV = 'production';
     process.env.VERCEL_ENV = 'production';
+    process.env.HEALTH_VERBOSE_SECRET = 'ops-health-secret';
     delete process.env.DATABASE_URL;
     const { buildApiHandler } = await import('../../server/core/apiHandler.mjs');
     const handler = await buildApiHandler({ dataDir: tmpDir, environment: 'vercel' });
-    const health = await invoke(handler, { method: 'GET', path: '/api/health?verbose=1' });
+    const health = await invoke(handler, {
+      method: 'GET',
+      path: '/api/health?verbose=1',
+      headers: { 'x-luna-health-secret': 'ops-health-secret' },
+    });
     expect(health.statusCode).toBe(503);
     expect(health.json?.checks?.operationalRecordsStorage).toBe('unavailable');
 

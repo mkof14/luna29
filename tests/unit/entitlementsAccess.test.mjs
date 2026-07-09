@@ -264,9 +264,9 @@ describe('API premium gates (JSON harness)', () => {
   it('38. public health is minimal', async () => {
     const health = await invoke(handler, { method: 'GET', path: '/api/health' });
     expect(health.statusCode).toBe(200);
-    expect(health.json?.checks?.rateLimit).toBeTruthy();
+    expect(health.json?.ok).toBe(true);
+    expect(health.json?.status).toBe('alive');
     expect(health.json?.config).toBeUndefined();
-    expect(health.json?.checks?.aiScan).toBeUndefined();
-    expect(health.json?.checks?.googleAuth).toBeUndefined();
+    expect(health.json?.checks).toBeUndefined();
   });
 });

@@ -35,6 +35,7 @@ import {
   MAX_EVENTS_PER_REQUEST,
   DEFAULT_LIST_LIMIT,
   MAX_LIST_LIMIT,
+  resolvePersonalEventsStorageDecision,
 } from './personalEventsStore.mjs';
 import {
   createObservationWithExtraction,
@@ -84,6 +85,7 @@ import {
   MEMORY_CONSENT_VERSION,
   MEMORY_CONSENT_STORE_UNAVAILABLE,
   isMemoryConsentStoreAvailable,
+  resolveMemoryConsentStorageDecision,
 } from './memoryConsentStore.mjs';
 import {
   resolveDurableJsonStorageDecision,
@@ -133,8 +135,26 @@ import { createBillingService } from './billingServiceCore.mjs';
 import {
   initStripeWebhookEventsRepository,
   createMemoryStripeWebhookLedger,
+  summarizeStripeWebhookOps,
+  listStripeWebhookEventsByStatus,
 } from './stripeWebhookEventsStore.mjs';
 import { processStripeWebhookEvent } from './stripeWebhookProcessor.mjs';
+import {
+  resolveRequestId,
+  logRequestComplete,
+} from './requestObservability.mjs';
+import { reportServerError, normalizePublicError } from './serverErrorReporter.mjs';
+import { emitOperationalEvent, OPS } from './operationalMetrics.mjs';
+import {
+  buildLivenessPayload,
+  probePostgres,
+  probeRateLimiter,
+  probeTableReachable,
+  stripeConfigReadiness,
+  geminiConfigReadiness,
+  elevenLabsConfigReadiness,
+  isVerboseHealthAuthorized,
+} from './healthReadiness.mjs';
 import {
   resolveOperationalRecordsStorageMode,
   operationalRecordsHealthLabel,
@@ -290,7 +310,16 @@ const ORIGIN_RESOLUTION = resolveAllowedOrigins({
 });
 const ALLOWED_ORIGINS = ORIGIN_RESOLUTION.origins;
 
-const rateLimit = createRateLimiter();
+const rateLimitRaw = createRateLimiter();
+const rateLimit = async (key, limit, windowMs) => {
+  const allowed = await rateLimitRaw(key, limit, windowMs);
+  if (!allowed) {
+    emitOperationalEvent(OPS.RATE_LIMIT_DENIAL, {
+      key_prefix: String(key || '').split(':')[0].slice(0, 40),
+    });
+  }
+  return allowed;
+};
 const sessions = new Map();
 let lastSessionPurgeAt = 0;
 
@@ -556,7 +585,15 @@ const checkStorageWritable = async () => {
   }
 };
 
+/**
+ * Public = liveness only. Verbose+authorized = readiness with bounded probes.
+ * Never dumps env, DB URLs, or provider secrets.
+ */
 const buildHealthPayload = async ({ verbose = false, durableDecision = null } = {}) => {
+  if (!verbose) {
+    return buildLivenessPayload();
+  }
+
   const now = new Date().toISOString();
   const decision =
     durableDecision ||
@@ -567,93 +604,136 @@ const buildHealthPayload = async ({ verbose = false, durableDecision = null } = 
   const durableJsonAllowed = decision.allowed;
   const databaseConfigured = hasDatabaseUrl(process.env);
   const prodLikeMissingDb = !durableJsonAllowed;
-  // Avoid writing health probes to /tmp when durable JSON is forbidden.
   const storageWritable = durableJsonAllowed ? await checkStorageWritable() : false;
   const stripeConfigReady = isStripeConfigReady();
-  const billingStatus = !BILLING_ENABLED ? 'disabled' : stripeConfigReady ? 'ready' : 'misconfigured';
+  const billingStatus = stripeConfigReadiness({
+    billingEnabled: BILLING_ENABLED,
+    stripeConfigReady,
+  });
+
+  const dbProbe = await probePostgres({ getPoolStatus: getPgPoolStatus });
+  const dbLiveOk = dbProbe.status === 'ok';
+
   let billingStorageMode = resolveBillingStorageMode({
     env: process.env,
     runtimeEnvironment,
   });
-  // If mode says postgres, confirm shared pool is usable (reuse getPgPoolStatus; no Stripe calls).
-  if (billingStorageMode === 'postgres') {
-    try {
-      const poolStatus = await getPgPoolStatus();
-      if (!poolStatus.pool || poolStatus.category !== 'ok') {
-        billingStorageMode = 'unavailable';
-      }
-    } catch {
-      billingStorageMode = 'unavailable';
-    }
+  if (billingStorageMode === 'postgres' && !dbLiveOk) {
+    billingStorageMode = 'unavailable';
   }
   const billingStorageLabel = billingStorageHealthLabel(billingStorageMode);
   const trialStorageLabel = billingStorageLabel;
-  const stripeWebhookLedgerLabel =
-    billingStorageMode === 'postgres'
-      ? 'postgres'
-      : billingStorageMode === 'json'
-        ? 'json_dev'
-        : 'unavailable';
+
   let operationalRecordsMode = resolveOperationalRecordsStorageMode({
     env: process.env,
     runtimeEnvironment,
   });
-  if (operationalRecordsMode === 'postgres') {
-    try {
-      const poolStatus = await getPgPoolStatus();
-      if (!poolStatus.pool || poolStatus.category !== 'ok') {
-        operationalRecordsMode = 'unavailable';
-      }
-    } catch {
-      operationalRecordsMode = 'unavailable';
-    }
+  if (operationalRecordsMode === 'postgres' && !dbLiveOk) {
+    operationalRecordsMode = 'unavailable';
   }
   const operationalRecordsLabel = operationalRecordsHealthLabel(operationalRecordsMode);
   const operationalRecordsModeLabel = operationalRecordsStorageModeLabel(operationalRecordsMode);
+
   let userDataMode = resolveUserDataStorageMode({
     env: process.env,
     runtimeEnvironment,
   });
-  if (userDataMode === 'postgres') {
-    try {
-      const poolStatus = await getPgPoolStatus();
-      if (!poolStatus.pool || poolStatus.category !== 'ok') {
-        userDataMode = 'unavailable';
-      }
-    } catch {
-      userDataMode = 'unavailable';
-    }
+  if (userDataMode === 'postgres' && !dbLiveOk) {
+    userDataMode = 'unavailable';
   }
   const userDataLabel = userDataHealthLabel(userDataMode);
   const userDataModeLabel = userDataStorageModeLabel(userDataMode);
+
+  const authIdentityMode = resolveAuthIdentityStorageMode({
+    env: process.env,
+    runtimeEnvironment,
+  });
+  const personalEventsDecision = resolvePersonalEventsStorageDecision({
+    env: process.env,
+    runtimeEnvironment,
+  });
+  const memoryConsentDecision = resolveMemoryConsentStorageDecision({
+    env: process.env,
+    runtimeEnvironment,
+  });
+
+  let pool = null;
+  if (dbLiveOk) {
+    try {
+      const status = await getPgPoolStatus();
+      pool = status?.pool || null;
+    } catch {
+      pool = null;
+    }
+  }
+
+  const webhookLedgerProbe =
+    billingStorageMode === 'postgres'
+      ? await probeTableReachable(pool, 'stripe_webhook_events')
+      : billingStorageMode === 'json'
+        ? 'json_dev'
+        : 'unavailable';
+  const deletionOpsProbe =
+    authIdentityMode === 'postgres' || billingStorageMode === 'postgres'
+      ? await probeTableReachable(pool, 'account_deletion_ops')
+      : authIdentityMode === 'json' || !isProductionLikeRuntime(process.env)
+        ? 'json_dev'
+        : 'unavailable';
+
+  const rateLimitProbe = await probeRateLimiter();
+  const rateLimitBackend = rateLimitProbe.backend || rateLimitBackendLabel(process.env);
+  const rateLimitCheck =
+    rateLimitProbe.status === 'ok'
+      ? rateLimitBackend === 'memory'
+        ? 'memory'
+        : 'upstash'
+      : 'unavailable';
+
   const googleAuthConfigured = GOOGLE_CLIENT_IDS.size > 0;
-  const rateLimitBackend = rateLimitBackendLabel(process.env);
   const billingStorageOk = billingStorageMode !== 'unavailable';
   const operationalRecordsOk = operationalRecordsMode !== 'unavailable';
   const userDataOk = userDataMode !== 'unavailable';
-  const rateLimitOk = rateLimitBackend === 'upstash' || !isProductionLikeRuntime(process.env);
+  const rateLimitOk = rateLimitProbe.status === 'ok';
   const originsOk =
     !isProductionLikeRuntime(process.env) ||
     (ORIGIN_RESOLUTION.ok &&
       !originListHasWildcard(ALLOWED_ORIGINS) &&
       !originListHasLocalhost(ALLOWED_ORIGINS));
+  const personalEventsOk =
+    personalEventsDecision.mode === 'postgres'
+      ? dbLiveOk
+      : personalEventsDecision.mode === 'file' && !isProductionLikeRuntime(process.env);
+  const memoryConsentOk =
+    memoryConsentDecision.mode === 'postgres'
+      ? dbLiveOk
+      : memoryConsentDecision.mode === 'file' && !isProductionLikeRuntime(process.env);
+
+  const databaseReady = databaseConfigured
+    ? dbLiveOk
+    : !isProductionLikeRuntime(process.env);
   const ok =
     durableJsonAllowed &&
     storageWritable &&
+    databaseReady &&
     billingStorageOk &&
     operationalRecordsOk &&
     userDataOk &&
     rateLimitOk &&
     originsOk &&
+    personalEventsOk &&
+    memoryConsentOk &&
+    webhookLedgerProbe !== 'unavailable' &&
+    deletionOpsProbe !== 'unavailable' &&
     (!BILLING_ENABLED || stripeConfigReady) &&
     !(AUTH_ALLOW_UNVERIFIED_GOOGLE_RAW && isProductionLikeRuntime(process.env));
-  const warnings = [];
 
+  const warnings = [];
   if (!durableJsonAllowed) {
     warnings.push(
       'DATABASE_URL is required in production/preview — critical durable stores cannot use JSON or /tmp.',
     );
   }
+  if (!dbLiveOk && databaseConfigured) warnings.push('Postgres probe failed or timed out.');
   if (!billingStorageOk) {
     warnings.push('Billing/trial storage unavailable — production requires Postgres (no JSON/tmp billing).');
   }
@@ -663,9 +743,7 @@ const buildHealthPayload = async ({ verbose = false, durableDecision = null } = 
     );
   }
   if (!userDataOk) {
-    warnings.push(
-      'User data storage unavailable — calendar/mobile require Postgres in production.',
-    );
+    warnings.push('User data storage unavailable — calendar/mobile require Postgres in production.');
   }
   if (!storageWritable && durableJsonAllowed) warnings.push('Storage is not writable.');
   if (!databaseConfigured && durableJsonAllowed) {
@@ -674,7 +752,7 @@ const buildHealthPayload = async ({ verbose = false, durableDecision = null } = 
   if (rateLimitBackend === 'memory') {
     warnings.push('Upstash Redis is not configured — rate limits are in-memory (dev/test only).');
   }
-  if (rateLimitBackend === 'unavailable') {
+  if (rateLimitCheck === 'unavailable') {
     warnings.push('Durable rate limiter unavailable — production-like requests fail closed.');
   }
   if (!originsOk) {
@@ -683,22 +761,28 @@ const buildHealthPayload = async ({ verbose = false, durableDecision = null } = 
   if (AUTH_ALLOW_UNVERIFIED_GOOGLE_RAW && isProductionLikeRuntime(process.env)) {
     warnings.push('AUTH_ALLOW_UNVERIFIED_GOOGLE=true is rejected in production-like runtime.');
   }
-  if (BILLING_ENABLED && !stripeConfigReady) warnings.push('Stripe billing is enabled but required env vars are missing.');
+  if (BILLING_ENABLED && !stripeConfigReady) {
+    warnings.push('Stripe billing is enabled but required env vars are missing.');
+  }
   if (!googleAuthConfigured) warnings.push('Google OAuth client IDs are not configured.');
   if (ADMIN_EMERGENCY_RESET_KEY) {
     warnings.push('ADMIN_EMERGENCY_RESET_KEY is set — ensure this is intentional and rotated.');
   }
+  if (webhookLedgerProbe === 'unavailable') warnings.push('stripe_webhook_events table unreachable.');
+  if (deletionOpsProbe === 'unavailable') warnings.push('account_deletion_ops table unreachable.');
 
-  const databaseCheck = databaseConfigured
+  const databaseCheck = dbLiveOk
     ? 'postgres'
-    : prodLikeMissingDb
+    : databaseConfigured
       ? 'unavailable'
-      : 'json-fallback';
+      : prodLikeMissingDb
+        ? 'unavailable'
+        : 'json-fallback';
 
-  // Public health: minimal — no provider/secret presence indicators.
-  const payload = {
+  return {
     ok,
     service: 'luna-auth-api',
+    status: 'ready',
     timestamp: now,
     uptimeSec: Math.floor(process.uptime()),
     environment: runtimeEnvironment,
@@ -706,20 +790,39 @@ const buildHealthPayload = async ({ verbose = false, durableDecision = null } = 
       storage: durableJsonAllowed ? (storageWritable ? 'ok' : 'error') : 'unavailable',
       durableStorage: durableJsonAllowed ? 'ok' : 'unavailable',
       database: databaseCheck,
+      postgresProbe: dbProbe.status,
+      authStorage: authIdentityMode === 'unavailable' ? 'unavailable' : authIdentityMode === 'postgres' ? 'postgres' : 'json_dev',
       billingStorage: billingStorageLabel,
       trialStorage: trialStorageLabel,
-      stripeWebhookLedger: stripeWebhookLedgerLabel,
+      stripeWebhookLedger: webhookLedgerProbe === 'ok' ? 'postgres' : webhookLedgerProbe,
+      accountDeletionOps: deletionOpsProbe === 'ok' ? 'postgres' : deletionOpsProbe,
       operationalRecordsStorage: operationalRecordsLabel,
       userDataStorage: userDataLabel,
+      personalEventsStorage:
+        personalEventsDecision.mode === 'postgres'
+          ? dbLiveOk
+            ? 'postgres'
+            : 'unavailable'
+          : personalEventsDecision.mode === 'file'
+            ? 'file_dev'
+            : 'unavailable',
+      memoryConsentStorage:
+        memoryConsentDecision.mode === 'postgres'
+          ? dbLiveOk
+            ? 'postgres'
+            : 'unavailable'
+          : memoryConsentDecision.mode === 'file'
+            ? 'file_dev'
+            : 'unavailable',
       entitlementStorage: billingStorageLabel,
-      rateLimit: rateLimitBackend,
-      billing: billingStatus,
+      rateLimit: rateLimitCheck,
+      billing: BILLING_ENABLED ? (stripeConfigReady ? 'ready' : 'misconfigured') : 'disabled',
+      stripeConfig: billingStatus,
+      gemini: geminiConfigReadiness(),
+      elevenLabs: elevenLabsConfigReadiness(),
     },
-  };
-
-  if (verbose) {
-    payload.warnings = warnings;
-    payload.config = {
+    warnings,
+    config: {
       allowedOriginsConfigured: ORIGIN_RESOLUTION.ok,
       allowedOriginsCount: ALLOWED_ORIGINS.size,
       superAdminEmailsConfigured: SUPER_ADMIN_EMAILS.size > 0,
@@ -732,16 +835,32 @@ const buildHealthPayload = async ({ verbose = false, durableDecision = null } = 
       durableStorageReason: decision.reason,
       billingStorageMode: billingStorageLabel,
       trialStorageMode: trialStorageLabel,
-      stripeWebhookLedger: stripeWebhookLedgerLabel,
+      stripeWebhookLedger: webhookLedgerProbe === 'ok' ? 'postgres' : webhookLedgerProbe,
       operationalRecordsStorage: operationalRecordsModeLabel,
       userDataStorage: userDataModeLabel,
-      rateLimitBackend,
+      rateLimitBackend: rateLimitCheck,
       googleAuthConfigured,
       googleUnverifiedAllowed: AUTH_ALLOW_UNVERIFIED_GOOGLE,
-    };
-  }
+      geminiConfigured: geminiConfigReadiness() === 'configured',
+      elevenLabsConfigured: elevenLabsConfigReadiness() === 'configured',
+    },
+  };
+};
 
-  return payload;
+const resolveHealthVerboseAccess = (req, url) => {
+  const wantVerbose = ['1', 'true', 'yes'].includes(
+    String(url.searchParams.get('verbose') || '').toLowerCase(),
+  );
+  const verboseKey = String(req.headers['x-luna-health-secret'] || url.searchParams.get('secret') || '');
+  // Read secret at request time (not only module load) so runtime/env updates apply.
+  const healthVerboseSecret = String(process.env.HEALTH_VERBOSE_SECRET || HEALTH_VERBOSE_SECRET || '').trim();
+  const allowed = isVerboseHealthAuthorized({
+    wantVerbose,
+    verboseKey,
+    healthVerboseSecret,
+    env: process.env,
+  });
+  return { wantVerbose, allowed };
 };
 
 const readBody = async (req) => readBodyWithLimit(req);
@@ -1200,10 +1319,18 @@ const start = async () => {
 
       const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
       if (method === 'GET' && url.pathname === '/api/health') {
-        const verbose = ['1', 'true', 'yes'].includes(
-          String(url.searchParams.get('verbose') || '').toLowerCase(),
-        );
-        const payload = await buildHealthPayload({ verbose, durableDecision });
+        const access = resolveHealthVerboseAccess(req, url);
+        if (access.wantVerbose && !access.allowed) {
+          send(res, 401, { error: 'health_verbose_unauthorized', ok: false }, headers);
+          return;
+        }
+        const payload = await buildHealthPayload({ verbose: access.allowed, durableDecision });
+        if (!access.allowed) {
+          // Public liveness: process is up even when durable stores are blocked.
+          send(res, 200, payload, headers);
+          return;
+        }
+        payload.ok = false;
         send(res, 503, payload, headers);
         return;
       }
@@ -1229,10 +1356,18 @@ const start = async () => {
       }
       const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
       if (method === 'GET' && url.pathname === '/api/health') {
-        const verbose = ['1', 'true', 'yes'].includes(
-          String(url.searchParams.get('verbose') || '').toLowerCase(),
-        );
-        const payload = await buildHealthPayload({ verbose, durableDecision });
+        const access = resolveHealthVerboseAccess(req, url);
+        if (access.wantVerbose && !access.allowed) {
+          send(res, 401, { error: 'health_verbose_unauthorized', ok: false }, headers);
+          return;
+        }
+        const payload = await buildHealthPayload({ verbose: access.allowed, durableDecision });
+        if (!access.allowed) {
+          // Public liveness: process is up even when durable stores are blocked.
+          send(res, 200, payload, headers);
+          return;
+        }
+        payload.ok = false;
         send(res, 503, payload, headers);
         return;
       }
@@ -1262,10 +1397,16 @@ const start = async () => {
         }
         const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
         if (method === 'GET' && url.pathname === '/api/health') {
-          const verbose = ['1', 'true', 'yes'].includes(
-            String(url.searchParams.get('verbose') || '').toLowerCase(),
-          );
-          const payload = await buildHealthPayload({ verbose, durableDecision });
+          const access = resolveHealthVerboseAccess(req, url);
+          if (access.wantVerbose && !access.allowed) {
+            send(res, 401, { error: 'health_verbose_unauthorized', ok: false }, headers);
+            return;
+          }
+          const payload = await buildHealthPayload({ verbose: access.allowed, durableDecision });
+          if (!access.allowed) {
+            send(res, 200, payload, headers);
+            return;
+          }
           payload.ok = false;
           payload.checks = {
             ...(payload.checks || {}),
@@ -1355,10 +1496,16 @@ const start = async () => {
         }
         const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
         if (method === 'GET' && url.pathname === '/api/health') {
-          const verbose = ['1', 'true', 'yes'].includes(
-            String(url.searchParams.get('verbose') || '').toLowerCase(),
-          );
-          const payload = await buildHealthPayload({ verbose, durableDecision });
+          const access = resolveHealthVerboseAccess(req, url);
+          if (access.wantVerbose && !access.allowed) {
+            send(res, 401, { error: 'health_verbose_unauthorized', ok: false }, headers);
+            return;
+          }
+          const payload = await buildHealthPayload({ verbose: access.allowed, durableDecision });
+          if (!access.allowed) {
+            send(res, 200, payload, headers);
+            return;
+          }
           payload.ok = false;
           payload.checks = {
             ...(payload.checks || {}),
@@ -1393,6 +1540,21 @@ const start = async () => {
   if (operationalRecordsMode !== 'unavailable') {
     await adminStore.load();
   }
+  /** Filled after billing/webhook ledger init — closures read latest values. */
+  const stripeWebhookOpsAccess = {
+    summarize: async () => ({
+      ok: false,
+      reason: 'ledger_unavailable',
+      failed: [],
+      staleProcessing: [],
+      recentIgnored: [],
+      counts: {},
+      replayNote:
+        'Raw Stripe payloads are not stored. Replay from Stripe Dashboard or stripe events resend CLI.',
+    }),
+    list: async () => [],
+  };
+
   const handleAdminApi = createAdminRouter(adminStore, {
     safeText,
     normalizeEmail,
@@ -1403,6 +1565,8 @@ const start = async () => {
     sendText,
     readBody,
     buildSessionPayload,
+    getStripeWebhookOpsSummary: () => stripeWebhookOpsAccess.summarize(),
+    listStripeWebhookOps: (status, limit) => stripeWebhookOpsAccess.list(status, limit),
   });
 
   let contactSubmissions = [];
@@ -1463,10 +1627,16 @@ const start = async () => {
         }
         const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
         if (method === 'GET' && url.pathname === '/api/health') {
-          const verbose = ['1', 'true', 'yes'].includes(
-            String(url.searchParams.get('verbose') || '').toLowerCase(),
-          );
-          const payload = await buildHealthPayload({ verbose, durableDecision });
+          const access = resolveHealthVerboseAccess(req, url);
+          if (access.wantVerbose && !access.allowed) {
+            send(res, 401, { error: 'health_verbose_unauthorized', ok: false }, headers);
+            return;
+          }
+          const payload = await buildHealthPayload({ verbose: access.allowed, durableDecision });
+          if (!access.allowed) {
+            send(res, 200, payload, headers);
+            return;
+          }
           payload.ok = false;
           payload.checks = {
             ...(payload.checks || {}),
@@ -1535,10 +1705,16 @@ const start = async () => {
         }
         const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
         if (method === 'GET' && url.pathname === '/api/health') {
-          const verbose = ['1', 'true', 'yes'].includes(
-            String(url.searchParams.get('verbose') || '').toLowerCase(),
-          );
-          const payload = await buildHealthPayload({ verbose, durableDecision });
+          const access = resolveHealthVerboseAccess(req, url);
+          if (access.wantVerbose && !access.allowed) {
+            send(res, 401, { error: 'health_verbose_unauthorized', ok: false }, headers);
+            return;
+          }
+          const payload = await buildHealthPayload({ verbose: access.allowed, durableDecision });
+          if (!access.allowed) {
+            send(res, 200, payload, headers);
+            return;
+          }
           payload.ok = false;
           payload.checks = {
             ...(payload.checks || {}),
@@ -1569,6 +1745,34 @@ const start = async () => {
   // JSON/test: process-local webhook ledger (same claim semantics; not multi-instance durable).
   const stripeWebhookLedger =
     billingStorageMode === 'json' ? createMemoryStripeWebhookLedger() : null;
+
+  stripeWebhookOpsAccess.summarize = async () => {
+    if (billingStorageMode === 'postgres' && billingPgPool) {
+      return summarizeStripeWebhookOps(billingPgPool);
+    }
+    if (stripeWebhookLedger?.summarizeStripeWebhookOps) {
+      return stripeWebhookLedger.summarizeStripeWebhookOps(null);
+    }
+    return {
+      ok: false,
+      reason: 'ledger_unavailable',
+      failed: [],
+      staleProcessing: [],
+      recentIgnored: [],
+      counts: {},
+      replayNote:
+        'Raw Stripe payloads are not stored. Replay from Stripe Dashboard or stripe events resend CLI.',
+    };
+  };
+  stripeWebhookOpsAccess.list = async (status, limit) => {
+    if (billingStorageMode === 'postgres' && billingPgPool) {
+      return listStripeWebhookEventsByStatus(billingPgPool, { status, limit });
+    }
+    if (stripeWebhookLedger?.listStripeWebhookEventsByStatus) {
+      return stripeWebhookLedger.listStripeWebhookEventsByStatus(null, { status, limit });
+    }
+    return [];
+  };
 
   const saveBillingState = async () => {
     if (billingStorageMode === 'postgres') {
@@ -2125,6 +2329,7 @@ const start = async () => {
   const requireSession = async (req, res, headers, { allowDeletionInProgress = false } = {}) => {
     const current = await getSessionUser(req, users, authPgPool);
     if (!current) {
+      emitOperationalEvent(OPS.AUTH_FAILURE, { path: 'session' });
       send(res, 401, { error: 'Not authenticated.' }, headers);
       return null;
     }
@@ -2167,6 +2372,7 @@ const start = async () => {
       return null;
     }
     if (!entitlement.entitled) {
+      emitOperationalEvent(OPS.ENTITLEMENT_DENIAL, { reason: String(entitlement.reason || '').slice(0, 80) });
       send(res, 403, premiumRequiredPayload(entitlement.reason), headers);
       return null;
     }
@@ -2186,7 +2392,54 @@ const start = async () => {
   return async (req, res) => {
     const method = req.method || 'GET';
     const origin = req.headers.origin;
-    const headers = corsHeaders(origin);
+    const requestId = resolveRequestId(req.headers['x-request-id']);
+    const requestStarted = Date.now();
+    const headers = {
+      ...corsHeaders(origin),
+      'x-request-id': requestId,
+    };
+
+    // Capture response status for structured completion logs (no PII/bodies).
+    const originalWriteHead = res.writeHead.bind(res);
+    let responseStatus = 0;
+    res.writeHead = (statusCode, ...rest) => {
+      responseStatus = Number(statusCode) || 0;
+      return originalWriteHead(statusCode, ...rest);
+    };
+    const finishLog = (errorCode = null, reasonCode = null) => {
+      const route = (() => {
+        try {
+          return new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`).pathname;
+        } catch {
+          return '/';
+        }
+      })();
+      // Never log health probe details as request bodies; completion meta only.
+      logRequestComplete({
+        requestId,
+        method,
+        route,
+        status: responseStatus || 0,
+        latencyMs: Date.now() - requestStarted,
+        errorCode,
+        reasonCode,
+      });
+      if (responseStatus >= 500) {
+        emitOperationalEvent(OPS.API_5XX, { route: route.slice(0, 120), request_id: requestId });
+      }
+    };
+    if (typeof res.on === 'function') {
+      res.on('finish', () => finishLog());
+    } else {
+      const originalEnd = res.end?.bind(res);
+      if (typeof originalEnd === 'function') {
+        res.end = (...args) => {
+          const out = originalEnd(...args);
+          finishLog();
+          return out;
+        };
+      }
+    }
 
     if (method === 'OPTIONS') {
       sendEmpty(res, 204, headers);
@@ -2225,15 +2478,17 @@ const start = async () => {
     }
 
     if (method === 'GET' && url.pathname === '/api/health') {
-      const wantVerbose = ['1', 'true', 'yes'].includes(
-        String(url.searchParams.get('verbose') || '').toLowerCase(),
-      );
-      const verboseKey = String(req.headers['x-luna-health-secret'] || url.searchParams.get('secret') || '');
-      const verboseAllowed =
-        wantVerbose &&
-        (!isProductionLikeRuntime(process.env) ||
-          (HEALTH_VERBOSE_SECRET && verboseKey && verboseKey === HEALTH_VERBOSE_SECRET));
-      const payload = await buildHealthPayload({ verbose: Boolean(verboseAllowed) });
+      const access = resolveHealthVerboseAccess(req, url);
+      if (access.wantVerbose && !access.allowed) {
+        send(res, 401, { error: 'health_verbose_unauthorized', ok: false }, headers);
+        return;
+      }
+      const payload = await buildHealthPayload({ verbose: Boolean(access.allowed) });
+      // Public liveness always 200; readiness uses ok for 200/503.
+      if (!access.allowed) {
+        send(res, 200, payload, headers);
+        return;
+      }
       send(res, payload.ok ? 200 : 503, payload, headers);
       return;
     }
@@ -3673,13 +3928,19 @@ const start = async () => {
         send(res, 429, { error: 'Too many image scan attempts. Try again in a minute.' }, headers);
         return;
       }
+      const labsStarted = Date.now();
+      emitOperationalEvent(OPS.LABS_OCR_REQUEST, { kind: 'image' });
       try {
         const body = await readBody(req);
         const dataUrl = safeText(body.dataUrl, 5_000_000);
         const mimeType = safeText(body.mimeType, 120) || 'image/png';
         const result = await extractLabTextFromImage({ dataUrl, mimeType });
+        emitOperationalEvent(OPS.LABS_OCR_SUCCESS, { kind: 'image' });
+        emitOperationalEvent(OPS.LABS_OCR_LATENCY, { kind: 'image', latency_ms: Date.now() - labsStarted });
         send(res, 200, { text: result.text, message: result.message, provider: GEMINI_API_KEY ? 'gemini' : 'fallback' }, headers);
       } catch (error) {
+        emitOperationalEvent(OPS.LABS_OCR_FAILURE, { kind: 'image' });
+        emitOperationalEvent(OPS.LABS_OCR_LATENCY, { kind: 'image', latency_ms: Date.now() - labsStarted });
         send(res, 400, { error: error instanceof Error ? error.message : 'Could not scan image.' }, headers);
       }
       return;
@@ -3692,13 +3953,19 @@ const start = async () => {
         send(res, 429, { error: 'Too many PDF scan attempts. Try again in a minute.' }, headers);
         return;
       }
+      const labsStarted = Date.now();
+      emitOperationalEvent(OPS.LABS_OCR_REQUEST, { kind: 'pdf' });
       try {
         const body = await readBody(req);
         const dataUrl = safeText(body.dataUrl, 15_000_000);
         const mimeType = safeText(body.mimeType, 120) || 'application/pdf';
         const result = await extractLabTextFromPdf({ dataUrl, mimeType });
+        emitOperationalEvent(OPS.LABS_OCR_SUCCESS, { kind: 'pdf' });
+        emitOperationalEvent(OPS.LABS_OCR_LATENCY, { kind: 'pdf', latency_ms: Date.now() - labsStarted });
         send(res, 200, { text: result.text, message: result.message, provider: GEMINI_API_KEY ? 'gemini' : 'fallback' }, headers);
       } catch (error) {
+        emitOperationalEvent(OPS.LABS_OCR_FAILURE, { kind: 'pdf' });
+        emitOperationalEvent(OPS.LABS_OCR_LATENCY, { kind: 'pdf', latency_ms: Date.now() - labsStarted });
         send(res, 400, { error: error instanceof Error ? error.message : 'Could not scan PDF.' }, headers);
       }
       return;
@@ -3860,7 +4127,30 @@ const start = async () => {
           headers,
         );
       } catch (error) {
-        send(res, 500, { error: error instanceof Error ? error.message : 'Voice conversation failed.' }, headers);
+        emitOperationalEvent(OPS.VOICE_FAILURE, {
+          error_code: 'voice_internal_error',
+          request_id: requestId,
+        });
+        reportServerError(error, {
+          request_id: requestId,
+          route: '/api/voice/respond',
+          error_code: 'voice_internal_error',
+        });
+        const prodLike = isProductionLikeRuntime(process.env);
+        send(
+          res,
+          500,
+          normalizePublicError({
+            status: 500,
+            publicCode: 'voice_unavailable',
+            reasonCode: 'voice_internal_error',
+            requestId,
+            message: error instanceof Error ? error.message : 'Voice conversation failed.',
+            isProductionLike: prodLike,
+            error,
+          }),
+          headers,
+        );
       }
       return;
     }

@@ -20,6 +20,7 @@ import {
   markStripeWebhookEventFailed,
   createMemoryStripeWebhookLedger,
 } from './stripeWebhookEventsStore.mjs';
+import { emitOperationalEvent, OPS } from './operationalMetrics.mjs';
 import {
   getBillingAccountByStripeCustomerId,
   getBillingAccountByEmail,
@@ -454,6 +455,9 @@ export const processStripeWebhookEvent = async ({
   }
 
   if (claim.action === 'skip') {
+    emitOperationalEvent(OPS.STRIPE_WEBHOOK_DUPLICATE, {
+      reason: String(claim.reason || '').slice(0, 80),
+    });
     safeLog({
       event_id: projection.eventId,
       event_type: projection.eventType,
@@ -474,6 +478,7 @@ export const processStripeWebhookEvent = async ({
 
   if (claim.action === 'in_progress') {
     // Another instance is processing — ask Stripe to retry shortly.
+    emitOperationalEvent(OPS.STRIPE_WEBHOOK_IN_PROGRESS, {});
     safeLog({
       event_id: projection.eventId,
       event_type: projection.eventType,
@@ -493,6 +498,7 @@ export const processStripeWebhookEvent = async ({
   // Unsupported → ignore (2xx), no projection mutation
   if (!projection.supported) {
     await claimApi.markStripeWebhookEventIgnored(pool, projection.eventId, 'unsupported_event');
+    emitOperationalEvent(OPS.STRIPE_WEBHOOK_IGNORED, { reason: 'unsupported_event' });
     safeLog({
       event_id: projection.eventId,
       event_type: projection.eventType,
@@ -524,6 +530,7 @@ export const processStripeWebhookEvent = async ({
       // Ambiguous mapping: do not mutate; ignore (2xx) to avoid infinite poison retries.
       if (applied.code === 'user_mapping_ambiguous') {
         await claimApi.markStripeWebhookEventIgnored(pool, projection.eventId, applied.code);
+        emitOperationalEvent(OPS.STRIPE_WEBHOOK_IGNORED, { reason: applied.code });
         safeLog({
           event_id: projection.eventId,
           event_type: projection.eventType,
@@ -542,6 +549,7 @@ export const processStripeWebhookEvent = async ({
         };
       }
       await claimApi.markStripeWebhookEventFailed(pool, projection.eventId, applied.code);
+      emitOperationalEvent(OPS.STRIPE_WEBHOOK_FAILED, { reason: String(applied.code || '').slice(0, 80) });
       safeLog({
         event_id: projection.eventId,
         event_type: projection.eventType,
@@ -563,6 +571,7 @@ export const processStripeWebhookEvent = async ({
     // Unmapped or deleted auth user: ignore (no resurrection); Stripe retry won't help.
     if (applied.code === 'user_mapping_missing' || applied.code === 'auth_user_deleted') {
       await claimApi.markStripeWebhookEventIgnored(pool, projection.eventId, applied.code);
+      emitOperationalEvent(OPS.STRIPE_WEBHOOK_IGNORED, { reason: applied.code });
       safeLog({
         event_id: projection.eventId,
         event_type: projection.eventType,
@@ -583,6 +592,9 @@ export const processStripeWebhookEvent = async ({
 
     // Stale/same: still mark processed (event handled safely, no overwrite).
     await claimApi.markStripeWebhookEventProcessed(pool, projection.eventId);
+    emitOperationalEvent(OPS.STRIPE_WEBHOOK_PROCESSED, {
+      reason: String(applied.code || '').slice(0, 80),
+    });
     safeLog({
       event_id: projection.eventId,
       event_type: projection.eventType,
@@ -605,6 +617,7 @@ export const processStripeWebhookEvent = async ({
     } catch {
       /* still return non-2xx */
     }
+    emitOperationalEvent(OPS.STRIPE_WEBHOOK_FAILED, { reason: 'projection_failed' });
     safeLog({
       event_id: projection.eventId,
       event_type: projection.eventType,

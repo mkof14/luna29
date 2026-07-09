@@ -7,6 +7,8 @@ if (!baseUrl) {
   process.exit(1);
 }
 
+const healthSecret = String(process.env.HEALTH_VERBOSE_SECRET || '').trim();
+
 const checks = [
   { name: 'Public Home', path: '/', type: 'html' },
   { name: 'Rhythm Calendar', path: '/rhythm-calendar', type: 'html' },
@@ -15,7 +17,9 @@ const checks = [
   { name: 'About', path: '/about', type: 'html' },
   { name: 'Session API', path: '/api/auth/session', type: 'json-session' },
   { name: 'Health API', path: '/api/health', type: 'json-health' },
-  { name: 'Health verbose', path: '/api/health?verbose=1', type: 'json-health-verbose' },
+  ...(healthSecret
+    ? [{ name: 'Health readiness', path: '/api/health?verbose=1', type: 'json-health-verbose' }]
+    : []),
 ];
 
 const failures = [];
@@ -23,7 +27,11 @@ const failures = [];
 for (const check of checks) {
   const url = `${baseUrl}${check.path}`;
   try {
-    const response = await fetch(url, { redirect: 'follow' });
+    const init =
+      check.type === 'json-health-verbose' && healthSecret
+        ? { redirect: 'follow', headers: { 'x-luna-health-secret': healthSecret } }
+        : { redirect: 'follow' };
+    const response = await fetch(url, init);
     if (!response.ok) {
       failures.push(`${check.name}: HTTP ${response.status} for ${url}`);
       continue;
@@ -48,8 +56,11 @@ for (const check of checks) {
     }
 
     if (check.type === 'json-health') {
-      if (body?.ok !== true) {
-        failures.push(`${check.name}: Expected { ok: true } in ${url}`);
+      if (body?.ok !== true || body?.status !== 'alive') {
+        failures.push(`${check.name}: Expected { ok: true, status: "alive" } in ${url}`);
+      }
+      if (body?.config || body?.checks?.gemini || body?.checks?.database) {
+        failures.push(`${check.name}: Public liveness must not expose readiness topology`);
       }
       continue;
     }
@@ -66,6 +77,12 @@ for (const check of checks) {
   } catch (error) {
     failures.push(`${check.name}: ${error instanceof Error ? error.message : String(error)}`);
   }
+}
+
+if (!healthSecret) {
+  console.warn(
+    'Note: HEALTH_VERBOSE_SECRET not set locally — skipped protected readiness smoke. Public liveness still checked.',
+  );
 }
 
 if (failures.length > 0) {

@@ -71,6 +71,8 @@ export const createAdminRouter = (store, deps) => {
     sendText,
     readBody,
     buildSessionPayload,
+    getStripeWebhookOpsSummary = null,
+    listStripeWebhookOps = null,
   } = deps;
 
   return async function handleAdminApi(req, res, context) {
@@ -414,18 +416,20 @@ export const createAdminRouter = (store, deps) => {
       const { users = [], billingState = {} } = context;
       const liveFinancial = computeLiveFinancialMetrics(users, billingState, adminState.financialMetrics);
       const now = new Date();
-      const nextApiP95 = Math.max(120, Math.round(adminState.technicalMetrics.apiP95 + (Math.random() * 16 - 8)));
-      const nextErrorRate = Math.max(0.1, Number((adminState.technicalMetrics.errorRate + (Math.random() * 0.08 - 0.04)).toFixed(2)));
-      const nextQueueLag = Math.max(3, Math.round(adminState.technicalMetrics.queueLag + (Math.random() * 4 - 2)));
+      // Keep last observed technical metrics — do not invent random values.
+      const nextApiP95 = Number(adminState.technicalMetrics.apiP95) || 0;
+      const nextErrorRate = Number(adminState.technicalMetrics.errorRate) || 0;
+      const nextQueueLag = Number(adminState.technicalMetrics.queueLag) || 0;
 
       adminState.technicalMetrics = {
         ...adminState.technicalMetrics,
         apiP95: nextApiP95,
         errorRate: nextErrorRate,
         queueLag: nextQueueLag,
+        lastCheckedAt: now.toISOString(),
       };
 
-      const checkLine = `System probes: PASS (${now.toLocaleString('en-US', { timeZone: 'UTC' })} UTC)`;
+      const checkLine = `System probes: recorded (${now.toLocaleString('en-US', { timeZone: 'UTC' })} UTC) — live financial snapshot only; no synthetic latency`;
       adminState.testHistory = [checkLine, ...(adminState.testHistory || [])].slice(0, 100);
       adminState.metricsHistory = [
         {
@@ -443,7 +447,7 @@ export const createAdminRouter = (store, deps) => {
         actorEmail: auth.sessionPayload.email,
         actorRole: auth.sessionPayload.role,
         action: 'admin.metrics.check',
-        details: `Updated technical metrics (p95=${nextApiP95}ms, err=${nextErrorRate}%, queue=${nextQueueLag}s)`,
+        details: `Recorded financial snapshot (mrr=${liveFinancial.mrr}, subscribers=${liveFinancial.activeSubscribers}); technical metrics unchanged (no synthetic probes)`,
       });
       await store.save();
 
@@ -617,6 +621,45 @@ export const createAdminRouter = (store, deps) => {
         return true;
       }
       send(res, 200, { integrations: computeIntegrationsHealth(), emailEnabled: isCalendarEmailEnabled() }, headers);
+      return true;
+    }
+
+    // Stripe webhook operational visibility — metadata only, no raw payloads/secrets.
+    if (method === 'GET' && pathname === '/api/admin/ops/stripe-webhooks') {
+      const auth = await requireSession(req, res, headers);
+      if (!auth) return true;
+      // Operational recovery — not for default viewer role.
+      if (!hasAnyPermission(auth.sessionPayload, ['manage_services', 'manage_admin_roles'])) {
+        send(res, 403, { error: 'Permission denied.' }, headers);
+        return true;
+      }
+      if (typeof getStripeWebhookOpsSummary !== 'function') {
+        send(res, 503, { error: 'webhook_ops_unavailable' }, headers);
+        return true;
+      }
+      try {
+        const statusFilter = safeText(url.searchParams.get('status') || '', 40);
+        if (statusFilter && typeof listStripeWebhookOps === 'function') {
+          const events = await listStripeWebhookOps(statusFilter, Number(url.searchParams.get('limit') || 50));
+          send(
+            res,
+            200,
+            {
+              ok: true,
+              status: statusFilter,
+              events,
+              replayNote:
+                'Raw Stripe payloads are not stored. Replay from Stripe Dashboard or `stripe events resend`.',
+            },
+            headers,
+          );
+          return true;
+        }
+        const summary = await getStripeWebhookOpsSummary();
+        send(res, 200, summary, headers);
+      } catch {
+        send(res, 500, { error: 'webhook_ops_query_failed' }, headers);
+      }
       return true;
     }
 

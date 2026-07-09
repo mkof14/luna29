@@ -1,4 +1,6 @@
 import { GoogleGenAI } from '@google/genai';
+import { PROVIDER_TIMEOUT_MS, withTimeout } from './core/requestObservability.mjs';
+import { emitOperationalEvent, OPS } from './core/operationalMetrics.mjs';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.API_KEY || '';
 const GEMINI_VOICE_MODEL = String(process.env.GEMINI_VOICE_MODEL || 'gemini-2.5-flash').trim();
@@ -9,6 +11,25 @@ const GEMINI_VOICE_MODEL_FALLBACKS = [
 ].filter((model, index, list) => model && list.indexOf(model) === index);
 const ELEVENLABS_API_KEY = String(process.env.ELEVENLABS_API_KEY || '').trim();
 const ELEVENLABS_MODEL_ID = String(process.env.ELEVENLABS_MODEL_ID || 'eleven_multilingual_v2').trim();
+
+/** Classify provider failures without leaking raw bodies. */
+export const classifyProviderError = (error, provider) => {
+  const message = error instanceof Error ? error.message : String(error || '');
+  const code = error?.code || error?.name || '';
+  if (code === 'timeout' || code === `${provider}_timeout` || error?.name === 'TimeoutError' || /timeout/i.test(message)) {
+    return { publicCode: `${provider}_timeout`, httpHint: 504, retryable: true };
+  }
+  if (/429|rate.?limit|quota/i.test(message)) {
+    return { publicCode: `${provider}_rate_limited`, httpHint: 429, retryable: true };
+  }
+  if (/5\d\d|unavailable|503|502|500/i.test(message)) {
+    return { publicCode: `${provider}_unavailable`, httpHint: 502, retryable: true };
+  }
+  if (/malformed|invalid.?json|unexpected.?token|empty.?response/i.test(message)) {
+    return { publicCode: `${provider}_malformed_response`, httpHint: 502, retryable: false };
+  }
+  return { publicCode: `${provider}_unavailable`, httpHint: 502, retryable: true };
+};
 
 const DEFAULT_VOICE = String(process.env.ELEVENLABS_VOICE_ID || 'EXAVITQu4vr4xnSDxMaL').trim();
 
@@ -242,30 +263,55 @@ export const generateLunaTextReply = async ({ transcript, lang = 'en', personaId
   let reply = '';
   let lastError = null;
   let usedGemini = false;
+  let geminiErrorCode = null;
+  const geminiStarted = Date.now();
 
   for (const model of GEMINI_VOICE_MODEL_FALLBACKS) {
     try {
-      const response = await ai.models.generateContent({
-        model,
-        config: { systemInstruction: system },
-        contents,
-      });
+      const response = await withTimeout(
+        ai.models.generateContent({
+          model,
+          config: { systemInstruction: system },
+          contents,
+        }),
+        PROVIDER_TIMEOUT_MS.gemini,
+        'gemini_timeout',
+      );
       reply = String(response?.text || '').trim();
       if (reply) {
         usedGemini = true;
         break;
       }
+      lastError = new Error('empty_response');
+      geminiErrorCode = 'gemini_malformed_response';
     } catch (error) {
       lastError = error;
+      const classified = classifyProviderError(error, 'gemini');
+      geminiErrorCode = classified.publicCode;
       const message = error instanceof Error ? error.message : String(error);
-      const retryable = /429|404|503|quota|rate|unavailable/i.test(message);
+      const retryable =
+        classified.retryable || /429|404|503|quota|rate|unavailable|timeout/i.test(message);
       if (!retryable) break;
     }
   }
 
+  emitOperationalEvent(OPS.GEMINI_LATENCY, {
+    latency_ms: Date.now() - geminiStarted,
+    ok: usedGemini,
+    ...(geminiErrorCode && !usedGemini ? { error_code: geminiErrorCode } : {}),
+  });
+
   let degraded = false;
   if (!reply) {
-    console.warn('[voice] Gemini unavailable, using contextual fallback:', lastError instanceof Error ? lastError.message.slice(0, 120) : lastError);
+    // Safe log: no transcript, no raw provider body.
+    console.warn(
+      JSON.stringify({
+        type: 'voice_provider',
+        provider: 'gemini',
+        event: 'fallback_local',
+        error_code: geminiErrorCode || 'gemini_unavailable',
+      }),
+    );
     reply = localFallbackReply(text, lang);
     degraded = true;
   }
@@ -279,50 +325,88 @@ export const generateLunaTextReply = async ({ transcript, lang = 'en', personaId
     provider: usedGemini ? 'gemini' : 'local',
     followUpQuestion,
     degraded,
+    geminiErrorCode: usedGemini ? null : geminiErrorCode,
   };
 };
 
 export const synthesizeElevenLabs = async ({ text, personaId, lang = 'en' }) => {
   if (!ELEVENLABS_API_KEY || !text.trim()) {
-    return { audio: null, mimeType: 'audio/mpeg' };
+    return { audio: null, mimeType: 'audio/mpeg', errorCode: null };
   }
 
   const persona = resolvePersona(personaId);
   const voiceId = persona.voiceId || DEFAULT_VOICE;
+  const started = Date.now();
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PROVIDER_TIMEOUT_MS.elevenlabs);
 
-  const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voiceId)}`, {
-    method: 'POST',
-    headers: {
-      'xi-api-key': ELEVENLABS_API_KEY,
-      'Content-Type': 'application/json',
-      Accept: 'audio/mpeg',
-    },
-    body: JSON.stringify({
-      text: text.slice(0, 2500),
-      model_id: persona.modelId || ELEVENLABS_MODEL_ID,
-      language_code: lang.slice(0, 2),
-      voice_settings: {
-        stability: persona.stability ?? 0.45,
-        similarity_boost: persona.similarityBoost ?? 0.8,
-        style: persona.style ?? 0.35,
-        use_speaker_boost: true,
+  try {
+    const response = await fetch(
+      `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voiceId)}`,
+      {
+        method: 'POST',
+        headers: {
+          'xi-api-key': ELEVENLABS_API_KEY,
+          'Content-Type': 'application/json',
+          Accept: 'audio/mpeg',
+        },
+        body: JSON.stringify({
+          text: text.slice(0, 2500),
+          model_id: persona.modelId || ELEVENLABS_MODEL_ID,
+          language_code: lang.slice(0, 2),
+          voice_settings: {
+            stability: persona.stability ?? 0.45,
+            similarity_boost: persona.similarityBoost ?? 0.8,
+            style: persona.style ?? 0.35,
+            use_speaker_boost: true,
+          },
+        }),
+        signal: controller.signal,
       },
-    }),
-  });
+    );
 
-  if (!response.ok) {
-    const detail = await response.text().catch(() => '');
-    throw new Error(`ElevenLabs TTS failed (${response.status}): ${detail.slice(0, 200)}`);
+    if (!response.ok) {
+      // Discard body — never surface raw provider text to clients/logs.
+      await response.text().catch(() => '');
+      const err = new Error(`ElevenLabs TTS failed (${response.status})`);
+      err.status = response.status;
+      throw err;
+    }
+
+    const buffer = Buffer.from(await response.arrayBuffer());
+    emitOperationalEvent(OPS.ELEVENLABS_LATENCY, {
+      latency_ms: Date.now() - started,
+      ok: true,
+    });
+    return {
+      audio: buffer.toString('base64'),
+      mimeType: 'audio/mpeg',
+      errorCode: null,
+    };
+  } catch (error) {
+    const classified =
+      error?.name === 'AbortError'
+        ? { publicCode: 'elevenlabs_timeout' }
+        : classifyProviderError(
+            error?.status ? new Error(String(error.status)) : error,
+            'elevenlabs',
+          );
+    emitOperationalEvent(OPS.ELEVENLABS_LATENCY, {
+      latency_ms: Date.now() - started,
+      ok: false,
+      error_code: classified.publicCode,
+    });
+    const wrapped = new Error(classified.publicCode);
+    wrapped.code = classified.publicCode;
+    throw wrapped;
+  } finally {
+    clearTimeout(timer);
   }
-
-  const buffer = Buffer.from(await response.arrayBuffer());
-  return {
-    audio: buffer.toString('base64'),
-    mimeType: 'audio/mpeg',
-  };
 };
 
 export const handleVoiceConversation = async (body) => {
+  const started = Date.now();
+  emitOperationalEvent(OPS.VOICE_REQUEST, {});
   const transcript = String(body?.transcript || body?.text || '').trim().slice(0, 2000);
   const lang = String(body?.lang || 'en').trim().slice(0, 8) || 'en';
   const personaId = String(body?.personaId || 'luna').trim();
@@ -352,19 +436,37 @@ export const handleVoiceConversation = async (body) => {
 
   let audio = null;
   let ttsProvider = null;
+  let ttsErrorCode = null;
 
   if (withAudio && ELEVENLABS_API_KEY) {
     try {
       const tts = await synthesizeElevenLabs({ text: textResult.text, personaId: textResult.personaId, lang });
       audio = tts.audio;
-      ttsProvider = 'elevenlabs';
-    } catch {
+      ttsProvider = audio ? 'elevenlabs' : 'browser-fallback';
+    } catch (error) {
+      // Preserve usable text when TTS fails — explicit partial state, not silent false success.
       audio = null;
       ttsProvider = 'browser-fallback';
+      ttsErrorCode = error?.code || classifyProviderError(error, 'elevenlabs').publicCode;
+      console.warn(
+        JSON.stringify({
+          type: 'voice_provider',
+          provider: 'elevenlabs',
+          event: 'tts_failed_text_preserved',
+          error_code: ttsErrorCode,
+        }),
+      );
     }
   }
 
   const packMeta = context?.personal_context;
+  const latencyMs = Date.now() - started;
+  emitOperationalEvent(OPS.VOICE_LATENCY, { latency_ms: latencyMs });
+  emitOperationalEvent(OPS.VOICE_SUCCESS, {
+    degraded: Boolean(textResult.degraded),
+    tts_partial: Boolean(ttsErrorCode),
+  });
+
   return {
     text: textResult.text,
     audio,
@@ -373,6 +475,11 @@ export const handleVoiceConversation = async (body) => {
     provider: audio ? `${textResult.provider}+elevenlabs` : textResult.provider,
     ttsProvider,
     degraded: Boolean(textResult.degraded),
+    // Explicit TTS failure signal when text succeeded but audio did not.
+    ...(ttsErrorCode
+      ? { ttsError: ttsErrorCode, partial: true }
+      : {}),
+    ...(textResult.geminiErrorCode ? { geminiError: textResult.geminiErrorCode } : {}),
     // Safe operational meta only — no health content.
     personal_context_status: packMeta?.status || 'none',
     personal_context_item_count: Number(packMeta?.budget?.actual_items) || 0,

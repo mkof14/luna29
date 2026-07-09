@@ -711,10 +711,15 @@ describe('API ownership + fail-closed (WS1.6)', () => {
   it('34-36. unavailable returns 503; no JSON write; health unavailable', async () => {
     process.env.NODE_ENV = 'production';
     process.env.VERCEL_ENV = 'production';
+    process.env.HEALTH_VERBOSE_SECRET = 'userdata-health-secret';
     delete process.env.DATABASE_URL;
     const { buildApiHandler } = await import('../../server/core/apiHandler.mjs');
     const handler = await buildApiHandler({ dataDir: tmpDir, environment: 'vercel' });
-    const health = await invoke(handler, { method: 'GET', path: '/api/health?verbose=1' });
+    const health = await invoke(handler, {
+      method: 'GET',
+      path: '/api/health?verbose=1',
+      headers: { 'x-luna-health-secret': 'userdata-health-secret' },
+    });
     expect(health.statusCode).toBe(503);
     expect(health.json?.checks?.userDataStorage).toBe('unavailable');
 

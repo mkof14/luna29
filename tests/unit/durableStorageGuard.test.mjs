@@ -159,6 +159,7 @@ describe('durable storage production guard (WS1.1)', () => {
   it('API: production missing DATABASE_URL blocks signup and does not write critical JSON', async () => {
     process.env.NODE_ENV = 'production';
     process.env.VERCEL_ENV = 'production';
+    process.env.HEALTH_VERBOSE_SECRET = 'test-health-secret';
     delete process.env.DATABASE_URL;
 
     const { buildApiHandler } = await import('../../server/core/apiHandler.mjs');
@@ -173,11 +174,22 @@ describe('durable storage production guard (WS1.1)', () => {
     expect(signup.json?.code).toBe('DURABLE_STORAGE_UNAVAILABLE');
     expect(signup.body).not.toMatch(/postgresql:\/\/|passwordHash|stack/i);
 
-    const health = await invoke(handler, { method: 'GET', path: '/api/health?verbose=1' });
+    const unauthorized = await invoke(handler, { method: 'GET', path: '/api/health?verbose=1' });
+    expect(unauthorized.statusCode).toBe(401);
+
+    const health = await invoke(handler, {
+      method: 'GET',
+      path: '/api/health?verbose=1',
+      headers: { 'x-luna-health-secret': 'test-health-secret' },
+    });
     expect(health.statusCode).toBe(503);
     expect(health.json?.ok).toBe(false);
     expect(health.json?.checks?.durableStorage).toBe('unavailable');
     expect(health.json?.checks?.database).toBe('unavailable');
+
+    const liveness = await invoke(handler, { method: 'GET', path: '/api/health' });
+    expect(liveness.statusCode).toBe(200);
+    expect(liveness.json?.status).toBe('alive');
 
     expect(await listCriticalJsonFiles(dataDir)).toEqual([]);
   });

@@ -26,6 +26,7 @@ import {
   createStripeAccountDeletion,
   stripeCancelRequired,
 } from './stripeAccountDeletion.mjs';
+import { emitOperationalEvent, OPS } from './operationalMetrics.mjs';
 
 const logDeletion = (fields) => {
   try {
@@ -172,6 +173,10 @@ export const createAccountDeletionOrchestrator = (deps) => {
       /* best-effort */
     }
 
+    emitOperationalEvent(OPS.ACCOUNT_DELETION_STARTED, {
+      user_id_hash: userIdHash,
+    });
+
     const claim = await ops.claimOrResume({
       userId,
       requestId,
@@ -182,6 +187,9 @@ export const createAccountDeletionOrchestrator = (deps) => {
 
     const op = claim.op;
     if (!op) {
+      emitOperationalEvent(OPS.ACCOUNT_DELETION_LOCAL_FAILED, {
+        reason: 'deletion_op_claim_failed',
+      });
       return {
         ok: false,
         deleted: false,
@@ -278,6 +286,9 @@ export const createAccountDeletionOrchestrator = (deps) => {
 
           if (!cancelResult.ok) {
             await ops.fail(op.id, cancelResult.reason || 'stripe_cancel_failed');
+            emitOperationalEvent(OPS.ACCOUNT_DELETION_EXTERNAL_FAILED, {
+              reason: String(cancelResult.reason || 'stripe_cancel_failed').slice(0, 80),
+            });
             return {
               ok: false,
               deleted: false,
@@ -326,6 +337,9 @@ export const createAccountDeletionOrchestrator = (deps) => {
 
       if (!cascadeResult?.ok) {
         await ops.fail(op.id, ACCOUNT_DELETION_FAILED);
+        emitOperationalEvent(OPS.ACCOUNT_DELETION_LOCAL_FAILED, {
+          reason: ACCOUNT_DELETION_FAILED,
+        });
         logDeletion({
           stage: 'local_cleanup_failed',
           op_id: op.id,
@@ -343,6 +357,9 @@ export const createAccountDeletionOrchestrator = (deps) => {
       }
 
       await ops.complete(op.id);
+      emitOperationalEvent(OPS.ACCOUNT_DELETION_COMPLETED, {
+        user_id_hash: userIdHash,
+      });
       logDeletion({
         stage: 'completed',
         op_id: op.id,

@@ -237,6 +237,94 @@ export const getStripeWebhookEvent = async (pool, eventId) => {
   return rowToEvent(result.rows[0]);
 };
 
+/**
+ * Operational visibility helpers — metadata only (no raw Stripe payload).
+ * Automatic replay is NOT possible from ledger alone; use Stripe Dashboard/CLI.
+ */
+export const listStripeWebhookEventsByStatus = async (
+  pool,
+  { status, limit = 50, staleProcessingMs = PROCESSING_RECLAIM_MS } = {},
+) => {
+  if (!pool) return [];
+  const lim = Math.min(200, Math.max(1, Number(limit) || 50));
+  const st = String(status || '').trim();
+
+  if (st === 'stale_processing') {
+    const staleMs = Math.max(1000, Number(staleProcessingMs) || PROCESSING_RECLAIM_MS);
+    const result = await pool.query(
+      `SELECT * FROM stripe_webhook_events
+       WHERE processing_status = 'processing'
+         AND last_received_at < NOW() - ($1::double precision * INTERVAL '1 millisecond')
+       ORDER BY last_received_at ASC
+       LIMIT $2`,
+      [staleMs, lim],
+    );
+    return (result.rows || []).map(rowToEvent);
+  }
+
+  if (!['failed', 'processing', 'ignored', 'processed'].includes(st)) {
+    return [];
+  }
+
+  const result = await pool.query(
+    `SELECT * FROM stripe_webhook_events
+     WHERE processing_status = $1
+     ORDER BY COALESCE(failed_at, last_received_at) DESC
+     LIMIT $2`,
+    [st, lim],
+  );
+  return (result.rows || []).map(rowToEvent);
+};
+
+export const summarizeStripeWebhookOps = async (
+  pool,
+  { staleProcessingMs = PROCESSING_RECLAIM_MS, recentIgnoredLimit = 20 } = {},
+) => {
+  if (!pool) {
+    return {
+      ok: false,
+      reason: 'pool_missing',
+      failed: [],
+      staleProcessing: [],
+      recentIgnored: [],
+      counts: { failed: 0, processing: 0, stale_processing: 0, ignored: 0, processed: 0 },
+    };
+  }
+
+  const countsResult = await pool.query(
+    `SELECT processing_status, COUNT(*)::int AS n
+     FROM stripe_webhook_events
+     GROUP BY processing_status`,
+  );
+  const counts = { failed: 0, processing: 0, stale_processing: 0, ignored: 0, processed: 0 };
+  for (const row of countsResult.rows || []) {
+    const key = String(row.processing_status || '');
+    if (Object.prototype.hasOwnProperty.call(counts, key)) counts[key] = Number(row.n) || 0;
+  }
+
+  const failed = await listStripeWebhookEventsByStatus(pool, { status: 'failed', limit: 50 });
+  const staleProcessing = await listStripeWebhookEventsByStatus(pool, {
+    status: 'stale_processing',
+    limit: 50,
+    staleProcessingMs,
+  });
+  const recentIgnored = await listStripeWebhookEventsByStatus(pool, {
+    status: 'ignored',
+    limit: recentIgnoredLimit,
+  });
+  counts.stale_processing = staleProcessing.length;
+
+  return {
+    ok: true,
+    failed,
+    staleProcessing,
+    recentIgnored,
+    counts,
+    replayNote:
+      'Raw Stripe payloads are not stored. Replay failed/stale events from Stripe Dashboard or stripe events resend CLI.',
+  };
+};
+
 export const initStripeWebhookEventsRepository = async ({ mode, pool }) => {
   if (mode !== 'postgres') {
     return { ok: true, mode: mode || 'json' };
@@ -301,6 +389,24 @@ export const createMemoryStripeWebhookLedger = () => {
     return { action: 'in_progress', event: { ...existing }, reason: 'concurrent_processing' };
   };
 
+  const listByStatus = async (_pool, { status, limit = 50, staleProcessingMs = PROCESSING_RECLAIM_MS } = {}) => {
+    const lim = Math.min(200, Math.max(1, Number(limit) || 50));
+    const all = [...rows.values()];
+    const st = String(status || '').trim();
+    let filtered;
+    if (st === 'stale_processing') {
+      const threshold = Date.now() - (Number(staleProcessingMs) || PROCESSING_RECLAIM_MS);
+      filtered = all.filter(
+        (r) =>
+          r.processingStatus === 'processing' &&
+          new Date(r.lastReceivedAt).getTime() < threshold,
+      );
+    } else {
+      filtered = all.filter((r) => r.processingStatus === st);
+    }
+    return filtered.slice(0, lim).map((r) => ({ ...r }));
+  };
+
   return {
     rows,
     claimStripeWebhookEvent,
@@ -332,6 +438,35 @@ export const createMemoryStripeWebhookLedger = () => {
     getStripeWebhookEvent: async (_pool, eventId) => {
       const row = rows.get(String(eventId));
       return row ? { ...row } : null;
+    },
+    listStripeWebhookEventsByStatus: listByStatus,
+    summarizeStripeWebhookOps: async (_pool, opts = {}) => {
+      const failed = await listByStatus(null, { status: 'failed', limit: 50 });
+      const staleProcessing = await listByStatus(null, {
+        status: 'stale_processing',
+        limit: 50,
+        staleProcessingMs: opts.staleProcessingMs,
+      });
+      const recentIgnored = await listByStatus(null, {
+        status: 'ignored',
+        limit: opts.recentIgnoredLimit || 20,
+      });
+      const counts = { failed: 0, processing: 0, stale_processing: 0, ignored: 0, processed: 0 };
+      for (const row of rows.values()) {
+        if (Object.prototype.hasOwnProperty.call(counts, row.processingStatus)) {
+          counts[row.processingStatus] += 1;
+        }
+      }
+      counts.stale_processing = staleProcessing.length;
+      return {
+        ok: true,
+        failed,
+        staleProcessing,
+        recentIgnored,
+        counts,
+        replayNote:
+          'Raw Stripe payloads are not stored. Replay failed/stale events from Stripe Dashboard or stripe events resend CLI.',
+      };
     },
   };
 };

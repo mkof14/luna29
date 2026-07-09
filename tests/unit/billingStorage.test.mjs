@@ -584,11 +584,17 @@ describe('billing JSON API (test harness) + fail-closed', () => {
   it('prod-like without DB fails closed for billing (no JSON fallback)', async () => {
     process.env.NODE_ENV = 'production';
     process.env.VERCEL_ENV = 'production';
+    process.env.HEALTH_VERBOSE_SECRET = 'billing-health-secret';
     delete process.env.DATABASE_URL;
     vi.resetModules();
     const { buildApiHandler } = await import('../../server/core/apiHandler.mjs');
     const prodHandler = await buildApiHandler({ dataDir, environment: 'vercel' });
-    const health = await invoke(prodHandler, { method: 'GET', path: '/api/health?verbose=1', ip: nextIp() });
+    const health = await invoke(prodHandler, {
+      method: 'GET',
+      path: '/api/health?verbose=1',
+      headers: { 'x-luna-health-secret': 'billing-health-secret' },
+      ip: nextIp(),
+    });
     expect(health.statusCode).toBe(503);
     expect(health.json?.code === 'DURABLE_STORAGE_UNAVAILABLE' || health.json?.ok === false).toBe(true);
   });
