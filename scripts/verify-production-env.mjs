@@ -109,6 +109,16 @@ if (health?.checks?.storage !== 'ok') {
 if (health?.checks?.durableStorage === 'unavailable' || health?.checks?.database === 'unavailable') {
   warnings.push('Durable storage unavailable — production/preview cannot use JSON or /tmp for critical stores.');
 }
+if (
+  health?.checks?.billingStorage === 'unavailable' ||
+  health?.checks?.trialStorage === 'unavailable' ||
+  health?.checks?.billingStorage === 'json_dev' ||
+  health?.checks?.trialStorage === 'json_dev'
+) {
+  warnings.push(
+    'Billing/trial storage must be postgres in production — JSON/tmp billing fallback is forbidden.',
+  );
+}
 if (!vercelEnv.has('DATABASE_URL')) {
   warnings.push('DATABASE_URL not in Vercel — production must fail closed (no JSON/tmp for critical stores).');
 }
@@ -127,10 +137,18 @@ if (warnings.length) {
 const missingRequired = REQUIRED_ALWAYS.filter((key) => !vercelEnv.has(key));
 const durableOk =
   health?.checks?.durableStorage !== 'unavailable' && health?.checks?.database !== 'unavailable';
-if (missingRequired.length || health?.ok !== true || !durableOk) {
+const billingStorageOk = health?.checks?.billingStorage === 'postgres';
+const trialStorageOk = health?.checks?.trialStorage === 'postgres';
+if (missingRequired.length || health?.ok !== true || !durableOk || !billingStorageOk || !trialStorageOk) {
   process.exitCode = 1;
+  if (!billingStorageOk || !trialStorageOk) {
+    console.error(
+      `\nBilling/trial storage check failed: billingStorage=${health?.checks?.billingStorage} trialStorage=${health?.checks?.trialStorage} (expected postgres).`,
+    );
+  }
 } else {
   console.log('\nBaseline production env looks good.');
+  console.log('Billing storage: postgres · Trial storage: postgres');
   if (!health?.config?.billingEnabled) {
     console.log('Billing is intentionally disabled (soft launch). Add Stripe live keys + STRIPE_BILLING_ENABLED=true when ready.');
   }

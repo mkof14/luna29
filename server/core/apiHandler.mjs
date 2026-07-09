@@ -8,7 +8,6 @@ import { getPublicVoiceConfig, handleVoiceConversation, listElevenLabsVoices, ex
 import { buildApiSecurityHeaders } from './securityHeaders.mjs';
 import { readBodyWithLimit, hasAiProcessingConsent } from './httpUtils.mjs';
 import { resolveRole as resolveRoleSafe, ROLE_PERMISSIONS as CORE_ROLE_PERMISSIONS } from './authRoles.mjs';
-import { buildTrialRecord } from './billingTrial.mjs';
 import { sendCalendarReminderEmail, isCalendarEmailEnabled } from './calendarEmail.mjs';
 import { dispatchDueEmailReminders } from './calendarReminders.mjs';
 import { createRateLimiter, isUpstashRateLimitEnabled } from './rateLimit.mjs';
@@ -95,6 +94,17 @@ import {
   deleteSessionFromPostgres,
   deleteSessionsForUserFromPostgres,
 } from './authSessionsStore.mjs';
+import {
+  resolveBillingStorageMode,
+  billingStorageHealthLabel,
+  billingStorageUnavailablePayload,
+  BILLING_STORAGE_UNAVAILABLE,
+} from './billingStorage.mjs';
+import { initBillingAccountsRepository } from './billingAccountsStore.mjs';
+import { initBillingSubscriptionsRepository } from './billingSubscriptionsStore.mjs';
+import { initBillingTrialsRepository } from './billingTrialsStore.mjs';
+import { maybeImportLegacyBillingOnBoot } from './billingLegacyImport.mjs';
+import { createBillingService } from './billingServiceCore.mjs';
 import { getPgPoolStatus } from './database.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -467,17 +477,41 @@ const buildHealthPayload = async ({ verbose = false, durableDecision = null } = 
   const storageWritable = durableJsonAllowed ? await checkStorageWritable() : false;
   const stripeConfigReady = isStripeConfigReady();
   const billingStatus = !BILLING_ENABLED ? 'disabled' : stripeConfigReady ? 'ready' : 'misconfigured';
+  let billingStorageMode = resolveBillingStorageMode({
+    env: process.env,
+    runtimeEnvironment,
+  });
+  // If mode says postgres, confirm shared pool is usable (reuse getPgPoolStatus; no Stripe calls).
+  if (billingStorageMode === 'postgres') {
+    try {
+      const poolStatus = await getPgPoolStatus();
+      if (!poolStatus.pool || poolStatus.category !== 'ok') {
+        billingStorageMode = 'unavailable';
+      }
+    } catch {
+      billingStorageMode = 'unavailable';
+    }
+  }
+  const billingStorageLabel = billingStorageHealthLabel(billingStorageMode);
+  const trialStorageLabel = billingStorageLabel;
   const googleAuthConfigured = GOOGLE_CLIENT_IDS.size > 0;
   const aiScanEnabled = Boolean(GEMINI_API_KEY);
   const rateLimitBackend = isUpstashRateLimitEnabled() ? 'upstash' : 'memory';
+  const billingStorageOk = billingStorageMode !== 'unavailable';
   const ok =
-    durableJsonAllowed && storageWritable && (!BILLING_ENABLED || stripeConfigReady);
+    durableJsonAllowed &&
+    storageWritable &&
+    billingStorageOk &&
+    (!BILLING_ENABLED || stripeConfigReady);
   const warnings = [];
 
   if (!durableJsonAllowed) {
     warnings.push(
       'DATABASE_URL is required in production/preview — critical durable stores cannot use JSON or /tmp.',
     );
+  }
+  if (!billingStorageOk) {
+    warnings.push('Billing/trial storage unavailable — production requires Postgres (no JSON/tmp billing).');
   }
   if (!storageWritable && durableJsonAllowed) warnings.push('Storage is not writable.');
   if (!databaseConfigured && durableJsonAllowed) {
@@ -504,6 +538,8 @@ const buildHealthPayload = async ({ verbose = false, durableDecision = null } = 
       storage: durableJsonAllowed ? (storageWritable ? 'ok' : 'error') : 'unavailable',
       durableStorage: durableJsonAllowed ? 'ok' : 'unavailable',
       database: databaseCheck,
+      billingStorage: billingStorageLabel,
+      trialStorage: trialStorageLabel,
       rateLimit: rateLimitBackend,
       billing: billingStatus,
       googleAuth: googleAuthConfigured ? 'configured' : 'missing',
@@ -523,6 +559,8 @@ const buildHealthPayload = async ({ verbose = false, durableDecision = null } = 
       databaseConfigured,
       durableJsonAllowed,
       durableStorageReason: decision.reason,
+      billingStorageMode: billingStorageLabel,
+      trialStorageMode: trialStorageLabel,
       rateLimitBackend,
       googleClientIds: GOOGLE_CLIENT_IDS.size,
       aiScanEnabled,
@@ -1099,8 +1137,95 @@ const start = async () => {
   if (!Array.isArray(contactSubmissions)) contactSubmissions = [];
   let privacyRequests = await readJson(PRIVACY_REQUESTS_FILE, []);
   if (!Array.isArray(privacyRequests)) privacyRequests = [];
-  let billingState = await readJson(BILLING_STATE_FILE, {});
-  if (!billingState || typeof billingState !== 'object') billingState = {};
+
+  // WS1.3 — Billing + trials durable storage
+  const billingStorageMode = resolveBillingStorageMode({
+    env: process.env,
+    runtimeEnvironment,
+  });
+  let billingPgPool = null;
+  let billingState = {};
+  if (billingStorageMode === 'unavailable') {
+    console.warn('[billing] storage unavailable: database_missing — billing/trial JSON blocked');
+  } else if (billingStorageMode === 'postgres') {
+    const poolStatus = await getPgPoolStatus();
+    const accountsRepo = await initBillingAccountsRepository({
+      mode: 'postgres',
+      pool: poolStatus.pool,
+    });
+    const subsRepo = await initBillingSubscriptionsRepository({
+      mode: 'postgres',
+      pool: poolStatus.pool,
+    });
+    const trialsRepo = await initBillingTrialsRepository({
+      mode: 'postgres',
+      pool: poolStatus.pool,
+    });
+    if (!accountsRepo.ok || !subsRepo.ok || !trialsRepo.ok || !poolStatus.pool) {
+      console.warn(
+        `[billing] init failed: accounts=${accountsRepo.reason || accountsRepo.mode} subscriptions=${subsRepo.reason || subsRepo.mode} trials=${trialsRepo.reason || trialsRepo.mode}`,
+      );
+      return async (req, res) => {
+        const method = req.method || 'GET';
+        const origin = req.headers.origin;
+        const headers = corsHeaders(origin);
+        if (method === 'OPTIONS') {
+          sendEmpty(res, 204, headers);
+          return;
+        }
+        const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
+        if (method === 'GET' && url.pathname === '/api/health') {
+          const verbose = ['1', 'true', 'yes'].includes(
+            String(url.searchParams.get('verbose') || '').toLowerCase(),
+          );
+          const payload = await buildHealthPayload({ verbose, durableDecision });
+          payload.ok = false;
+          payload.checks = {
+            ...(payload.checks || {}),
+            billingStorage: 'unavailable',
+            trialStorage: 'unavailable',
+          };
+          send(res, 503, payload, headers);
+          return;
+        }
+        send(res, 503, billingStorageUnavailablePayload('init_failed'), headers);
+      };
+    }
+    billingPgPool = poolStatus.pool;
+    // Prefer shared auth pool when already initialized (same getPgPool singleton).
+    if (authPgPool) billingPgPool = authPgPool;
+    const legacyBillingRaw = await readJson(BILLING_STATE_FILE, {});
+    await maybeImportLegacyBillingOnBoot(
+      billingPgPool,
+      legacyBillingRaw && typeof legacyBillingRaw === 'object' ? legacyBillingRaw : {},
+    );
+    console.info('[billing] accounts+subscriptions+trials repositories initialized (postgres)');
+  } else {
+    billingState = await readJson(BILLING_STATE_FILE, {});
+    if (!billingState || typeof billingState !== 'object') billingState = {};
+  }
+
+  const saveBillingState = async () => {
+    if (billingStorageMode === 'postgres') {
+      // Postgres mode: no JSON authority writes.
+      return;
+    }
+    if (billingStorageMode === 'unavailable') {
+      const err = new Error('Billing storage is unavailable.');
+      err.code = BILLING_STORAGE_UNAVAILABLE;
+      throw err;
+    }
+    await writeJson(BILLING_STATE_FILE, billingState);
+  };
+
+  const billingService = createBillingService({
+    mode: billingStorageMode === 'postgres' ? 'postgres' : billingStorageMode === 'json' ? 'json' : 'unavailable',
+    pool: billingPgPool,
+    billingState,
+    saveBillingState,
+    trialDays: STRIPE_TRIAL_DAYS,
+  });
+
   let mobileReflections = sanitizeMobileState(await readJson(MOBILE_REFLECTIONS_FILE, { profiles: {} }));
   let mobileReports = sanitizeMobileReportsState(await readJson(MOBILE_REPORTS_FILE, { profiles: {} }));
   let mobileStateStore = sanitizeMobileStateStore(await readJson(MOBILE_STATE_FILE, { profiles: {} }));
@@ -1159,7 +1284,6 @@ const start = async () => {
     await writeJson(SESSIONS_FILE, serializeSessions());
   };
   const savePrivacyRequests = async () => writeJson(PRIVACY_REQUESTS_FILE, privacyRequests);
-  const saveBillingState = async () => writeJson(BILLING_STATE_FILE, billingState);
   const saveMobileReflections = async () => writeJson(MOBILE_REFLECTIONS_FILE, mobileReflections);
   const saveMobileReports = async () => writeJson(MOBILE_REPORTS_FILE, mobileReports);
   const saveMobileStateStore = async () => writeJson(MOBILE_STATE_FILE, mobileStateStore);
@@ -3529,14 +3653,19 @@ const start = async () => {
             if (session.userId === user.id) sessions.delete(token);
           }
           contactSubmissions = contactSubmissions.filter((item) => normalizeEmail(item.email) !== user.email);
-          delete billingState[user.id];
-          delete billingState[user.email];
+          try {
+            await billingService.deleteBillingForUser(user);
+          } catch (billingDeleteError) {
+            if (billingDeleteError?.code !== BILLING_STORAGE_UNAVAILABLE) {
+              throw billingDeleteError;
+            }
+          }
           if (authPgPool) {
             await deleteSessionsForUserFromPostgres(authPgPool, user.id);
             await deleteUserFromPostgres(authPgPool, user.id);
-            await Promise.all([saveContacts(), saveBillingState()]);
+            await saveContacts();
           } else {
-            await Promise.all([saveUsers(), saveSessions(), saveContacts(), saveBillingState()]);
+            await Promise.all([saveUsers(), saveSessions(), saveContacts()]);
           }
         }
 
@@ -3621,42 +3750,55 @@ const start = async () => {
     if (method === 'GET' && url.pathname === '/api/billing/status') {
       const auth = await requireSession(req, res, headers);
       if (!auth) return;
-      const byId = billingState[auth.current.user.id];
-      const byEmail = billingState[auth.current.user.email];
-      const currentStatus = byId || byEmail || { status: 'inactive', plan: 'none' };
-      const trialKey = `trial:${auth.current.user.id}`;
-      const trial = billingState[trialKey];
-      const trialActive = trial?.endsAt && new Date(trial.endsAt).getTime() > Date.now();
-      const billing = trialActive && !['active', 'trialing'].includes(String(currentStatus.status || '').toLowerCase())
-        ? { ...currentStatus, status: 'trialing', plan: currentStatus.plan || 'trial', trialEndsAt: trial.endsAt }
-        : currentStatus;
-      send(res, 200, { billing, enabled: BILLING_ENABLED, trial: trial || null }, headers);
+      if (billingStorageMode === 'unavailable') {
+        send(res, 503, billingStorageUnavailablePayload('database_missing'), headers);
+        return;
+      }
+      try {
+        const { billing, trial } = await billingService.getStatusForUser(auth.current.user);
+        send(res, 200, { billing, enabled: BILLING_ENABLED, trial: trial || null }, headers);
+      } catch (error) {
+        if (error?.code === BILLING_STORAGE_UNAVAILABLE) {
+          send(res, 503, billingStorageUnavailablePayload('unavailable'), headers);
+          return;
+        }
+        send(res, 500, { error: 'Unable to load billing status.' }, headers);
+      }
       return;
     }
 
     if (method === 'POST' && url.pathname === '/api/billing/trial/start') {
       const auth = await requireSession(req, res, headers);
       if (!auth) return;
-      const trialKey = `trial:${auth.current.user.id}`;
-      const existing = billingState[trialKey];
-      if (existing?.endsAt && new Date(existing.endsAt).getTime() > Date.now()) {
-        send(res, 200, { trial: existing, alreadyActive: true }, headers);
+      if (billingStorageMode === 'unavailable') {
+        send(res, 503, billingStorageUnavailablePayload('database_missing'), headers);
         return;
       }
-      if (existing?.used) {
-        send(res, 403, { error: 'Trial already used for this account.' }, headers);
-        return;
+      try {
+        const result = await billingService.startTrial(auth.current.user);
+        send(res, 200, { trial: result.trial, alreadyActive: result.alreadyActive }, headers);
+      } catch (error) {
+        if (error?.code === 'TRIAL_ALREADY_USED') {
+          send(res, 403, { error: 'Trial already used for this account.' }, headers);
+          return;
+        }
+        if (error?.code === BILLING_STORAGE_UNAVAILABLE) {
+          send(res, 503, billingStorageUnavailablePayload('unavailable'), headers);
+          return;
+        }
+        send(res, 500, { error: 'Unable to start trial.' }, headers);
       }
-      const trial = buildTrialRecord(auth.current.user.id, auth.current.user.email, STRIPE_TRIAL_DAYS);
-      billingState[trialKey] = trial;
-      await saveBillingState();
-      send(res, 200, { trial }, headers);
       return;
     }
 
     if (method === 'POST' && url.pathname === '/api/billing/checkout-session') {
       const auth = await requireSession(req, res, headers);
       if (!auth) return;
+
+      if (billingStorageMode === 'unavailable') {
+        send(res, 503, billingStorageUnavailablePayload('database_missing'), headers);
+        return;
+      }
 
       const configError = stripeConfigError();
       if (configError) {
@@ -3668,18 +3810,31 @@ const start = async () => {
         const body = await readBody(req);
         const period = safeText(body.period || 'month', 12) === 'year' ? 'year' : 'month';
         const price = period === 'year' ? STRIPE_PRICE_YEARLY_ID : STRIPE_PRICE_MONTHLY_ID;
-        const form = stripeFormBody(buildStripeCheckoutFields([
+        // Ensure durable account row exists before checkout (no Stripe customer invent).
+        if (billingStorageMode === 'postgres') {
+          await billingService.ensureBillingAccount({
+            userId: auth.current.user.id,
+            email: auth.current.user.email,
+          });
+        }
+        const existingCustomerId = await billingService.getStripeCustomerIdForUser(auth.current.user);
+        const checkoutFields = [
           ['mode', 'subscription'],
           ['success_url', STRIPE_SUCCESS_URL],
           ['cancel_url', STRIPE_CANCEL_URL],
           ['client_reference_id', auth.current.user.id],
-          ['customer_email', auth.current.user.email],
           ['line_items[0][price]', price],
           ['line_items[0][quantity]', '1'],
           ['metadata[luna_user_id]', auth.current.user.id],
           ['metadata[luna_email]', auth.current.user.email],
           ['metadata[luna_period]', period],
-        ]));
+        ];
+        if (existingCustomerId) {
+          checkoutFields.push(['customer', existingCustomerId]);
+        } else {
+          checkoutFields.push(['customer_email', auth.current.user.email]);
+        }
+        const form = stripeFormBody(buildStripeCheckoutFields(checkoutFields));
 
         const response = await fetch('https://api.stripe.com/v1/checkout/sessions', {
           method: 'POST',
@@ -3707,6 +3862,10 @@ const start = async () => {
         const checkoutUrl = safeText(parsed.url, 1000);
         send(res, 200, { id: sessionId, url: checkoutUrl }, headers);
       } catch (error) {
+        if (error?.code === BILLING_STORAGE_UNAVAILABLE) {
+          send(res, 503, billingStorageUnavailablePayload('unavailable'), headers);
+          return;
+        }
         send(res, 500, { error: error instanceof Error ? error.message : 'Unable to create checkout session.' }, headers);
       }
       return;
@@ -3716,6 +3875,11 @@ const start = async () => {
       const auth = await requireSession(req, res, headers);
       if (!auth) return;
 
+      if (billingStorageMode === 'unavailable') {
+        send(res, 503, billingStorageUnavailablePayload('database_missing'), headers);
+        return;
+      }
+
       const configError = stripeConfigError();
       if (configError) {
         send(res, 503, { error: configError }, headers);
@@ -3723,16 +3887,25 @@ const start = async () => {
       }
 
       try {
-        const lookup = await stripeRequest(
-          'GET',
-          `https://api.stripe.com/v1/customers?email=${encodeURIComponent(auth.current.user.email)}&limit=1`
-        );
-        if (!lookup.ok) {
-          send(res, 502, { error: 'Could not query Stripe customer.', detail: lookup.data }, headers);
-          return;
+        let customerId = await billingService.getStripeCustomerIdForUser(auth.current.user);
+        if (!customerId) {
+          const lookup = await stripeRequest(
+            'GET',
+            `https://api.stripe.com/v1/customers?email=${encodeURIComponent(auth.current.user.email)}&limit=1`
+          );
+          if (!lookup.ok) {
+            send(res, 502, { error: 'Could not query Stripe customer.', detail: lookup.data }, headers);
+            return;
+          }
+          customerId = safeText(lookup.data?.data?.[0]?.id, 120);
+          if (customerId) {
+            await billingService.rememberStripeCustomer({
+              userId: auth.current.user.id,
+              email: auth.current.user.email,
+              stripeCustomerId: customerId,
+            });
+          }
         }
-
-        const customerId = safeText(lookup.data?.data?.[0]?.id, 120);
         if (!customerId) {
           send(res, 404, { error: 'No Stripe customer found for this account yet.' }, headers);
           return;
@@ -3754,12 +3927,21 @@ const start = async () => {
 
         send(res, 200, { id: safeText(portal.data?.id, 200), url: safeText(portal.data?.url, 1200) }, headers);
       } catch (error) {
+        if (error?.code === BILLING_STORAGE_UNAVAILABLE) {
+          send(res, 503, billingStorageUnavailablePayload('unavailable'), headers);
+          return;
+        }
         send(res, 500, { error: error instanceof Error ? error.message : 'Unable to create billing portal session.' }, headers);
       }
       return;
     }
 
     if (method === 'POST' && url.pathname === '/api/billing/webhook') {
+      if (billingStorageMode === 'unavailable') {
+        send(res, 503, billingStorageUnavailablePayload('database_missing'), headers);
+        return;
+      }
+
       const rawBody = await readRawBody(req);
       const sig = req.headers['stripe-signature'];
 
@@ -3781,28 +3963,76 @@ const start = async () => {
       const customerEmail = normalizeEmail(data.customer_email || data.metadata?.luna_email || '');
       const userId = safeText(data.client_reference_id || data.metadata?.luna_user_id || '', 120);
       const period = safeText(data.metadata?.luna_period || '', 12) || 'month';
-      const nowIso = new Date().toISOString();
+      const stripeCustomerId = safeText(data.customer || data.customer_id || '', 120) || null;
+      const subscriptionFromObject =
+        typeof data.subscription === 'string'
+          ? data.subscription
+          : typeof data.id === 'string' && data.id.startsWith('sub_')
+            ? data.id
+            : '';
+      const stripeSubscriptionId = safeText(subscriptionFromObject, 120) || null;
 
-      const setBilling = (status, extra = {}) => {
-        const payload = { status, period, updatedAt: nowIso, ...extra };
-        if (userId) billingState[userId] = payload;
-        if (customerEmail) billingState[customerEmail] = payload;
-      };
-
+      let nextStatus = null;
       if (eventType === 'checkout.session.completed' || eventType === 'invoice.paid') {
-        setBilling('active', { source: eventType });
+        nextStatus = 'active';
       } else if (eventType === 'invoice.payment_failed') {
-        setBilling('past_due', { source: eventType });
+        nextStatus = 'past_due';
       } else if (eventType === 'customer.subscription.deleted') {
-        setBilling('canceled', { source: eventType });
+        nextStatus = 'canceled';
       }
 
-      await saveBillingState();
-      send(res, 200, { received: true }, headers);
+      try {
+        if (nextStatus) {
+          const result = await billingService.applyWebhookBillingUpdate({
+            userId: userId || null,
+            customerEmail,
+            status: nextStatus,
+            period,
+            source: eventType,
+            stripeCustomerId,
+            stripeSubscriptionId:
+              eventType === 'customer.subscription.deleted'
+                ? safeText(data.id, 120) || stripeSubscriptionId
+                : stripeSubscriptionId,
+          });
+          // Persist customer id from checkout when present.
+          if (
+            eventType === 'checkout.session.completed' &&
+            userId &&
+            stripeCustomerId
+          ) {
+            await billingService.rememberStripeCustomer({
+              userId,
+              email: customerEmail || undefined,
+              stripeCustomerId,
+            });
+          }
+          if (result?.persisted === false && !userId && !customerEmail) {
+            // Unmapped event — still ack (Stripe retry won't help without mapping).
+          }
+        }
+        send(res, 200, { received: true }, headers);
+      } catch (error) {
+        if (error?.code === BILLING_STORAGE_UNAVAILABLE) {
+          send(res, 503, billingStorageUnavailablePayload('unavailable'), headers);
+          return;
+        }
+        // Persistence failure must not falsely succeed (Stripe will retry).
+        send(res, 500, { error: 'Unable to persist billing webhook.' }, headers);
+      }
       return;
     }
 
-    if (await handleAdminApi(req, res, { method, url, headers, requireSession, users, saveUsers, billingState, contactSubmissions, saveContacts })) {
+    const isAdminPath = String(url.pathname || '').startsWith('/api/admin');
+    const adminBillingState = isAdminPath
+      ? billingStorageMode === 'postgres'
+        ? await billingService.buildAdminBillingStateProjection(users)
+        : billingStorageMode === 'json'
+          ? billingState
+          : {}
+      : {};
+
+    if (await handleAdminApi(req, res, { method, url, headers, requireSession, users, saveUsers, billingState: adminBillingState, contactSubmissions, saveContacts })) {
       return;
     }
 

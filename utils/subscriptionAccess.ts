@@ -79,8 +79,13 @@ export const trialDaysLeft = (trial: TrialState | null): number => {
 
 export const isLocalTrialActive = (): boolean => readLocalTrialState()?.status === 'active';
 
+/**
+ * Premium access from server billing status only.
+ * localStorage trial is a display cache and must not grant authoritative premium.
+ * Server `/api/billing/status` overlays active Luna trials as status `trialing`.
+ */
 export const hasPremiumAccess = (billing?: BillingStatusPayload | null): boolean =>
-  isPremiumBillingStatus(billing?.status) || isLocalTrialActive();
+  isPremiumBillingStatus(billing?.status);
 
 export const getBridgeWeeklyLimit = (premium: boolean): number =>
   premium ? PREMIUM_BRIDGE_WEEKLY_LIMIT : FREE_BRIDGE_WEEKLY_LIMIT;

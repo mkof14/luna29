@@ -3,6 +3,7 @@ import { billingService, BillingStatusPayload } from '../services/billingService
 import {
   hasPremiumAccess,
   isLocalTrialActive,
+  isPremiumBillingStatus,
   readLocalTrialState,
   trialDaysLeft,
   TrialState,
@@ -41,9 +42,19 @@ export const useSubscriptionAccess = () => {
     setTrialState(readLocalTrialState());
   }, []);
 
+  // Authoritative premium comes from server billing status (includes server trial overlay).
   const premiumActive = useMemo(() => hasPremiumAccess(billing), [billing]);
-  const localTrialActive = useMemo(() => isLocalTrialActive(), [trialState]);
-  const daysLeft = useMemo(() => trialDaysLeft(trialState), [trialState]);
+  // localStorage trial is display-only cache — never grants premium.
+  const localTrialActive = useMemo(
+    () => isPremiumBillingStatus(billing?.status) && isLocalTrialActive(),
+    [billing, trialState],
+  );
+  const daysLeft = useMemo(() => {
+    if (isPremiumBillingStatus(billing?.status) && billing?.status === 'trialing') {
+      return trialDaysLeft(trialState);
+    }
+    return 0;
+  }, [billing, trialState]);
 
   return {
     billing,
