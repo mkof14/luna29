@@ -133,6 +133,40 @@ import {
   markContactSubmissionReplied,
 } from './contactSubmissionsStore.mjs';
 import { maybeImportOperationalRecordsOnBoot } from './operationalRecordsLegacyImport.mjs';
+import {
+  resolveUserDataStorageMode,
+  userDataHealthLabel,
+  userDataStorageModeLabel,
+  userDataUnavailablePayload,
+  USER_DATA_STORAGE_UNAVAILABLE,
+} from './userDataStorage.mjs';
+import {
+  initCalendarUserDataRepository,
+  getCalendarBundleForUser,
+  upsertCalendarBundleForUser,
+} from './calendarUserDataStore.mjs';
+import {
+  initMobileReflectionsRepository,
+  ensureMobileReflectionMeta,
+  getMobileReflectionProfile,
+  insertMobileReflection,
+} from './mobileReflectionsStore.mjs';
+import {
+  initMobileReportsRepository,
+  listMobileReportsForUser,
+  upsertMobileReportForUser,
+} from './mobileReportsStore.mjs';
+import {
+  initMobileUserStateRepository,
+  upsertMobileStateSection,
+  listMobileStateSections,
+} from './mobileUserStateStore.mjs';
+import {
+  initMobilePushRepository,
+  listMobilePushTokensForUser,
+  upsertMobilePushToken,
+} from './mobilePushStore.mjs';
+import { maybeImportUserDataOnBoot } from './userDataLegacyImport.mjs';
 import { getPgPoolStatus } from './database.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -544,16 +578,34 @@ const buildHealthPayload = async ({ verbose = false, durableDecision = null } = 
   }
   const operationalRecordsLabel = operationalRecordsHealthLabel(operationalRecordsMode);
   const operationalRecordsModeLabel = operationalRecordsStorageModeLabel(operationalRecordsMode);
+  let userDataMode = resolveUserDataStorageMode({
+    env: process.env,
+    runtimeEnvironment,
+  });
+  if (userDataMode === 'postgres') {
+    try {
+      const poolStatus = await getPgPoolStatus();
+      if (!poolStatus.pool || poolStatus.category !== 'ok') {
+        userDataMode = 'unavailable';
+      }
+    } catch {
+      userDataMode = 'unavailable';
+    }
+  }
+  const userDataLabel = userDataHealthLabel(userDataMode);
+  const userDataModeLabel = userDataStorageModeLabel(userDataMode);
   const googleAuthConfigured = GOOGLE_CLIENT_IDS.size > 0;
   const aiScanEnabled = Boolean(GEMINI_API_KEY);
   const rateLimitBackend = isUpstashRateLimitEnabled() ? 'upstash' : 'memory';
   const billingStorageOk = billingStorageMode !== 'unavailable';
   const operationalRecordsOk = operationalRecordsMode !== 'unavailable';
+  const userDataOk = userDataMode !== 'unavailable';
   const ok =
     durableJsonAllowed &&
     storageWritable &&
     billingStorageOk &&
     operationalRecordsOk &&
+    userDataOk &&
     (!BILLING_ENABLED || stripeConfigReady);
   const warnings = [];
 
@@ -568,6 +620,11 @@ const buildHealthPayload = async ({ verbose = false, durableDecision = null } = 
   if (!operationalRecordsOk) {
     warnings.push(
       'Operational records storage unavailable — admin/privacy/contacts require Postgres in production.',
+    );
+  }
+  if (!userDataOk) {
+    warnings.push(
+      'User data storage unavailable — calendar/mobile require Postgres in production.',
     );
   }
   if (!storageWritable && durableJsonAllowed) warnings.push('Storage is not writable.');
@@ -599,6 +656,7 @@ const buildHealthPayload = async ({ verbose = false, durableDecision = null } = 
       trialStorage: trialStorageLabel,
       stripeWebhookLedger: stripeWebhookLedgerLabel,
       operationalRecordsStorage: operationalRecordsLabel,
+      userDataStorage: userDataLabel,
       rateLimit: rateLimitBackend,
       billing: billingStatus,
       googleAuth: googleAuthConfigured ? 'configured' : 'missing',
@@ -622,6 +680,7 @@ const buildHealthPayload = async ({ verbose = false, durableDecision = null } = 
       trialStorageMode: trialStorageLabel,
       stripeWebhookLedger: stripeWebhookLedgerLabel,
       operationalRecordsStorage: operationalRecordsModeLabel,
+      userDataStorage: userDataModeLabel,
       rateLimitBackend,
       googleClientIds: GOOGLE_CLIENT_IDS.size,
       aiScanEnabled,
@@ -1281,6 +1340,83 @@ const start = async () => {
     privacyRequests = await listPrivacyRequests(operationalPgPool, { limit: 2000 });
   }
 
+  // WS1.6 — Calendar + Mobile user data
+  let userDataMode = resolveUserDataStorageMode({
+    env: process.env,
+    runtimeEnvironment,
+  });
+  let userDataPgPool = null;
+  if (userDataMode === 'unavailable') {
+    console.warn('[user-data] storage unavailable: database_missing');
+  } else if (userDataMode === 'postgres') {
+    const poolStatus = await getPgPoolStatus();
+    const calendarRepo = await initCalendarUserDataRepository({
+      mode: 'postgres',
+      pool: poolStatus.pool,
+    });
+    const reflectionsRepo = await initMobileReflectionsRepository({
+      mode: 'postgres',
+      pool: poolStatus.pool,
+    });
+    const reportsRepo = await initMobileReportsRepository({
+      mode: 'postgres',
+      pool: poolStatus.pool,
+    });
+    const stateRepo = await initMobileUserStateRepository({
+      mode: 'postgres',
+      pool: poolStatus.pool,
+    });
+    const pushRepo = await initMobilePushRepository({ mode: 'postgres', pool: poolStatus.pool });
+    if (
+      !calendarRepo.ok ||
+      !reflectionsRepo.ok ||
+      !reportsRepo.ok ||
+      !stateRepo.ok ||
+      !pushRepo.ok ||
+      !poolStatus.pool
+    ) {
+      console.warn('[user-data] init failed — fail closed');
+      return async (req, res) => {
+        const method = req.method || 'GET';
+        const origin = req.headers.origin;
+        const headers = corsHeaders(origin);
+        if (method === 'OPTIONS') {
+          sendEmpty(res, 204, headers);
+          return;
+        }
+        const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
+        if (method === 'GET' && url.pathname === '/api/health') {
+          const verbose = ['1', 'true', 'yes'].includes(
+            String(url.searchParams.get('verbose') || '').toLowerCase(),
+          );
+          const payload = await buildHealthPayload({ verbose, durableDecision });
+          payload.ok = false;
+          payload.checks = {
+            ...(payload.checks || {}),
+            userDataStorage: 'unavailable',
+          };
+          send(res, 503, payload, headers);
+          return;
+        }
+        send(res, 503, userDataUnavailablePayload('init_failed'), headers);
+      };
+    }
+    userDataPgPool = authPgPool || operationalPgPool || poolStatus.pool;
+    const legacyCalendar = await readJson(CALENDAR_DATA_FILE, {});
+    const legacyReflections = await readJson(MOBILE_REFLECTIONS_FILE, { profiles: {} });
+    const legacyReports = await readJson(MOBILE_REPORTS_FILE, { profiles: {} });
+    const legacyState = await readJson(MOBILE_STATE_FILE, { profiles: {} });
+    const legacyPush = await readJson(MOBILE_PUSH_FILE, { profiles: {} });
+    await maybeImportUserDataOnBoot(userDataPgPool, {
+      calendarStoreRaw: legacyCalendar && typeof legacyCalendar === 'object' ? legacyCalendar : {},
+      mobileReflectionsRaw: legacyReflections,
+      mobileReportsRaw: legacyReports,
+      mobileStateRaw: legacyState,
+      mobilePushRaw: legacyPush,
+    });
+    console.info('[user-data] repositories initialized (postgres)');
+  }
+
   // WS1.3 — Billing + trials durable storage
   const billingStorageMode = resolveBillingStorageMode({
     env: process.env,
@@ -1378,12 +1514,20 @@ const start = async () => {
     trialDays: STRIPE_TRIAL_DAYS,
   });
 
-  let mobileReflections = sanitizeMobileState(await readJson(MOBILE_REFLECTIONS_FILE, { profiles: {} }));
-  let mobileReports = sanitizeMobileReportsState(await readJson(MOBILE_REPORTS_FILE, { profiles: {} }));
-  let mobileStateStore = sanitizeMobileStateStore(await readJson(MOBILE_STATE_FILE, { profiles: {} }));
-  let mobilePushStore = sanitizeMobilePushStore(await readJson(MOBILE_PUSH_FILE, { profiles: {} }));
-  let calendarStore = await readJson(CALENDAR_DATA_FILE, {});
-  if (!calendarStore || typeof calendarStore !== 'object') calendarStore = {};
+  // JSON mode keeps in-memory mirrors; postgres mode loads per-request by user_id.
+  let mobileReflections = { profiles: {} };
+  let mobileReports = { profiles: {} };
+  let mobileStateStore = { profiles: {} };
+  let mobilePushStore = { profiles: {} };
+  let calendarStore = {};
+  if (userDataMode === 'json') {
+    mobileReflections = sanitizeMobileState(await readJson(MOBILE_REFLECTIONS_FILE, { profiles: {} }));
+    mobileReports = sanitizeMobileReportsState(await readJson(MOBILE_REPORTS_FILE, { profiles: {} }));
+    mobileStateStore = sanitizeMobileStateStore(await readJson(MOBILE_STATE_FILE, { profiles: {} }));
+    mobilePushStore = sanitizeMobilePushStore(await readJson(MOBILE_PUSH_FILE, { profiles: {} }));
+    calendarStore = await readJson(CALENDAR_DATA_FILE, {});
+    if (!calendarStore || typeof calendarStore !== 'object') calendarStore = {};
+  }
 
   // Clear process-local session map for this handler boot, then hydrate.
   sessions.clear();
@@ -1523,11 +1667,58 @@ const start = async () => {
     }
     return true;
   };
-  const saveMobileReflections = async () => writeJson(MOBILE_REFLECTIONS_FILE, mobileReflections);
-  const saveMobileReports = async () => writeJson(MOBILE_REPORTS_FILE, mobileReports);
-  const saveMobileStateStore = async () => writeJson(MOBILE_STATE_FILE, mobileStateStore);
-  const saveMobilePushStore = async () => writeJson(MOBILE_PUSH_FILE, mobilePushStore);
-  const saveCalendarStore = async () => writeJson(CALENDAR_DATA_FILE, calendarStore);
+  const saveMobileReflections = async () => {
+    if (userDataMode === 'postgres') return;
+    if (userDataMode === 'unavailable') {
+      const err = new Error('User data storage is unavailable.');
+      err.code = USER_DATA_STORAGE_UNAVAILABLE;
+      throw err;
+    }
+    await writeJson(MOBILE_REFLECTIONS_FILE, mobileReflections);
+  };
+  const saveMobileReports = async () => {
+    if (userDataMode === 'postgres') return;
+    if (userDataMode === 'unavailable') {
+      const err = new Error('User data storage is unavailable.');
+      err.code = USER_DATA_STORAGE_UNAVAILABLE;
+      throw err;
+    }
+    await writeJson(MOBILE_REPORTS_FILE, mobileReports);
+  };
+  const saveMobileStateStore = async () => {
+    if (userDataMode === 'postgres') return;
+    if (userDataMode === 'unavailable') {
+      const err = new Error('User data storage is unavailable.');
+      err.code = USER_DATA_STORAGE_UNAVAILABLE;
+      throw err;
+    }
+    await writeJson(MOBILE_STATE_FILE, mobileStateStore);
+  };
+  const saveMobilePushStore = async () => {
+    if (userDataMode === 'postgres') return;
+    if (userDataMode === 'unavailable') {
+      const err = new Error('User data storage is unavailable.');
+      err.code = USER_DATA_STORAGE_UNAVAILABLE;
+      throw err;
+    }
+    await writeJson(MOBILE_PUSH_FILE, mobilePushStore);
+  };
+  const saveCalendarStore = async () => {
+    if (userDataMode === 'postgres') return;
+    if (userDataMode === 'unavailable') {
+      const err = new Error('User data storage is unavailable.');
+      err.code = USER_DATA_STORAGE_UNAVAILABLE;
+      throw err;
+    }
+    await writeJson(CALENDAR_DATA_FILE, calendarStore);
+  };
+  const requireUserDataStorage = (res, headers) => {
+    if (userDataMode === 'unavailable') {
+      send(res, 503, userDataUnavailablePayload('database_missing'), headers);
+      return false;
+    }
+    return true;
+  };
   const personalEventsStoreHandle = await createPersonalEventsStore(PERSONAL_EVENTS_FILE, {
     runtimeEnvironment,
   });
@@ -1687,6 +1878,7 @@ const start = async () => {
   };
 
   const resolveAuthenticatedMobileProfile = async (req, res, headers) => {
+    if (!requireUserDataStorage(res, headers)) return null;
     const auth = await requireMobileSession(req, res, headers);
     if (!auth) return null;
 
@@ -1698,6 +1890,14 @@ const start = async () => {
 
     const profileKey = `user:${userId}`;
     const defaultName = auth.current.user.name ? safeText(auth.current.user.name, 80) : 'Anna';
+
+    if (userDataMode === 'postgres' && userDataPgPool) {
+      await ensureMobileReflectionMeta(userDataPgPool, userId, defaultName);
+      const profile = await getMobileReflectionProfile(userDataPgPool, userId);
+      if (!profile.name && defaultName) profile.name = defaultName;
+      return { auth, profile, profileKey, userId };
+    }
+
     if (!mobileReflections.profiles[profileKey]) {
       mobileReflections.profiles[profileKey] = createMobileProfile(defaultName);
       await saveMobileReflections();
@@ -1708,13 +1908,17 @@ const start = async () => {
       profile.name = defaultName;
     }
 
-    return { auth, profile, profileKey };
+    return { auth, profile, profileKey, userId };
   };
 
   const resolveAuthenticatedMobileReportsProfile = async (req, res, headers) => {
     const resolved = await resolveAuthenticatedMobileProfile(req, res, headers);
     if (!resolved) return null;
-    const { profileKey } = resolved;
+    const { profileKey, userId } = resolved;
+    if (userDataMode === 'postgres' && userDataPgPool) {
+      const reports = await listMobileReportsForUser(userDataPgPool, userId, { limit: 100 });
+      return { ...resolved, reports };
+    }
     if (!mobileReports.profiles[profileKey]) {
       mobileReports.profiles[profileKey] = [];
       await saveMobileReports();
@@ -1725,7 +1929,11 @@ const start = async () => {
   const resolveAuthenticatedMobileStateProfile = async (req, res, headers) => {
     const resolved = await resolveAuthenticatedMobileProfile(req, res, headers);
     if (!resolved) return null;
-    const { profileKey } = resolved;
+    const { profileKey, userId } = resolved;
+    if (userDataMode === 'postgres' && userDataPgPool) {
+      const stateProfile = await listMobileStateSections(userDataPgPool, userId);
+      return { ...resolved, stateProfile };
+    }
     if (!mobileStateStore.profiles[profileKey]) {
       mobileStateStore.profiles[profileKey] = { sections: {}, updatedAt: new Date().toISOString() };
       await saveMobileStateStore();
@@ -1736,7 +1944,12 @@ const start = async () => {
   const resolveAuthenticatedMobilePushProfile = async (req, res, headers) => {
     const resolved = await resolveAuthenticatedMobileProfile(req, res, headers);
     if (!resolved) return null;
-    const { profileKey } = resolved;
+    const { profileKey, userId } = resolved;
+    if (userDataMode === 'postgres' && userDataPgPool) {
+      const tokens = await listMobilePushTokensForUser(userDataPgPool, userId, { limit: 10 });
+      const updatedAt = tokens[0]?.updatedAt || null;
+      return { ...resolved, pushProfile: { tokens, updatedAt } };
+    }
     if (!mobilePushStore.profiles[profileKey]) {
       mobilePushStore.profiles[profileKey] = { tokens: [], updatedAt: new Date().toISOString() };
       await saveMobilePushStore();
@@ -2016,18 +2229,23 @@ const start = async () => {
         }
 
         // Ownership is always the authenticated user — never body.userId / headers.
-        const { profile } = resolved;
-        profile.entries = [
-          {
-            id: `mob-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-            at: new Date().toISOString(),
-            mode,
-            text,
-          },
-          ...(Array.isArray(profile.entries) ? profile.entries : []),
-        ].slice(0, 200);
-        profile.updatedAt = new Date().toISOString();
-        await saveMobileReflections();
+        const { profile, userId } = resolved;
+        const entry = {
+          id: `mob-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          at: new Date().toISOString(),
+          mode,
+          text,
+        };
+        if (userDataMode === 'postgres' && userDataPgPool) {
+          const nextProfile = await insertMobileReflection(userDataPgPool, userId, entry);
+          profile.entries = nextProfile.entries;
+          profile.updatedAt = nextProfile.updatedAt;
+          profile.name = nextProfile.name || profile.name;
+        } else {
+          profile.entries = [entry, ...(Array.isArray(profile.entries) ? profile.entries : [])].slice(0, 200);
+          profile.updatedAt = new Date().toISOString();
+          await saveMobileReflections();
+        }
 
         send(
           res,
@@ -2045,13 +2263,19 @@ const start = async () => {
           headers,
         );
       } catch (error) {
+        if (error?.code === USER_DATA_STORAGE_UNAVAILABLE) {
+          send(res, 503, userDataUnavailablePayload('unavailable'), headers);
+          return;
+        }
         send(res, 400, { error: error instanceof Error ? error.message : 'Could not save reflection.' }, headers);
       }
       return;
     }
 
     if (method === 'POST' && url.pathname === '/api/mobile/reports/generate') {
-      if (!(await rateLimit(`mobile-reports-generate:${ip}`, 24, 60_000))) {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
+      if (!(await rateLimit(`mobile-reports-generate:${ip}:${auth.current.user.id}`, 24, 60_000))) {
         send(res, 429, { error: 'Too many report generations. Try again in a minute.' }, headers);
         return;
       }
@@ -2122,14 +2346,22 @@ const start = async () => {
           return;
         }
 
-        const { reports, profileKey } = resolved;
-        const next = [{ id, generatedAt, text }, ...(Array.isArray(reports) ? reports : [])]
-          .filter((item, index, arr) => arr.findIndex((target) => target.id === item.id) === index)
-          .slice(0, 100);
-        mobileReports.profiles[profileKey] = next;
-        await saveMobileReports();
+        const { reports, profileKey, userId } = resolved;
+        if (userDataMode === 'postgres' && userDataPgPool) {
+          await upsertMobileReportForUser(userDataPgPool, userId, { id, generatedAt, text });
+        } else {
+          const next = [{ id, generatedAt, text }, ...(Array.isArray(reports) ? reports : [])]
+            .filter((item, index, arr) => arr.findIndex((target) => target.id === item.id) === index)
+            .slice(0, 100);
+          mobileReports.profiles[profileKey] = next;
+          await saveMobileReports();
+        }
         send(res, 200, { ok: true }, headers);
       } catch (error) {
+        if (error?.code === USER_DATA_STORAGE_UNAVAILABLE) {
+          send(res, 503, userDataUnavailablePayload('unavailable'), headers);
+          return;
+        }
         send(res, 400, { error: error instanceof Error ? error.message : 'Could not save report.' }, headers);
       }
       return;
@@ -2144,11 +2376,15 @@ const start = async () => {
     }
 
     if (method === 'POST' && /^\/api\/mobile\/reports\/[^/]+\/pdf$/.test(url.pathname)) {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
       send(res, 200, { ok: true, url: '' }, headers);
       return;
     }
 
     if (method === 'POST' && url.pathname === '/api/mobile/reports/ocr-intake') {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
       try {
         const body = await readBody(req);
         const input = safeText(body.input, 8000);
@@ -2182,13 +2418,21 @@ const start = async () => {
           send(res, 400, { error: 'State section is required.' }, headers);
           return;
         }
-        const { stateProfile } = resolved;
-        stateProfile.sections = stateProfile.sections && typeof stateProfile.sections === 'object' ? stateProfile.sections : {};
-        stateProfile.sections[section] = body.data ?? null;
-        stateProfile.updatedAt = new Date().toISOString();
-        await saveMobileStateStore();
+        const { stateProfile, userId } = resolved;
+        if (userDataMode === 'postgres' && userDataPgPool) {
+          await upsertMobileStateSection(userDataPgPool, userId, section, body.data ?? null);
+        } else {
+          stateProfile.sections = stateProfile.sections && typeof stateProfile.sections === 'object' ? stateProfile.sections : {};
+          stateProfile.sections[section] = body.data ?? null;
+          stateProfile.updatedAt = new Date().toISOString();
+          await saveMobileStateStore();
+        }
         send(res, 200, { ok: true }, headers);
       } catch (error) {
+        if (error?.code === USER_DATA_STORAGE_UNAVAILABLE) {
+          send(res, 503, userDataUnavailablePayload('unavailable'), headers);
+          return;
+        }
         send(res, 400, { error: error instanceof Error ? error.message : 'Could not save mobile state.' }, headers);
       }
       return;
@@ -2224,18 +2468,27 @@ const start = async () => {
           send(res, 400, { error: 'Push token is required.' }, headers);
           return;
         }
-        const { pushProfile } = resolved;
-        const next = [
-          { token, platform, deviceName, updatedAt: new Date().toISOString() },
-          ...(Array.isArray(pushProfile.tokens) ? pushProfile.tokens : []),
-        ]
-          .filter((item, index, arr) => arr.findIndex((candidate) => candidate.token === item.token) === index)
-          .slice(0, 10);
-        pushProfile.tokens = next;
-        pushProfile.updatedAt = new Date().toISOString();
-        await saveMobilePushStore();
+        const { pushProfile, userId } = resolved;
+        let next;
+        if (userDataMode === 'postgres' && userDataPgPool) {
+          next = await upsertMobilePushToken(userDataPgPool, userId, { token, platform, deviceName });
+        } else {
+          next = [
+            { token, platform, deviceName, updatedAt: new Date().toISOString() },
+            ...(Array.isArray(pushProfile.tokens) ? pushProfile.tokens : []),
+          ]
+            .filter((item, index, arr) => arr.findIndex((candidate) => candidate.token === item.token) === index)
+            .slice(0, 10);
+          pushProfile.tokens = next;
+          pushProfile.updatedAt = new Date().toISOString();
+          await saveMobilePushStore();
+        }
         send(res, 200, { ok: true, registered: true, count: next.length }, headers);
       } catch (error) {
+        if (error?.code === USER_DATA_STORAGE_UNAVAILABLE) {
+          send(res, 503, userDataUnavailablePayload('unavailable'), headers);
+          return;
+        }
         send(res, 400, { error: error instanceof Error ? error.message : 'Could not register push token.' }, headers);
       }
       return;
@@ -3710,8 +3963,15 @@ const start = async () => {
     if (method === 'GET' && url.pathname === '/api/calendar/data') {
       const auth = await requireSession(req, res, headers);
       if (!auth) return;
+      if (!requireUserDataStorage(res, headers)) return;
       const key = auth.current.user.id;
-      const data = sanitizeCalendarBundle(calendarStore[key]) || sanitizeCalendarBundle({
+      let stored = null;
+      if (userDataMode === 'postgres' && userDataPgPool) {
+        stored = await getCalendarBundleForUser(userDataPgPool, key);
+      } else {
+        stored = calendarStore[key];
+      }
+      const data = sanitizeCalendarBundle(stored) || sanitizeCalendarBundle({
         version: 2,
         journal: {},
         events: [],
@@ -3725,6 +3985,7 @@ const start = async () => {
     if (method === 'PUT' && url.pathname === '/api/calendar/data') {
       const auth = await requireSession(req, res, headers);
       if (!auth) return;
+      if (!requireUserDataStorage(res, headers)) return;
       try {
         const body = await readBody(req);
         const incoming = sanitizeCalendarBundle(body.data);
@@ -3733,12 +3994,26 @@ const start = async () => {
           return;
         }
         const key = auth.current.user.id;
-        const existing = sanitizeCalendarBundle(calendarStore[key]);
+        let existingRaw = null;
+        if (userDataMode === 'postgres' && userDataPgPool) {
+          existingRaw = await getCalendarBundleForUser(userDataPgPool, key);
+        } else {
+          existingRaw = calendarStore[key];
+        }
+        const existing = sanitizeCalendarBundle(existingRaw);
         const merged = existing ? mergeCalendarBundlesServer(incoming, existing) : incoming;
-        calendarStore[key] = merged;
-        await saveCalendarStore();
+        if (userDataMode === 'postgres' && userDataPgPool) {
+          await upsertCalendarBundleForUser(userDataPgPool, key, merged);
+        } else {
+          calendarStore[key] = merged;
+          await saveCalendarStore();
+        }
         send(res, 200, { ok: true, data: merged, updatedAt: merged.updatedAt }, headers);
       } catch (error) {
+        if (error?.code === USER_DATA_STORAGE_UNAVAILABLE) {
+          send(res, 503, userDataUnavailablePayload('unavailable'), headers);
+          return;
+        }
         send(res, 400, { error: error instanceof Error ? error.message : 'Could not save calendar.' }, headers);
       }
       return;
@@ -3747,8 +4022,15 @@ const start = async () => {
     if (method === 'POST' && url.pathname === '/api/calendar/reminders/dispatch') {
       const auth = await requireSession(req, res, headers);
       if (!auth) return;
+      if (!requireUserDataStorage(res, headers)) return;
       const key = auth.current.user.id;
-      const bundle = sanitizeCalendarBundle(calendarStore[key]);
+      let stored = null;
+      if (userDataMode === 'postgres' && userDataPgPool) {
+        stored = await getCalendarBundleForUser(userDataPgPool, key);
+      } else {
+        stored = calendarStore[key];
+      }
+      const bundle = sanitizeCalendarBundle(stored);
       if (!bundle) {
         send(res, 200, { fired: 0, skipped: 'empty' }, headers);
         return;
@@ -3759,8 +4041,13 @@ const start = async () => {
         sendEmail: sendCalendarReminderEmail,
       });
       if (result.bundle) {
-        calendarStore[key] = sanitizeCalendarBundle(result.bundle);
-        await saveCalendarStore();
+        const next = sanitizeCalendarBundle(result.bundle);
+        if (userDataMode === 'postgres' && userDataPgPool) {
+          await upsertCalendarBundleForUser(userDataPgPool, key, next);
+        } else {
+          calendarStore[key] = next;
+          await saveCalendarStore();
+        }
       }
       send(
         res,

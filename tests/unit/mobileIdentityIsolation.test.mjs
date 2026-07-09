@@ -391,7 +391,7 @@ describe('mobile identity isolation (P0)', () => {
     expect(readState.json?.data?.note).toBe('mine');
   });
 
-  it('stateless public mobile routes remain available without auth', async () => {
+  it('public mobile config routes remain available without auth; private report/OCR require auth', async () => {
     const billing = await invoke(handler, { method: 'GET', path: '/api/mobile/billing/status' });
     expect(billing.statusCode).toBe(200);
 
@@ -401,10 +401,22 @@ describe('mobile identity isolation (P0)', () => {
     const generate = await invoke(handler, {
       method: 'POST',
       path: '/api/mobile/reports/generate',
-      body: { note: 'stateless template only' },
+      body: { note: 'private health template' },
     });
-    expect(generate.statusCode).toBe(200);
-    expect(generate.json?.text).toContain('Luna29 Health Report');
+    expect(generate.statusCode).toBe(401);
+
+    const ocr = await invoke(handler, {
+      method: 'POST',
+      path: '/api/mobile/reports/ocr-intake',
+      body: { input: 'lab values should not be public' },
+    });
+    expect(ocr.statusCode).toBe(401);
+
+    const pdf = await invoke(handler, {
+      method: 'POST',
+      path: '/api/mobile/reports/LUNA29-20260101-100/pdf',
+    });
+    expect(pdf.statusCode).toBe(401);
   });
 
   it('legacy device:/guest: profile keys are not created by unauthenticated requests', async () => {

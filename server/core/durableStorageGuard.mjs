@@ -5,9 +5,9 @@
  * JSON /tmp / in-process memory as the authority for critical durable stores
  * when DATABASE_URL is missing.
  *
- * Does NOT migrate stores other than users/sessions (WS1.2).
- * When DATABASE_URL is present, users/sessions use Postgres; other critical
- * stores may still use JSON until later WS1 migrations.
+ * When DATABASE_URL is present, migrated critical stores use Postgres
+ * (users/sessions, billing, operational records, calendar/mobile user data).
+ * This guard still blocks production-like boot without DATABASE_URL.
  *
  * personal_events and memory_consent keep their own fail-closed resolvers.
  */
