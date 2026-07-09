@@ -120,6 +120,17 @@ export const deleteMobileReflectionOwned = async (pool, userId, entryId) => {
   return Boolean(result.rows[0]);
 };
 
+/** Account deletion: remove all reflections + meta for one user. */
+export const deleteAllMobileReflectionsForUser = async (pool, userId) => {
+  const uid = String(userId);
+  const reflections = await pool.query(`DELETE FROM mobile_reflections WHERE user_id = $1`, [uid]);
+  const meta = await pool.query(`DELETE FROM mobile_reflection_meta WHERE user_id = $1`, [uid]);
+  return {
+    reflections: Number(reflections.rowCount || 0),
+    meta: Number(meta.rowCount || 0),
+  };
+};
+
 export const countMobileReflections = async (pool) => {
   const result = await pool.query(`SELECT COUNT(*)::int AS n FROM mobile_reflections`);
   return Number(result.rows[0]?.n || 0);

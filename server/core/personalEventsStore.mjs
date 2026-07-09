@@ -173,7 +173,22 @@ const createUnavailableStore = (reason) => ({
   async updatePayload() {
     throw unavailableError(reason);
   },
+  async hardDeleteAllForUser() {
+    throw unavailableError(reason);
+  },
 });
+
+/**
+ * Hard-delete all personal_events for a user (account deletion cascade).
+ * Accepts shared Pool or transaction Client — never creates a new Pool.
+ */
+export const deletePersonalEventsForUser = async (pool, userId) => {
+  if (!pool || !userId) return 0;
+  const result = await pool.query(`DELETE FROM personal_events WHERE user_id = $1`, [
+    String(userId),
+  ]);
+  return Number(result.rowCount || 0);
+};
 
 const envHasDatabaseUrl = (env) => Boolean(String(env?.DATABASE_URL || '').trim());
 
@@ -370,6 +385,15 @@ const createFileStore = (filePath) => {
       await save(state);
       return publicEvent(row);
     },
+
+    async hardDeleteAllForUser(userId) {
+      const state = await load();
+      const before = state.events.length;
+      state.events = state.events.filter((item) => item.user_id !== userId);
+      const removed = before - state.events.length;
+      if (removed > 0) await save(state);
+      return removed;
+    },
   };
 };
 
@@ -523,6 +547,10 @@ const createPgStore = (pool) => ({
       [JSON.stringify(payload && typeof payload === 'object' ? payload : {}), eventId, userId],
     );
     return result.rows[0] ? publicEvent(result.rows[0]) : null;
+  },
+
+  async hardDeleteAllForUser(userId) {
+    return deletePersonalEventsForUser(pool, userId);
   },
 });
 

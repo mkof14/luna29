@@ -185,7 +185,10 @@ export const importTrialIfAbsent = async (pool, raw) => {
 };
 
 export const deleteTrialByUserId = async (pool, userId) => {
-  await pool.query(`DELETE FROM billing_trials WHERE user_id = $1`, [String(userId)]);
+  const result = await pool.query(`DELETE FROM billing_trials WHERE user_id = $1`, [
+    String(userId),
+  ]);
+  return Number(result.rowCount || 0);
 };
 
 export const countBillingTrials = async (pool) => {

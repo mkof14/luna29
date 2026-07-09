@@ -95,6 +95,11 @@ import {
   deleteSessionsForUserFromPostgres,
 } from './authSessionsStore.mjs';
 import {
+  deleteAccountLocalCascade,
+  deleteAccountLocalJsonCascade,
+  ACCOUNT_DELETION_FAILED,
+} from './accountDeletionService.mjs';
+import {
   resolveBillingStorageMode,
   billingStorageHealthLabel,
   billingStorageUnavailablePayload,
@@ -818,34 +823,57 @@ const createSession = (user) => {
   return token;
 };
 
-/** Resolve session from memory Map, with optional Postgres fallback (multi-instance). */
+/**
+ * Resolve session. In Postgres mode, Postgres is authoritative even on Map hit
+ * so a warm instance cannot authenticate after another instance deleted the row.
+ */
 const resolveSessionRecord = async (token, authPgPool) => {
   if (!token) return null;
-  let session = sessions.get(token);
-  if (!session && authPgPool) {
+
+  if (authPgPool) {
     const row = await getSessionRowFromPostgres(authPgPool, token);
-    if (row) {
-      session = { userId: row.userId, expiresAt: row.expiresAt, maxAgeSec: row.maxAgeSec };
-      sessions.set(token, session);
+    if (!row) {
+      sessions.delete(token);
+      return null;
     }
+    const session = { userId: row.userId, expiresAt: row.expiresAt, maxAgeSec: row.maxAgeSec };
+    sessions.set(token, session);
+    if (session.expiresAt < Date.now()) {
+      sessions.delete(token);
+      await deleteSessionFromPostgres(authPgPool, token);
+      return null;
+    }
+    return session;
   }
+
+  const session = sessions.get(token);
   if (!session) return null;
   if (session.expiresAt < Date.now()) {
     sessions.delete(token);
-    if (authPgPool) await deleteSessionFromPostgres(authPgPool, token);
     return null;
   }
   return session;
 };
 
+/**
+ * Resolve user. In Postgres mode, Postgres is authoritative so a warm instance
+ * cannot keep serving a deleted auth_users row from the local users array.
+ */
 const resolveUserRecord = async (userId, users, authPgPool = null) => {
   if (!userId) return null;
-  let user = users.find((item) => item.id === userId);
-  if (!user && authPgPool) {
-    user = await getUserByIdFromPostgres(authPgPool, userId);
-    if (user) users.unshift(user);
+  if (authPgPool) {
+    const user = await getUserByIdFromPostgres(authPgPool, userId);
+    if (!user) {
+      const idx = users.findIndex((item) => item.id === userId);
+      if (idx >= 0) users.splice(idx, 1);
+      return null;
+    }
+    const idx = users.findIndex((item) => item.id === userId);
+    if (idx >= 0) users[idx] = user;
+    else users.unshift(user);
+    return user;
   }
-  return user || null;
+  return users.find((item) => item.id === userId) || null;
 };
 
 const getSessionUser = async (req, users, authPgPool = null) => {
@@ -4182,8 +4210,14 @@ const start = async () => {
       if (!requireOperationalRecords(res, headers)) return;
       try {
         const body = await readBody(req);
+        // Owner identity from authenticated session only — ignore body/query userId/email.
+        void body?.userId;
+        void body?.email;
+        void body?.user_id;
         const scope = safeText(body.scope || 'account', 32);
-        const user = users.find((item) => item.id === auth.current.user.id);
+        const user =
+          users.find((item) => item.id === auth.current.user.id) ||
+          (authPgPool ? await getUserByIdFromPostgres(authPgPool, auth.current.user.id) : null);
         if (!user) {
           send(res, 404, { error: 'User not found.' }, headers);
           return;
@@ -4194,50 +4228,128 @@ const start = async () => {
           return;
         }
 
+        const requestId = `dsar-del-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
         if (scope === 'support_only') {
           await removeContactsForEmail(user.email);
+          await appendPrivacyRequestRecord({
+            id: requestId,
+            type: 'delete',
+            status: 'completed',
+            requestedAt: new Date().toISOString(),
+            completedAt: new Date().toISOString(),
+            email: auth.sessionPayload.email,
+            actor: auth.sessionPayload.email,
+            scope,
+          });
+          send(
+            res,
+            200,
+            { requestId, deleted: true, scope },
+            { ...headers, 'Set-Cookie': clearSessionCookie() },
+          );
+          return;
+        }
+
+        if (scope !== 'account') {
+          send(res, 400, { error: 'Invalid deletion scope.' }, headers);
+          return;
+        }
+
+        // Snapshot identity from session/user only (local cascade; no Stripe external).
+        const identitySnapshot = {
+          userId: user.id,
+          email: user.email,
+          role,
+          stripeCustomerId: null,
+          stripeSubscriptionId: null,
+        };
+        try {
+          identitySnapshot.stripeCustomerId =
+            (await billingService.getStripeCustomerIdForUser(user)) || null;
+        } catch {
+          /* snapshot best-effort; cascade still proceeds for local rows */
+        }
+
+        const sharedPool = authPgPool || operationalPgPool || userDataPgPool || billingPgPool;
+        let cascadeResult;
+
+        if (authIdentityMode === 'postgres' && sharedPool) {
+          cascadeResult = await deleteAccountLocalCascade({
+            pool: sharedPool,
+            userId: identitySnapshot.userId,
+            email: identitySnapshot.email,
+            actorUserId: identitySnapshot.userId,
+            reason: 'user_requested',
+            scope: 'account',
+            requestId,
+          });
         } else {
-          users = users.filter((item) => item.id !== user.id);
-          for (const [token, session] of sessions.entries()) {
-            if (session.userId === user.id) sessions.delete(token);
-          }
-          await removeContactsForEmail(user.email);
-          try {
-            await billingService.deleteBillingForUser(user);
-          } catch (billingDeleteError) {
-            if (billingDeleteError?.code !== BILLING_STORAGE_UNAVAILABLE) {
-              throw billingDeleteError;
-            }
-          }
-          if (authPgPool) {
-            await deleteSessionsForUserFromPostgres(authPgPool, user.id);
-            await deleteUserFromPostgres(authPgPool, user.id);
-          } else {
-            await Promise.all([saveUsers(), saveSessions()]);
+          const adminState = adminStore?.getState?.() || null;
+          cascadeResult = await deleteAccountLocalJsonCascade({
+            userId: identitySnapshot.userId,
+            email: identitySnapshot.email,
+            users,
+            sessions,
+            contactSubmissions,
+            privacyRequests,
+            calendarStore,
+            mobileReflections,
+            mobileReports,
+            mobileStateStore,
+            mobilePushStore,
+            personalEventsStore,
+            memoryConsentStore,
+            billingService,
+            adminState,
+            reason: 'user_requested',
+            requestId,
+          });
+          if (cascadeResult.ok) {
+            await Promise.all([
+              saveUsers(),
+              saveSessions(),
+              saveContacts(),
+              savePrivacyRequests(),
+              saveCalendarStore(),
+              saveMobileReflections(),
+              saveMobileReports(),
+              saveMobileStateStore(),
+              saveMobilePushStore(),
+              adminStore?.save?.() || Promise.resolve(),
+            ]);
           }
         }
 
-        const requestId = `dsar-del-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-        await appendPrivacyRequestRecord({
-          id: requestId,
-          type: 'delete',
-          status: 'completed',
-          requestedAt: new Date().toISOString(),
-          completedAt: new Date().toISOString(),
-          email: auth.sessionPayload.email,
-          actor: auth.sessionPayload.email,
-          scope,
-        });
+        if (!cascadeResult?.ok) {
+          const err = new Error('Account deletion cascade failed.');
+          err.code = ACCOUNT_DELETION_FAILED;
+          throw err;
+        }
+
+        // Refresh in-memory mirrors after successful Postgres commit.
+        users = users.filter((item) => item.id !== user.id);
+        for (const [token, session] of sessions.entries()) {
+          if (session.userId === user.id) sessions.delete(token);
+        }
+        if (operationalRecordsMode === 'postgres' && operationalPgPool) {
+          contactSubmissions = await listContactSubmissions(operationalPgPool, { limit: 2000 });
+          privacyRequests = await listPrivacyRequests(operationalPgPool, { limit: 2000 });
+        }
 
         send(
           res,
           200,
-          { requestId, deleted: true, scope },
-          { ...headers, 'Set-Cookie': clearSessionCookie() }
+          { requestId: cascadeResult.tombstoneId || requestId, deleted: true, scope: 'account' },
+          { ...headers, 'Set-Cookie': clearSessionCookie() },
         );
       } catch (error) {
         if (error?.code === OPERATIONAL_RECORDS_UNAVAILABLE) {
           send(res, 503, operationalRecordsUnavailablePayload('unavailable'), headers);
+          return;
+        }
+        if (error?.code === ACCOUNT_DELETION_FAILED || error?.code === BILLING_STORAGE_UNAVAILABLE) {
+          send(res, 500, { error: 'Unable to complete account deletion.', deleted: false }, headers);
           return;
         }
         send(res, 400, { error: error instanceof Error ? error.message : 'Unable to process deletion request.' }, headers);

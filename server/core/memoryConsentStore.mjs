@@ -36,6 +36,18 @@ CREATE TABLE IF NOT EXISTS memory_consent (
 CREATE INDEX IF NOT EXISTS idx_memory_consent_status ON memory_consent (status);
 `;
 
+/**
+ * Hard-delete memory_consent for a user via shared Pool/Client (account deletion).
+ * Does not use the store's private Pool — keeps cascade transactional on shared DB.
+ */
+export const deleteMemoryConsentForUser = async (pool, userId) => {
+  if (!pool || !userId) return 0;
+  const result = await pool.query(`DELETE FROM memory_consent WHERE user_id = $1`, [
+    String(userId),
+  ]);
+  return Number(result.rowCount || 0);
+};
+
 const getDatabaseUrl = (env = process.env) => String(env?.DATABASE_URL || '').trim() || null;
 const envHasDatabaseUrl = (env = process.env) => Boolean(getDatabaseUrl(env));
 
@@ -223,6 +235,9 @@ const createPostgresBackend = async (databaseUrl) => {
       );
       return rowToRecord(rows[0]);
     },
+    async hardDeleteForUser(userId) {
+      return deleteMemoryConsentForUser(pool, userId);
+    },
     async close() {
       await pool.end();
     },
@@ -296,6 +311,14 @@ const createFileBackend = (filePath) => {
       writeAll(data);
       return rowToRecord(next);
     },
+    async hardDeleteForUser(userId) {
+      const data = readAll();
+      const key = String(userId);
+      if (!data.records?.[key]) return 0;
+      delete data.records[key];
+      writeAll(data);
+      return 1;
+    },
     async close() {},
   };
 };
@@ -315,6 +338,11 @@ const createUnavailableBackend = (reason) => ({
     throw e;
   },
   async disable() {
+    const e = new Error('memory_consent_store_unavailable');
+    e.code = MEMORY_CONSENT_STORE_UNAVAILABLE;
+    throw e;
+  },
+  async hardDeleteForUser() {
     const e = new Error('memory_consent_store_unavailable');
     e.code = MEMORY_CONSENT_STORE_UNAVAILABLE;
     throw e;

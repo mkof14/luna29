@@ -95,6 +95,35 @@ export const countAdminAuditEvents = async (pool) => {
   return Number(result.rows[0]?.n || 0);
 };
 
+/**
+ * WS2.2 — Anonymize actor_email and scrub plaintext email from details.
+ * Keeps audit history; removes plaintext email from actor + details text.
+ */
+export const anonymizeAdminAuditActorEmail = async (pool, email, anonymizedEmail) => {
+  const normalized = String(email || '').toLowerCase();
+  const marker = String(anonymizedEmail || '').slice(0, 320);
+  if (!normalized || !marker) return 0;
+  // Escape regex metacharacters for case-insensitive email scrub in details.
+  const emailPattern = normalized.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const result = await pool.query(
+    `UPDATE admin_audit_events
+     SET
+       actor_email = CASE
+         WHEN actor_email IS NOT NULL AND LOWER(actor_email) = $1 THEN $2
+         ELSE actor_email
+       END,
+       details = CASE
+         WHEN details IS NOT NULL AND POSITION($1 IN LOWER(details)) > 0
+         THEN regexp_replace(details, $3, $2, 'gi')
+         ELSE details
+       END
+     WHERE (actor_email IS NOT NULL AND LOWER(actor_email) = $1)
+        OR (details IS NOT NULL AND POSITION($1 IN LOWER(details)) > 0)`,
+    [normalized, marker, emailPattern],
+  );
+  return Number(result.rowCount || 0);
+};
+
 export const importAdminAuditIfAbsent = async (pool, raw) => {
   const id = String(raw?.id || '').trim();
   const action = String(raw?.action || '').trim();

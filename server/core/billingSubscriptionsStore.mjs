@@ -273,7 +273,10 @@ export const upsertSubscription = async (pool, input) => {
 };
 
 export const deleteSubscriptionByUserId = async (pool, userId) => {
-  await pool.query(`DELETE FROM billing_subscriptions WHERE user_id = $1`, [String(userId)]);
+  const result = await pool.query(`DELETE FROM billing_subscriptions WHERE user_id = $1`, [
+    String(userId),
+  ]);
+  return Number(result.rowCount || 0);
 };
 
 export const countBillingSubscriptions = async (pool) => {

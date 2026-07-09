@@ -132,8 +132,11 @@ export const deleteSessionFromPostgres = async (pool, token) => {
 };
 
 export const deleteSessionsForUserFromPostgres = async (pool, userId) => {
-  if (!pool || !userId) return;
-  await pool.query('DELETE FROM auth_sessions WHERE user_id = $1', [String(userId)]);
+  if (!pool || !userId) return 0;
+  const result = await pool.query('DELETE FROM auth_sessions WHERE user_id = $1', [
+    String(userId),
+  ]);
+  return Number(result.rowCount || 0);
 };
 
 export const initAuthSessionsRepository = async ({ mode, pool = null } = {}) => {

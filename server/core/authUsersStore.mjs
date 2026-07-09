@@ -138,8 +138,9 @@ export const getUserByEmailFromPostgres = async (pool, email) => {
 };
 
 export const deleteUserFromPostgres = async (pool, userId) => {
-  if (!pool || !userId) return;
-  await pool.query('DELETE FROM auth_users WHERE id = $1', [String(userId)]);
+  if (!pool || !userId) return 0;
+  const result = await pool.query('DELETE FROM auth_users WHERE id = $1', [String(userId)]);
+  return Number(result.rowCount || 0);
 };
 
 export const countAuthUsers = async (pool) => {

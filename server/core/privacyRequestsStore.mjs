@@ -128,6 +128,30 @@ export const countPrivacyRequests = async (pool) => {
   return Number(result.rows[0]?.n || 0);
 };
 
+/**
+ * WS2.2 — Anonymize privacy_requests for a deleted user's email.
+ * email is NOT NULL, so replace with deleted:{sha256(userId)} marker (no plaintext).
+ * Also clears fields/consent_scopes JSON that may embed identifiers.
+ */
+export const anonymizePrivacyRequestsForEmail = async (pool, email, anonymizedEmail) => {
+  const normalized = String(email || '').toLowerCase();
+  const marker = String(anonymizedEmail || '').slice(0, 320);
+  if (!normalized || !marker) return 0;
+  const result = await pool.query(
+    `UPDATE privacy_requests
+     SET email = CASE WHEN LOWER(email) = $1 THEN $2 ELSE email END,
+         actor = CASE
+           WHEN actor IS NOT NULL AND LOWER(actor) = $1 THEN $2
+           ELSE actor
+         END,
+         fields = NULL,
+         consent_scopes = NULL
+     WHERE LOWER(email) = $1 OR (actor IS NOT NULL AND LOWER(actor) = $1)`,
+    [normalized, marker],
+  );
+  return Number(result.rowCount || 0);
+};
+
 export const importPrivacyRequestIfAbsent = async (pool, raw) => {
   const id = String(raw?.id || '').trim();
   const email = String(raw?.email || '').trim().toLowerCase();

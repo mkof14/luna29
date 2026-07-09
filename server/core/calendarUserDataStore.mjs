@@ -73,7 +73,10 @@ export const upsertCalendarBundleForUser = async (pool, userId, bundle) => {
 };
 
 export const deleteCalendarBundleForUser = async (pool, userId) => {
-  await pool.query(`DELETE FROM calendar_user_data WHERE user_id = $1`, [String(userId)]);
+  const result = await pool.query(`DELETE FROM calendar_user_data WHERE user_id = $1`, [
+    String(userId),
+  ]);
+  return Number(result.rowCount || 0);
 };
 
 export const countCalendarUserData = async (pool) => {

@@ -93,6 +93,14 @@ export const countMobileUserState = async (pool) => {
   return Number(result.rows[0]?.n || 0);
 };
 
+/** Account deletion: remove all section state for one user. */
+export const deleteAllMobileUserStateForUser = async (pool, userId) => {
+  const result = await pool.query(`DELETE FROM mobile_user_state WHERE user_id = $1`, [
+    String(userId),
+  ]);
+  return Number(result.rowCount || 0);
+};
+
 export const importMobileStateSectionIfAbsent = async (pool, userId, sectionKey, data) => {
   const uid = String(userId || '').trim();
   const section = String(sectionKey || '').trim();

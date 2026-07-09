@@ -112,7 +112,10 @@ export const deleteMobilePushTokenOwned = async (pool, userId, token) => {
 };
 
 export const deleteAllMobilePushTokensForUser = async (pool, userId) => {
-  await pool.query(`DELETE FROM mobile_push_registrations WHERE user_id = $1`, [String(userId)]);
+  const result = await pool.query(`DELETE FROM mobile_push_registrations WHERE user_id = $1`, [
+    String(userId),
+  ]);
+  return Number(result.rowCount || 0);
 };
 
 export const countMobilePushRegistrations = async (pool) => {

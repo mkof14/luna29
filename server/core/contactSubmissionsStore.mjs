@@ -104,9 +104,10 @@ export const listContactSubmissions = async (pool, { email = null, limit = 200 }
 };
 
 export const deleteContactSubmissionsByEmail = async (pool, email) => {
-  await pool.query(`DELETE FROM contact_submissions WHERE LOWER(email) = $1`, [
+  const result = await pool.query(`DELETE FROM contact_submissions WHERE LOWER(email) = $1`, [
     String(email || '').toLowerCase(),
   ]);
+  return Number(result.rowCount || 0);
 };
 
 export const markContactSubmissionReplied = async (pool, id, repliedAt = new Date().toISOString()) => {

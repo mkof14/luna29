@@ -230,6 +230,35 @@ export const countAdminInvites = async (pool) => {
   return Number(result.rows[0]?.n || 0);
 };
 
+/**
+ * WS2.2 — Revoke pending invites for deleted user's email and anonymize email.
+ * Covers all statuses (pending/accepted/expired/revoked). Also anonymizes created_by.
+ * Prevents invite re-grant after account deletion.
+ */
+export const revokeAndAnonymizeAdminInvitesForEmail = async (pool, email, anonymizedEmail) => {
+  const normalized = String(email || '').toLowerCase();
+  const marker = String(anonymizedEmail || '').slice(0, 320);
+  if (!normalized || !marker) return 0;
+  const result = await pool.query(
+    `UPDATE admin_invites
+     SET status = CASE
+           WHEN status = 'pending' THEN 'revoked'
+           ELSE status
+         END,
+         email = CASE WHEN LOWER(email) = $1 THEN $2 ELSE email END,
+         created_by = CASE
+           WHEN created_by IS NOT NULL AND LOWER(created_by) = $1 THEN $2
+           ELSE created_by
+         END,
+         invite_link = CASE WHEN LOWER(email) = $1 THEN NULL ELSE invite_link END,
+         updated_at = NOW()
+     WHERE LOWER(email) = $1
+        OR (created_by IS NOT NULL AND LOWER(created_by) = $1)`,
+    [normalized, marker],
+  );
+  return Number(result.rowCount || 0);
+};
+
 export const importAdminInviteIfAbsent = async (pool, raw) => {
   const id = String(raw?.id || '').trim();
   const email = String(raw?.email || '').trim().toLowerCase();

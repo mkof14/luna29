@@ -98,6 +98,14 @@ export const deleteMobileReportOwned = async (pool, userId, reportId) => {
   return Boolean(result.rows[0]);
 };
 
+/** Account deletion: remove all reports for one user. */
+export const deleteAllMobileReportsForUser = async (pool, userId) => {
+  const result = await pool.query(`DELETE FROM mobile_reports WHERE user_id = $1`, [
+    String(userId),
+  ]);
+  return Number(result.rowCount || 0);
+};
+
 export const countMobileReports = async (pool) => {
   const result = await pool.query(`SELECT COUNT(*)::int AS n FROM mobile_reports`);
   return Number(result.rows[0]?.n || 0);

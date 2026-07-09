@@ -123,7 +123,10 @@ export const upsertBillingAccount = async (pool, { userId, email, stripeCustomer
 };
 
 export const deleteBillingAccountByUserId = async (pool, userId) => {
-  await pool.query(`DELETE FROM billing_accounts WHERE user_id = $1`, [String(userId)]);
+  const result = await pool.query(`DELETE FROM billing_accounts WHERE user_id = $1`, [
+    String(userId),
+  ]);
+  return Number(result.rowCount || 0);
 };
 
 export const countBillingAccounts = async (pool) => {
