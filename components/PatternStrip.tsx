@@ -1,4 +1,8 @@
-
+/**
+ * LEGACY — Task 10: SAFE TO DELETE.
+ * Orphaned rhythm-history strip. Zero Member Zone importers.
+ * Not related to Task 5 pattern candidates or Today pattern experience.
+ */
 import React from 'react';
 
 interface PatternDay {

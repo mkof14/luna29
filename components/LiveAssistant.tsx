@@ -460,6 +460,12 @@ import { trackEvent } from '../services/analyticsService';
 
 export type LiveAssistantAccessMode = 'member' | 'public';
 
+export type LiveSessionClosePayload = {
+  userTurnCount: number;
+  memoryWriteStatus: string | null;
+  resumeMessages: Array<{ role: 'user' | 'luna' | 'system'; text: string }>;
+};
+
 export const LiveAssistant: React.FC<{
   isOpen: boolean;
   onClose: () => void;
@@ -468,6 +474,10 @@ export const LiveAssistant: React.FC<{
   accessMode?: LiveAssistantAccessMode;
   onSignIn?: () => void;
   onSignUp?: () => void;
+  /** Called once when member Live closes after a conversation (no polling). */
+  onSessionComplete?: (payload: LiveSessionClosePayload) => void;
+  /** Seed prior turns when continuing a conversation (no duplicated session). */
+  resumeMessages?: Array<{ role: 'user' | 'luna' | 'system'; text: string }>;
 }> = ({
   isOpen,
   onClose,
@@ -476,6 +486,8 @@ export const LiveAssistant: React.FC<{
   accessMode = 'member',
   onSignIn,
   onSignUp,
+  onSessionComplete,
+  resumeMessages,
 }) => {
   const isPublicPreview = accessMode === 'public';
   const idleBars = useMemo(() => Array.from({ length: 10 }, (_, i) => (i % 2 === 0 ? 8 : 10)), []);
@@ -496,6 +508,10 @@ export const LiveAssistant: React.FC<{
   const publicLimitReached = isPublicPreview && publicTurnsLeft <= 0;
   const [showMemory, setShowMemory] = useState(false);
   const [memoryConsent, setMemoryConsent] = useState<MemoryConsentResponse | null>(null);
+  const lastMemoryWriteStatusRef = useRef<string | null>(null);
+  const sessionCompletedRef = useRef(false);
+  /** User turns spoken in this open only — resume seed does not count. */
+  const newUserTurnsThisSessionRef = useRef(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const recognitionActiveRef = useRef(false);
@@ -654,6 +670,7 @@ export const LiveAssistant: React.FC<{
     }
 
     setMessages((prev) => [...prev, { role: 'user', text: msg }]);
+    newUserTurnsThisSessionRef.current += 1;
     setTextInput('');
     setInterimText('');
     setIsThinking(true);
@@ -691,6 +708,9 @@ export const LiveAssistant: React.FC<{
           clientMessageId,
           inputMode: 'text',
         });
+        if (typeof result.memory_write_status === 'string') {
+          lastMemoryWriteStatusRef.current = result.memory_write_status;
+        }
         setMessages((prev) => [...prev, { role: 'luna', text: result.text }]);
         if (result.audio) {
           playReplyAudio(result.audio);
@@ -822,6 +842,31 @@ export const LiveAssistant: React.FC<{
     stopAudioVisualizer();
   };
 
+  const finishSessionAndClose = useCallback(() => {
+    if (!isPublicPreview && !sessionCompletedRef.current) {
+      const newUserTurns = newUserTurnsThisSessionRef.current;
+      if (newUserTurns > 0) {
+        sessionCompletedRef.current = true;
+        const resume = messages
+          .filter((m) => m.role === 'user' || m.role === 'luna')
+          .map((m) => ({ role: m.role as 'user' | 'luna', text: m.text }));
+        trackEvent('live_completed', {
+          surface: 'luna_live',
+          action: 'close',
+          result: 'ok',
+          has_history: true,
+        });
+        onSessionComplete?.({
+          userTurnCount: newUserTurns,
+          memoryWriteStatus: lastMemoryWriteStatusRef.current,
+          resumeMessages: resume,
+        });
+      }
+    }
+    cleanup();
+    onClose();
+  }, [isPublicPreview, messages, onClose, onSessionComplete]);
+
   const introForPersona = useMemo(() => {
     const byLang = personaIntroByLang[lang] || personaIntroByLang.en;
     return byLang?.[personaId] || copy.intro;
@@ -838,12 +883,26 @@ export const LiveAssistant: React.FC<{
     if (isPublicPreview) {
       setPublicTurnsLeft(publicLiveTurnsLeft());
     }
+    sessionCompletedRef.current = false;
+    lastMemoryWriteStatusRef.current = null;
+    newUserTurnsThisSessionRef.current = 0;
 
     setTimeout(() => {
       setStatus('CONNECTED');
       if (isPublicPreview) {
         setIsMicMuted(true);
       }
+      const seed =
+        !isPublicPreview && resumeMessages && resumeMessages.length > 0
+          ? resumeMessages.map((m) => ({ role: m.role, text: m.text } as ChatMessage))
+          : [];
+
+      // Resume: restore prior turns only — no new Luna greeting.
+      if (seed.length > 0) {
+        setMessages(seed);
+        return;
+      }
+
       const opening: ChatMessage[] = [
         {
           role: 'luna',
@@ -1005,15 +1064,15 @@ export const LiveAssistant: React.FC<{
                   type="button"
                   data-testid="luna-live-memory-entry"
                   onClick={() => {
+                    // memory_settings_viewed fires once from MemoryControls on mount/refresh.
                     setShowMemory((v) => !v);
-                    trackEvent('memory_settings_viewed', { surface: 'luna_live', action: 'open', result: 'ok' });
                   }}
                   className="px-2.5 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border border-inherit opacity-80 hover:opacity-100 transition-opacity"
                 >
                   {memoryConsent?.status === 'enabled' ? 'Memory on' : memoryConsent?.status === 'consent_unavailable' ? 'Memory' : 'Memory off'}
                 </button>
               )}
-              <button onClick={() => { cleanup(); onClose(); }} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-500/10 transition-colors text-2xl font-light">×</button>
+              <button onClick={finishSessionAndClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-500/10 transition-colors text-2xl font-light">×</button>
             </div>
           </nav>
 

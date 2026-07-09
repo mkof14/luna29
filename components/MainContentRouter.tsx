@@ -5,6 +5,7 @@ import { Language, TranslationSchema, LangCopy, getLang } from '../constants';
 import { langMap } from '../utils/languages';
 import { TabType } from '../utils/navigation';
 import type { MemberNavigateOptions } from '../utils/memberNavigation';
+import type { LiveCloseSummary } from '../utils/liveSessionContinuity';
 import CycleTimeline from './CycleTimeline';
 import { DashboardView } from './DashboardView';
 import { DEFAULT_CYCLE_LENGTH, DEFAULT_USER_AGE } from '../constants/appDefaults';
@@ -169,6 +170,10 @@ interface MainContentRouterProps {
   onMemberBack: () => void;
   session: AuthSession | null;
   onLogout: () => void;
+  liveCloseSummary?: LiveCloseSummary | null;
+  liveRefreshToken?: number;
+  onContinueLiveConversation?: () => void;
+  onDismissLiveContinuity?: () => void;
 }
 
 export const MainContentRouter: React.FC<MainContentRouterProps> = ({
@@ -190,6 +195,10 @@ export const MainContentRouter: React.FC<MainContentRouterProps> = ({
   onMemberBack,
   session,
   onLogout,
+  liveCloseSummary = null,
+  liveRefreshToken = 0,
+  onContinueLiveConversation,
+  onDismissLiveContinuity,
 }) => {
   return (
     <main data-testid={`member-tab-${activeTab}`} className="flex-grow max-w-7xl mx-auto w-full px-6 pt-12 pb-40 relative z-10 member-tab-content">
@@ -223,6 +232,11 @@ export const MainContentRouter: React.FC<MainContentRouterProps> = ({
             onQuickCheckin={() => setShowSyncOverlay(true)}
             onOpenMyDay={() => navigateTo('my_day')}
             onOpenMonthly={() => navigateTo('monthly_reflection')}
+            onOpenMemory={() => navigateTo('profile')}
+            liveCloseSummary={liveCloseSummary}
+            liveRefreshToken={liveRefreshToken}
+            onContinueLiveConversation={onContinueLiveConversation}
+            onDismissLiveContinuity={onDismissLiveContinuity}
           />
         )}
         {activeTab === 'my_day' && (

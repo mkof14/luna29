@@ -1,3 +1,8 @@
+/**
+ * Onboarding path steps (Home → Cycle → Bridge).
+ * STILL REFERENCED by BridgeView + CycleTimeline.
+ * Not related to Today insight progression (MyDay insightStage) or Task 9 authorities.
+ */
 import React from 'react';
 import { Language, LangCopy, getLang } from '../constants';
 

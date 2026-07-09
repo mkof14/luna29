@@ -22,6 +22,7 @@ import {
   humanizeSignalType,
 } from '../utils/memorySignalLabels';
 import { MEMORY_COPY } from '../utils/memoryCopy';
+import { filterSurfacedPatterns } from '../utils/todayState';
 
 export { MEMORY_COPY };
 
@@ -91,12 +92,10 @@ export const MemoryControls: React.FC<Props> = ({
       ]);
       setSignals(Array.isArray(sigRes.events) ? sigRes.events : []);
       const pats = Array.isArray(patRes.candidates) ? patRes.candidates : [];
-      setPatterns(
-        pats.filter((p) => {
-          const st = String(p.payload?.status || '');
-          return st === 'candidate' || st === 'confirmed';
-        }),
-      );
+      // Single authority for candidate/confirmed vs rejected/stale/invalidated.
+      const surfaced = filterSurfacedPatterns(pats);
+      const keep = new Set([...surfaced.possible, ...surfaced.confirmed].map((p) => p.id));
+      setPatterns(pats.filter((p) => keep.has(String(p.id))));
     } catch {
       setConsentState('unavailable');
       applyConsent({
@@ -154,12 +153,9 @@ export const MemoryControls: React.FC<Props> = ({
       candidates: [] as PatternCandidateRecord[],
     }));
     const pats = Array.isArray(patRes.candidates) ? patRes.candidates : [];
-    setPatterns(
-      pats.filter((p) => {
-        const st = String(p.payload?.status || '');
-        return st === 'candidate' || st === 'confirmed';
-      }),
-    );
+    const surfaced = filterSurfacedPatterns(pats);
+    const keep = new Set([...surfaced.possible, ...surfaced.confirmed].map((p) => p.id));
+    setPatterns(pats.filter((p) => keep.has(String(p.id))));
   };
 
   const handleConfirm = async (id: string) => {
@@ -223,6 +219,8 @@ export const MemoryControls: React.FC<Props> = ({
     }
   };
 
+  // Administrative review surface: no daily quota. Today's 3/day limit
+  // (utils/todayDailyReview.ts) applies only to the Today card.
   const unreviewed = signals.filter((s) => publicSignalView(s).user_status === 'unreviewed');
   const confirmed = signals.filter((s) => {
     const st = publicSignalView(s).user_status;

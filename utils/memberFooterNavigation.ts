@@ -1,3 +1,8 @@
+/**
+ * Member Zone pathname → tab mapping (Task 10).
+ * Owner of public URL path → TabType when a signed-in session loads the SPA.
+ * Complementary to utils/urlRouting.ts (?tab= sync) — do not duplicate path maps there.
+ */
 import type { TabType } from './navigation';
 
 /** Footer explore links in member zone — always in-app tabs, never public hrefs. */
@@ -23,7 +28,7 @@ export const MEMBER_FOOTER_EXPLORE_TABS: MemberFooterExploreLink[] = [
 export const pathnameToMemberTab = (pathname: string): TabType | null => {
   const path = pathname.replace(/\/+$/, '') || '/';
   const map: Record<string, TabType> = {
-    '/': 'dashboard',
+    '/': 'today_mirror',
     '/learning': 'learning',
     '/training': 'learning',
     '/pricing': 'pricing',

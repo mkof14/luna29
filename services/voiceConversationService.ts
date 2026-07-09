@@ -19,6 +19,8 @@ export type VoiceConversationResult = {
   provider: string;
   ttsProvider?: string | null;
   degraded?: boolean;
+  /** Task 7 selective memory write result — never invent client-side. */
+  memory_write_status?: string | null;
 };
 
 export type VoiceExtractTask =
@@ -180,7 +182,9 @@ export const requestLunaVoiceResponse = async (params: {
       throw new Error(typeof err?.error === 'string' ? err.error : `Voice API ${res.status}`);
     }
 
-    const data = (await res.json()) as VoiceConversationResult;
+    const data = (await res.json()) as VoiceConversationResult & {
+      memory_write_status?: string | null;
+    };
     return {
       text: data.text,
       audio: data.audio ?? null,
@@ -189,6 +193,8 @@ export const requestLunaVoiceResponse = async (params: {
       provider: data.provider || 'gemini',
       ttsProvider: data.ttsProvider ?? null,
       degraded: data.degraded ?? false,
+      memory_write_status:
+        typeof data.memory_write_status === 'string' ? data.memory_write_status : null,
     };
   } catch (error) {
     const fallback = localVoiceFallback(transcript, lang, personaId);

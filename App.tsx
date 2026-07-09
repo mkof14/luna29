@@ -7,7 +7,11 @@ import { buildBottomNavItems, buildSidebarGroups, buildTopNavItems, TabType } fr
 import { readTabFromUrl, syncUrlState, updateHreflangLinks } from './utils/urlRouting';
 import { resolveSiteUrl } from './utils/pageMeta';
 import { pathnameToMemberTab } from './utils/memberFooterNavigation';
-import { type MemberNavigateOptions, MEMBER_HUB_TAB } from './utils/memberNavigation';
+import {
+  createMemberHubBack,
+  type MemberNavigateOptions,
+  MEMBER_HUB_TAB,
+} from './utils/memberNavigation';
 import { AppShellNav } from './components/AppShellNav';
 import { AppMobileNav } from './components/AppMobileNav';
 import { MainContentRouter } from './components/MainContentRouter';
@@ -16,7 +20,7 @@ import { PrivacyControls } from './components/PrivacyControls';
 import { useHealthModel } from './hooks/useHealthModel';
 import { authService } from './services/authService';
 import { captureAppError, initMonitoring } from './services/monitoringService';
-import { initAnalytics, trackPageView } from './services/analyticsService';
+import { initAnalytics, trackEvent, trackPageView } from './services/analyticsService';
 import { conversionEvents } from './utils/conversionEvents';
 import { billingService } from './services/billingService';
 import { applyServerTrialToLocal, consumeTrialPending, markTrialPending } from './utils/subscriptionAccess';
@@ -25,6 +29,8 @@ import { useCalendarReminderLoop } from './hooks/useCalendarReminders';
 // SHARED COMPONENTS
 import { LunaLiveButton } from './components/LunaLiveButton';
 const LiveAssistant = lazy(() => import('./components/LiveAssistant').then((m) => ({ default: m.LiveAssistant })));
+import type { LiveSessionClosePayload } from './components/LiveAssistant';
+import type { LiveCloseSummary } from './utils/liveSessionContinuity';
 const HormoneDetail = lazy(() => import('./components/HormoneDetail'));
 const CheckinOverlay = lazy(() => import('./components/CheckinOverlay').then((m) => ({ default: m.CheckinOverlay })));
 const AuthView = lazy(() => import('./components/AuthView').then((m) => ({ default: m.AuthView })));
@@ -44,13 +50,18 @@ const App: React.FC = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(() => dataService.projectState(dataService.getLog()).onboarded);
   const [showLive, setShowLive] = useState(false);
+  const [liveCloseSummary, setLiveCloseSummary] = useState<LiveCloseSummary | null>(null);
+  const [liveResumeMessages, setLiveResumeMessages] = useState<
+    Array<{ role: 'user' | 'luna' | 'system'; text: string }>
+  >([]);
+  const [liveRefreshToken, setLiveRefreshToken] = useState(0);
   const [showSidebar, setShowSidebar] = useState(false);
   const [selectedHormone, setSelectedHormone] = useState<HormoneData | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>(() => {
     const fromQuery = readTabFromUrl();
     if (fromQuery) return fromQuery;
     const fromPath = pathnameToMemberTab(typeof window !== 'undefined' ? window.location.pathname : '/');
-    return fromPath || 'today_mirror';
+    return fromPath || MEMBER_HUB_TAB;
   });
   const [showSyncOverlay, setShowSyncOverlay] = useState(false);
   
@@ -171,9 +182,7 @@ const App: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [lang]);
 
-  const onMemberBack = useCallback(() => {
-    navigateTo(MEMBER_HUB_TAB, { openSidebar: true });
-  }, [navigateTo]);
+  const onMemberBack = useMemo(() => createMemberHubBack(navigateTo), [navigateTo]);
 
   const saveCheckin = useCallback(() => {
     dataService.logEvent('DAILY_CHECKIN', { metrics: { ...checkinData }, symptoms: [], isPeriod: false });
@@ -210,7 +219,7 @@ const App: React.FC = () => {
       .catch(() => undefined)
       .finally(() => {
         setSession(null);
-        setActiveTab('today_mirror');
+        setActiveTab(MEMBER_HUB_TAB);
       });
   }, []);
 
@@ -271,7 +280,7 @@ const App: React.FC = () => {
                 setShowAuthModal(false);
                 setSession(nextSession);
                 const isAdmin = authService.canAccessAdminWorkspace(nextSession);
-                setActiveTab(isAdmin ? 'admin' : 'today_mirror');
+                setActiveTab(isAdmin ? 'admin' : MEMBER_HUB_TAB);
                 if (consumeTrialPending()) {
                   try {
                     const result = await billingService.startServerTrial();
@@ -325,7 +334,7 @@ const App: React.FC = () => {
           onComplete={() => {
             setLog(dataService.getLog());
             setHasCompletedOnboarding(true);
-            setActiveTab('today_mirror');
+            setActiveTab(MEMBER_HUB_TAB);
           }}
         />
         <Suspense fallback={null}>
@@ -350,7 +359,7 @@ const App: React.FC = () => {
             session={session}
             lang={lang}
             setLang={setLang}
-            onBack={() => navigateTo('today_mirror')}
+            onBack={() => navigateTo(MEMBER_HUB_TAB)}
             onLogout={handleLogout}
             onRoleChange={handleRoleChange}
           />
@@ -398,6 +407,18 @@ const App: React.FC = () => {
         onMemberBack={onMemberBack}
         session={session}
         onLogout={handleLogout}
+        liveCloseSummary={liveCloseSummary}
+        liveRefreshToken={liveRefreshToken}
+        onContinueLiveConversation={() => {
+          setLiveCloseSummary(null);
+          trackEvent('continue_conversation_clicked', {
+            surface: 'today',
+            action: 'continue',
+            result: 'ok',
+          });
+          setShowLive(true);
+        }}
+        onDismissLiveContinuity={() => setLiveCloseSummary(null)}
       />
 
       <Suspense fallback={null}>
@@ -435,6 +456,24 @@ const App: React.FC = () => {
           stateSnapshot={stateNarrative || 'Presence.'}
           lang={lang}
           accessMode="member"
+          resumeMessages={liveResumeMessages}
+          onSessionComplete={(payload: LiveSessionClosePayload) => {
+            setLiveResumeMessages(payload.resumeMessages);
+            setLiveCloseSummary({
+              userTurnCount: payload.userTurnCount,
+              memoryWriteStatus: payload.memoryWriteStatus,
+              resumeMessages: payload.resumeMessages,
+            });
+            setLiveRefreshToken((n) => n + 1);
+            if (activeTab !== MEMBER_HUB_TAB) {
+              setActiveTab(MEMBER_HUB_TAB);
+            }
+            trackEvent('today_refreshed_after_live', {
+              surface: 'today',
+              action: 'refresh',
+              result: 'ok',
+            });
+          }}
         />
         {selectedHormone && <HormoneDetail hormone={selectedHormone} lang={lang} onClose={() => setSelectedHormone(null)} />}
       </Suspense>

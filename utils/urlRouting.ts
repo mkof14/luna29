@@ -1,3 +1,7 @@
+/**
+ * URL query sync for Member Zone (Task 10).
+ * Owner of ?tab= / ?lang= read+write. Pathname → tab lives in memberFooterNavigation.ts.
+ */
 import { isSupportedLanguage } from './languages';
 import type { Language } from '../constants';
 import type { TabType } from './navigation';

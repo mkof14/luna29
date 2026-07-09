@@ -1,3 +1,9 @@
+/**
+ * LEGACY — Task 10: SAFE TO DELETE.
+ * Orphaned client heuristic pattern cards. Not imported by any Member Zone screen.
+ * Authority for patterns on Today: utils/todayPatternExperience.ts + Task 5 candidates
+ * via filterSurfacedPatterns (utils/todayState.ts). Do not revive this module.
+ */
 import React, { useMemo } from 'react';
 import { Sparkles } from 'lucide-react';
 import { Language, LangCopy, getLang } from '../constants';

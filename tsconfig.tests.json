@@ -16,5 +16,5 @@
     "types.ts",
     "constants.tsx"
   ],
-  "exclude": ["node_modules", "dist", "utils/pageMeta.ts", "services/authService.ts", "services/voiceConversationService.ts", "services/calendarSyncService.ts", "services/personalEventsService.ts", "services/observationSignalsService.ts", "services/timelineService.ts", "services/patternCandidatesService.ts", "services/memoryConsentService.ts", "hooks/useCalendarReminders.ts"]
+  "exclude": ["node_modules", "dist", "utils/pageMeta.ts", "services/authService.ts", "services/voiceConversationService.ts", "services/calendarSyncService.ts", "services/personalEventsService.ts", "services/observationSignalsService.ts", "services/timelineService.ts", "services/patternCandidatesService.ts", "services/memoryConsentService.ts", "services/todayIntelligenceService.ts", "hooks/useCalendarReminders.ts"]
 }
