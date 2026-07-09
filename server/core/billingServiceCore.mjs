@@ -133,6 +133,9 @@ export const createBillingService = (ctx) => {
    * Persist webhook-driven status (legacy semantics preserved).
    * Maps by userId and/or email; stores subscription projection when userId known.
    */
+  /**
+   * @deprecated Prefer processStripeWebhookEvent (WS1.4). Kept for narrow internal use/tests.
+   */
   const applyWebhookBillingUpdate = async ({
     userId,
     customerEmail,
@@ -141,6 +144,8 @@ export const createBillingService = (ctx) => {
     source,
     stripeCustomerId,
     stripeSubscriptionId,
+    stripeEventCreatedAt,
+    stripeEventId,
   }) => {
     assertWritable();
     const email = customerEmail ? String(customerEmail).toLowerCase() : '';
@@ -152,28 +157,26 @@ export const createBillingService = (ctx) => {
         const account = await getBillingAccountByStripeCustomerId(pool, stripeCustomerId);
         if (account) resolvedUserId = account.userId;
       }
+      if (!resolvedUserId && stripeSubscriptionId) {
+        const { getSubscriptionByStripeSubscriptionId } = await import(
+          './billingSubscriptionsStore.mjs'
+        );
+        const sub = await getSubscriptionByStripeSubscriptionId(pool, stripeSubscriptionId);
+        if (sub) resolvedUserId = sub.userId;
+      }
       if (!resolvedUserId && email) {
         const account = await getBillingAccountByEmail(pool, email);
         if (account) resolvedUserId = account.userId;
       }
       if (!resolvedUserId) {
-        // Cannot persist without user_id PK — compatible with legacy no-op when unmapped.
         return { persisted: false, reason: 'unmapped_user' };
       }
 
-      if (email) {
-        await upsertBillingAccount(pool, {
-          userId: resolvedUserId,
-          email,
-          stripeCustomerId: stripeCustomerId || undefined,
-        });
-      } else {
-        await upsertBillingAccount(pool, {
-          userId: resolvedUserId,
-          email: `${resolvedUserId}@billing.local`,
-          stripeCustomerId: stripeCustomerId || undefined,
-        });
-      }
+      await upsertBillingAccount(pool, {
+        userId: resolvedUserId,
+        email: email || `${resolvedUserId}@billing.local`,
+        stripeCustomerId: stripeCustomerId || undefined,
+      });
 
       await upsertSubscription(pool, {
         userId: resolvedUserId,
@@ -184,11 +187,20 @@ export const createBillingService = (ctx) => {
         source,
         stripeCustomerId: stripeCustomerId || null,
         stripeSubscriptionId: stripeSubscriptionId || null,
+        stripeEventCreatedAt,
+        stripeEventId,
       });
       return { persisted: true, userId: resolvedUserId };
     }
 
-    const payload = { status, period: period || 'month', updatedAt: nowIso, source };
+    const payload = {
+      status,
+      period: period || 'month',
+      updatedAt: nowIso,
+      source,
+      lastStripeEventCreatedAt: stripeEventCreatedAt,
+      lastStripeEventId: stripeEventId,
+    };
     if (stripeSubscriptionId) payload.subscriptionId = stripeSubscriptionId;
     if (stripeCustomerId) payload.stripeCustomerId = stripeCustomerId;
     if (userId) billingState[userId] = payload;

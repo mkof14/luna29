@@ -139,16 +139,42 @@ const durableOk =
   health?.checks?.durableStorage !== 'unavailable' && health?.checks?.database !== 'unavailable';
 const billingStorageOk = health?.checks?.billingStorage === 'postgres';
 const trialStorageOk = health?.checks?.trialStorage === 'postgres';
-if (missingRequired.length || health?.ok !== true || !durableOk || !billingStorageOk || !trialStorageOk) {
-  process.exitCode = 1;
-  if (!billingStorageOk || !trialStorageOk) {
+const webhookLedgerOk = health?.checks?.stripeWebhookLedger === 'postgres';
+const billingEnabled =
+  String(process.env.STRIPE_BILLING_ENABLED || '').toLowerCase() === 'true' ||
+  Boolean(health?.config?.billingEnabled);
+
+if (billingEnabled) {
+  const missingStripe = STRIPE_KEYS.filter((key) => key !== 'STRIPE_BILLING_ENABLED' && !vercelEnv.has(key));
+  if (missingStripe.length) {
+    console.error(`\nStripe billing enabled but missing: ${missingStripe.join(', ')}`);
+    process.exitCode = 1;
+  }
+  if (!webhookLedgerOk) {
     console.error(
-      `\nBilling/trial storage check failed: billingStorage=${health?.checks?.billingStorage} trialStorage=${health?.checks?.trialStorage} (expected postgres).`,
+      `\nStripe webhook ledger must be postgres when billing enabled (got ${health?.checks?.stripeWebhookLedger}).`,
+    );
+    process.exitCode = 1;
+  }
+}
+
+if (
+  missingRequired.length ||
+  health?.ok !== true ||
+  !durableOk ||
+  !billingStorageOk ||
+  !trialStorageOk ||
+  !webhookLedgerOk
+) {
+  process.exitCode = 1;
+  if (!billingStorageOk || !trialStorageOk || !webhookLedgerOk) {
+    console.error(
+      `\nBilling/trial/webhook storage check failed: billingStorage=${health?.checks?.billingStorage} trialStorage=${health?.checks?.trialStorage} stripeWebhookLedger=${health?.checks?.stripeWebhookLedger} (expected postgres).`,
     );
   }
-} else {
+} else if (process.exitCode !== 1) {
   console.log('\nBaseline production env looks good.');
-  console.log('Billing storage: postgres · Trial storage: postgres');
+  console.log('Billing storage: postgres · Trial storage: postgres · Webhook ledger: postgres');
   if (!health?.config?.billingEnabled) {
     console.log('Billing is intentionally disabled (soft launch). Add Stripe live keys + STRIPE_BILLING_ENABLED=true when ready.');
   }

@@ -105,6 +105,11 @@ import { initBillingSubscriptionsRepository } from './billingSubscriptionsStore.
 import { initBillingTrialsRepository } from './billingTrialsStore.mjs';
 import { maybeImportLegacyBillingOnBoot } from './billingLegacyImport.mjs';
 import { createBillingService } from './billingServiceCore.mjs';
+import {
+  initStripeWebhookEventsRepository,
+  createMemoryStripeWebhookLedger,
+} from './stripeWebhookEventsStore.mjs';
+import { processStripeWebhookEvent } from './stripeWebhookProcessor.mjs';
 import { getPgPoolStatus } from './database.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -494,6 +499,12 @@ const buildHealthPayload = async ({ verbose = false, durableDecision = null } = 
   }
   const billingStorageLabel = billingStorageHealthLabel(billingStorageMode);
   const trialStorageLabel = billingStorageLabel;
+  const stripeWebhookLedgerLabel =
+    billingStorageMode === 'postgres'
+      ? 'postgres'
+      : billingStorageMode === 'json'
+        ? 'json_dev'
+        : 'unavailable';
   const googleAuthConfigured = GOOGLE_CLIENT_IDS.size > 0;
   const aiScanEnabled = Boolean(GEMINI_API_KEY);
   const rateLimitBackend = isUpstashRateLimitEnabled() ? 'upstash' : 'memory';
@@ -540,6 +551,7 @@ const buildHealthPayload = async ({ verbose = false, durableDecision = null } = 
       database: databaseCheck,
       billingStorage: billingStorageLabel,
       trialStorage: trialStorageLabel,
+      stripeWebhookLedger: stripeWebhookLedgerLabel,
       rateLimit: rateLimitBackend,
       billing: billingStatus,
       googleAuth: googleAuthConfigured ? 'configured' : 'missing',
@@ -561,6 +573,7 @@ const buildHealthPayload = async ({ verbose = false, durableDecision = null } = 
       durableStorageReason: decision.reason,
       billingStorageMode: billingStorageLabel,
       trialStorageMode: trialStorageLabel,
+      stripeWebhookLedger: stripeWebhookLedgerLabel,
       rateLimitBackend,
       googleClientIds: GOOGLE_CLIENT_IDS.size,
       aiScanEnabled,
@@ -931,7 +944,8 @@ const constantTimeEquals = (a, b) => {
   return timingSafeEqual(left, right);
 };
 
-const verifyStripeSignature = (rawBody, signatureHeader, secret) => {
+/** Stripe webhook signature: HMAC over exact raw body (never re-serialized JSON). */
+const verifyStripeSignature = (rawBody, signatureHeader, secret, { maxSkewSec = 300 } = {}) => {
   if (!signatureHeader || !secret) return false;
   const pairs = String(signatureHeader)
     .split(',')
@@ -940,6 +954,12 @@ const verifyStripeSignature = (rawBody, signatureHeader, secret) => {
   const timestamp = pairs.find(([key]) => key === 't')?.[1];
   const signatures = pairs.filter(([key]) => key === 'v1').map(([, value]) => value);
   if (!timestamp || signatures.length === 0) return false;
+  const tsNum = Number(timestamp);
+  if (!Number.isFinite(tsNum)) return false;
+  // Reject grossly skewed timestamps (replay window). Does not replace event ledger.
+  if (maxSkewSec > 0 && Math.abs(Math.floor(Date.now() / 1000) - tsNum) > maxSkewSec) {
+    return false;
+  }
   const payload = `${timestamp}.${rawBody.toString('utf8')}`;
   const expected = createHmac('sha256', secret).update(payload).digest('hex');
   return signatures.some((value) => constantTimeEquals(value, expected));
@@ -1161,9 +1181,13 @@ const start = async () => {
       mode: 'postgres',
       pool: poolStatus.pool,
     });
-    if (!accountsRepo.ok || !subsRepo.ok || !trialsRepo.ok || !poolStatus.pool) {
+    const webhookLedgerRepo = await initStripeWebhookEventsRepository({
+      mode: 'postgres',
+      pool: poolStatus.pool,
+    });
+    if (!accountsRepo.ok || !subsRepo.ok || !trialsRepo.ok || !webhookLedgerRepo.ok || !poolStatus.pool) {
       console.warn(
-        `[billing] init failed: accounts=${accountsRepo.reason || accountsRepo.mode} subscriptions=${subsRepo.reason || subsRepo.mode} trials=${trialsRepo.reason || trialsRepo.mode}`,
+        `[billing] init failed: accounts=${accountsRepo.reason || accountsRepo.mode} subscriptions=${subsRepo.reason || subsRepo.mode} trials=${trialsRepo.reason || trialsRepo.mode} webhookLedger=${webhookLedgerRepo.reason || webhookLedgerRepo.mode}`,
       );
       return async (req, res) => {
         const method = req.method || 'GET';
@@ -1184,6 +1208,7 @@ const start = async () => {
             ...(payload.checks || {}),
             billingStorage: 'unavailable',
             trialStorage: 'unavailable',
+            stripeWebhookLedger: 'unavailable',
           };
           send(res, 503, payload, headers);
           return;
@@ -1199,11 +1224,15 @@ const start = async () => {
       billingPgPool,
       legacyBillingRaw && typeof legacyBillingRaw === 'object' ? legacyBillingRaw : {},
     );
-    console.info('[billing] accounts+subscriptions+trials repositories initialized (postgres)');
+    console.info('[billing] accounts+subscriptions+trials+webhook-ledger repositories initialized (postgres)');
   } else {
     billingState = await readJson(BILLING_STATE_FILE, {});
     if (!billingState || typeof billingState !== 'object') billingState = {};
   }
+
+  // JSON/test: process-local webhook ledger (same claim semantics; not multi-instance durable).
+  const stripeWebhookLedger =
+    billingStorageMode === 'json' ? createMemoryStripeWebhookLedger() : null;
 
   const saveBillingState = async () => {
     if (billingStorageMode === 'postgres') {
@@ -3942,10 +3971,12 @@ const start = async () => {
         return;
       }
 
+      // Exact raw body — never JSON.stringify before signature verification.
       const rawBody = await readRawBody(req);
       const sig = req.headers['stripe-signature'];
 
       if (!verifyStripeSignature(rawBody, sig, STRIPE_WEBHOOK_SECRET)) {
+        // Invalid signature: reject; do not create trusted ledger entries.
         send(res, 401, { error: 'Invalid Stripe signature.' }, headers);
         return;
       }
@@ -3958,68 +3989,16 @@ const start = async () => {
         return;
       }
 
-      const eventType = safeText(event?.type, 80);
-      const data = event?.data?.object || {};
-      const customerEmail = normalizeEmail(data.customer_email || data.metadata?.luna_email || '');
-      const userId = safeText(data.client_reference_id || data.metadata?.luna_user_id || '', 120);
-      const period = safeText(data.metadata?.luna_period || '', 12) || 'month';
-      const stripeCustomerId = safeText(data.customer || data.customer_id || '', 120) || null;
-      const subscriptionFromObject =
-        typeof data.subscription === 'string'
-          ? data.subscription
-          : typeof data.id === 'string' && data.id.startsWith('sub_')
-            ? data.id
-            : '';
-      const stripeSubscriptionId = safeText(subscriptionFromObject, 120) || null;
-
-      let nextStatus = null;
-      if (eventType === 'checkout.session.completed' || eventType === 'invoice.paid') {
-        nextStatus = 'active';
-      } else if (eventType === 'invoice.payment_failed') {
-        nextStatus = 'past_due';
-      } else if (eventType === 'customer.subscription.deleted') {
-        nextStatus = 'canceled';
-      }
-
-      try {
-        if (nextStatus) {
-          const result = await billingService.applyWebhookBillingUpdate({
-            userId: userId || null,
-            customerEmail,
-            status: nextStatus,
-            period,
-            source: eventType,
-            stripeCustomerId,
-            stripeSubscriptionId:
-              eventType === 'customer.subscription.deleted'
-                ? safeText(data.id, 120) || stripeSubscriptionId
-                : stripeSubscriptionId,
-          });
-          // Persist customer id from checkout when present.
-          if (
-            eventType === 'checkout.session.completed' &&
-            userId &&
-            stripeCustomerId
-          ) {
-            await billingService.rememberStripeCustomer({
-              userId,
-              email: customerEmail || undefined,
-              stripeCustomerId,
-            });
-          }
-          if (result?.persisted === false && !userId && !customerEmail) {
-            // Unmapped event — still ack (Stripe retry won't help without mapping).
-          }
-        }
-        send(res, 200, { received: true }, headers);
-      } catch (error) {
-        if (error?.code === BILLING_STORAGE_UNAVAILABLE) {
-          send(res, 503, billingStorageUnavailablePayload('unavailable'), headers);
-          return;
-        }
-        // Persistence failure must not falsely succeed (Stripe will retry).
-        send(res, 500, { error: 'Unable to persist billing webhook.' }, headers);
-      }
+      const outcome = await processStripeWebhookEvent({
+        mode: billingStorageMode === 'postgres' ? 'postgres' : 'json',
+        pool: billingPgPool,
+        billingState,
+        saveBillingState,
+        event,
+        ledger: stripeWebhookLedger,
+        rememberStripeCustomer: billingService.rememberStripeCustomer,
+      });
+      send(res, outcome.httpStatus, outcome.body, headers);
       return;
     }
 

@@ -21,6 +21,8 @@ CREATE TABLE IF NOT EXISTS billing_subscriptions (
   current_period_end TIMESTAMPTZ,
   cancel_at_period_end BOOLEAN NOT NULL DEFAULT FALSE,
   canceled_at TIMESTAMPTZ,
+  last_stripe_event_created_at BIGINT,
+  last_stripe_event_id TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -29,6 +31,14 @@ CREATE UNIQUE INDEX IF NOT EXISTS billing_subscriptions_stripe_sub_uidx
   WHERE stripe_subscription_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS billing_subscriptions_email_idx
   ON billing_subscriptions (LOWER(email));
+`;
+
+/** Idempotent column add for deployments that created billing_subscriptions before WS1.4. */
+const ORDERING_COLUMNS_SQL = `
+ALTER TABLE billing_subscriptions
+  ADD COLUMN IF NOT EXISTS last_stripe_event_created_at BIGINT;
+ALTER TABLE billing_subscriptions
+  ADD COLUMN IF NOT EXISTS last_stripe_event_id TEXT;
 `;
 
 let schemaReady = false;
@@ -42,6 +52,7 @@ export const ensureBillingSubscriptionsTable = async (pool) => {
   if (!pool) return false;
   try {
     await pool.query(SCHEMA_SQL);
+    await pool.query(ORDERING_COLUMNS_SQL);
     schemaReady = true;
     return true;
   } catch (error) {
@@ -77,9 +88,32 @@ const rowToSubscription = (row) => {
     currentPeriodEnd: toIso(row.current_period_end),
     cancelAtPeriodEnd: Boolean(row.cancel_at_period_end),
     canceledAt: toIso(row.canceled_at),
+    lastStripeEventCreatedAt:
+      row.last_stripe_event_created_at == null ? null : Number(row.last_stripe_event_created_at),
+    lastStripeEventId:
+      row.last_stripe_event_id == null ? null : String(row.last_stripe_event_id),
     createdAt: toIso(row.created_at),
     updatedAt: toIso(row.updated_at),
   };
+};
+
+/**
+ * Ordering: Stripe event.created (unix seconds), then event_id lexicographic tie-break.
+ * @returns {'apply'|'skip_same'|'skip_stale'}
+ */
+export const compareStripeEventOrder = (existing, nextCreatedAt, nextEventId) => {
+  if (!existing || existing.lastStripeEventCreatedAt == null || !existing.lastStripeEventId) {
+    return 'apply';
+  }
+  const nextCreated = Number(nextCreatedAt);
+  if (!Number.isFinite(nextCreated) || !nextEventId) return 'apply';
+  const prevCreated = Number(existing.lastStripeEventCreatedAt);
+  if (nextCreated > prevCreated) return 'apply';
+  if (nextCreated < prevCreated) return 'skip_stale';
+  // Equal created: deterministic event_id tie-break
+  if (String(nextEventId) === String(existing.lastStripeEventId)) return 'skip_same';
+  if (String(nextEventId) > String(existing.lastStripeEventId)) return 'apply';
+  return 'skip_stale';
 };
 
 /** Shape compatible with legacy billingState status payload. */
@@ -148,14 +182,37 @@ export const upsertSubscription = async (pool, input) => {
       ? null
       : String(input.stripePriceId);
 
+  const stripeEventCreatedAt =
+    input.stripeEventCreatedAt == null || Number.isNaN(Number(input.stripeEventCreatedAt))
+      ? null
+      : Number(input.stripeEventCreatedAt);
+  const stripeEventId = input.stripeEventId ? String(input.stripeEventId) : null;
+
+  // When ordering metadata provided, skip stale/same updates (no overwrite of newer state).
+  if (stripeEventCreatedAt != null && stripeEventId) {
+    const existing = await getSubscriptionByUserId(pool, userId);
+    const order = compareStripeEventOrder(existing, stripeEventCreatedAt, stripeEventId);
+    if (order === 'skip_same' || order === 'skip_stale') {
+      if (existing && typeof existing === 'object') {
+        Object.defineProperty(existing, '_upsertMeta', {
+          value: { applied: false, reason: order },
+          enumerable: false,
+          configurable: true,
+        });
+      }
+      return existing;
+    }
+  }
+
   await pool.query(
     `INSERT INTO billing_subscriptions (
        user_id, email, stripe_customer_id, stripe_subscription_id, status, plan_key, period,
        stripe_price_id, source, current_period_start, current_period_end,
-       cancel_at_period_end, canceled_at, created_at, updated_at
+       cancel_at_period_end, canceled_at, last_stripe_event_created_at, last_stripe_event_id,
+       created_at, updated_at
      ) VALUES (
        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10::timestamptz, $11::timestamptz,
-       COALESCE($12, FALSE), $13::timestamptz, NOW(), NOW()
+       COALESCE($12, FALSE), $13::timestamptz, $14, $15, NOW(), NOW()
      )
      ON CONFLICT (user_id) DO UPDATE SET
        email = COALESCE(EXCLUDED.email, billing_subscriptions.email),
@@ -170,7 +227,21 @@ export const upsertSubscription = async (pool, input) => {
        current_period_end = COALESCE(EXCLUDED.current_period_end, billing_subscriptions.current_period_end),
        cancel_at_period_end = COALESCE(EXCLUDED.cancel_at_period_end, billing_subscriptions.cancel_at_period_end),
        canceled_at = COALESCE(EXCLUDED.canceled_at, billing_subscriptions.canceled_at),
-       updated_at = NOW()`,
+       last_stripe_event_created_at = COALESCE(EXCLUDED.last_stripe_event_created_at, billing_subscriptions.last_stripe_event_created_at),
+       last_stripe_event_id = COALESCE(EXCLUDED.last_stripe_event_id, billing_subscriptions.last_stripe_event_id),
+       updated_at = NOW()
+     WHERE
+       billing_subscriptions.last_stripe_event_created_at IS NULL
+       OR EXCLUDED.last_stripe_event_created_at IS NULL
+       OR EXCLUDED.last_stripe_event_created_at > billing_subscriptions.last_stripe_event_created_at
+       OR (
+         EXCLUDED.last_stripe_event_created_at = billing_subscriptions.last_stripe_event_created_at
+         AND EXCLUDED.last_stripe_event_id IS NOT NULL
+         AND (
+           billing_subscriptions.last_stripe_event_id IS NULL
+           OR EXCLUDED.last_stripe_event_id >= billing_subscriptions.last_stripe_event_id
+         )
+       )`,
     [
       userId,
       email,
@@ -185,9 +256,20 @@ export const upsertSubscription = async (pool, input) => {
       input.currentPeriodEnd || null,
       input.cancelAtPeriodEnd == null ? null : Boolean(input.cancelAtPeriodEnd),
       input.canceledAt || null,
+      stripeEventCreatedAt,
+      stripeEventId,
     ],
   );
-  return getSubscriptionByUserId(pool, userId);
+  const subscription = await getSubscriptionByUserId(pool, userId);
+  // Preserve prior return shape (subscription object) for WS1.3 callers.
+  // Attach applied/reason non-enumerably for webhook ordering introspection.
+  if (subscription && typeof subscription === 'object') {
+    Object.defineProperty(subscription, '_upsertMeta', {
+      value: { applied: true, reason: 'applied' },
+      enumerable: false,
+    });
+  }
+  return subscription;
 };
 
 export const deleteSubscriptionByUserId = async (pool, userId) => {

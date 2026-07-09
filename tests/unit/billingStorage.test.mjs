@@ -211,8 +211,33 @@ const createBillingMockPool = () => {
           period,
           stripePriceId,
           source,
+          _cps,
+          _cpe,
+          _cap,
+          _canceledAt,
+          stripeEventCreatedAt,
+          stripeEventId,
         ] = params;
         const existing = subscriptions.get(userId);
+        // Honor ordering WHERE clause when present
+        if (
+          existing &&
+          existing.last_stripe_event_created_at != null &&
+          stripeEventCreatedAt != null &&
+          q.includes('last_stripe_event_created_at')
+        ) {
+          const prev = Number(existing.last_stripe_event_created_at);
+          const next = Number(stripeEventCreatedAt);
+          if (
+            next < prev ||
+            (next === prev &&
+              stripeEventId &&
+              existing.last_stripe_event_id &&
+              String(stripeEventId) < String(existing.last_stripe_event_id))
+          ) {
+            return { rows: [] };
+          }
+        }
         subscriptions.set(userId, {
           user_id: userId,
           email: email ?? existing?.email ?? null,
@@ -227,9 +252,15 @@ const createBillingMockPool = () => {
           current_period_end: null,
           cancel_at_period_end: false,
           canceled_at: null,
+          last_stripe_event_created_at:
+            stripeEventCreatedAt ?? existing?.last_stripe_event_created_at ?? null,
+          last_stripe_event_id: stripeEventId ?? existing?.last_stripe_event_id ?? null,
           created_at: existing?.created_at || new Date().toISOString(),
           updated_at: new Date().toISOString(),
         });
+        return { rows: [] };
+      }
+      if (q.includes('ALTER TABLE billing_subscriptions')) {
         return { rows: [] };
       }
       if (q.includes('DELETE FROM billing_subscriptions')) {
