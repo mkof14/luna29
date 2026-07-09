@@ -4,6 +4,11 @@
  * Orchestrates delete/anonymize of Luna-owned user-scoped rows.
  * No Stripe external API calls. No client purge. No route-level SQL.
  * Uses the shared Postgres pool/client only (never creates a new Pool).
+ *
+ * Historical email limitation: contacts/invites/privacy rows are keyed by the
+ * account's current email only. There is no durable previous-email or identity
+ * provider history table. Cascade does not invent historical identities and
+ * does not claim deletion of records under unknown prior emails.
  */
 
 import { createHash } from 'node:crypto';

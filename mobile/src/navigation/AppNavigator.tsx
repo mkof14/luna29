@@ -865,7 +865,12 @@ export function AppNavigator() {
   if (view.type === 'dataRights') {
     return (
       <AppShell mode={themeMode}>
-        <DataRightsMobileScreen onBack={openLegal} />
+        <DataRightsMobileScreen
+          onBack={openLegal}
+          onDeleted={() => {
+            void auth.signOut();
+          }}
+        />
       </AppShell>
     );
   }

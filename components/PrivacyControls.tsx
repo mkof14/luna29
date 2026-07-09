@@ -12,6 +12,7 @@ import {
 } from '../utils/privacyCompliance';
 import { refreshAnalyticsConsent } from '../services/analyticsService';
 import { logPrivacyConsentEvent } from '../services/privacyService';
+import { deleteAuthenticatedAccount } from '../services/accountDeletionService';
 
 type Copy = {
   bannerTitle: string;
@@ -372,20 +373,42 @@ export const PrivacyControls: React.FC<{ lang: Language; isAuthenticated: boolea
   };
 
   const handleDeleteHealth = () => {
-    const removed = clearLunaLocalData(false);
-    setFeedback(`${copy.done}: ${removed}`);
-    window.location.reload();
+    void (async () => {
+      if (isAuthenticated) {
+        const result = await deleteAuthenticatedAccount('support_only');
+        if (!result.ok) {
+          setFeedback(result.error);
+          return;
+        }
+        setFeedback(copy.done);
+        window.location.reload();
+        return;
+      }
+      const removed = clearLunaLocalData(false);
+      setFeedback(`${copy.done}: ${removed}`);
+      window.location.reload();
+    })();
   };
 
   const handleDeleteAll = () => {
     if (!window.confirm(copy.caution)) return;
-    clearLunaLocalData(true);
-    if (isAuthenticated) {
+    void (async () => {
+      if (isAuthenticated) {
+        const result = await deleteAuthenticatedAccount('account');
+        if (!result.ok) {
+          // Preserve auth/local data so the user can retry server deletion.
+          setFeedback(result.error);
+          return;
+        }
+        setFeedback(copy.done);
+        window.location.reload();
+        return;
+      }
+      // Anonymous: local-only purge (no server account).
+      clearLunaLocalData(true);
+      setFeedback(copy.done);
       window.location.reload();
-      return;
-    }
-    setFeedback(copy.done);
-    window.location.reload();
+    })();
   };
 
   return (

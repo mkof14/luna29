@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Language } from '../constants';
 import { clearLunaLocalData, downloadLunaLocalDataExport } from '../utils/privacyCompliance';
+import { deleteAuthenticatedAccount } from '../services/accountDeletionService';
 import {
   getLegalDoc,
   getLegalEffectiveDate,
@@ -86,47 +87,38 @@ export const LegalDocumentView: React.FC<LegalDocumentViewProps> = ({ lang, doc,
   };
 
   const deleteHealthData = async () => {
-    try {
-      const response = await fetch('/api/privacy/delete', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ scope: 'support_only' }),
-      });
-      if (response.ok) {
-        setActionFeedback(ui.feedbackServerSupportDelete);
-        return;
-      }
-    } catch {
-      // fallback to local delete below
+    const result = await deleteAuthenticatedAccount('support_only');
+    if (result.ok) {
+      setActionFeedback(ui.feedbackServerSupportDelete);
+      return;
     }
-    const removed = clearLunaLocalData(false);
-    setActionFeedback(`${ui.feedbackLocalHealthDelete}: ${removed} keys.`);
+    // Only anonymous/unauthenticated may fall back to local-only health purge.
+    if (result.status === 401) {
+      const removed = clearLunaLocalData(false);
+      setActionFeedback(`${ui.feedbackLocalHealthDelete}: ${removed} keys.`);
+      return;
+    }
+    setActionFeedback(result.error || 'Support data deletion failed. You can retry.');
   };
 
   const deleteAllData = async () => {
     const confirmed = window.confirm(ui.confirmDeleteAll);
     if (!confirmed) return;
 
-    try {
-      const response = await fetch('/api/privacy/delete', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ scope: 'account' }),
-      });
-      if (response.ok) {
-        setActionFeedback(ui.feedbackServerAccountDelete);
-        window.location.reload();
-        return;
-      }
-    } catch {
-      // fallback to local delete below
+    const result = await deleteAuthenticatedAccount('account');
+    if (result.ok) {
+      setActionFeedback(ui.feedbackServerAccountDelete);
+      window.location.reload();
+      return;
     }
-
-    const removed = clearLunaLocalData(true);
-    setActionFeedback(`${ui.feedbackAllLocalDelete}: ${removed} keys.`);
-    window.location.reload();
+    // Do not purge account keys on server failure — preserve retry capability.
+    if (result.status === 401) {
+      const removed = clearLunaLocalData(true);
+      setActionFeedback(`${ui.feedbackAllLocalDelete}: ${removed} keys.`);
+      window.location.reload();
+      return;
+    }
+    setActionFeedback(result.error || 'Account deletion failed. You can retry.');
   };
 
   const docArtPage: PublicArtPage =

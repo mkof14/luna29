@@ -44,8 +44,10 @@ export const LEGAL_UI: LangCopy<LegalUiCopy> = {
     feedbackLocalExport: 'Local data export downloaded.',
     feedbackServerSupportDelete: 'Server support data deletion request completed.',
     feedbackLocalHealthDelete: 'Local health data removed',
-    confirmDeleteAll: 'Delete all local Luna29 data on this device? This cannot be undone.',
-    feedbackServerAccountDelete: 'Server account deletion request completed.',
+    confirmDeleteAll:
+      'Delete your Luna29 account and local data on this device? Active Stripe subscriptions are canceled; Stripe may retain financial/invoice history. This cannot be undone.',
+    feedbackServerAccountDelete:
+      'Account deletion completed. Local Luna data on this device was cleared. Stripe may retain financial records.',
     feedbackAllLocalDelete: 'All local data removed',
   },
   ru: {

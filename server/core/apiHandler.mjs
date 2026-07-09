@@ -94,11 +94,13 @@ import {
   deleteSessionFromPostgres,
   deleteSessionsForUserFromPostgres,
 } from './authSessionsStore.mjs';
+import { ACCOUNT_DELETION_FAILED } from './accountDeletionService.mjs';
 import {
-  deleteAccountLocalCascade,
-  deleteAccountLocalJsonCascade,
-  ACCOUNT_DELETION_FAILED,
-} from './accountDeletionService.mjs';
+  initAccountDeletionOpsRepository,
+  createMemoryDeletionOpsLedger,
+  DELETION_OP_STATUS,
+} from './accountDeletionOpsStore.mjs';
+import { createAccountDeletionOrchestrator } from './accountDeletionOrchestrator.mjs';
 import {
   resolveBillingStorageMode,
   billingStorageHealthLabel,
@@ -106,7 +108,10 @@ import {
   BILLING_STORAGE_UNAVAILABLE,
 } from './billingStorage.mjs';
 import { initBillingAccountsRepository } from './billingAccountsStore.mjs';
-import { initBillingSubscriptionsRepository } from './billingSubscriptionsStore.mjs';
+import {
+  initBillingSubscriptionsRepository,
+  getSubscriptionByUserId,
+} from './billingSubscriptionsStore.mjs';
 import { initBillingTrialsRepository } from './billingTrialsStore.mjs';
 import { maybeImportLegacyBillingOnBoot } from './billingLegacyImport.mjs';
 import { createBillingService } from './billingServiceCore.mjs';
@@ -1542,6 +1547,50 @@ const start = async () => {
     trialDays: STRIPE_TRIAL_DAYS,
   });
 
+  // WS2 Block 2 — durable deletion ops + orchestrator (Stripe → local cascade).
+  const deletionOpsMode =
+    authIdentityMode === 'postgres' && authPgPool
+      ? 'postgres'
+      : authIdentityMode === 'json'
+        ? 'json'
+        : 'unavailable';
+  let deletionOpsPool = null;
+  let memoryDeletionOps = null;
+  if (deletionOpsMode === 'postgres') {
+    const opsRepo = await initAccountDeletionOpsRepository({
+      mode: 'postgres',
+      pool: authPgPool || billingPgPool || operationalPgPool,
+    });
+    if (opsRepo.ok) {
+      deletionOpsPool = opsRepo.pool;
+    } else {
+      console.warn('[account-deletion-ops] init failed — deletion ops unavailable');
+    }
+  } else if (deletionOpsMode === 'json') {
+    memoryDeletionOps = createMemoryDeletionOpsLedger();
+  }
+
+  const accountDeletionOrchestrator = createAccountDeletionOrchestrator({
+    mode: deletionOpsMode === 'postgres' && deletionOpsPool ? 'postgres' : 'json',
+    pool: deletionOpsPool,
+    memoryOps: memoryDeletionOps,
+    stripeRequest,
+    billingEnabled: BILLING_ENABLED,
+    secretConfigured: Boolean(STRIPE_SECRET_KEY),
+    getSubscriptionByUserId,
+    getStripeCustomerIdForUser: billingService.getStripeCustomerIdForUser,
+    getStatusForUser: billingService.getStatusForUser,
+  });
+
+  const isDeletionBlockingUser = async (userId) => {
+    if (!userId) return false;
+    try {
+      return await accountDeletionOrchestrator.isUserDeletionBlocking(userId);
+    } catch {
+      return false;
+    }
+  };
+
   // JSON mode keeps in-memory mirrors; postgres mode loads per-request by user_id.
   let mobileReflections = { profiles: {} };
   let mobileReports = { profiles: {} };
@@ -1902,6 +1951,10 @@ const start = async () => {
       send(res, 401, { error: 'Not authenticated.' }, headers);
       return null;
     }
+    if (await isDeletionBlockingUser(current.user.id)) {
+      send(res, 403, { error: 'Account deletion in progress.', code: 'ACCOUNT_DELETION_IN_PROGRESS' }, headers);
+      return null;
+    }
     return { current, sessionPayload: buildSessionPayload(current.user) };
   };
 
@@ -2025,10 +2078,14 @@ const start = async () => {
     await saveSessions();
   }
 
-  const requireSession = async (req, res, headers) => {
+  const requireSession = async (req, res, headers, { allowDeletionInProgress = false } = {}) => {
     const current = await getSessionUser(req, users, authPgPool);
     if (!current) {
       send(res, 401, { error: 'Not authenticated.' }, headers);
+      return null;
+    }
+    if (!allowDeletionInProgress && (await isDeletionBlockingUser(current.user.id))) {
+      send(res, 403, { error: 'Account deletion in progress.', code: 'ACCOUNT_DELETION_IN_PROGRESS' }, headers);
       return null;
     }
     return { current, sessionPayload: buildSessionPayload(current.user) };
@@ -2139,6 +2196,10 @@ const start = async () => {
         const user = users.find((item) => item.email === email);
         if (!user || !verifyPassword(password, user.passwordHash)) {
           send(res, 401, { error: 'Invalid credentials.' }, headers);
+          return;
+        }
+        if (await isDeletionBlockingUser(user.id)) {
+          send(res, 403, { error: 'Account deletion in progress.', code: 'ACCOUNT_DELETION_IN_PROGRESS' }, headers);
           return;
         }
 
@@ -3848,6 +3909,10 @@ const start = async () => {
           send(res, 401, { error: 'Incorrect email or password.' }, headers);
           return;
         }
+        if (await isDeletionBlockingUser(user.id)) {
+          send(res, 403, { error: 'Account deletion in progress.', code: 'ACCOUNT_DELETION_IN_PROGRESS' }, headers);
+          return;
+        }
 
         user.lastProvider = 'password';
         const token = createSession(user);
@@ -3957,6 +4022,10 @@ const start = async () => {
           };
           users = [user, ...users];
         } else {
+          if (await isDeletionBlockingUser(user.id)) {
+            send(res, 403, { error: 'Account deletion in progress.', code: 'ACCOUNT_DELETION_IN_PROGRESS' }, headers);
+            return;
+          }
           user.lastProvider = 'google';
           user.name = claims.name ? safeText(claims.name, 120) : user.name;
           user.avatarUrl = claims.picture || user.avatarUrl;
@@ -4205,8 +4274,16 @@ const start = async () => {
     }
 
     if (method === 'POST' && url.pathname === '/api/privacy/delete') {
-      const auth = await requireSession(req, res, headers);
-      if (!auth) return;
+      // Cookie (web) or Bearer (mobile). Allow in-progress deletion for idempotent retries.
+      const verified = await getVerifiedRequestUser(req);
+      if (!verified?.user?.id) {
+        send(res, 401, { error: 'Not authenticated.' }, headers);
+        return;
+      }
+      const auth = {
+        current: verified,
+        sessionPayload: buildSessionPayload(verified.user),
+      };
       if (!requireOperationalRecords(res, headers)) return;
       try {
         const body = await readBody(req);
@@ -4219,6 +4296,17 @@ const start = async () => {
           users.find((item) => item.id === auth.current.user.id) ||
           (authPgPool ? await getUserByIdFromPostgres(authPgPool, auth.current.user.id) : null);
         if (!user) {
+          // Already deleted — idempotent success if op completed.
+          const latest = await accountDeletionOrchestrator.ops.getLatest(auth.current.user.id);
+          if (latest?.status === DELETION_OP_STATUS.COMPLETED) {
+            send(
+              res,
+              200,
+              { requestId: latest.id, deleted: true, scope: 'account' },
+              { ...headers, 'Set-Cookie': clearSessionCookie() },
+            );
+            return;
+          }
           send(res, 404, { error: 'User not found.' }, headers);
           return;
         }
@@ -4256,78 +4344,63 @@ const start = async () => {
           return;
         }
 
-        // Snapshot identity from session/user only (local cascade; no Stripe external).
-        const identitySnapshot = {
-          userId: user.id,
-          email: user.email,
-          role,
-          stripeCustomerId: null,
-          stripeSubscriptionId: null,
-        };
-        try {
-          identitySnapshot.stripeCustomerId =
-            (await billingService.getStripeCustomerIdForUser(user)) || null;
-        } catch {
-          /* snapshot best-effort; cascade still proceeds for local rows */
+        const adminState = adminStore?.getState?.() || null;
+        const outcome = await accountDeletionOrchestrator.runAccountDeletion({
+          user,
+          requestId,
+          jsonCascadeContext:
+            authIdentityMode === 'postgres'
+              ? null
+              : {
+                  users,
+                  sessions,
+                  contactSubmissions,
+                  privacyRequests,
+                  calendarStore,
+                  mobileReflections,
+                  mobileReports,
+                  mobileStateStore,
+                  mobilePushStore,
+                  personalEventsStore,
+                  memoryConsentStore,
+                  billingService,
+                  adminState,
+                },
+        });
+
+        if (!outcome?.ok) {
+          const status = outcome?.httpStatus || 500;
+          send(
+            res,
+            status,
+            {
+              error: 'Unable to complete account deletion.',
+              deleted: false,
+              requestId: outcome?.requestId || requestId,
+              code: outcome?.errorCode || ACCOUNT_DELETION_FAILED,
+              retryable: outcome?.retryable !== false,
+            },
+            headers,
+          );
+          return;
         }
 
-        const sharedPool = authPgPool || operationalPgPool || userDataPgPool || billingPgPool;
-        let cascadeResult;
-
-        if (authIdentityMode === 'postgres' && sharedPool) {
-          cascadeResult = await deleteAccountLocalCascade({
-            pool: sharedPool,
-            userId: identitySnapshot.userId,
-            email: identitySnapshot.email,
-            actorUserId: identitySnapshot.userId,
-            reason: 'user_requested',
-            scope: 'account',
-            requestId,
-          });
-        } else {
-          const adminState = adminStore?.getState?.() || null;
-          cascadeResult = await deleteAccountLocalJsonCascade({
-            userId: identitySnapshot.userId,
-            email: identitySnapshot.email,
-            users,
-            sessions,
-            contactSubmissions,
-            privacyRequests,
-            calendarStore,
-            mobileReflections,
-            mobileReports,
-            mobileStateStore,
-            mobilePushStore,
-            personalEventsStore,
-            memoryConsentStore,
-            billingService,
-            adminState,
-            reason: 'user_requested',
-            requestId,
-          });
-          if (cascadeResult.ok) {
-            await Promise.all([
-              saveUsers(),
-              saveSessions(),
-              saveContacts(),
-              savePrivacyRequests(),
-              saveCalendarStore(),
-              saveMobileReflections(),
-              saveMobileReports(),
-              saveMobileStateStore(),
-              saveMobilePushStore(),
-              adminStore?.save?.() || Promise.resolve(),
-            ]);
-          }
+        if (authIdentityMode !== 'postgres') {
+          await Promise.all([
+            saveUsers(),
+            saveSessions(),
+            saveContacts(),
+            savePrivacyRequests(),
+            saveCalendarStore(),
+            saveMobileReflections(),
+            saveMobileReports(),
+            saveMobileStateStore(),
+            saveMobilePushStore(),
+            adminStore?.save?.() || Promise.resolve(),
+          ]);
         }
 
-        if (!cascadeResult?.ok) {
-          const err = new Error('Account deletion cascade failed.');
-          err.code = ACCOUNT_DELETION_FAILED;
-          throw err;
-        }
-
-        // Refresh in-memory mirrors after successful Postgres commit.
+        // Refresh in-memory mirrors after successful cascade.
         users = users.filter((item) => item.id !== user.id);
         for (const [token, session] of sessions.entries()) {
           if (session.userId === user.id) sessions.delete(token);
@@ -4340,7 +4413,7 @@ const start = async () => {
         send(
           res,
           200,
-          { requestId: cascadeResult.tombstoneId || requestId, deleted: true, scope: 'account' },
+          { requestId: outcome.requestId || requestId, deleted: true, scope: 'account' },
           { ...headers, 'Set-Cookie': clearSessionCookie() },
         );
       } catch (error) {
@@ -4643,6 +4716,13 @@ const start = async () => {
         event,
         ledger: stripeWebhookLedger,
         rememberStripeCustomer: billingService.rememberStripeCustomer,
+        authUserExists: async (userId) => {
+          if (authPgPool) {
+            const row = await getUserByIdFromPostgres(authPgPool, userId);
+            return Boolean(row);
+          }
+          return users.some((u) => u.id === userId);
+        },
       });
       send(res, outcome.httpStatus, outcome.body, headers);
       return;

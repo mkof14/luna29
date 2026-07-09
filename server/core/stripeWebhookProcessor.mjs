@@ -29,6 +29,7 @@ import {
   getSubscriptionByStripeSubscriptionId,
   upsertSubscription,
 } from './billingSubscriptionsStore.mjs';
+import { getUserByIdFromPostgres } from './authUsersStore.mjs';
 
 export const SUPPORTED_STRIPE_EVENTS = Object.freeze([
   'checkout.session.completed',
@@ -175,21 +176,48 @@ export const extractStripeEventProjection = (event) => {
 };
 
 /**
+ * Confirm durable auth_users row still exists before any billing projection mutation.
+ * Prevents webhook resurrection after account deletion.
+ */
+export const assertAuthUserExistsForWebhook = async (pool, userId, { mode, authUserExists } = {}) => {
+  if (!userId) return { ok: false, reason: 'user_mapping_missing' };
+  if (mode === 'json') {
+    if (typeof authUserExists === 'function') {
+      const exists = await authUserExists(userId);
+      return exists
+        ? { ok: true }
+        : { ok: false, reason: 'auth_user_deleted' };
+    }
+    // JSON tests without checker: allow (test harness supplies authUserExists when needed).
+    return { ok: true };
+  }
+  if (!pool) return { ok: false, reason: 'auth_user_deleted' };
+  const user = await getUserByIdFromPostgres(pool, userId);
+  if (!user) return { ok: false, reason: 'auth_user_deleted' };
+  return { ok: true };
+};
+
+/**
  * Resolve Luna user_id safely.
  * Order: durable stripe_customer_id → durable stripe_subscription_id →
  * trusted server checkout metadata (luna_user_id / client_reference_id) →
  * durable email mapping (last resort, only if unique account exists).
+ * After resolve: auth_users must still exist or mapping is rejected.
  */
-export const resolveWebhookUserId = async (pool, projection, { mode, billingState } = {}) => {
+export const resolveWebhookUserId = async (
+  pool,
+  projection,
+  { mode, billingState, authUserExists } = {},
+) => {
+  let resolved;
   if (mode === 'json') {
     // JSON/test: trusted server checkout metadata only (no inventing users from email alone).
     if (projection.trustedUserId) {
-      return { userId: projection.trustedUserId, strategy: 'trusted_metadata' };
+      resolved = { userId: projection.trustedUserId, strategy: 'trusted_metadata' };
+    } else {
+      return { userId: null, strategy: 'unmapped', reason: 'user_mapping_missing' };
     }
-    return { userId: null, strategy: 'unmapped', reason: 'user_mapping_missing' };
-  }
-
-  if (projection.stripeCustomerId) {
+  } else if (projection.stripeCustomerId) {
     const account = await getBillingAccountByStripeCustomerId(pool, projection.stripeCustomerId);
     if (account?.userId) {
       // Conflict with trusted metadata → refuse mutation (safer than picking either side).
@@ -203,32 +231,48 @@ export const resolveWebhookUserId = async (pool, projection, { mode, billingStat
           reason: 'user_mapping_ambiguous',
         };
       }
-      return { userId: account.userId, strategy: 'stripe_customer_id' };
+      resolved = { userId: account.userId, strategy: 'stripe_customer_id' };
     }
   }
 
-  if (projection.stripeSubscriptionId) {
+  if (!resolved && projection.stripeSubscriptionId && mode !== 'json') {
     const sub = await getSubscriptionByStripeSubscriptionId(pool, projection.stripeSubscriptionId);
     if (sub?.userId) {
       if (projection.trustedUserId && projection.trustedUserId !== sub.userId) {
         return { userId: null, strategy: 'ambiguous', reason: 'user_mapping_ambiguous' };
       }
-      return { userId: sub.userId, strategy: 'stripe_subscription_id' };
+      resolved = { userId: sub.userId, strategy: 'stripe_subscription_id' };
     }
   }
 
-  if (projection.trustedUserId) {
-    return { userId: projection.trustedUserId, strategy: 'trusted_metadata' };
+  if (!resolved && projection.trustedUserId && mode !== 'json') {
+    resolved = { userId: projection.trustedUserId, strategy: 'trusted_metadata' };
   }
 
-  if (projection.trustedEmail) {
+  if (!resolved && projection.trustedEmail && mode !== 'json') {
     const account = await getBillingAccountByEmail(pool, projection.trustedEmail);
     if (account?.userId) {
-      return { userId: account.userId, strategy: 'email_account' };
+      resolved = { userId: account.userId, strategy: 'email_account' };
     }
   }
 
-  return { userId: null, strategy: 'unmapped', reason: 'user_mapping_missing' };
+  if (!resolved) {
+    return { userId: null, strategy: 'unmapped', reason: 'user_mapping_missing' };
+  }
+
+  const authCheck = await assertAuthUserExistsForWebhook(pool, resolved.userId, {
+    mode,
+    authUserExists,
+  });
+  if (!authCheck.ok) {
+    return {
+      userId: null,
+      strategy: resolved.strategy,
+      reason: authCheck.reason || 'auth_user_deleted',
+    };
+  }
+
+  return resolved;
 };
 
 /**
@@ -241,14 +285,24 @@ export const applyStripeProjection = async ({
   saveBillingState,
   projection,
   rememberStripeCustomer,
+  authUserExists = null,
 }) => {
-  const mapping = await resolveWebhookUserId(pool, projection, { mode, billingState });
+  const mapping = await resolveWebhookUserId(pool, projection, {
+    mode,
+    billingState,
+    authUserExists,
+  });
   if (mapping.reason === 'user_mapping_ambiguous') {
     return { ok: false, code: 'user_mapping_ambiguous', mapping };
   }
   if (!mapping.userId) {
-    // Unmapped: not a hard failure for Stripe retries forever — treat as ignored outcome.
-    return { ok: true, code: 'user_mapping_missing', persisted: false, mapping };
+    // Unmapped or deleted auth user: ignore (2xx) — no billing resurrection / no retry loop.
+    return {
+      ok: true,
+      code: mapping.reason || 'user_mapping_missing',
+      persisted: false,
+      mapping,
+    };
   }
 
   const userId = mapping.userId;
@@ -352,6 +406,7 @@ export const processStripeWebhookEvent = async ({
   event,
   ledger = null,
   rememberStripeCustomer = null,
+  authUserExists = null,
 }) => {
   const started = Date.now();
   const projection = extractStripeEventProjection(event);
@@ -462,6 +517,7 @@ export const processStripeWebhookEvent = async ({
       saveBillingState,
       projection,
       rememberStripeCustomer,
+      authUserExists,
     });
 
     if (!applied.ok) {
@@ -504,8 +560,8 @@ export const processStripeWebhookEvent = async ({
       };
     }
 
-    // Unmapped supported event: ignore (no wrong-user mutation); Stripe retry won't help.
-    if (applied.code === 'user_mapping_missing') {
+    // Unmapped or deleted auth user: ignore (no resurrection); Stripe retry won't help.
+    if (applied.code === 'user_mapping_missing' || applied.code === 'auth_user_deleted') {
       await claimApi.markStripeWebhookEventIgnored(pool, projection.eventId, applied.code);
       safeLog({
         event_id: projection.eventId,
