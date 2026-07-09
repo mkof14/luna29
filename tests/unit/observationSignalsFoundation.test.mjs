@@ -108,6 +108,15 @@ describe('observation + signal extraction foundation (Task 3)', () => {
       ip,
     });
     expect(result.statusCode).toBe(200);
+    // Premium APIs require durable trial/subscription — start server trial for foundation tests.
+    const trial = await invoke(handler, {
+      method: 'POST',
+      path: '/api/billing/trial/start',
+      headers: { authorization: `Bearer ${result.json.token}` },
+      ip,
+    });
+    expect(trial.statusCode).toBe(200);
+
     return {
       token: result.json.token,
       authHeader: { authorization: `Bearer ${result.json.token}` },

@@ -24,6 +24,8 @@ const RECOMMENDED = [
   'CALENDAR_REMINDER_FROM',
   'VITE_SENTRY_DSN',
   'VITE_GA4_MEASUREMENT_ID',
+  'PRIMARY_SUPER_ADMIN_EMAIL',
+  'HEALTH_VERBOSE_SECRET',
 ];
 
 const RATE_LIMIT_KEYS = [
@@ -84,30 +86,51 @@ console.log('\nRate limits (Upstash or Vercel KV)');
 for (const key of RATE_LIMIT_KEYS) {
   console.log(`${vercelEnv.has(key) ? 'OK' : 'MISSING'}  ${key}`);
 }
-console.log(hasRateLimitStore(vercelEnv) ? 'OK  rate-limit backend configured' : 'MISSING  rate-limit backend (in-memory fallback)');
+console.log(
+  hasRateLimitStore(vercelEnv)
+    ? 'OK  rate-limit backend configured'
+    : 'MISSING  rate-limit backend (required in production)',
+);
 reportGroup('Stripe (required when STRIPE_BILLING_ENABLED=true)', STRIPE_KEYS, vercelEnv);
 
 let health;
 try {
-  const response = await fetch(`${baseUrl}/api/health?verbose=1`);
+  const response = await fetch(`${baseUrl}/api/health`);
   health = await response.json();
 } catch (error) {
   console.error('\nHealth check failed:', error instanceof Error ? error.message : error);
   process.exit(1);
 }
 
-console.log('\nProduction health:', baseUrl);
+console.log('\nProduction health (public):', baseUrl);
 console.log(JSON.stringify(health, null, 2));
 
-const warnings = [];
-if (health?.config?.billingEnabled && !health?.config?.stripeConfigReady) {
-  warnings.push('Billing enabled but Stripe config incomplete.');
+let authConfig = null;
+try {
+  const response = await fetch(`${baseUrl}/api/auth/config`);
+  authConfig = await response.json();
+} catch {
+  authConfig = null;
 }
+
+const warnings = [];
+const hardFails = [];
+
+if (Object.prototype.hasOwnProperty.call(health || {}, 'config')) {
+  hardFails.push('Public /api/health must not expose verbose config without secret protection.');
+}
+if (Object.prototype.hasOwnProperty.call(health?.checks || {}, 'aiScan')) {
+  hardFails.push('Public /api/health must not expose aiScan provider details.');
+}
+if (Object.prototype.hasOwnProperty.call(health?.checks || {}, 'googleAuth')) {
+  hardFails.push('Public /api/health must not expose googleAuth provider details.');
+}
+
 if (health?.checks?.storage !== 'ok') {
-  warnings.push('Storage check failed — set DATABASE_URL (Neon) for durable server state.');
+  hardFails.push('Storage check failed — set DATABASE_URL (Neon) for durable server state.');
 }
 if (health?.checks?.durableStorage === 'unavailable' || health?.checks?.database === 'unavailable') {
-  warnings.push('Durable storage unavailable — production/preview cannot use JSON or /tmp for critical stores.');
+  hardFails.push('Durable storage unavailable — production/preview cannot use JSON or /tmp.');
 }
 if (
   health?.checks?.billingStorage === 'unavailable' ||
@@ -115,40 +138,32 @@ if (
   health?.checks?.billingStorage === 'json_dev' ||
   health?.checks?.trialStorage === 'json_dev'
 ) {
-  warnings.push(
-    'Billing/trial storage must be postgres in production — JSON/tmp billing fallback is forbidden.',
-  );
+  hardFails.push('Billing/trial storage must be postgres in production.');
 }
-if (
-  health?.checks?.operationalRecordsStorage === 'unavailable' ||
-  health?.config?.operationalRecordsStorage === 'unavailable' ||
-  health?.config?.operationalRecordsStorage === 'json_dev'
-) {
-  warnings.push(
-    'Operational records storage must be postgres in production — admin/privacy/contacts cannot use JSON.',
-  );
+if (health?.checks?.operationalRecordsStorage === 'unavailable') {
+  hardFails.push('Operational records storage must be postgres in production.');
 }
-if (
-  health?.checks?.userDataStorage === 'unavailable' ||
-  health?.config?.userDataStorage === 'unavailable' ||
-  health?.config?.userDataStorage === 'json_dev'
-) {
-  warnings.push(
-    'User data storage must be postgres in production — calendar/mobile cannot use JSON.',
-  );
+if (health?.checks?.userDataStorage === 'unavailable') {
+  hardFails.push('User data storage must be postgres in production.');
 }
 if (!vercelEnv.has('DATABASE_URL')) {
-  warnings.push('DATABASE_URL not in Vercel — production must fail closed (no JSON/tmp for critical stores).');
+  hardFails.push('DATABASE_URL not in Vercel.');
 }
-if (!hasRateLimitStore(vercelEnv)) {
-  warnings.push('Upstash/Vercel KV not configured — rate limits fall back to in-memory per instance.');
+if (!hasRateLimitStore(vercelEnv) || health?.checks?.rateLimit !== 'upstash') {
+  hardFails.push('Durable rate limiter (Upstash/KV) required — memory fallback forbidden in production.');
 }
-if (health?.checks?.rateLimit === 'memory') {
-  warnings.push('Production API still reports in-memory rate limits — redeploy after KV/Upstash is linked.');
+if (authConfig?.googleUnverifiedAllowed === true) {
+  hardFails.push('Live /api/auth/config reports googleUnverifiedAllowed=true.');
+}
+if (vercelEnv.has('ADMIN_EMERGENCY_RESET_KEY')) {
+  warnings.push('ADMIN_EMERGENCY_RESET_KEY is set — ensure intentional and rotated.');
+}
+if (vercelEnv.has('PERSONAL_EVENTS_STORAGE')) {
+  warnings.push('PERSONAL_EVENTS_STORAGE is set — must not be file in production.');
 }
 
 if (warnings.length) {
-  console.log('\nAction items:');
+  console.log('\nAction items (warnings):');
   for (const line of warnings) console.log(`- ${line}`);
 }
 
@@ -158,30 +173,25 @@ const durableOk =
 const billingStorageOk = health?.checks?.billingStorage === 'postgres';
 const trialStorageOk = health?.checks?.trialStorage === 'postgres';
 const webhookLedgerOk = health?.checks?.stripeWebhookLedger === 'postgres';
-// Health check label is "ok" when postgres; verbose config exposes mode label.
-const operationalRecordsOk =
-  health?.checks?.operationalRecordsStorage === 'ok' &&
-  health?.config?.operationalRecordsStorage !== 'unavailable' &&
-  health?.config?.operationalRecordsStorage !== 'json_dev';
-const userDataOk =
-  health?.checks?.userDataStorage === 'ok' &&
-  health?.config?.userDataStorage !== 'unavailable' &&
-  health?.config?.userDataStorage !== 'json_dev';
+const operationalRecordsOk = health?.checks?.operationalRecordsStorage === 'ok';
+const userDataOk = health?.checks?.userDataStorage === 'ok';
 const billingEnabled =
   String(process.env.STRIPE_BILLING_ENABLED || '').toLowerCase() === 'true' ||
-  Boolean(health?.config?.billingEnabled);
+  health?.checks?.billing === 'ready' ||
+  health?.checks?.billing === 'misconfigured';
 
 if (billingEnabled) {
   const missingStripe = STRIPE_KEYS.filter((key) => key !== 'STRIPE_BILLING_ENABLED' && !vercelEnv.has(key));
   if (missingStripe.length) {
-    console.error(`\nStripe billing enabled but missing: ${missingStripe.join(', ')}`);
-    process.exitCode = 1;
+    hardFails.push(`Stripe billing enabled but missing: ${missingStripe.join(', ')}`);
   }
   if (!webhookLedgerOk) {
-    console.error(
-      `\nStripe webhook ledger must be postgres when billing enabled (got ${health?.checks?.stripeWebhookLedger}).`,
+    hardFails.push(
+      `Stripe webhook ledger must be postgres when billing enabled (got ${health?.checks?.stripeWebhookLedger}).`,
     );
-    process.exitCode = 1;
+  }
+  if (health?.checks?.billing === 'misconfigured') {
+    hardFails.push('Billing enabled but Stripe config incomplete (health.checks.billing=misconfigured).');
   }
 }
 
@@ -193,30 +203,23 @@ if (
   !trialStorageOk ||
   !webhookLedgerOk ||
   !operationalRecordsOk ||
-  !userDataOk
+  !userDataOk ||
+  hardFails.length
 ) {
   process.exitCode = 1;
-  if (!billingStorageOk || !trialStorageOk || !webhookLedgerOk) {
-    console.error(
-      `\nBilling/trial/webhook storage check failed: billingStorage=${health?.checks?.billingStorage} trialStorage=${health?.checks?.trialStorage} stripeWebhookLedger=${health?.checks?.stripeWebhookLedger} (expected postgres).`,
-    );
+  console.error('\nProduction verification FAILED:');
+  for (const line of hardFails) console.error(`- ${line}`);
+  if (missingRequired.length) {
+    console.error(`- Missing required env keys: ${missingRequired.join(', ')}`);
   }
-  if (!operationalRecordsOk) {
-    console.error(
-      `\nOperational records storage check failed: checks.operationalRecordsStorage=${health?.checks?.operationalRecordsStorage} config.operationalRecordsStorage=${health?.config?.operationalRecordsStorage} (expected ok/postgres).`,
-    );
-  }
-  if (!userDataOk) {
-    console.error(
-      `\nUser data storage check failed: checks.userDataStorage=${health?.checks?.userDataStorage} config.userDataStorage=${health?.config?.userDataStorage} (expected ok/postgres).`,
-    );
-  }
-} else if (process.exitCode !== 1) {
+} else {
   console.log('\nBaseline production env looks good.');
   console.log(
-    'Billing storage: postgres · Trial storage: postgres · Webhook ledger: postgres · Operational records: postgres · User data: postgres',
+    'Billing storage: postgres · Trial storage: postgres · Webhook ledger: postgres · Operational records: ok · User data: ok · Rate limit: upstash',
   );
-  if (!health?.config?.billingEnabled) {
-    console.log('Billing is intentionally disabled (soft launch). Add Stripe live keys + STRIPE_BILLING_ENABLED=true when ready.');
+  if (health?.checks?.billing === 'disabled') {
+    console.log(
+      'Billing is intentionally disabled (soft launch). Add Stripe live keys + STRIPE_BILLING_ENABLED=true when ready.',
+    );
   }
 }

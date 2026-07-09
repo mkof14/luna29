@@ -10,7 +10,21 @@ import { readBodyWithLimit, hasAiProcessingConsent } from './httpUtils.mjs';
 import { resolveRole as resolveRoleSafe, ROLE_PERMISSIONS as CORE_ROLE_PERMISSIONS } from './authRoles.mjs';
 import { sendCalendarReminderEmail, isCalendarEmailEnabled } from './calendarEmail.mjs';
 import { dispatchDueEmailReminders } from './calendarReminders.mjs';
-import { createRateLimiter, isUpstashRateLimitEnabled } from './rateLimit.mjs';
+import { createRateLimiter, isUpstashRateLimitEnabled, rateLimitBackendLabel } from './rateLimit.mjs';
+import {
+  resolveEntitlement,
+  premiumRequiredPayload,
+  entitlementUnavailablePayload,
+  PREMIUM_REQUIRED,
+  ENTITLEMENT_STORAGE_UNAVAILABLE,
+} from './entitlements.mjs';
+import {
+  resolveAllowedOrigins,
+  shouldEnforceOrigin,
+  assertOriginAllowed,
+  originListHasWildcard,
+  originListHasLocalhost,
+} from './originGuard.mjs';
 import { createAdminRouter, createAdminStateStore } from '../admin/index.mjs';
 import {
   createPersonalEventsStore,
@@ -75,6 +89,7 @@ import {
   resolveDurableJsonStorageDecision,
   durableStorageUnavailablePayload,
   hasDatabaseUrl,
+  isProductionLikeRuntime,
 } from './durableStorageGuard.mjs';
 import { resolveAuthIdentityStorageMode } from './authIdentityStorage.mjs';
 import {
@@ -221,14 +236,19 @@ const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7;
 const SUPER_ADMIN_SESSION_TTL_SECONDS = 60 * 60 * 24 * 180;
 const SUPER_ADMIN_BOOTSTRAP_PASSWORD = String(process.env.SUPER_ADMIN_BOOTSTRAP_PASSWORD || '').trim();
 const SUPER_ADMIN_BOOTSTRAP_PASSWORD_CONFIGURED = Boolean(SUPER_ADMIN_BOOTSTRAP_PASSWORD);
-const PRIMARY_SUPER_ADMIN_EMAIL = 'dnainform@gmail.com';
+/** Env-only primary emergency-reset target — never a hardcoded production identity authority. */
+const PRIMARY_SUPER_ADMIN_EMAIL = String(process.env.PRIMARY_SUPER_ADMIN_EMAIL || '')
+  .trim()
+  .toLowerCase();
 
 const SUPER_ADMIN_EMAILS = new Set(
-  `${process.env.SUPER_ADMIN_EMAILS || ''},${PRIMARY_SUPER_ADMIN_EMAIL}`
+  String(process.env.SUPER_ADMIN_EMAILS || '')
     .split(',')
     .map((email) => email.trim().toLowerCase())
-    .filter(Boolean)
+    .filter(Boolean),
 );
+// Optional primary is included only when explicitly configured via env.
+if (PRIMARY_SUPER_ADMIN_EMAIL) SUPER_ADMIN_EMAILS.add(PRIMARY_SUPER_ADMIN_EMAIL);
 
 const GOOGLE_CLIENT_IDS = new Set(
   (process.env.AUTH_GOOGLE_CLIENT_IDS || process.env.VITE_GOOGLE_CLIENT_ID || '')
@@ -236,7 +256,10 @@ const GOOGLE_CLIENT_IDS = new Set(
     .map((id) => id.trim())
     .filter(Boolean)
 );
-const AUTH_ALLOW_UNVERIFIED_GOOGLE = process.env.AUTH_ALLOW_UNVERIFIED_GOOGLE === 'true';
+// Production-like runtimes never allow unverified Google, even if env is mis-set.
+const AUTH_ALLOW_UNVERIFIED_GOOGLE_RAW = process.env.AUTH_ALLOW_UNVERIFIED_GOOGLE === 'true';
+const AUTH_ALLOW_UNVERIFIED_GOOGLE =
+  AUTH_ALLOW_UNVERIFIED_GOOGLE_RAW && !isProductionLikeRuntime(process.env);
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.API_KEY || '';
 const BILLING_ENABLED = process.env.STRIPE_BILLING_ENABLED === 'true';
 const STRIPE_SECRET_KEY = String(process.env.STRIPE_SECRET_KEY || '').trim();
@@ -248,6 +271,7 @@ const STRIPE_CANCEL_URL = String(process.env.STRIPE_CANCEL_URL || '').trim();
 const STRIPE_PORTAL_RETURN_URL = String(process.env.STRIPE_PORTAL_RETURN_URL || '').trim();
 const STRIPE_TRIAL_DAYS = Math.max(0, Number(process.env.STRIPE_TRIAL_DAYS || '7') || 0);
 const ADMIN_EMERGENCY_RESET_KEY = String(process.env.ADMIN_EMERGENCY_RESET_KEY || '').trim();
+const HEALTH_VERBOSE_SECRET = String(process.env.HEALTH_VERBOSE_SECRET || '').trim();
 
 const buildStripeCheckoutFields = (fields) => {
   if (STRIPE_TRIAL_DAYS > 0) {
@@ -260,13 +284,11 @@ const ROLE_PERMISSIONS = CORE_ROLE_PERMISSIONS;
 
 const ADMIN_EMAIL_RULES = [];
 
-const ALLOWED_ORIGINS = new Set(
-  (process.env.AUTH_ALLOWED_ORIGINS
-    || 'http://localhost:3000,http://127.0.0.1:3000,http://localhost:4173,http://127.0.0.1:4173,https://luna29.vercel.app,https://luna29.com,https://www.luna29.com')
-    .split(',')
-    .map((origin) => origin.trim())
-    .filter(Boolean)
-);
+const ORIGIN_RESOLUTION = resolveAllowedOrigins({
+  env: process.env,
+  productionLike: isProductionLikeRuntime(process.env),
+});
+const ALLOWED_ORIGINS = ORIGIN_RESOLUTION.origins;
 
 const rateLimit = createRateLimiter();
 const sessions = new Map();
@@ -605,18 +627,26 @@ const buildHealthPayload = async ({ verbose = false, durableDecision = null } = 
   const userDataLabel = userDataHealthLabel(userDataMode);
   const userDataModeLabel = userDataStorageModeLabel(userDataMode);
   const googleAuthConfigured = GOOGLE_CLIENT_IDS.size > 0;
-  const aiScanEnabled = Boolean(GEMINI_API_KEY);
-  const rateLimitBackend = isUpstashRateLimitEnabled() ? 'upstash' : 'memory';
+  const rateLimitBackend = rateLimitBackendLabel(process.env);
   const billingStorageOk = billingStorageMode !== 'unavailable';
   const operationalRecordsOk = operationalRecordsMode !== 'unavailable';
   const userDataOk = userDataMode !== 'unavailable';
+  const rateLimitOk = rateLimitBackend === 'upstash' || !isProductionLikeRuntime(process.env);
+  const originsOk =
+    !isProductionLikeRuntime(process.env) ||
+    (ORIGIN_RESOLUTION.ok &&
+      !originListHasWildcard(ALLOWED_ORIGINS) &&
+      !originListHasLocalhost(ALLOWED_ORIGINS));
   const ok =
     durableJsonAllowed &&
     storageWritable &&
     billingStorageOk &&
     operationalRecordsOk &&
     userDataOk &&
-    (!BILLING_ENABLED || stripeConfigReady);
+    rateLimitOk &&
+    originsOk &&
+    (!BILLING_ENABLED || stripeConfigReady) &&
+    !(AUTH_ALLOW_UNVERIFIED_GOOGLE_RAW && isProductionLikeRuntime(process.env));
   const warnings = [];
 
   if (!durableJsonAllowed) {
@@ -641,10 +671,23 @@ const buildHealthPayload = async ({ verbose = false, durableDecision = null } = 
   if (!databaseConfigured && durableJsonAllowed) {
     warnings.push('DATABASE_URL is not set — server state uses local JSON (dev/test only).');
   }
-  if (rateLimitBackend === 'memory') warnings.push('Upstash Redis is not configured — rate limits are in-memory per instance.');
+  if (rateLimitBackend === 'memory') {
+    warnings.push('Upstash Redis is not configured — rate limits are in-memory (dev/test only).');
+  }
+  if (rateLimitBackend === 'unavailable') {
+    warnings.push('Durable rate limiter unavailable — production-like requests fail closed.');
+  }
+  if (!originsOk) {
+    warnings.push('AUTH_ALLOWED_ORIGINS missing, wildcard, or includes localhost in production-like runtime.');
+  }
+  if (AUTH_ALLOW_UNVERIFIED_GOOGLE_RAW && isProductionLikeRuntime(process.env)) {
+    warnings.push('AUTH_ALLOW_UNVERIFIED_GOOGLE=true is rejected in production-like runtime.');
+  }
   if (BILLING_ENABLED && !stripeConfigReady) warnings.push('Stripe billing is enabled but required env vars are missing.');
   if (!googleAuthConfigured) warnings.push('Google OAuth client IDs are not configured.');
-  if (!aiScanEnabled) warnings.push('AI scan-to-text is disabled (set GEMINI_API_KEY to enable).');
+  if (ADMIN_EMERGENCY_RESET_KEY) {
+    warnings.push('ADMIN_EMERGENCY_RESET_KEY is set — ensure this is intentional and rotated.');
+  }
 
   const databaseCheck = databaseConfigured
     ? 'postgres'
@@ -652,6 +695,7 @@ const buildHealthPayload = async ({ verbose = false, durableDecision = null } = 
       ? 'unavailable'
       : 'json-fallback';
 
+  // Public health: minimal — no provider/secret presence indicators.
   const payload = {
     ok,
     service: 'luna-auth-api',
@@ -667,18 +711,18 @@ const buildHealthPayload = async ({ verbose = false, durableDecision = null } = 
       stripeWebhookLedger: stripeWebhookLedgerLabel,
       operationalRecordsStorage: operationalRecordsLabel,
       userDataStorage: userDataLabel,
+      entitlementStorage: billingStorageLabel,
       rateLimit: rateLimitBackend,
       billing: billingStatus,
-      googleAuth: googleAuthConfigured ? 'configured' : 'missing',
-      aiScan: aiScanEnabled ? 'enabled' : 'disabled',
     },
   };
 
   if (verbose) {
     payload.warnings = warnings;
     payload.config = {
-      allowedOrigins: ALLOWED_ORIGINS.size,
-      superAdminEmails: SUPER_ADMIN_EMAILS.size,
+      allowedOriginsConfigured: ORIGIN_RESOLUTION.ok,
+      allowedOriginsCount: ALLOWED_ORIGINS.size,
+      superAdminEmailsConfigured: SUPER_ADMIN_EMAILS.size > 0,
       superAdminBootstrapPasswordConfigured: SUPER_ADMIN_BOOTSTRAP_PASSWORD_CONFIGURED,
       emergencyResetConfigured: Boolean(ADMIN_EMERGENCY_RESET_KEY),
       billingEnabled: BILLING_ENABLED,
@@ -692,8 +736,8 @@ const buildHealthPayload = async ({ verbose = false, durableDecision = null } = 
       operationalRecordsStorage: operationalRecordsModeLabel,
       userDataStorage: userDataModeLabel,
       rateLimitBackend,
-      googleClientIds: GOOGLE_CLIENT_IDS.size,
-      aiScanEnabled,
+      googleAuthConfigured,
+      googleUnverifiedAllowed: AUTH_ALLOW_UNVERIFIED_GOOGLE,
     };
   }
 
@@ -2101,6 +2145,44 @@ const start = async () => {
     return auth;
   };
 
+  /**
+   * Server-authoritative premium gate (active | trialing from durable billing/trial).
+   * @param {'session'|'mobile'} authMode
+   */
+  const requirePremiumEntitlement = async (req, res, headers, authMode = 'mobile') => {
+    const auth =
+      authMode === 'session'
+        ? await requireSession(req, res, headers)
+        : await requireMobileSession(req, res, headers);
+    if (!auth) return null;
+
+    const entitlement = await resolveEntitlement({
+      user: auth.current.user,
+      billingService,
+      billingStorageMode,
+    });
+
+    if (entitlement.error === ENTITLEMENT_STORAGE_UNAVAILABLE || entitlement.httpStatus === 503) {
+      send(res, 503, entitlementUnavailablePayload(), headers);
+      return null;
+    }
+    if (!entitlement.entitled) {
+      send(res, 403, premiumRequiredPayload(entitlement.reason), headers);
+      return null;
+    }
+    return { ...auth, entitlement };
+  };
+
+  const requirePremiumSessionAndAi = async (req, res, headers) => {
+    const auth = await requirePremiumEntitlement(req, res, headers, 'session');
+    if (!auth) return null;
+    if (!hasAiProcessingConsent(req)) {
+      send(res, 403, { error: 'AI processing consent required. Enable in Privacy settings.' }, headers);
+      return null;
+    }
+    return auth;
+  };
+
   return async (req, res) => {
     const method = req.method || 'GET';
     const origin = req.headers.origin;
@@ -2114,14 +2196,44 @@ const start = async () => {
     const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
     const ip = getClientIp(req);
 
+    // Origin enforcement for cookie-authenticated mutating requests (production-like).
+    {
+      const authHeader = String(req.headers.authorization || '');
+      const hasBearer = authHeader.toLowerCase().startsWith('bearer ');
+      const cookies = parseCookies(req.headers.cookie || '');
+      const hasSessionCookie = Boolean(cookies[SESSION_COOKIE]);
+      if (
+        shouldEnforceOrigin({
+          method,
+          pathname: url.pathname,
+          hasBearer,
+          hasSessionCookie,
+          productionLike: isProductionLikeRuntime(process.env),
+        })
+      ) {
+        const check = assertOriginAllowed({ origin, allowedOrigins: ALLOWED_ORIGINS });
+        if (!check.ok) {
+          send(res, 403, { error: 'ORIGIN_NOT_ALLOWED', code: 'ORIGIN_NOT_ALLOWED' }, headers);
+          return;
+        }
+      }
+    }
+
     if (Date.now() - lastSessionPurgeAt > 60_000) {
       lastSessionPurgeAt = Date.now();
       await purgeExpiredFromStores();
     }
 
     if (method === 'GET' && url.pathname === '/api/health') {
-      const verbose = ['1', 'true', 'yes'].includes(String(url.searchParams.get('verbose') || '').toLowerCase());
-      const payload = await buildHealthPayload({ verbose });
+      const wantVerbose = ['1', 'true', 'yes'].includes(
+        String(url.searchParams.get('verbose') || '').toLowerCase(),
+      );
+      const verboseKey = String(req.headers['x-luna-health-secret'] || url.searchParams.get('secret') || '');
+      const verboseAllowed =
+        wantVerbose &&
+        (!isProductionLikeRuntime(process.env) ||
+          (HEALTH_VERBOSE_SECRET && verboseKey && verboseKey === HEALTH_VERBOSE_SECRET));
+      const payload = await buildHealthPayload({ verbose: Boolean(verboseAllowed) });
       send(res, payload.ok ? 200 : 503, payload, headers);
       return;
     }
@@ -2362,7 +2474,7 @@ const start = async () => {
     }
 
     if (method === 'POST' && url.pathname === '/api/mobile/reports/generate') {
-      const auth = await requireMobileSession(req, res, headers);
+      const auth = await requirePremiumEntitlement(req, res, headers, 'mobile');
       if (!auth) return;
       if (!(await rateLimit(`mobile-reports-generate:${ip}:${auth.current.user.id}`, 24, 60_000))) {
         send(res, 429, { error: 'Too many report generations. Try again in a minute.' }, headers);
@@ -2371,7 +2483,7 @@ const start = async () => {
       try {
         const body = await readBody(req);
         const now = new Date();
-        const id = `LUNA29-${now.toISOString().slice(0, 10).replaceAll('-', '')}-${Math.floor(Math.random() * 900 + 100)}`;
+        const id = `LUNA29-${now.toISOString().slice(0, 10).replaceAll('-', '')}-${randomBytes(3).toString('hex')}`;
         const cycleDay = safeText(body.cycleDay, 32) || '17';
         const sleep = safeText(body.sleep, 64) || '6h 20m';
         const energy = safeText(body.energy, 64) || 'Lower';
@@ -2472,8 +2584,12 @@ const start = async () => {
     }
 
     if (method === 'POST' && url.pathname === '/api/mobile/reports/ocr-intake') {
-      const auth = await requireMobileSession(req, res, headers);
+      const auth = await requirePremiumEntitlement(req, res, headers, 'mobile');
       if (!auth) return;
+      if (!(await rateLimit(`mobile-ocr:${ip}:${auth.current.user.id}`, 20, 60_000))) {
+        send(res, 429, { error: 'Too many OCR requests. Try again in a minute.' }, headers);
+        return;
+      }
       try {
         const body = await readBody(req);
         const input = safeText(body.input, 8000);
@@ -2804,9 +2920,9 @@ const start = async () => {
 
 
 
-    // --- Authenticated pattern candidate engine v1 (Task 5) ---
+    // --- Authenticated pattern candidate engine v1 (Task 5) — premium ---
     if (method === 'POST' && url.pathname === '/api/personal/pattern-candidates/evaluate') {
-      const auth = await requireMobileSession(req, res, headers);
+      const auth = await requirePremiumEntitlement(req, res, headers, 'mobile');
       if (!auth) return;
       if (!personalEventsStoreAvailable) {
         sendPersonalEventsUnavailable(res, headers);
@@ -2840,7 +2956,7 @@ const start = async () => {
     }
 
     if (method === 'GET' && url.pathname === '/api/personal/pattern-candidates') {
-      const auth = await requireMobileSession(req, res, headers);
+      const auth = await requirePremiumEntitlement(req, res, headers, 'mobile');
       if (!auth) return;
       if (!personalEventsStoreAvailable) {
         sendPersonalEventsUnavailable(res, headers);
@@ -2871,7 +2987,7 @@ const start = async () => {
     }
 
     if (method === 'GET' && /^\/api\/personal\/pattern-candidates\/[^/]+$/.test(url.pathname)) {
-      const auth = await requireMobileSession(req, res, headers);
+      const auth = await requirePremiumEntitlement(req, res, headers, 'mobile');
       if (!auth) return;
       if (!personalEventsStoreAvailable) {
         sendPersonalEventsUnavailable(res, headers);
@@ -2900,7 +3016,7 @@ const start = async () => {
     }
 
     if (method === 'POST' && /^\/api\/personal\/pattern-candidates\/[^/]+\/confirm$/.test(url.pathname)) {
-      const auth = await requireMobileSession(req, res, headers);
+      const auth = await requirePremiumEntitlement(req, res, headers, 'mobile');
       if (!auth) return;
       if (!personalEventsStoreAvailable) {
         sendPersonalEventsUnavailable(res, headers);
@@ -2930,7 +3046,7 @@ const start = async () => {
     }
 
     if (method === 'POST' && /^\/api\/personal\/pattern-candidates\/[^/]+\/reject$/.test(url.pathname)) {
-      const auth = await requireMobileSession(req, res, headers);
+      const auth = await requirePremiumEntitlement(req, res, headers, 'mobile');
       if (!auth) return;
       if (!personalEventsStoreAvailable) {
         sendPersonalEventsUnavailable(res, headers);
@@ -2959,9 +3075,9 @@ const start = async () => {
       return;
     }
 
-    // --- Authenticated deterministic timeline query layer (Task 4) ---
+    // --- Authenticated deterministic timeline query layer (Task 4) — premium ---
     if (method === 'GET' && url.pathname === '/api/personal/timeline') {
-      const auth = await requireMobileSession(req, res, headers);
+      const auth = await requirePremiumEntitlement(req, res, headers, 'mobile');
       if (!auth) return;
       if (!personalEventsStoreAvailable) {
         sendPersonalEventsUnavailable(res, headers);
@@ -2997,7 +3113,7 @@ const start = async () => {
     }
 
     if (method === 'GET' && /^\/api\/personal\/timeline\/signals\/[^/]+$/.test(url.pathname)) {
-      const auth = await requireMobileSession(req, res, headers);
+      const auth = await requirePremiumEntitlement(req, res, headers, 'mobile');
       if (!auth) return;
       if (!personalEventsStoreAvailable) {
         sendPersonalEventsUnavailable(res, headers);
@@ -3030,7 +3146,7 @@ const start = async () => {
     }
 
     if (method === 'GET' && url.pathname === '/api/personal/timeline/recent-changes') {
-      const auth = await requireMobileSession(req, res, headers);
+      const auth = await requirePremiumEntitlement(req, res, headers, 'mobile');
       if (!auth) return;
       if (!personalEventsStoreAvailable) {
         sendPersonalEventsUnavailable(res, headers);
@@ -3062,7 +3178,7 @@ const start = async () => {
     }
 
     if (method === 'GET' && url.pathname === '/api/personal/timeline/co-occurrences') {
-      const auth = await requireMobileSession(req, res, headers);
+      const auth = await requirePremiumEntitlement(req, res, headers, 'mobile');
       if (!auth) return;
       if (!personalEventsStoreAvailable) {
         sendPersonalEventsUnavailable(res, headers);
@@ -3099,7 +3215,7 @@ const start = async () => {
     }
 
     if (method === 'GET' && url.pathname === '/api/personal/timeline/summary') {
-      const auth = await requireMobileSession(req, res, headers);
+      const auth = await requirePremiumEntitlement(req, res, headers, 'mobile');
       if (!auth) return;
       if (!personalEventsStoreAvailable) {
         sendPersonalEventsUnavailable(res, headers);
@@ -3280,6 +3396,7 @@ const start = async () => {
     }
 
     if (method === 'POST' && url.pathname === '/api/personal/observations') {
+      // Auth first; Gemini extraction requires premium entitlement.
       const auth = await requireMobileSession(req, res, headers);
       if (!auth) return;
       if (!personalEventsStoreAvailable) {
@@ -3306,6 +3423,21 @@ const start = async () => {
           body?.extract === false || body?.extract === 'false' || body?.run_extraction === false
             ? false
             : true;
+        if (extract) {
+          const entitlement = await resolveEntitlement({
+            user: auth.current.user,
+            billingService,
+            billingStorageMode,
+          });
+          if (entitlement.error === ENTITLEMENT_STORAGE_UNAVAILABLE || entitlement.httpStatus === 503) {
+            send(res, 503, entitlementUnavailablePayload(), headers);
+            return;
+          }
+          if (!entitlement.entitled) {
+            send(res, 403, premiumRequiredPayload(entitlement.reason), headers);
+            return;
+          }
+        }
         const result = await createObservationWithExtraction({
           store: personalEventsStore,
           userId: auth.current.user.id,
@@ -3535,7 +3667,7 @@ const start = async () => {
     }
 
     if (method === 'POST' && url.pathname === '/api/labs/extract-image') {
-      const auth = await requireSessionAndAi(req, res, headers);
+      const auth = await requirePremiumSessionAndAi(req, res, headers);
       if (!auth) return;
       if (!(await rateLimit(`labs-scan:${ip}:${auth.current.user.id}`, 20, 60_000))) {
         send(res, 429, { error: 'Too many image scan attempts. Try again in a minute.' }, headers);
@@ -3554,7 +3686,7 @@ const start = async () => {
     }
 
     if (method === 'POST' && url.pathname === '/api/labs/extract-pdf') {
-      const auth = await requireSessionAndAi(req, res, headers);
+      const auth = await requirePremiumSessionAndAi(req, res, headers);
       if (!auth) return;
       if (!(await rateLimit(`labs-pdf:${ip}:${auth.current.user.id}`, 12, 60_000))) {
         send(res, 429, { error: 'Too many PDF scan attempts. Try again in a minute.' }, headers);
@@ -3578,6 +3710,8 @@ const start = async () => {
     }
 
     if (method === 'GET' && url.pathname === '/api/voice/voices') {
+      const auth = await requirePremiumEntitlement(req, res, headers, 'mobile');
+      if (!auth) return;
       try {
         const voices = await listElevenLabsVoices();
         send(res, 200, { voices, configured: voices.length > 0 }, headers);
@@ -3588,8 +3722,8 @@ const start = async () => {
     }
 
     if (method === 'POST' && url.pathname === '/api/voice/respond') {
-      // Cookie or Bearer + AI consent. Owner derived server-side only.
-      const auth = await requireMobileSession(req, res, headers);
+      // Cookie or Bearer + premium entitlement + AI consent. Owner derived server-side only.
+      const auth = await requirePremiumEntitlement(req, res, headers, 'mobile');
       if (!auth) return;
       if (!hasAiProcessingConsent(req)) {
         send(res, 403, { error: 'AI processing consent required. Enable in Privacy settings.' }, headers);
@@ -3732,7 +3866,7 @@ const start = async () => {
     }
 
     if (method === 'POST' && url.pathname === '/api/voice/extract') {
-      const auth = await requireSessionAndAi(req, res, headers);
+      const auth = await requirePremiumSessionAndAi(req, res, headers);
       if (!auth) return;
       if (!(await rateLimit(`voice-extract:${ip}:${auth.current.user.id}`, 40, 60_000))) {
         send(res, 429, { error: 'Too many voice extract requests. Try again in a minute.' }, headers);
@@ -3942,7 +4076,7 @@ const start = async () => {
         }
         const email = normalizeEmail(body.email);
         const newPassword = String(body.newPassword || '');
-        if (email !== PRIMARY_SUPER_ADMIN_EMAIL) {
+        if (!PRIMARY_SUPER_ADMIN_EMAIL || email !== PRIMARY_SUPER_ADMIN_EMAIL) {
           send(res, 403, { error: 'Emergency reset allowed only for primary super admin.' }, headers);
           return;
         }
@@ -4496,7 +4630,8 @@ const start = async () => {
     }
 
     if (method === 'GET' && url.pathname === '/api/billing/status') {
-      const auth = await requireSession(req, res, headers);
+      // Cookie (web) or Bearer (mobile) — same durable entitlement source.
+      const auth = await requireMobileSession(req, res, headers);
       if (!auth) return;
       if (billingStorageMode === 'unavailable') {
         send(res, 503, billingStorageUnavailablePayload('database_missing'), headers);
@@ -4516,7 +4651,7 @@ const start = async () => {
     }
 
     if (method === 'POST' && url.pathname === '/api/billing/trial/start') {
-      const auth = await requireSession(req, res, headers);
+      const auth = await requireMobileSession(req, res, headers);
       if (!auth) return;
       if (billingStorageMode === 'unavailable') {
         send(res, 503, billingStorageUnavailablePayload('database_missing'), headers);

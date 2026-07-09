@@ -21,7 +21,7 @@ interface AuthViewProps {
   onBack?: () => void;
 }
 
-const DEFAULT_EMAIL = 'dnainform@gmail.com';
+const DEFAULT_EMAIL = '';
 
 export const AuthView: React.FC<AuthViewProps> = ({ ui, onSuccess, initialMode = 'signin', onClose, onBack }) => {
   const [isLogin, setIsLogin] = useState(initialMode !== 'signup');

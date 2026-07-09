@@ -650,6 +650,12 @@ describe('API ownership + fail-closed (WS1.6)', () => {
     expect(mobileSignup.statusCode).toBe(200);
     const token = mobileSignup.json?.token;
     expect(token).toBeTruthy();
+    const trial = await invoke(handler, {
+      method: 'POST',
+      path: '/api/billing/trial/start',
+      headers: { authorization: `Bearer ${token}` },
+    });
+    expect(trial.statusCode).toBe(200);
 
     const generate = await invoke(handler, {
       method: 'POST',

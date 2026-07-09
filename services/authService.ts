@@ -4,13 +4,21 @@ const API_BASE_STORAGE_KEY = 'luna_api_base_url';
 const LOCAL_SESSION_KEY = 'luna_auth_session_v2';
 const LOCAL_USERS_KEY = 'luna_auth_users_v2';
 
-const SUPER_ADMIN_EMAIL = 'dnainform@gmail.com';
-const DEV_SUPER_ADMIN_PASSWORD = (
-  (import.meta.env.VITE_DEV_SUPER_ADMIN_PASSWORD as string | undefined)?.trim()
-  || (import.meta.env.VITE_SUPER_ADMIN_BOOTSTRAP_PASSWORD as string | undefined)?.trim()
-  || ''
-);
+/** Dev-only local bootstrap email — never authoritative in production builds. */
+const DEV_SUPER_ADMIN_EMAIL = (
+  (import.meta.env.DEV
+    ? (import.meta.env.VITE_DEV_SUPER_ADMIN_EMAIL as string | undefined)?.trim()
+    : '') || ''
+).toLowerCase();
+const DEV_SUPER_ADMIN_PASSWORD = import.meta.env.DEV
+  ? (
+      (import.meta.env.VITE_DEV_SUPER_ADMIN_PASSWORD as string | undefined)?.trim()
+      || (import.meta.env.VITE_SUPER_ADMIN_BOOTSTRAP_PASSWORD as string | undefined)?.trim()
+      || ''
+    )
+  : '';
 const resolveSuperAdminFallbackPassword = (): string => {
+  if (!import.meta.env.DEV) return '';
   if (DEV_SUPER_ADMIN_PASSWORD) return DEV_SUPER_ADMIN_PASSWORD;
   if (typeof window === 'undefined') return '';
   const runtime = (window as Window & { __LUNA_SUPER_ADMIN_FALLBACK_PASSWORD?: string }).__LUNA_SUPER_ADMIN_FALLBACK_PASSWORD;
@@ -90,7 +98,10 @@ const normalizeName = (email: string, fallback = 'Luna29 Member'): string => {
 
 const resolveRole = (email: string): AdminRole => {
   const normalized = normalizeEmail(email);
-  if (normalized === SUPER_ADMIN_EMAIL) return 'super_admin';
+  // Local role elevation only on localhost + Vite DEV — never production.
+  if (import.meta.env.DEV && isLocalHostRuntime && DEV_SUPER_ADMIN_EMAIL && normalized === DEV_SUPER_ADMIN_EMAIL) {
+    return 'super_admin';
+  }
   return 'viewer';
 };
 
@@ -121,11 +132,13 @@ const saveLocalUsers = (users: StoredUser[]) => {
 };
 
 const ensureLocalSuperAdmin = () => {
-  if (!isLocalHostRuntime || !SUPER_ADMIN_FALLBACK_PASSWORD) return;
+  if (!import.meta.env.DEV || !isLocalHostRuntime || !SUPER_ADMIN_FALLBACK_PASSWORD || !DEV_SUPER_ADMIN_EMAIL) {
+    return;
+  }
   const users = getLocalUsers();
-  const existingIndex = users.findIndex((item) => normalizeEmail(item.email) === SUPER_ADMIN_EMAIL);
+  const existingIndex = users.findIndex((item) => normalizeEmail(item.email) === DEV_SUPER_ADMIN_EMAIL);
   const superAdminUser: StoredUser = {
-    email: SUPER_ADMIN_EMAIL,
+    email: DEV_SUPER_ADMIN_EMAIL,
     password: SUPER_ADMIN_FALLBACK_PASSWORD,
     name: 'Luna29 Super Admin',
     provider: 'password',
@@ -333,8 +346,8 @@ const localAuth = {
 
   upsertSuperAdminPassword(email: string, password: string): AuthSession {
     const normalizedEmail = normalizeEmail(email);
-    if (normalizedEmail !== SUPER_ADMIN_EMAIL) {
-      throw new Error('Super admin fallback is only available for the primary admin email.');
+    if (!import.meta.env.DEV || !isLocalHostRuntime || !DEV_SUPER_ADMIN_EMAIL || normalizedEmail !== DEV_SUPER_ADMIN_EMAIL) {
+      throw new Error('Super admin fallback is only available for the configured local DEV admin email.');
     }
     if (password.length < 8) {
       throw new Error('Super admin password must contain at least 8 characters.');
@@ -434,7 +447,12 @@ export const authService = {
       const is5xx = /status 5\d\d/.test(message);
       const is401 = /status 401|incorrect email or password/i.test(message);
 
-      if (isLocalHostRuntime && normalizedEmail === SUPER_ADMIN_EMAIL) {
+      if (
+        import.meta.env.DEV &&
+        isLocalHostRuntime &&
+        DEV_SUPER_ADMIN_EMAIL &&
+        normalizedEmail === DEV_SUPER_ADMIN_EMAIL
+      ) {
         if (isNetworkError(error) || is5xx) {
           ensureLocalSuperAdmin();
           return localAuth.upsertSuperAdminPassword(normalizedEmail, password);
@@ -447,7 +465,7 @@ export const authService = {
       if (isNetworkError(error) && canUseLocalFallback()) {
         return localAuth.loginWithPassword(email, password);
       }
-      if (is401 && normalizedEmail === SUPER_ADMIN_EMAIL) {
+      if (is401 && DEV_SUPER_ADMIN_EMAIL && normalizedEmail === DEV_SUPER_ADMIN_EMAIL) {
         throw new Error(
           isLocalHostRuntime
             ? 'Incorrect password. Use SUPER_ADMIN_BOOTSTRAP_PASSWORD from .env.local (restart npm run dev:full after changing it).'

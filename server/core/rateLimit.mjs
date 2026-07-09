@@ -1,9 +1,15 @@
+/**
+ * Durable rate limiting — Upstash/KV in production-like runtimes.
+ * Memory fallback is test/dev only; production-like fails closed when backend missing/unavailable.
+ */
+
+import { isProductionLikeRuntime } from './durableStorageGuard.mjs';
+
 const memoryStore = new Map();
 
 export const __resetMemoryRateLimitForTests = () => {
   memoryStore.clear();
 };
-
 
 export const getUpstashRestUrl = () =>
   String(process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL || '').trim();
@@ -32,22 +38,38 @@ const upstashIncr = async (key, windowMs) => {
   return Number.isFinite(count) ? count : null;
 };
 
-export const createRateLimiter = () => {
+/**
+ * @param {{ env?: NodeJS.ProcessEnv, allowMemoryFallback?: boolean }} [options]
+ * allowMemoryFallback: force memory (tests). Production-like never uses memory.
+ */
+export const createRateLimiter = (options = {}) => {
+  const env = options.env || process.env;
+  const forceMemory = options.allowMemoryFallback === true;
+  const skipVitestBypass = options.skipVitestBypass === true;
+
   const check = async (key, limit, windowMs) => {
     // Vitest-only bypass: process-local store is shared across parallel test files.
-    // Requires VITEST (set by the Vitest runner). NODE_ENV=test alone is NOT enough,
-    // so preview/production cannot activate this path via env spoofing of NODE_ENV.
-    // Request headers/query/body cannot set process.env.VITEST.
-    if (process.env.VITEST) {
+    if (process.env.VITEST && !skipVitestBypass) {
       return true;
     }
-    if (isUpstashRateLimitEnabled()) {
+
+    const prodLike = isProductionLikeRuntime(env);
+    const useMemory = forceMemory || (!prodLike && !isUpstashRateLimitEnabled());
+
+    if (!useMemory && isUpstashRateLimitEnabled()) {
       try {
         const count = await upstashIncr(`luna:rl:${key}`, windowMs);
         if (count !== null) return count <= limit;
+        // Upstash call failed.
+        if (prodLike) return false;
       } catch {
-        // fall through to memory
+        if (prodLike) return false;
       }
+    }
+
+    if (prodLike && !forceMemory) {
+      // Production-like without durable backend: fail closed.
+      return false;
     }
 
     const now = Date.now();
@@ -62,4 +84,10 @@ export const createRateLimiter = () => {
   };
 
   return check;
+};
+
+export const rateLimitBackendLabel = (env = process.env) => {
+  if (isUpstashRateLimitEnabled()) return 'upstash';
+  if (isProductionLikeRuntime(env)) return 'unavailable';
+  return 'memory';
 };

@@ -640,8 +640,13 @@ export function AppNavigator() {
   }
 
   if (view.type === 'admin') {
+    // Admin UI only when server session returned elevated permissions (never local grant).
     const hasAdminAccess = Boolean(
-      auth.session && (auth.session.permissions.includes('manage_services') || auth.session.permissions.includes('manage_admin_roles')),
+      auth.session &&
+        auth.session.id &&
+        auth.session.id !== 'local-super-admin' &&
+        (auth.session.permissions.includes('manage_services') ||
+          auth.session.permissions.includes('manage_admin_roles')),
     );
     return (
       <AppShell mode={themeMode}>

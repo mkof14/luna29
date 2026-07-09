@@ -5,17 +5,6 @@ import { logError, logInfo, logWarn } from './logger';
 
 const TOKEN_KEY = 'luna_mobile_token';
 const LOCAL_SESSION_KEY = 'luna_mobile_local_session';
-const SUPER_ADMIN_EMAIL = 'dnainform@gmail.com';
-
-const SUPER_ADMIN_PERMISSIONS = [
-  'manage_services',
-  'manage_admin_roles',
-  'manage_users',
-  'manage_templates',
-  'manage_financials',
-  'manage_socials',
-  'view_audit',
-];
 
 export type MobileSession = {
   id: string;
@@ -53,15 +42,16 @@ async function safeDeleteToken(): Promise<void> {
   try {
     await SecureStore.deleteItemAsync(TOKEN_KEY);
   } catch {
-    // ignore secure store errors in Expo Go fallback mode
+    // ignore secure store errors
   }
 }
 
+/** Server role/permissions only — never elevate from a hardcoded email. */
 function normalizeSession(input: unknown): MobileSession | null {
   if (!input || typeof input !== 'object') return null;
   const raw = input as Record<string, unknown>;
 
-  const session: MobileSession = {
+  return {
     id: String(raw.id || ''),
     email: String(raw.email || ''),
     name: String(raw.name || 'Anna'),
@@ -71,36 +61,13 @@ function normalizeSession(input: unknown): MobileSession | null {
     lastLoginAt: String(raw.lastLoginAt || new Date().toISOString()),
     avatarUrl: raw.avatarUrl ? String(raw.avatarUrl) : undefined,
   };
-
-  if (session.email.toLowerCase() === SUPER_ADMIN_EMAIL) {
-    return {
-      ...session,
-      role: 'super_admin',
-      permissions: Array.from(new Set([...session.permissions, ...SUPER_ADMIN_PERMISSIONS])),
-    };
-  }
-
-  return session;
-}
-
-function createLocalSuperAdminSession(emailRaw: string): MobileSession {
-  const email = emailRaw.trim().toLowerCase() || SUPER_ADMIN_EMAIL;
-  return {
-    id: 'local-super-admin',
-    email,
-    name: 'Anna',
-    provider: 'password',
-    role: 'super_admin',
-    permissions: SUPER_ADMIN_PERMISSIONS,
-    lastLoginAt: new Date().toISOString(),
-  };
 }
 
 async function saveLocalSession(session: MobileSession): Promise<void> {
   try {
     await SecureStore.setItemAsync(LOCAL_SESSION_KEY, JSON.stringify(session));
   } catch {
-    // ignore secure store errors
+    // ignore
   }
 }
 
@@ -108,8 +75,7 @@ async function loadLocalSession(): Promise<MobileSession | null> {
   try {
     const raw = await SecureStore.getItemAsync(LOCAL_SESSION_KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    return normalizeSession(parsed);
+    return normalizeSession(JSON.parse(raw));
   } catch {
     return null;
   }
@@ -119,7 +85,7 @@ async function clearLocalSession(): Promise<void> {
   try {
     await SecureStore.deleteItemAsync(LOCAL_SESSION_KEY);
   } catch {
-    // ignore secure store errors
+    // ignore
   }
 }
 
@@ -149,8 +115,8 @@ async function requestAuth(path: string, body?: Record<string, unknown>, method:
 export async function restoreMobileSession(): Promise<MobileSession | null> {
   const token = await safeGetToken();
   if (!token) {
-    const localSession = await loadLocalSession();
-    if (localSession) return localSession;
+    // Without a server token, do not restore privileged local sessions.
+    await clearLocalSession();
     return null;
   }
   setMobileAuthToken(token);
@@ -167,19 +133,12 @@ export async function restoreMobileSession(): Promise<MobileSession | null> {
     logWarn('Session restore failed. Clearing local token.');
     await safeDeleteToken();
     setMobileAuthToken('');
-    return loadLocalSession();
+    await clearLocalSession();
+    return null;
   }
 }
 
 export async function signInMobile(email: string, password: string): Promise<MobileSession> {
-  const normalizedEmail = email.trim().toLowerCase();
-  if (normalizedEmail === SUPER_ADMIN_EMAIL) {
-    const local = createLocalSuperAdminSession(normalizedEmail);
-    await saveLocalSession(local);
-    setMobileAuthToken('');
-    logInfo('Super admin local sign in granted.');
-    return local;
-  }
   try {
     const data = (await requestAuth('/api/mobile/auth/signin', { email, password })) as AuthResponse;
     const normalized = normalizeSession(data.session);
@@ -189,17 +148,10 @@ export async function signInMobile(email: string, password: string): Promise<Mob
     await safeSetToken(data.token);
     setMobileAuthToken(data.token);
     await saveLocalSession(normalized);
-    logInfo('Signed in', { email });
+    logInfo('Signed in');
     return normalized;
   } catch (error) {
-    if (normalizedEmail === SUPER_ADMIN_EMAIL) {
-      const local = createLocalSuperAdminSession(normalizedEmail);
-      await saveLocalSession(local);
-      setMobileAuthToken('');
-      logWarn('Using local super admin fallback session.');
-      return local;
-    }
-    logError('Sign in failed', { email, error: error instanceof Error ? error.message : String(error) });
+    logError('Sign in failed', { error: error instanceof Error ? error.message : String(error) });
     throw error;
   }
 }
@@ -214,10 +166,10 @@ export async function signUpMobile(name: string, email: string, password: string
     await safeSetToken(data.token);
     setMobileAuthToken(data.token);
     await saveLocalSession(normalized);
-    logInfo('Signed up', { email });
+    logInfo('Signed up');
     return normalized;
   } catch (error) {
-    logError('Sign up failed', { email, error: error instanceof Error ? error.message : String(error) });
+    logError('Sign up failed', { error: error instanceof Error ? error.message : String(error) });
     throw error;
   }
 }
@@ -225,12 +177,10 @@ export async function signUpMobile(name: string, email: string, password: string
 export async function signOutMobile(): Promise<void> {
   try {
     await requestAuth('/api/mobile/auth/logout', {});
-    logInfo('Signed out');
   } catch {
-    logWarn('Logout request failed. Clearing local token anyway.');
-    // ignore network failure on logout
+    // ignore network errors on logout
   }
   await safeDeleteToken();
-  await clearLocalSession();
   setMobileAuthToken('');
+  await clearLocalSession();
 }

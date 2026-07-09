@@ -123,6 +123,15 @@ describe('timeline query foundation (Task 4)', () => {
       ip,
     });
     expect(result.statusCode).toBe(200);
+    // Premium APIs require durable trial/subscription — start server trial for foundation tests.
+    const trial = await invoke(handler, {
+      method: 'POST',
+      path: '/api/billing/trial/start',
+      headers: { authorization: `Bearer ${result.json.token}` },
+      ip,
+    });
+    expect(trial.statusCode).toBe(200);
+
     expect(result.json?.session?.id).toBeTruthy();
     return {
       token: result.json.token,

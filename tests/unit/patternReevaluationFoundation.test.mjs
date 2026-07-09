@@ -133,6 +133,15 @@ describe('pattern reevaluation foundation (Task 7.1)', () => {
       ip,
     });
     expect(result.statusCode).toBe(200);
+    // Premium APIs require durable trial/subscription — start server trial for foundation tests.
+    const trial = await invoke(handler, {
+      method: 'POST',
+      path: '/api/billing/trial/start',
+      headers: { authorization: `Bearer ${result.json.token}` },
+      ip,
+    });
+    expect(trial.statusCode).toBe(200);
+
     return {
       token: result.json.token,
       userId: result.json.session.id,
