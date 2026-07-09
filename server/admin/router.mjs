@@ -79,6 +79,15 @@ export const createAdminRouter = (store, deps) => {
 
     if (!pathname.startsWith('/api/admin/')) return false;
 
+    if (context.operationalRecordsMode === 'unavailable') {
+      send(res, 503, {
+        error: 'Operational records storage is unavailable.',
+        code: 'OPERATIONAL_RECORDS_UNAVAILABLE',
+        reason: 'database_missing',
+      }, headers);
+      return true;
+    }
+
     const adminState = store.getState();
 
     if (method === 'POST' && pathname === '/api/admin/role') {
@@ -112,7 +121,7 @@ export const createAdminRouter = (store, deps) => {
         targetUser.roleOverride = role;
         await saveUsers();
 
-        store.pushAudit({
+        await store.pushAudit({
           actorEmail: auth.sessionPayload.email,
           actorRole: auth.sessionPayload.role,
           action: 'admin.role.update',
@@ -171,7 +180,7 @@ export const createAdminRouter = (store, deps) => {
           return true;
         }
 
-        store.pushAudit({
+        await store.pushAudit({
           actorEmail: auth.sessionPayload.email,
           actorRole: auth.sessionPayload.role,
           action: 'admin.state.update',
@@ -300,7 +309,7 @@ export const createAdminRouter = (store, deps) => {
           error: null,
         };
         adminState.campaignQueue = [entry, ...(adminState.campaignQueue || [])].slice(0, 200);
-        store.pushAudit({
+        await store.pushAudit({
           actorEmail: auth.sessionPayload.email,
           actorRole: auth.sessionPayload.role,
           action: 'admin.campaign.schedule',
@@ -380,7 +389,7 @@ export const createAdminRouter = (store, deps) => {
       }
 
       if (processed > 0) {
-        store.pushAudit({
+        await store.pushAudit({
           actorEmail: auth.sessionPayload.email,
           actorRole: auth.sessionPayload.role,
           action: 'admin.campaign.process',
@@ -430,7 +439,7 @@ export const createAdminRouter = (store, deps) => {
         ...(adminState.metricsHistory || []),
       ].slice(0, 365);
 
-      store.pushAudit({
+      await store.pushAudit({
         actorEmail: auth.sessionPayload.email,
         actorRole: auth.sessionPayload.role,
         action: 'admin.metrics.check',
@@ -460,7 +469,7 @@ export const createAdminRouter = (store, deps) => {
         send(res, 403, { error: 'Permission denied.' }, headers);
         return true;
       }
-      store.pushAudit({
+      await store.pushAudit({
         actorEmail: auth.sessionPayload.email,
         actorRole: auth.sessionPayload.role,
         action: 'admin.social.connect_all',
@@ -478,7 +487,7 @@ export const createAdminRouter = (store, deps) => {
         send(res, 403, { error: 'Permission denied.' }, headers);
         return true;
       }
-      store.pushAudit({
+      await store.pushAudit({
         actorEmail: auth.sessionPayload.email,
         actorRole: auth.sessionPayload.role,
         action: 'admin.social.pending_review',
@@ -578,12 +587,14 @@ export const createAdminRouter = (store, deps) => {
         });
         const mailResult = await sendCalendarReminderEmail({ to, subject, text, html });
 
-        if (typeof saveContacts === 'function') {
+        if (typeof context.markContactReplied === 'function') {
+          await context.markContactReplied(id, new Date().toISOString());
+        } else if (typeof saveContacts === 'function') {
           contact.repliedAt = new Date().toISOString();
           await saveContacts();
         }
 
-        store.pushAudit({
+        await store.pushAudit({
           actorEmail: auth.sessionPayload.email,
           actorRole: auth.sessionPayload.role,
           action: 'admin.contacts.reply',
@@ -679,7 +690,7 @@ export const createAdminRouter = (store, deps) => {
         });
         const text = renderPlainEmailText({ subject, body: emailBody, ctaLabel, ctaUrl });
 
-        store.pushAudit({
+        await store.pushAudit({
           actorEmail: auth.sessionPayload.email,
           actorRole: auth.sessionPayload.role,
           action: 'admin.templates.render',
@@ -735,7 +746,7 @@ export const createAdminRouter = (store, deps) => {
         const text = renderPlainEmailText({ subject, body: emailBody, ctaLabel, ctaUrl });
         const mailResult = await sendCalendarReminderEmail({ to, subject, text, html });
 
-        store.pushAudit({
+        await store.pushAudit({
           actorEmail: auth.sessionPayload.email,
           actorRole: auth.sessionPayload.role,
           action: 'admin.mail.send',
@@ -766,9 +777,16 @@ export const createAdminRouter = (store, deps) => {
           return true;
         }
 
-        const inviteId = `site-${Date.now()}`;
         const brand = getBrandMeta();
-        const inviteLink = `${brand.siteUrl}/?invite=${encodeURIComponent(inviteId)}`;
+        const invite = await store.createInvite({
+          email,
+          kind: 'site',
+          inviteLinkBase: `${brand.siteUrl}/?invite=`,
+          createdBy: auth.sessionPayload.email,
+          delivered: false,
+        });
+        const inviteId = invite.id;
+        const inviteLink = invite.inviteLink;
         const subject = 'You are invited to Luna29';
         const emailBody = 'A gentle invitation to join Luna29 — your private rhythm map. Create your account and start with one calm check-in.';
         const html = renderBrandedEmailHtml({
@@ -786,27 +804,16 @@ export const createAdminRouter = (store, deps) => {
           ctaUrl: inviteLink,
         });
         const mailResult = await sendCalendarReminderEmail({ to: email, subject, text, html });
+        await store.markInviteDelivered(inviteId, Boolean(mailResult.ok));
+        if (store.mode === 'json') await store.save();
 
-        adminState.invites = [
-          {
-            id: inviteId,
-            email,
-            kind: 'site',
-            inviteLink,
-            delivered: Boolean(mailResult.ok),
-            createdAt: new Date().toISOString(),
-            createdBy: auth.sessionPayload.email,
-          },
-          ...(adminState.invites || []),
-        ].slice(0, 500);
-
-        store.pushAudit({
+        await store.pushAudit({
           actorEmail: auth.sessionPayload.email,
           actorRole: auth.sessionPayload.role,
           action: 'admin.invite.site',
-          details: `Site invite for ${email} (${mailResult.ok ? 'sent' : mailResult.reason || 'local'})`,
+          details: `Site invite created (${mailResult.ok ? 'sent' : mailResult.reason || 'local'})`,
         });
-        await store.save();
+        if (store.mode === 'json') await store.save();
 
         send(res, 200, { ok: true, inviteId, inviteLink, delivered: mailResult.ok, reason: mailResult.reason || null }, headers);
       } catch (error) {
@@ -836,9 +843,17 @@ export const createAdminRouter = (store, deps) => {
           return true;
         }
 
-        const inviteId = `adm-${Date.now()}`;
         const brand = getBrandMeta();
-        const inviteLink = `${brand.siteUrl}/?tab=admin&invite=${encodeURIComponent(inviteId)}`;
+        const invite = await store.createInvite({
+          email,
+          kind: 'admin',
+          role,
+          inviteLinkBase: `${brand.siteUrl}/?tab=admin&invite=`,
+          createdBy: auth.sessionPayload.email,
+          delivered: false,
+        });
+        const inviteId = invite.id;
+        const inviteLink = invite.inviteLink;
         const subject = 'Luna29 Admin Console invitation';
         const emailBody = `You have been invited to the Luna29 Admin Console with the ${role} role. Use the secure link below to sign in and activate your workspace access.`;
         const html = renderBrandedEmailHtml({
@@ -856,28 +871,16 @@ export const createAdminRouter = (store, deps) => {
           ctaUrl: inviteLink,
         });
         const mailResult = await sendCalendarReminderEmail({ to: email, subject, text, html });
+        await store.markInviteDelivered(inviteId, Boolean(mailResult.ok));
+        if (store.mode === 'json') await store.save();
 
-        adminState.invites = [
-          {
-            id: inviteId,
-            email,
-            kind: 'admin',
-            role,
-            inviteLink,
-            delivered: Boolean(mailResult.ok),
-            createdAt: new Date().toISOString(),
-            createdBy: auth.sessionPayload.email,
-          },
-          ...(adminState.invites || []),
-        ].slice(0, 500);
-
-        store.pushAudit({
+        await store.pushAudit({
           actorEmail: auth.sessionPayload.email,
           actorRole: auth.sessionPayload.role,
           action: 'admin.invite.send',
-          details: `Admin invite (${role}) for ${email} — ${mailResult.ok ? 'sent' : mailResult.reason || 'local link only'}`,
+          details: `Admin invite (${role}) created — ${mailResult.ok ? 'sent' : mailResult.reason || 'local link only'}`,
         });
-        await store.save();
+        if (store.mode === 'json') await store.save();
 
         send(res, 200, { ok: true, inviteId, inviteLink, role, delivered: mailResult.ok, reason: mailResult.reason || null }, headers);
       } catch (error) {
@@ -893,7 +896,7 @@ export const createAdminRouter = (store, deps) => {
         send(res, 403, { error: 'Permission denied.' }, headers);
         return true;
       }
-      store.pushAudit({
+      await store.pushAudit({
         actorEmail: auth.sessionPayload.email,
         actorRole: auth.sessionPayload.role,
         action: 'admin.templates.preview',

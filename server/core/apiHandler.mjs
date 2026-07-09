@@ -110,6 +110,29 @@ import {
   createMemoryStripeWebhookLedger,
 } from './stripeWebhookEventsStore.mjs';
 import { processStripeWebhookEvent } from './stripeWebhookProcessor.mjs';
+import {
+  resolveOperationalRecordsStorageMode,
+  operationalRecordsHealthLabel,
+  operationalRecordsStorageModeLabel,
+  operationalRecordsUnavailablePayload,
+  OPERATIONAL_RECORDS_UNAVAILABLE,
+} from './operationalRecordsStorage.mjs';
+import { initAdminInvitesRepository } from './adminInvitesStore.mjs';
+import { initAdminAuditRepository } from './adminAuditStore.mjs';
+import { initAdminWorkspaceRepository } from './adminWorkspaceStore.mjs';
+import {
+  initPrivacyRequestsRepository,
+  insertPrivacyRequest,
+  listPrivacyRequests,
+} from './privacyRequestsStore.mjs';
+import {
+  initContactSubmissionsRepository,
+  insertContactSubmission,
+  listContactSubmissions,
+  deleteContactSubmissionsByEmail,
+  markContactSubmissionReplied,
+} from './contactSubmissionsStore.mjs';
+import { maybeImportOperationalRecordsOnBoot } from './operationalRecordsLegacyImport.mjs';
 import { getPgPoolStatus } from './database.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -505,14 +528,32 @@ const buildHealthPayload = async ({ verbose = false, durableDecision = null } = 
       : billingStorageMode === 'json'
         ? 'json_dev'
         : 'unavailable';
+  let operationalRecordsMode = resolveOperationalRecordsStorageMode({
+    env: process.env,
+    runtimeEnvironment,
+  });
+  if (operationalRecordsMode === 'postgres') {
+    try {
+      const poolStatus = await getPgPoolStatus();
+      if (!poolStatus.pool || poolStatus.category !== 'ok') {
+        operationalRecordsMode = 'unavailable';
+      }
+    } catch {
+      operationalRecordsMode = 'unavailable';
+    }
+  }
+  const operationalRecordsLabel = operationalRecordsHealthLabel(operationalRecordsMode);
+  const operationalRecordsModeLabel = operationalRecordsStorageModeLabel(operationalRecordsMode);
   const googleAuthConfigured = GOOGLE_CLIENT_IDS.size > 0;
   const aiScanEnabled = Boolean(GEMINI_API_KEY);
   const rateLimitBackend = isUpstashRateLimitEnabled() ? 'upstash' : 'memory';
   const billingStorageOk = billingStorageMode !== 'unavailable';
+  const operationalRecordsOk = operationalRecordsMode !== 'unavailable';
   const ok =
     durableJsonAllowed &&
     storageWritable &&
     billingStorageOk &&
+    operationalRecordsOk &&
     (!BILLING_ENABLED || stripeConfigReady);
   const warnings = [];
 
@@ -523,6 +564,11 @@ const buildHealthPayload = async ({ verbose = false, durableDecision = null } = 
   }
   if (!billingStorageOk) {
     warnings.push('Billing/trial storage unavailable — production requires Postgres (no JSON/tmp billing).');
+  }
+  if (!operationalRecordsOk) {
+    warnings.push(
+      'Operational records storage unavailable — admin/privacy/contacts require Postgres in production.',
+    );
   }
   if (!storageWritable && durableJsonAllowed) warnings.push('Storage is not writable.');
   if (!databaseConfigured && durableJsonAllowed) {
@@ -552,6 +598,7 @@ const buildHealthPayload = async ({ verbose = false, durableDecision = null } = 
       billingStorage: billingStorageLabel,
       trialStorage: trialStorageLabel,
       stripeWebhookLedger: stripeWebhookLedgerLabel,
+      operationalRecordsStorage: operationalRecordsLabel,
       rateLimit: rateLimitBackend,
       billing: billingStatus,
       googleAuth: googleAuthConfigured ? 'configured' : 'missing',
@@ -574,6 +621,7 @@ const buildHealthPayload = async ({ verbose = false, durableDecision = null } = 
       billingStorageMode: billingStorageLabel,
       trialStorageMode: trialStorageLabel,
       stripeWebhookLedger: stripeWebhookLedgerLabel,
+      operationalRecordsStorage: operationalRecordsModeLabel,
       rateLimitBackend,
       googleClientIds: GOOGLE_CLIENT_IDS.size,
       aiScanEnabled,
@@ -1134,13 +1182,81 @@ const start = async () => {
     if (!Array.isArray(users)) users = [];
   }
 
+  // WS1.5 — Operational records (admin workspace/invites/audit, privacy, contacts)
+  const operationalRecordsMode = resolveOperationalRecordsStorageMode({
+    env: process.env,
+    runtimeEnvironment,
+  });
+  let operationalPgPool = null;
+  if (operationalRecordsMode === 'unavailable') {
+    console.warn('[operational-records] storage unavailable: database_missing');
+  } else if (operationalRecordsMode === 'postgres') {
+    const poolStatus = await getPgPoolStatus();
+    const invitesRepo = await initAdminInvitesRepository({ mode: 'postgres', pool: poolStatus.pool });
+    const auditRepo = await initAdminAuditRepository({ mode: 'postgres', pool: poolStatus.pool });
+    const workspaceRepo = await initAdminWorkspaceRepository({ mode: 'postgres', pool: poolStatus.pool });
+    const privacyRepo = await initPrivacyRequestsRepository({ mode: 'postgres', pool: poolStatus.pool });
+    const contactsRepo = await initContactSubmissionsRepository({
+      mode: 'postgres',
+      pool: poolStatus.pool,
+    });
+    if (
+      !invitesRepo.ok ||
+      !auditRepo.ok ||
+      !workspaceRepo.ok ||
+      !privacyRepo.ok ||
+      !contactsRepo.ok ||
+      !poolStatus.pool
+    ) {
+      console.warn('[operational-records] init failed — fail closed');
+      return async (req, res) => {
+        const method = req.method || 'GET';
+        const origin = req.headers.origin;
+        const headers = corsHeaders(origin);
+        if (method === 'OPTIONS') {
+          sendEmpty(res, 204, headers);
+          return;
+        }
+        const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
+        if (method === 'GET' && url.pathname === '/api/health') {
+          const verbose = ['1', 'true', 'yes'].includes(
+            String(url.searchParams.get('verbose') || '').toLowerCase(),
+          );
+          const payload = await buildHealthPayload({ verbose, durableDecision });
+          payload.ok = false;
+          payload.checks = {
+            ...(payload.checks || {}),
+            operationalRecordsStorage: 'unavailable',
+          };
+          send(res, 503, payload, headers);
+          return;
+        }
+        send(res, 503, operationalRecordsUnavailablePayload('init_failed'), headers);
+      };
+    }
+    operationalPgPool = authPgPool || poolStatus.pool;
+    const legacyAdmin = await readJson(ADMIN_DATA_FILE, {});
+    const legacyPrivacy = await readJson(PRIVACY_REQUESTS_FILE, []);
+    const legacyContacts = await readJson(CONTACTS_FILE, []);
+    await maybeImportOperationalRecordsOnBoot(operationalPgPool, {
+      adminStateRaw: legacyAdmin && typeof legacyAdmin === 'object' ? legacyAdmin : {},
+      privacyRequestsRaw: Array.isArray(legacyPrivacy) ? legacyPrivacy : [],
+      contactSubmissionsRaw: Array.isArray(legacyContacts) ? legacyContacts : [],
+    });
+    console.info('[operational-records] repositories initialized (postgres)');
+  }
+
   const adminStore = createAdminStateStore({
+    mode: operationalRecordsMode === 'postgres' ? 'postgres' : 'json',
+    pool: operationalPgPool,
     readJson,
     writeJson,
     filePath: ADMIN_DATA_FILE,
     helpers: { safeText, normalizeEmail, numberOr },
   });
-  await adminStore.load();
+  if (operationalRecordsMode !== 'unavailable') {
+    await adminStore.load();
+  }
   const handleAdminApi = createAdminRouter(adminStore, {
     safeText,
     normalizeEmail,
@@ -1153,10 +1269,17 @@ const start = async () => {
     buildSessionPayload,
   });
 
-  let contactSubmissions = await readJson(CONTACTS_FILE, []);
-  if (!Array.isArray(contactSubmissions)) contactSubmissions = [];
-  let privacyRequests = await readJson(PRIVACY_REQUESTS_FILE, []);
-  if (!Array.isArray(privacyRequests)) privacyRequests = [];
+  let contactSubmissions = [];
+  let privacyRequests = [];
+  if (operationalRecordsMode === 'json') {
+    contactSubmissions = await readJson(CONTACTS_FILE, []);
+    if (!Array.isArray(contactSubmissions)) contactSubmissions = [];
+    privacyRequests = await readJson(PRIVACY_REQUESTS_FILE, []);
+    if (!Array.isArray(privacyRequests)) privacyRequests = [];
+  } else if (operationalRecordsMode === 'postgres' && operationalPgPool) {
+    contactSubmissions = await listContactSubmissions(operationalPgPool, { limit: 2000 });
+    privacyRequests = await listPrivacyRequests(operationalPgPool, { limit: 2000 });
+  }
 
   // WS1.3 — Billing + trials durable storage
   const billingStorageMode = resolveBillingStorageMode({
@@ -1304,7 +1427,18 @@ const start = async () => {
     }
     await writeJson(DATA_FILE, users);
   };
-  const saveContacts = async () => writeJson(CONTACTS_FILE, contactSubmissions);
+  const saveContacts = async () => {
+    if (operationalRecordsMode === 'postgres') {
+      // Postgres mode: inserts/deletes are targeted; no full-array rewrite.
+      return;
+    }
+    if (operationalRecordsMode === 'unavailable') {
+      const err = new Error('Operational records storage is unavailable.');
+      err.code = OPERATIONAL_RECORDS_UNAVAILABLE;
+      throw err;
+    }
+    await writeJson(CONTACTS_FILE, contactSubmissions);
+  };
   const saveSessions = async () => {
     if (authIdentityMode === 'postgres' && authPgPool) {
       await saveSessionsToPostgres(authPgPool, serializeSessions());
@@ -1312,7 +1446,83 @@ const start = async () => {
     }
     await writeJson(SESSIONS_FILE, serializeSessions());
   };
-  const savePrivacyRequests = async () => writeJson(PRIVACY_REQUESTS_FILE, privacyRequests);
+  const savePrivacyRequests = async () => {
+    if (operationalRecordsMode === 'postgres') {
+      return;
+    }
+    if (operationalRecordsMode === 'unavailable') {
+      const err = new Error('Operational records storage is unavailable.');
+      err.code = OPERATIONAL_RECORDS_UNAVAILABLE;
+      throw err;
+    }
+    await writeJson(PRIVACY_REQUESTS_FILE, privacyRequests);
+  };
+  const appendPrivacyRequestRecord = async (record) => {
+    if (operationalRecordsMode === 'unavailable') {
+      const err = new Error('Operational records storage is unavailable.');
+      err.code = OPERATIONAL_RECORDS_UNAVAILABLE;
+      throw err;
+    }
+    if (operationalRecordsMode === 'postgres' && operationalPgPool) {
+      await insertPrivacyRequest(operationalPgPool, record);
+      privacyRequests = await listPrivacyRequests(operationalPgPool, { limit: 2000 });
+      return;
+    }
+    privacyRequests = [record, ...privacyRequests].slice(0, 2000);
+    await savePrivacyRequests();
+  };
+  const appendContactRecord = async (record) => {
+    if (operationalRecordsMode === 'unavailable') {
+      const err = new Error('Operational records storage is unavailable.');
+      err.code = OPERATIONAL_RECORDS_UNAVAILABLE;
+      throw err;
+    }
+    if (operationalRecordsMode === 'postgres' && operationalPgPool) {
+      await insertContactSubmission(operationalPgPool, record);
+      contactSubmissions = await listContactSubmissions(operationalPgPool, { limit: 2000 });
+      return;
+    }
+    contactSubmissions = [record, ...contactSubmissions].slice(0, 2000);
+    await saveContacts();
+  };
+  const removeContactsForEmail = async (email) => {
+    if (operationalRecordsMode === 'unavailable') {
+      const err = new Error('Operational records storage is unavailable.');
+      err.code = OPERATIONAL_RECORDS_UNAVAILABLE;
+      throw err;
+    }
+    if (operationalRecordsMode === 'postgres' && operationalPgPool) {
+      await deleteContactSubmissionsByEmail(operationalPgPool, email);
+      contactSubmissions = await listContactSubmissions(operationalPgPool, { limit: 2000 });
+      return;
+    }
+    contactSubmissions = contactSubmissions.filter(
+      (item) => normalizeEmail(item.email) !== normalizeEmail(email),
+    );
+    await saveContacts();
+  };
+  const markContactReplied = async (id, repliedAt) => {
+    if (operationalRecordsMode === 'unavailable') {
+      const err = new Error('Operational records storage is unavailable.');
+      err.code = OPERATIONAL_RECORDS_UNAVAILABLE;
+      throw err;
+    }
+    if (operationalRecordsMode === 'postgres' && operationalPgPool) {
+      await markContactSubmissionReplied(operationalPgPool, id, repliedAt);
+      contactSubmissions = await listContactSubmissions(operationalPgPool, { limit: 2000 });
+      return;
+    }
+    const row = contactSubmissions.find((item) => item.id === id);
+    if (row) row.repliedAt = repliedAt;
+    await saveContacts();
+  };
+  const requireOperationalRecords = (res, headers) => {
+    if (operationalRecordsMode === 'unavailable') {
+      send(res, 503, operationalRecordsUnavailablePayload('database_missing'), headers);
+      return false;
+    }
+    return true;
+  };
   const saveMobileReflections = async () => writeJson(MOBILE_REFLECTIONS_FILE, mobileReflections);
   const saveMobileReports = async () => writeJson(MOBILE_REPORTS_FILE, mobileReports);
   const saveMobileStateStore = async () => writeJson(MOBILE_STATE_FILE, mobileStateStore);
@@ -3227,7 +3437,7 @@ const start = async () => {
         const email = normalizeEmail(body.email);
         const password = String(body.password || '');
         const name = typeof body.name === 'string' && body.name.trim() ? safeText(body.name, 120) : normalizeName(email);
-        const inviteToken = safeText(body.inviteToken || body.invite || '', 80);
+        const inviteToken = safeText(body.inviteToken || body.invite || '', 120);
 
         if (!email || !email.includes('@')) {
           send(res, 400, { error: 'Provide a valid email.' }, headers);
@@ -3244,13 +3454,15 @@ const start = async () => {
           return;
         }
 
-        let roleOverride = null;
-        if (inviteToken) {
-          const invite = (adminStore.getState().invites || []).find((item) => item.id === inviteToken);
-          if (invite?.kind === 'admin') {
-            const inviteRole = invite.role && ROLE_PERMISSIONS[invite.role] ? invite.role : null;
-            const emailMatches = !invite.email || invite.email === email;
-            if (inviteRole && emailMatches) roleOverride = inviteRole;
+        // Invite ordering: validate → persist role_override → consume.
+        // Never burn a single-use invite before role authority is durable.
+        let pendingInviteRole = null;
+        if (inviteToken && operationalRecordsMode !== 'unavailable') {
+          const peek = await adminStore.validateInvite({ inviteId: inviteToken, email });
+          if (peek.ok && peek.invite?.kind === 'admin') {
+            const inviteRole =
+              peek.invite.role && ROLE_PERMISSIONS[peek.invite.role] ? peek.invite.role : null;
+            if (inviteRole) pendingInviteRole = inviteRole;
           }
         }
 
@@ -3260,19 +3472,34 @@ const start = async () => {
           name,
           passwordHash: hashPassword(password),
           createdAt: new Date().toISOString(),
-          roleOverride,
+          roleOverride: pendingInviteRole,
           lastProvider: 'password',
           avatarUrl: undefined,
         };
         users = [user, ...users];
         await saveUsers();
 
-        if (inviteToken && roleOverride) {
-          const adminState = adminStore.getState();
-          adminState.invites = (adminState.invites || []).map((item) =>
-            item.id === inviteToken ? { ...item, status: 'accepted', acceptedAt: new Date().toISOString() } : item,
-          );
-          await adminStore.save();
+        if (pendingInviteRole && inviteToken && operationalRecordsMode !== 'unavailable') {
+          try {
+            const consumeResult = await adminStore.consumeInvite({ inviteId: inviteToken, email });
+            if (!consumeResult.ok) {
+              // Lost race / expired between peek and consume — do not leave unearned privilege.
+              user.roleOverride = null;
+              await saveUsers();
+            }
+          } catch (consumeError) {
+            // Consume failed unexpectedly after role persist — revoke provisional role; invite remains usable.
+            user.roleOverride = null;
+            try {
+              await saveUsers();
+            } catch {
+              /* best-effort compensation */
+            }
+            throw consumeError;
+          }
+          if (operationalRecordsMode === 'json') {
+            await adminStore.save();
+          }
         }
 
         const token = createSession(user);
@@ -3551,6 +3778,7 @@ const start = async () => {
     if (method === 'POST' && url.pathname === '/api/privacy/export') {
       const auth = await requireSession(req, res, headers);
       if (!auth) return;
+      if (!requireOperationalRecords(res, headers)) return;
 
       const subjectEmail = auth.sessionPayload.email;
       const userRow = users.find((item) => item.email === subjectEmail);
@@ -3583,9 +3811,9 @@ const start = async () => {
         ],
       };
 
-      const requestId = `dsar-exp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-      privacyRequests = [
-        {
+      try {
+        const requestId = `dsar-exp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        await appendPrivacyRequestRecord({
           id: requestId,
           type: 'export',
           status: 'completed',
@@ -3593,29 +3821,34 @@ const start = async () => {
           completedAt: new Date().toISOString(),
           email: subjectEmail,
           actor: auth.sessionPayload.email,
-        },
-        ...privacyRequests,
-      ].slice(0, 2000);
-      await savePrivacyRequests();
+        });
 
-      send(res, 200, {
-        requestId,
-        exportVersion: 2,
-        exportedAt: exportRows.generatedAt,
-        export: exportRows,
-        audit: {
+        send(res, 200, {
           requestId,
-          type: 'export',
-          status: 'completed',
-          completedAt: new Date().toISOString(),
-        },
-      }, headers);
+          exportVersion: 2,
+          exportedAt: exportRows.generatedAt,
+          export: exportRows,
+          audit: {
+            requestId,
+            type: 'export',
+            status: 'completed',
+            completedAt: new Date().toISOString(),
+          },
+        }, headers);
+      } catch (error) {
+        if (error?.code === OPERATIONAL_RECORDS_UNAVAILABLE) {
+          send(res, 503, operationalRecordsUnavailablePayload('unavailable'), headers);
+          return;
+        }
+        send(res, 500, { error: 'Unable to process export request.' }, headers);
+      }
       return;
     }
 
     if (method === 'POST' && url.pathname === '/api/privacy/correct') {
       const auth = await requireSession(req, res, headers);
       if (!auth) return;
+      if (!requireOperationalRecords(res, headers)) return;
       try {
         const body = await readBody(req);
         const patch = sanitizeCorrectionPayload(body);
@@ -3634,23 +3867,23 @@ const start = async () => {
         await saveUsers();
 
         const requestId = `dsar-cor-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-        privacyRequests = [
-          {
-            id: requestId,
-            type: 'correct',
-            status: 'completed',
-            requestedAt: new Date().toISOString(),
-            completedAt: new Date().toISOString(),
-            email: auth.sessionPayload.email,
-            actor: auth.sessionPayload.email,
-            fields: Object.keys(patch),
-          },
-          ...privacyRequests,
-        ].slice(0, 2000);
-        await savePrivacyRequests();
+        await appendPrivacyRequestRecord({
+          id: requestId,
+          type: 'correct',
+          status: 'completed',
+          requestedAt: new Date().toISOString(),
+          completedAt: new Date().toISOString(),
+          email: auth.sessionPayload.email,
+          actor: auth.sessionPayload.email,
+          fields: Object.keys(patch),
+        });
 
         send(res, 200, { requestId, session: buildSessionPayload(user) }, headers);
       } catch (error) {
+        if (error?.code === OPERATIONAL_RECORDS_UNAVAILABLE) {
+          send(res, 503, operationalRecordsUnavailablePayload('unavailable'), headers);
+          return;
+        }
         send(res, 400, { error: error instanceof Error ? error.message : 'Unable to process correction request.' }, headers);
       }
       return;
@@ -3659,6 +3892,7 @@ const start = async () => {
     if (method === 'POST' && url.pathname === '/api/privacy/delete') {
       const auth = await requireSession(req, res, headers);
       if (!auth) return;
+      if (!requireOperationalRecords(res, headers)) return;
       try {
         const body = await readBody(req);
         const scope = safeText(body.scope || 'account', 32);
@@ -3674,14 +3908,13 @@ const start = async () => {
         }
 
         if (scope === 'support_only') {
-          contactSubmissions = contactSubmissions.filter((item) => normalizeEmail(item.email) !== user.email);
-          await saveContacts();
+          await removeContactsForEmail(user.email);
         } else {
           users = users.filter((item) => item.id !== user.id);
           for (const [token, session] of sessions.entries()) {
             if (session.userId === user.id) sessions.delete(token);
           }
-          contactSubmissions = contactSubmissions.filter((item) => normalizeEmail(item.email) !== user.email);
+          await removeContactsForEmail(user.email);
           try {
             await billingService.deleteBillingForUser(user);
           } catch (billingDeleteError) {
@@ -3692,27 +3925,22 @@ const start = async () => {
           if (authPgPool) {
             await deleteSessionsForUserFromPostgres(authPgPool, user.id);
             await deleteUserFromPostgres(authPgPool, user.id);
-            await saveContacts();
           } else {
-            await Promise.all([saveUsers(), saveSessions(), saveContacts()]);
+            await Promise.all([saveUsers(), saveSessions()]);
           }
         }
 
         const requestId = `dsar-del-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-        privacyRequests = [
-          {
-            id: requestId,
-            type: 'delete',
-            status: 'completed',
-            requestedAt: new Date().toISOString(),
-            completedAt: new Date().toISOString(),
-            email: auth.sessionPayload.email,
-            actor: auth.sessionPayload.email,
-            scope,
-          },
-          ...privacyRequests,
-        ].slice(0, 2000);
-        await savePrivacyRequests();
+        await appendPrivacyRequestRecord({
+          id: requestId,
+          type: 'delete',
+          status: 'completed',
+          requestedAt: new Date().toISOString(),
+          completedAt: new Date().toISOString(),
+          email: auth.sessionPayload.email,
+          actor: auth.sessionPayload.email,
+          scope,
+        });
 
         send(
           res,
@@ -3721,6 +3949,10 @@ const start = async () => {
           { ...headers, 'Set-Cookie': clearSessionCookie() }
         );
       } catch (error) {
+        if (error?.code === OPERATIONAL_RECORDS_UNAVAILABLE) {
+          send(res, 503, operationalRecordsUnavailablePayload('unavailable'), headers);
+          return;
+        }
         send(res, 400, { error: error instanceof Error ? error.message : 'Unable to process deletion request.' }, headers);
       }
       return;
@@ -3729,6 +3961,7 @@ const start = async () => {
     if (method === 'POST' && url.pathname === '/api/privacy/consent') {
       const auth = await requireSession(req, res, headers);
       if (!auth) return;
+      if (!requireOperationalRecords(res, headers)) return;
       try {
         const body = await readBody(req);
         const rawScopes = body.scopes && typeof body.scopes === 'object' ? body.scopes : {};
@@ -3741,25 +3974,25 @@ const start = async () => {
         const source = safeText(body.source || 'privacy_controls', 64);
         const consentVersion = Math.max(1, Number(body.version) || 1);
         const requestId = `consent-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-        privacyRequests = [
-          {
-            id: requestId,
-            type: 'consent',
-            status: 'completed',
-            requestedAt: new Date().toISOString(),
-            completedAt: new Date().toISOString(),
-            email: auth.sessionPayload.email,
-            actor: auth.sessionPayload.email,
-            action,
-            source,
-            scopes,
-            consentVersion,
-          },
-          ...privacyRequests,
-        ].slice(0, 2000);
-        await savePrivacyRequests();
+        await appendPrivacyRequestRecord({
+          id: requestId,
+          type: 'consent',
+          status: 'completed',
+          requestedAt: new Date().toISOString(),
+          completedAt: new Date().toISOString(),
+          email: auth.sessionPayload.email,
+          actor: auth.sessionPayload.email,
+          action,
+          source,
+          scopes,
+          consentVersion,
+        });
         send(res, 200, { requestId, ok: true }, headers);
       } catch (error) {
+        if (error?.code === OPERATIONAL_RECORDS_UNAVAILABLE) {
+          send(res, 503, operationalRecordsUnavailablePayload('unavailable'), headers);
+          return;
+        }
         send(res, 400, { error: error instanceof Error ? error.message : 'Unable to record consent event.' }, headers);
       }
       return;
@@ -3768,11 +4001,25 @@ const start = async () => {
     if (method === 'GET' && url.pathname === '/api/privacy/requests') {
       const auth = await requireSession(req, res, headers);
       if (!auth) return;
-      const canManage = hasAnyPermission(auth.sessionPayload, ['manage_admin_roles', 'manage_services']);
-      const rows = canManage
-        ? privacyRequests
-        : privacyRequests.filter((item) => normalizeEmail(item.email) === normalizeEmail(auth.sessionPayload.email));
-      send(res, 200, { requests: rows.slice(0, 200) }, headers);
+      if (!requireOperationalRecords(res, headers)) return;
+      try {
+        if (operationalRecordsMode === 'postgres' && operationalPgPool) {
+          privacyRequests = await listPrivacyRequests(operationalPgPool, { limit: 2000 });
+        }
+        const canManage = hasAnyPermission(auth.sessionPayload, ['manage_admin_roles', 'manage_services']);
+        const rows = canManage
+          ? privacyRequests
+          : privacyRequests.filter(
+              (item) => normalizeEmail(item.email) === normalizeEmail(auth.sessionPayload.email),
+            );
+        send(res, 200, { requests: rows.slice(0, 200) }, headers);
+      } catch (error) {
+        if (error?.code === OPERATIONAL_RECORDS_UNAVAILABLE) {
+          send(res, 503, operationalRecordsUnavailablePayload('unavailable'), headers);
+          return;
+        }
+        send(res, 500, { error: 'Unable to load privacy requests.' }, headers);
+      }
       return;
     }
 
@@ -4011,11 +4258,30 @@ const start = async () => {
           : {}
       : {};
 
-    if (await handleAdminApi(req, res, { method, url, headers, requireSession, users, saveUsers, billingState: adminBillingState, contactSubmissions, saveContacts })) {
+    if (operationalRecordsMode === 'postgres' && operationalPgPool && isAdminPath) {
+      contactSubmissions = await listContactSubmissions(operationalPgPool, { limit: 2000 });
+    }
+
+    if (
+      await handleAdminApi(req, res, {
+        method,
+        url,
+        headers,
+        requireSession,
+        users,
+        saveUsers,
+        billingState: adminBillingState,
+        contactSubmissions,
+        saveContacts,
+        markContactReplied,
+        operationalRecordsMode,
+      })
+    ) {
       return;
     }
 
     if (method === 'POST' && url.pathname === '/api/public/contact') {
+      if (!requireOperationalRecords(res, headers)) return;
       if (!(await rateLimit(`contact:${ip}`, 8, 60_000))) {
         send(res, 429, { error: 'Too many contact submissions. Please try again later.' }, headers);
         return;
@@ -4041,22 +4307,21 @@ const start = async () => {
           return;
         }
 
-        contactSubmissions = [
-          {
-            id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-            at: new Date().toISOString(),
-            name,
-            email,
-            subject,
-            message,
-            ip,
-          },
-          ...contactSubmissions,
-        ].slice(0, 2000);
-
-        await saveContacts();
+        await appendContactRecord({
+          id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          at: new Date().toISOString(),
+          name,
+          email,
+          subject,
+          message,
+          ip,
+        });
         send(res, 200, { ok: true }, headers);
       } catch (error) {
+        if (error?.code === OPERATIONAL_RECORDS_UNAVAILABLE) {
+          send(res, 503, operationalRecordsUnavailablePayload('unavailable'), headers);
+          return;
+        }
         send(res, 400, { error: error instanceof Error ? error.message : 'Unable to submit message.' }, headers);
       }
       return;

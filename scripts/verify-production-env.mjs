@@ -119,6 +119,15 @@ if (
     'Billing/trial storage must be postgres in production — JSON/tmp billing fallback is forbidden.',
   );
 }
+if (
+  health?.checks?.operationalRecordsStorage === 'unavailable' ||
+  health?.config?.operationalRecordsStorage === 'unavailable' ||
+  health?.config?.operationalRecordsStorage === 'json_dev'
+) {
+  warnings.push(
+    'Operational records storage must be postgres in production — admin/privacy/contacts cannot use JSON.',
+  );
+}
 if (!vercelEnv.has('DATABASE_URL')) {
   warnings.push('DATABASE_URL not in Vercel — production must fail closed (no JSON/tmp for critical stores).');
 }
@@ -140,6 +149,11 @@ const durableOk =
 const billingStorageOk = health?.checks?.billingStorage === 'postgres';
 const trialStorageOk = health?.checks?.trialStorage === 'postgres';
 const webhookLedgerOk = health?.checks?.stripeWebhookLedger === 'postgres';
+// Health check label is "ok" when postgres; verbose config exposes mode label.
+const operationalRecordsOk =
+  health?.checks?.operationalRecordsStorage === 'ok' &&
+  health?.config?.operationalRecordsStorage !== 'unavailable' &&
+  health?.config?.operationalRecordsStorage !== 'json_dev';
 const billingEnabled =
   String(process.env.STRIPE_BILLING_ENABLED || '').toLowerCase() === 'true' ||
   Boolean(health?.config?.billingEnabled);
@@ -164,7 +178,8 @@ if (
   !durableOk ||
   !billingStorageOk ||
   !trialStorageOk ||
-  !webhookLedgerOk
+  !webhookLedgerOk ||
+  !operationalRecordsOk
 ) {
   process.exitCode = 1;
   if (!billingStorageOk || !trialStorageOk || !webhookLedgerOk) {
@@ -172,9 +187,16 @@ if (
       `\nBilling/trial/webhook storage check failed: billingStorage=${health?.checks?.billingStorage} trialStorage=${health?.checks?.trialStorage} stripeWebhookLedger=${health?.checks?.stripeWebhookLedger} (expected postgres).`,
     );
   }
+  if (!operationalRecordsOk) {
+    console.error(
+      `\nOperational records storage check failed: checks.operationalRecordsStorage=${health?.checks?.operationalRecordsStorage} config.operationalRecordsStorage=${health?.config?.operationalRecordsStorage} (expected ok/postgres).`,
+    );
+  }
 } else if (process.exitCode !== 1) {
   console.log('\nBaseline production env looks good.');
-  console.log('Billing storage: postgres · Trial storage: postgres · Webhook ledger: postgres');
+  console.log(
+    'Billing storage: postgres · Trial storage: postgres · Webhook ledger: postgres · Operational records: postgres',
+  );
   if (!health?.config?.billingEnabled) {
     console.log('Billing is intentionally disabled (soft launch). Add Stripe live keys + STRIPE_BILLING_ENABLED=true when ready.');
   }
