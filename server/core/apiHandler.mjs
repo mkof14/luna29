@@ -77,6 +77,25 @@ import {
   durableStorageUnavailablePayload,
   hasDatabaseUrl,
 } from './durableStorageGuard.mjs';
+import { resolveAuthIdentityStorageMode } from './authIdentityStorage.mjs';
+import {
+  initAuthUsersRepository,
+  loadUsersFromPostgres,
+  saveUsersToPostgres,
+  countAuthUsers,
+  getUserByIdFromPostgres,
+  deleteUserFromPostgres,
+} from './authUsersStore.mjs';
+import {
+  initAuthSessionsRepository,
+  loadSessionsFromPostgres,
+  saveSessionsToPostgres,
+  countAuthSessions,
+  getSessionRowFromPostgres,
+  deleteSessionFromPostgres,
+  deleteSessionsForUserFromPostgres,
+} from './authSessionsStore.mjs';
+import { getPgPoolStatus } from './database.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -623,14 +642,14 @@ const serializeSessions = () =>
   }));
 
 const purgeExpiredSessions = (now = Date.now()) => {
-  let changed = false;
+  const expiredTokens = [];
   for (const [token, value] of sessions.entries()) {
     if (value.expiresAt < now) {
       sessions.delete(token);
-      changed = true;
+      expiredTokens.push(token);
     }
   }
-  return changed;
+  return expiredTokens;
 };
 
 const createSession = (user) => {
@@ -641,50 +660,75 @@ const createSession = (user) => {
   return token;
 };
 
-const getSessionUser = async (req, users) => {
+/** Resolve session from memory Map, with optional Postgres fallback (multi-instance). */
+const resolveSessionRecord = async (token, authPgPool) => {
+  if (!token) return null;
+  let session = sessions.get(token);
+  if (!session && authPgPool) {
+    const row = await getSessionRowFromPostgres(authPgPool, token);
+    if (row) {
+      session = { userId: row.userId, expiresAt: row.expiresAt, maxAgeSec: row.maxAgeSec };
+      sessions.set(token, session);
+    }
+  }
+  if (!session) return null;
+  if (session.expiresAt < Date.now()) {
+    sessions.delete(token);
+    if (authPgPool) await deleteSessionFromPostgres(authPgPool, token);
+    return null;
+  }
+  return session;
+};
+
+const resolveUserRecord = async (userId, users, authPgPool = null) => {
+  if (!userId) return null;
+  let user = users.find((item) => item.id === userId);
+  if (!user && authPgPool) {
+    user = await getUserByIdFromPostgres(authPgPool, userId);
+    if (user) users.unshift(user);
+  }
+  return user || null;
+};
+
+const getSessionUser = async (req, users, authPgPool = null) => {
   const cookies = parseCookies(req.headers.cookie || '');
   const token = cookies[SESSION_COOKIE];
   if (!token) return null;
 
-  const session = sessions.get(token);
+  const session = await resolveSessionRecord(token, authPgPool);
   if (!session) return null;
-  if (session.expiresAt < Date.now()) {
-    sessions.delete(token);
-    return null;
-  }
 
-  const user = users.find((item) => item.id === session.userId);
+  const user = await resolveUserRecord(session.userId, users, authPgPool);
   if (!user) {
+    // User truly missing — drop orphan session. Do not drop when only local Map is stale.
     sessions.delete(token);
+    if (authPgPool) await deleteSessionFromPostgres(authPgPool, token);
     return null;
   }
 
   return { token, user };
 };
 
-const getSessionByToken = (token, users) => {
+const getSessionByToken = async (token, users, authPgPool = null) => {
   if (!token) return null;
-  const session = sessions.get(token);
+  const session = await resolveSessionRecord(token, authPgPool);
   if (!session) return null;
-  if (session.expiresAt < Date.now()) {
-    sessions.delete(token);
-    return null;
-  }
 
-  const user = users.find((item) => item.id === session.userId);
+  const user = await resolveUserRecord(session.userId, users, authPgPool);
   if (!user) {
     sessions.delete(token);
+    if (authPgPool) await deleteSessionFromPostgres(authPgPool, token);
     return null;
   }
 
   return { token, user };
 };
 
-const getMobileAuthUser = (req, users) => {
+const getMobileAuthUser = async (req, users, authPgPool = null) => {
   const auth = String(req.headers.authorization || '').trim();
   if (!auth.toLowerCase().startsWith('bearer ')) return null;
   const token = auth.slice('bearer '.length).trim();
-  return getSessionByToken(token, users);
+  return getSessionByToken(token, users, authPgPool);
 };
 
 const corsHeaders = (origin) => {
@@ -926,8 +970,111 @@ const start = async () => {
     };
   }
 
-  let users = await readJson(DATA_FILE, []);
-  if (!Array.isArray(users)) users = [];
+  // WS1.2 — Users + Sessions: Postgres when DATABASE_URL set (non-test); JSON for test/dev-without-DB.
+  const authIdentityMode = resolveAuthIdentityStorageMode({
+    env: process.env,
+    runtimeEnvironment,
+  });
+  if (authIdentityMode === 'unavailable') {
+    console.warn('[auth-identity] unavailable: database_missing — users/sessions blocked');
+    return async (req, res) => {
+      const method = req.method || 'GET';
+      const origin = req.headers.origin;
+      const headers = corsHeaders(origin);
+      if (method === 'OPTIONS') {
+        sendEmpty(res, 204, headers);
+        return;
+      }
+      const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
+      if (method === 'GET' && url.pathname === '/api/health') {
+        const verbose = ['1', 'true', 'yes'].includes(
+          String(url.searchParams.get('verbose') || '').toLowerCase(),
+        );
+        const payload = await buildHealthPayload({ verbose, durableDecision });
+        send(res, 503, payload, headers);
+        return;
+      }
+      send(res, 503, durableStorageUnavailablePayload({ reason: 'database_missing' }), headers);
+    };
+  }
+
+  let authPgPool = null;
+  if (authIdentityMode === 'postgres') {
+    const poolStatus = await getPgPoolStatus();
+    const usersRepo = await initAuthUsersRepository({ mode: 'postgres', pool: poolStatus.pool });
+    const sessionsRepo = await initAuthSessionsRepository({
+      mode: 'postgres',
+      pool: poolStatus.pool,
+    });
+    if (!usersRepo.ok || !sessionsRepo.ok || !poolStatus.pool) {
+      console.warn(
+        `[auth-identity] init failed: users=${usersRepo.reason || usersRepo.mode} sessions=${sessionsRepo.reason || sessionsRepo.mode}`,
+      );
+      return async (req, res) => {
+        const method = req.method || 'GET';
+        const origin = req.headers.origin;
+        const headers = corsHeaders(origin);
+        if (method === 'OPTIONS') {
+          sendEmpty(res, 204, headers);
+          return;
+        }
+        const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
+        if (method === 'GET' && url.pathname === '/api/health') {
+          const verbose = ['1', 'true', 'yes'].includes(
+            String(url.searchParams.get('verbose') || '').toLowerCase(),
+          );
+          const payload = await buildHealthPayload({ verbose, durableDecision });
+          payload.ok = false;
+          payload.checks = {
+            ...(payload.checks || {}),
+            authUsers: 'unavailable',
+            authSessions: 'unavailable',
+          };
+          send(res, 503, payload, headers);
+          return;
+        }
+        send(
+          res,
+          503,
+          {
+            error: 'Auth identity storage is unavailable.',
+            code: 'AUTH_IDENTITY_STORE_UNAVAILABLE',
+            reason: usersRepo.reason || sessionsRepo.reason || 'init_failed',
+          },
+          headers,
+        );
+      };
+    }
+    authPgPool = poolStatus.pool;
+    console.info('[auth-identity] users+sessions repositories initialized (postgres)');
+  }
+
+  let users = [];
+  if (authIdentityMode === 'postgres' && authPgPool) {
+    users = await loadUsersFromPostgres(authPgPool);
+    // One-time import from legacy JSON when Postgres is empty (preserve accounts/sessions).
+    if ((await countAuthUsers(authPgPool)) === 0) {
+      const legacyUsersRaw = await readJson(DATA_FILE, []);
+      const legacyUsers = Array.isArray(legacyUsersRaw)
+        ? legacyUsersRaw.filter(
+            (u) =>
+              u &&
+              typeof u.id === 'string' &&
+              u.id &&
+              typeof u.email === 'string' &&
+              u.email.includes('@'),
+          )
+        : [];
+      if (legacyUsers.length > 0) {
+        await saveUsersToPostgres(authPgPool, legacyUsers);
+        users = await loadUsersFromPostgres(authPgPool);
+        console.info(`[auth-identity] imported ${users.length} users from legacy JSON`);
+      }
+    }
+  } else {
+    users = await readJson(DATA_FILE, []);
+    if (!Array.isArray(users)) users = [];
+  }
 
   const adminStore = createAdminStateStore({
     readJson,
@@ -960,15 +1107,57 @@ const start = async () => {
   let mobilePushStore = sanitizeMobilePushStore(await readJson(MOBILE_PUSH_FILE, { profiles: {} }));
   let calendarStore = await readJson(CALENDAR_DATA_FILE, {});
   if (!calendarStore || typeof calendarStore !== 'object') calendarStore = {};
-  const storedSessions = parseStoredSessions(await readJson(SESSIONS_FILE, []));
-  for (const item of storedSessions) {
-    sessions.set(item.token, { userId: item.userId, expiresAt: item.expiresAt });
-  }
-  const didPurgeOnBoot = purgeExpiredSessions();
 
-  const saveUsers = async () => writeJson(DATA_FILE, users);
+  // Clear process-local session map for this handler boot, then hydrate.
+  sessions.clear();
+  let storedSessions = [];
+  if (authIdentityMode === 'postgres' && authPgPool) {
+    storedSessions = await loadSessionsFromPostgres(authPgPool);
+    if ((await countAuthSessions(authPgPool)) === 0) {
+      const legacySessions = parseStoredSessions(await readJson(SESSIONS_FILE, []));
+      if (legacySessions.length > 0) {
+        await saveSessionsToPostgres(authPgPool, legacySessions);
+        storedSessions = await loadSessionsFromPostgres(authPgPool);
+        console.info(`[auth-identity] imported ${storedSessions.length} sessions from legacy JSON`);
+      }
+    }
+  } else {
+    storedSessions = parseStoredSessions(await readJson(SESSIONS_FILE, []));
+  }
+  for (const item of storedSessions) {
+    sessions.set(item.token, {
+      userId: item.userId,
+      expiresAt: item.expiresAt,
+      maxAgeSec: item.maxAgeSec,
+    });
+  }
+  const purgeExpiredFromStores = async () => {
+    const expiredTokens = purgeExpiredSessions();
+    if (expiredTokens.length === 0) return false;
+    if (authIdentityMode === 'postgres' && authPgPool) {
+      await Promise.all(expiredTokens.map((token) => deleteSessionFromPostgres(authPgPool, token)));
+    } else {
+      await writeJson(SESSIONS_FILE, serializeSessions());
+    }
+    return true;
+  };
+  const didPurgeOnBoot = await purgeExpiredFromStores();
+
+  const saveUsers = async () => {
+    if (authIdentityMode === 'postgres' && authPgPool) {
+      await saveUsersToPostgres(authPgPool, users);
+      return;
+    }
+    await writeJson(DATA_FILE, users);
+  };
   const saveContacts = async () => writeJson(CONTACTS_FILE, contactSubmissions);
-  const saveSessions = async () => writeJson(SESSIONS_FILE, serializeSessions());
+  const saveSessions = async () => {
+    if (authIdentityMode === 'postgres' && authPgPool) {
+      await saveSessionsToPostgres(authPgPool, serializeSessions());
+      return;
+    }
+    await writeJson(SESSIONS_FILE, serializeSessions());
+  };
   const savePrivacyRequests = async () => writeJson(PRIVACY_REQUESTS_FILE, privacyRequests);
   const saveBillingState = async () => writeJson(BILLING_STATE_FILE, billingState);
   const saveMobileReflections = async () => writeJson(MOBILE_REFLECTIONS_FILE, mobileReflections);
@@ -1120,9 +1309,9 @@ const start = async () => {
    * Never trusts x-luna-mobile-id, x-user-id, body/query userId, or IP.
    */
   const getVerifiedRequestUser = async (req) => {
-    const cookieSession = await getSessionUser(req, users);
+    const cookieSession = await getSessionUser(req, users, authPgPool);
     if (cookieSession) return cookieSession;
-    return getMobileAuthUser(req, users);
+    return getMobileAuthUser(req, users, authPgPool);
   };
 
   const requireMobileSession = async (req, res, headers) => {
@@ -1233,7 +1422,7 @@ const start = async () => {
   }
 
   const requireSession = async (req, res, headers) => {
-    const current = await getSessionUser(req, users);
+    const current = await getSessionUser(req, users, authPgPool);
     if (!current) {
       send(res, 401, { error: 'Not authenticated.' }, headers);
       return null;
@@ -1266,9 +1455,7 @@ const start = async () => {
 
     if (Date.now() - lastSessionPurgeAt > 60_000) {
       lastSessionPurgeAt = Date.now();
-      if (purgeExpiredSessions()) {
-        await saveSessions();
-      }
+      await purgeExpiredFromStores();
     }
 
     if (method === 'GET' && url.pathname === '/api/health') {
@@ -1279,7 +1466,7 @@ const start = async () => {
     }
 
     if (method === 'GET' && url.pathname === '/api/mobile/auth/session') {
-      const current = getMobileAuthUser(req, users);
+      const current = await getMobileAuthUser(req, users, authPgPool);
       if (!current) {
         send(res, 200, { session: null }, headers);
         return;
@@ -1363,10 +1550,14 @@ const start = async () => {
     }
 
     if (method === 'POST' && url.pathname === '/api/mobile/auth/logout') {
-      const current = getMobileAuthUser(req, users);
+      const current = await getMobileAuthUser(req, users, authPgPool);
       if (current) {
         sessions.delete(current.token);
-        await saveSessions();
+        if (authPgPool) {
+          await deleteSessionFromPostgres(authPgPool, current.token);
+        } else {
+          await saveSessions();
+        }
       }
       send(res, 200, { ok: true }, headers);
       return;
@@ -2863,7 +3054,7 @@ const start = async () => {
     }
 
     if (method === 'GET' && url.pathname === '/api/auth/session') {
-      const current = await getSessionUser(req, users);
+      const current = await getSessionUser(req, users, authPgPool);
       if (!current) {
         send(res, 200, { session: null }, headers);
         return;
@@ -3124,8 +3315,14 @@ const start = async () => {
     if (method === 'POST' && url.pathname === '/api/auth/logout') {
       const cookies = parseCookies(req.headers.cookie || '');
       const token = cookies[SESSION_COOKIE];
-      if (token) sessions.delete(token);
-      await saveSessions();
+      if (token) {
+        sessions.delete(token);
+        if (authPgPool) {
+          await deleteSessionFromPostgres(authPgPool, token);
+        } else {
+          await saveSessions();
+        }
+      }
       send(res, 200, { ok: true }, { ...headers, 'Set-Cookie': clearSessionCookie() });
       return;
     }
@@ -3334,7 +3531,13 @@ const start = async () => {
           contactSubmissions = contactSubmissions.filter((item) => normalizeEmail(item.email) !== user.email);
           delete billingState[user.id];
           delete billingState[user.email];
-          await Promise.all([saveUsers(), saveSessions(), saveContacts(), saveBillingState()]);
+          if (authPgPool) {
+            await deleteSessionsForUserFromPostgres(authPgPool, user.id);
+            await deleteUserFromPostgres(authPgPool, user.id);
+            await Promise.all([saveContacts(), saveBillingState()]);
+          } else {
+            await Promise.all([saveUsers(), saveSessions(), saveContacts(), saveBillingState()]);
+          }
         }
 
         const requestId = `dsar-del-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
