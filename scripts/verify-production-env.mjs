@@ -15,11 +15,11 @@ const REQUIRED_ALWAYS = [
   'VITE_SITE_URL',
   'VITE_GOOGLE_CLIENT_ID',
   'AUTH_GOOGLE_CLIENT_IDS',
+  'DATABASE_URL',
 ];
 
 const RECOMMENDED = [
   'GEMINI_API_KEY',
-  'DATABASE_URL',
   'RESEND_API_KEY',
   'CALENDAR_REMINDER_FROM',
   'VITE_SENTRY_DSN',
@@ -106,8 +106,11 @@ if (health?.config?.billingEnabled && !health?.config?.stripeConfigReady) {
 if (health?.checks?.storage !== 'ok') {
   warnings.push('Storage check failed — set DATABASE_URL (Neon) for durable server state.');
 }
+if (health?.checks?.durableStorage === 'unavailable' || health?.checks?.database === 'unavailable') {
+  warnings.push('Durable storage unavailable — production/preview cannot use JSON or /tmp for critical stores.');
+}
 if (!vercelEnv.has('DATABASE_URL')) {
-  warnings.push('DATABASE_URL not in Vercel — auth/billing state uses ephemeral /tmp on serverless.');
+  warnings.push('DATABASE_URL not in Vercel — production must fail closed (no JSON/tmp for critical stores).');
 }
 if (!hasRateLimitStore(vercelEnv)) {
   warnings.push('Upstash/Vercel KV not configured — rate limits fall back to in-memory per instance.');
@@ -122,7 +125,9 @@ if (warnings.length) {
 }
 
 const missingRequired = REQUIRED_ALWAYS.filter((key) => !vercelEnv.has(key));
-if (missingRequired.length || health?.ok !== true) {
+const durableOk =
+  health?.checks?.durableStorage !== 'unavailable' && health?.checks?.database !== 'unavailable';
+if (missingRequired.length || health?.ok !== true || !durableOk) {
   process.exitCode = 1;
 } else {
   console.log('\nBaseline production env looks good.');

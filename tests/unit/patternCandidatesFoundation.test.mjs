@@ -599,16 +599,18 @@ describe('pattern candidates foundation (Task 5)', () => {
       body: { email: 'prod-pat@test.com', password: 'password123', name: 'Prod' },
       ip: nextIp(),
     });
-    expect(signupRes.statusCode).toBe(200);
+    // WS1.1: without DATABASE_URL, critical durable storage is unavailable (before pattern APIs).
+    expect(signupRes.statusCode).toBe(503);
+    expect(signupRes.json?.code).toBe('DURABLE_STORAGE_UNAVAILABLE');
     const evalApi = await invoke(prodHandler, {
       method: 'POST',
       path: '/api/personal/pattern-candidates/evaluate',
-      headers: { authorization: `Bearer ${signupRes.json.token}` },
+      headers: { authorization: 'Bearer fake' },
       body: {},
       ip: nextIp(),
     });
     expect(evalApi.statusCode).toBe(503);
-    expect(evalApi.json?.code).toBe('PERSONAL_EVENT_STORE_UNAVAILABLE');
+    expect(evalApi.json?.code).toBe('DURABLE_STORAGE_UNAVAILABLE');
   });
 
   it('41-42. no Gemini/ElevenLabs imports in pattern engine module', async () => {

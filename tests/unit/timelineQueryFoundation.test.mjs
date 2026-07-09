@@ -650,22 +650,23 @@ describe('timeline query foundation (Task 4)', () => {
     vi.resetModules();
     const { buildApiHandler: buildProd } = await import('../../server/core/apiHandler.mjs');
     const prodHandler = await buildProd({ dataDir, environment: 'vercel' });
-    // Need a session — signup may still work (users.json), timeline should 503.
+    // WS1.1: users/sessions JSON blocked — signup itself fails closed.
     const signupRes = await invoke(prodHandler, {
       method: 'POST',
       path: '/api/mobile/auth/signup',
       body: { email: 'prod-tl@test.com', password: 'password123', name: 'Prod' },
       ip: '198.51.100.40',
     });
-    expect(signupRes.statusCode).toBe(200);
+    expect(signupRes.statusCode).toBe(503);
+    expect(signupRes.json?.code).toBe('DURABLE_STORAGE_UNAVAILABLE');
     const tl = await invoke(prodHandler, {
       method: 'GET',
       path: '/api/personal/timeline',
-      headers: { authorization: `Bearer ${signupRes.json.token}` },
+      headers: { authorization: 'Bearer fake' },
       ip: '198.51.100.40',
     });
     expect(tl.statusCode).toBe(503);
-    expect(tl.json?.code).toBe('PERSONAL_EVENT_STORE_UNAVAILABLE');
+    expect(tl.json?.code).toBe('DURABLE_STORAGE_UNAVAILABLE');
   });
 
   it('timeline list omits raw_text by default', async () => {

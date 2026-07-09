@@ -102,18 +102,14 @@ describe('personal events persistence hardening (Task 2.1)', () => {
       body: { email: 'prod-missing-db@test.com', password: 'password123', name: 'Prod' },
       ip: '198.51.100.1',
     });
-    expect(signup.statusCode).toBe(200);
-    const create = await invoke(handler, {
-      method: 'POST',
-      path: '/api/personal/events',
-      headers: { authorization: `Bearer ${signup.json.token}` },
-      body: { event_type: 'note', payload: { text: 'should not persist' } },
-      ip: '198.51.100.1',
-    });
-    expect(create.statusCode).toBe(503);
-    expect(create.json?.code).toBe('PERSONAL_EVENT_STORE_UNAVAILABLE');
-    expect(JSON.stringify(create.json)).not.toMatch(/should not persist/);
-    expect(JSON.stringify(create.json)).not.toMatch(/DATABASE_URL|postgresql:\/\//i);
+    // WS1.1: critical durable JSON (users/sessions) also blocked without DATABASE_URL.
+    expect(signup.statusCode).toBe(503);
+    expect(signup.json?.code).toBe('DURABLE_STORAGE_UNAVAILABLE');
+    expect(JSON.stringify(signup.json)).not.toMatch(/should not persist/);
+    expect(JSON.stringify(signup.json)).not.toMatch(/postgresql:\/\/|passwordHash|stack/i);
+    const filesAfter = await fs.readdir(dataDir);
+    expect(filesAfter.includes('users.json')).toBe(false);
+    expect(filesAfter.includes('personal-events.json')).toBe(false);
   });
 
   it('2. production + explicit file mode: rejected', async () => {
@@ -302,21 +298,20 @@ describe('personal events persistence hardening (Task 2.1)', () => {
       body: { email: 'preview-503@test.com', password: 'password123', name: 'Preview' },
       ip: '198.51.100.8',
     });
-    const sensitive = 'SECRET_HEALTH_PAYLOAD_XYZ';
+    // WS1.1 blocks critical durable JSON before personal_events path is reachable.
+    expect(signup.statusCode).toBe(503);
+    expect(signup.json?.code).toBe('DURABLE_STORAGE_UNAVAILABLE');
+    expect(signup.body).not.toMatch(/postgresql:\/\/|passwordHash|stack/i);
     const create = await invoke(handler, {
       method: 'POST',
       path: '/api/personal/events',
-      headers: { authorization: `Bearer ${signup.json.token}` },
-      body: { event_type: 'note', payload: { text: sensitive } },
+      headers: { authorization: 'Bearer fake' },
+      body: { event_type: 'note', payload: { text: 'SECRET_HEALTH_PAYLOAD_XYZ' } },
       ip: '198.51.100.8',
     });
     expect(create.statusCode).toBe(503);
-    expect(create.json).toEqual({
-      error: 'Personal event store unavailable.',
-      code: 'PERSONAL_EVENT_STORE_UNAVAILABLE',
-    });
-    expect(create.body).not.toContain(sensitive);
-    expect(create.body).not.toMatch(/postgresql:\/\/|password|stack|DATABASE_URL/i);
+    expect(create.json?.code).toBe('DURABLE_STORAGE_UNAVAILABLE');
+    expect(create.body).not.toContain('SECRET_HEALTH_PAYLOAD_XYZ');
   });
 
   it('13-14. file mode cannot be forced by request header/query/body', async () => {
@@ -326,17 +321,11 @@ describe('personal events persistence hardening (Task 2.1)', () => {
     delete process.env.PERSONAL_EVENTS_STORAGE;
     const { buildApiHandler } = await import('../../server/core/apiHandler.mjs');
     const handler = await buildApiHandler({ dataDir, environment: 'vercel' });
-    const signup = await invoke(handler, {
-      method: 'POST',
-      path: '/api/mobile/auth/signup',
-      body: { email: 'force-file@test.com', password: 'password123', name: 'Force' },
-      ip: '198.51.100.9',
-    });
     const create = await invoke(handler, {
       method: 'POST',
       path: '/api/personal/events?PERSONAL_EVENTS_STORAGE=file&storage=file',
       headers: {
-        authorization: `Bearer ${signup.json.token}`,
+        authorization: 'Bearer fake',
         'x-personal-events-storage': 'file',
         'x-luna-storage': 'file',
       },
@@ -349,8 +338,10 @@ describe('personal events persistence hardening (Task 2.1)', () => {
       ip: '198.51.100.9',
     });
     expect(create.statusCode).toBe(503);
+    expect(create.json?.code).toBe('DURABLE_STORAGE_UNAVAILABLE');
     const files = await fs.readdir(dataDir);
     expect(files.includes('personal-events.json')).toBe(false);
+    expect(files.includes('users.json')).toBe(false);
   });
 
   it('preview missing DB fails closed (no silent JSON)', async () => {

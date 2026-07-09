@@ -72,6 +72,11 @@ import {
   MEMORY_CONSENT_STORE_UNAVAILABLE,
   isMemoryConsentStoreAvailable,
 } from './memoryConsentStore.mjs';
+import {
+  resolveDurableJsonStorageDecision,
+  durableStorageUnavailablePayload,
+  hasDatabaseUrl,
+} from './durableStorageGuard.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -428,24 +433,47 @@ const checkStorageWritable = async () => {
   }
 };
 
-const buildHealthPayload = async ({ verbose = false } = {}) => {
+const buildHealthPayload = async ({ verbose = false, durableDecision = null } = {}) => {
   const now = new Date().toISOString();
-  const storageWritable = await checkStorageWritable();
+  const decision =
+    durableDecision ||
+    resolveDurableJsonStorageDecision({
+      env: process.env,
+      runtimeEnvironment,
+    });
+  const durableJsonAllowed = decision.allowed;
+  const databaseConfigured = hasDatabaseUrl(process.env);
+  const prodLikeMissingDb = !durableJsonAllowed;
+  // Avoid writing health probes to /tmp when durable JSON is forbidden.
+  const storageWritable = durableJsonAllowed ? await checkStorageWritable() : false;
   const stripeConfigReady = isStripeConfigReady();
   const billingStatus = !BILLING_ENABLED ? 'disabled' : stripeConfigReady ? 'ready' : 'misconfigured';
   const googleAuthConfigured = GOOGLE_CLIENT_IDS.size > 0;
   const aiScanEnabled = Boolean(GEMINI_API_KEY);
-  const databaseConfigured = Boolean(String(process.env.DATABASE_URL || '').trim());
   const rateLimitBackend = isUpstashRateLimitEnabled() ? 'upstash' : 'memory';
-  const ok = storageWritable && (!BILLING_ENABLED || stripeConfigReady);
+  const ok =
+    durableJsonAllowed && storageWritable && (!BILLING_ENABLED || stripeConfigReady);
   const warnings = [];
 
-  if (!storageWritable) warnings.push('Storage is not writable.');
-  if (!databaseConfigured) warnings.push('DATABASE_URL is not set — server state uses ephemeral JSON storage on serverless.');
+  if (!durableJsonAllowed) {
+    warnings.push(
+      'DATABASE_URL is required in production/preview — critical durable stores cannot use JSON or /tmp.',
+    );
+  }
+  if (!storageWritable && durableJsonAllowed) warnings.push('Storage is not writable.');
+  if (!databaseConfigured && durableJsonAllowed) {
+    warnings.push('DATABASE_URL is not set — server state uses local JSON (dev/test only).');
+  }
   if (rateLimitBackend === 'memory') warnings.push('Upstash Redis is not configured — rate limits are in-memory per instance.');
   if (BILLING_ENABLED && !stripeConfigReady) warnings.push('Stripe billing is enabled but required env vars are missing.');
   if (!googleAuthConfigured) warnings.push('Google OAuth client IDs are not configured.');
   if (!aiScanEnabled) warnings.push('AI scan-to-text is disabled (set GEMINI_API_KEY to enable).');
+
+  const databaseCheck = databaseConfigured
+    ? 'postgres'
+    : prodLikeMissingDb
+      ? 'unavailable'
+      : 'json-fallback';
 
   const payload = {
     ok,
@@ -454,8 +482,9 @@ const buildHealthPayload = async ({ verbose = false } = {}) => {
     uptimeSec: Math.floor(process.uptime()),
     environment: runtimeEnvironment,
     checks: {
-      storage: storageWritable ? 'ok' : 'error',
-      database: databaseConfigured ? 'postgres' : 'json-fallback',
+      storage: durableJsonAllowed ? (storageWritable ? 'ok' : 'error') : 'unavailable',
+      durableStorage: durableJsonAllowed ? 'ok' : 'unavailable',
+      database: databaseCheck,
       rateLimit: rateLimitBackend,
       billing: billingStatus,
       googleAuth: googleAuthConfigured ? 'configured' : 'missing',
@@ -473,6 +502,8 @@ const buildHealthPayload = async ({ verbose = false } = {}) => {
       billingEnabled: BILLING_ENABLED,
       stripeConfigReady,
       databaseConfigured,
+      durableJsonAllowed,
+      durableStorageReason: decision.reason,
       rateLimitBackend,
       googleClientIds: GOOGLE_CLIENT_IDS.size,
       aiScanEnabled,
@@ -861,6 +892,40 @@ const stripeRequest = async (method, url, body = null) => {
 };
 
 const start = async () => {
+  const durableDecision = resolveDurableJsonStorageDecision({
+    env: process.env,
+    runtimeEnvironment,
+  });
+
+  // WS1.1: production/preview without DATABASE_URL must not load or write critical JSON stores.
+  if (!durableDecision.allowed) {
+    console.warn(
+      `[durable-storage] unavailable: ${durableDecision.reason} — critical JSON/tmp stores blocked`,
+    );
+    return async (req, res) => {
+      const method = req.method || 'GET';
+      const origin = req.headers.origin;
+      const headers = corsHeaders(origin);
+
+      if (method === 'OPTIONS') {
+        sendEmpty(res, 204, headers);
+        return;
+      }
+
+      const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
+      if (method === 'GET' && url.pathname === '/api/health') {
+        const verbose = ['1', 'true', 'yes'].includes(
+          String(url.searchParams.get('verbose') || '').toLowerCase(),
+        );
+        const payload = await buildHealthPayload({ verbose, durableDecision });
+        send(res, 503, payload, headers);
+        return;
+      }
+
+      send(res, 503, durableStorageUnavailablePayload(durableDecision), headers);
+    };
+  }
+
   let users = await readJson(DATA_FILE, []);
   if (!Array.isArray(users)) users = [];
 
