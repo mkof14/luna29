@@ -1091,18 +1091,20 @@ const corsHeaders = (origin) => {
     'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Credentials': 'true',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-luna-mobile-id',
-    'Access-Control-Allow-Methods': 'GET,POST,DELETE,OPTIONS',
+    'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
     Vary: 'Origin',
   };
 };
 
-const clearSessionCookie = () => `${SESSION_COOKIE}=; Max-Age=0; Path=/; HttpOnly; SameSite=Lax`;
+const sessionCookieSecureSuffix = () => (isProductionLikeRuntime(process.env) ? '; Secure' : '');
+
+const clearSessionCookie = () =>
+  `${SESSION_COOKIE}=; Max-Age=0; Path=/; HttpOnly; SameSite=Lax${sessionCookieSecureSuffix()}`;
 
 const createSessionCookie = (token) => {
   const session = sessions.get(token);
   const maxAge = session && Number.isFinite(session.maxAgeSec) && session.maxAgeSec > 0 ? session.maxAgeSec : SESSION_TTL_SECONDS;
-  const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
-  return `${SESSION_COOKIE}=${token}; Max-Age=${maxAge}; Path=/; HttpOnly; SameSite=Lax${secure}`;
+  return `${SESSION_COOKIE}=${token}; Max-Age=${maxAge}; Path=/; HttpOnly; SameSite=Lax${sessionCookieSecureSuffix()}`;
 };
 
 const getClientIp = (req) => {
@@ -3500,7 +3502,7 @@ const start = async () => {
     }
 
     if (method === 'GET' && /^\/api\/personal\/timeline\/observations\/[^/]+$/.test(url.pathname)) {
-      const auth = await requireMobileSession(req, res, headers);
+      const auth = await requirePremiumEntitlement(req, res, headers, 'mobile');
       if (!auth) return;
       if (!personalEventsStoreAvailable) {
         sendPersonalEventsUnavailable(res, headers);
@@ -4315,20 +4317,8 @@ const start = async () => {
         }
 
         const user = users.find((item) => item.email === email);
-        if (user && SUPER_ADMIN_EMAILS.has(email) && !user.passwordHash) {
-          if (password.length < 8) {
-            send(res, 400, { error: 'Super admin recovery password must contain at least 8 characters.' }, headers);
-            return;
-          }
-          user.passwordHash = hashPassword(password);
-          user.roleOverride = 'super_admin';
-          user.lastProvider = 'password';
-          await saveUsers();
-          const token = createSession(user);
-          await saveSessions();
-          send(res, 200, { session: buildSessionPayload(user), recovered: true }, { ...headers, 'Set-Cookie': createSessionCookie(token) });
-          return;
-        }
+        // Google-only super-admins must use SUPER_ADMIN_BOOTSTRAP_PASSWORD (above) or
+        // emergency-admin-reset — never accept an arbitrary password as recovery.
         if (!user || !user.passwordHash || !verifyPassword(password, user.passwordHash)) {
           send(res, 401, { error: 'Incorrect email or password.' }, headers);
           return;
@@ -5027,7 +5017,11 @@ const start = async () => {
         }
 
         if (!response.ok) {
-          send(res, 502, { error: 'Stripe checkout session creation failed.', detail: parsed }, headers);
+          reportServerError(new Error('Stripe checkout session creation failed'), {
+            route: '/api/billing/checkout-session',
+            stripe_status: response.status,
+          });
+          send(res, 502, { error: 'Stripe checkout session creation failed.' }, headers);
           return;
         }
 
@@ -5067,7 +5061,11 @@ const start = async () => {
             `https://api.stripe.com/v1/customers?email=${encodeURIComponent(auth.current.user.email)}&limit=1`
           );
           if (!lookup.ok) {
-            send(res, 502, { error: 'Could not query Stripe customer.', detail: lookup.data }, headers);
+            reportServerError(new Error('Could not query Stripe customer'), {
+              route: '/api/billing/portal-session',
+              stripe_status: lookup.status,
+            });
+            send(res, 502, { error: 'Could not query Stripe customer.' }, headers);
             return;
           }
           customerId = safeText(lookup.data?.data?.[0]?.id, 120);
@@ -5094,7 +5092,11 @@ const start = async () => {
         ]);
         const portal = await stripeRequest('POST', 'https://api.stripe.com/v1/billing_portal/sessions', form);
         if (!portal.ok) {
-          send(res, 502, { error: 'Stripe portal session creation failed.', detail: portal.data }, headers);
+          reportServerError(new Error('Stripe portal session creation failed'), {
+            route: '/api/billing/portal-session',
+            stripe_status: portal.status,
+          });
+          send(res, 502, { error: 'Stripe portal session creation failed.' }, headers);
           return;
         }
 

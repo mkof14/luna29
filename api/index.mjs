@@ -1,6 +1,8 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildApiHandler } from '../server/core/apiHandler.mjs';
+import { reportServerError, normalizePublicError } from '../server/core/serverErrorReporter.mjs';
+import { isProductionLikeRuntime } from '../server/core/durableStorageGuard.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -18,9 +20,16 @@ export default async function handler(req, res) {
     const requestHandler = await requestHandlerPromise;
     return await requestHandler(req, res);
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Internal server error.';
+    reportServerError(error, { route: 'api/index', unhandled: true });
+    const body = normalizePublicError({
+      status: 500,
+      publicCode: 'UNHANDLED_API_ERROR',
+      message: error instanceof Error ? error.message : 'Internal server error.',
+      isProductionLike: isProductionLikeRuntime(process.env),
+      error,
+    });
     res.statusCode = 500;
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
-    res.end(JSON.stringify({ error: message, code: 'UNHANDLED_API_ERROR' }));
+    res.end(JSON.stringify(body));
   }
 }

@@ -681,8 +681,6 @@ export const AudioReflection: React.FC<{ onBack: () => void, lang?: Language }> 
         }
       }
 
-      console.log("Recognition result:", { final, interim });
-
       if (final) {
         transcriptionRef.current += (transcriptionRef.current ? ' ' : '') + final;
         setTranscription(transcriptionRef.current);
