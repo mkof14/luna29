@@ -29,6 +29,8 @@ const safeEnv = {
   PERSONAL_EVENTS_STORAGE: 'file',
   MEMORY_CONSENT_STORAGE: 'file',
   LUNA_MEMORY_CONSENT_ALLOW_FILE_FALLBACK: '1',
+  PERSONAL_HEALTH_PROFILE_STORAGE: 'file',
+  LUNA_HEALTH_PROFILE_ALLOW_FILE_FALLBACK: '1',
   NODE_ENV: 'development',
   VITE_API_BASE_URL: '',
   // Keep Google client id if present for UI visibility; never enable unverified.

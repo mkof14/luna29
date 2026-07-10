@@ -10,6 +10,7 @@ import { LunaPageContentSection } from './shared/LunaPageContentSection';
 import { getLunaPageTheme } from '../utils/lunaPageThemes';
 import { MEMBER_CHIP_ACTIVE, MEMBER_CHIP_INACTIVE } from '../utils/memberPageStyles';
 import { MemoryControls } from './MemoryControls';
+import { HealthProfilePanel } from './HealthProfilePanel';
 
 interface ProfileViewProps {
   lang: Language;
@@ -168,6 +169,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ lang, onBack }) => {
         {billingFeedback && <p className="text-xs font-bold text-rose-500 dark:text-rose-300">{billingFeedback}</p>}
 
         <MemoryControls lang={lang} surface="profile" />
+        <HealthProfilePanel lang={lang} />
 
         <div className="rounded-2xl border border-slate-200/75 dark:border-slate-600/45 bg-slate-50/80 dark:bg-slate-950/40 p-4 md:p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="space-y-1 min-w-0">

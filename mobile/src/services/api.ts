@@ -55,7 +55,7 @@ async function readJsonSafe(response: Response) {
   }
 }
 
-async function requestJson<T>(path: string, init?: RequestInit, mobileId?: string): Promise<T> {
+export async function requestJson<T>(path: string, init?: RequestInit, mobileId?: string): Promise<T> {
   if (!hasApiBaseUrl) {
     throw new Error('Missing EXPO_PUBLIC_API_BASE_URL');
   }

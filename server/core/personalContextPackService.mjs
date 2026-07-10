@@ -18,6 +18,7 @@ import {
   PATTERN_CANDIDATE_EVENT_TYPE,
 } from './patternCandidatesService.mjs';
 import { isAllowedSignalType, normalizeSignalType, normalizeSubtype } from './signalTaxonomy.mjs';
+import { buildLiveProfileContextSlice } from './personalHealthProfileService.mjs';
 
 export const PERSONAL_CONTEXT_VERSION = 'personal_context_v1';
 export const PERSONAL_CONTEXT_ALIAS_VERSION = 'alias_map_v1';
@@ -314,6 +315,7 @@ const fetchEligibleSignals = async (store, userId, { since, until, timezone }) =
  */
 export const buildPersonalContextPack = async ({
   store,
+  healthProfileStore = null,
   userId,
   messageText,
   message,
@@ -328,6 +330,24 @@ export const buildPersonalContextPack = async ({
       exclusions: ['missing_store_or_user'],
     });
   }
+  const withHealthProfile = async (pack) => {
+    if (!healthProfileStore) return pack;
+    try {
+      return {
+        ...pack,
+        health_profile: await buildLiveProfileContextSlice({
+          store: healthProfileStore,
+          userId,
+          messageText: messageText ?? message,
+        }),
+      };
+    } catch {
+      return {
+        ...pack,
+        health_profile: { status: 'unavailable', categories: {}, facts: [] },
+      };
+    }
+  };
 
   const tz = resolveTimelineTimezone(timezoneRaw);
   let lookbackDays = Math.floor(Number(lookbackRaw) || CONTEXT_DEFAULT_LOOKBACK_DAYS);
@@ -365,12 +385,12 @@ export const buildPersonalContextPack = async ({
       timezone: tz.timezone,
     });
   } catch {
-    return emptyPack({
+    return withHealthProfile(emptyPack({
       status: 'degraded_signals',
       lookbackDays,
       timezone: tz.timezone,
       exclusions: [...exclusions, 'signal_fetch_failed'],
-    });
+    }));
   }
 
   if (!hasDomainFilter) {
@@ -387,7 +407,7 @@ export const buildPersonalContextPack = async ({
       relevant_domains: [],
       relevant_signal_types: [],
     };
-    return empty;
+    return withHealthProfile(empty);
   }
 
   const relevantSignals = signals.filter((row) => relevantTypes.includes(row.fact.signal_type));
@@ -546,6 +566,8 @@ export const buildPersonalContextPack = async ({
   };
 
   pack = applyContextBudget(pack);
+
+  pack = await withHealthProfile(pack);
 
   // Final safety: ensure no raw text fields leaked in content buckets.
   // Do not scan exclusions_applied labels (they intentionally name excluded field types).

@@ -88,6 +88,22 @@ import {
   resolveMemoryConsentStorageDecision,
 } from './memoryConsentStore.mjs';
 import {
+  createPersonalHealthProfileStore,
+  isPersonalHealthProfileStoreAvailable,
+  PROFILE_STORAGE_UNAVAILABLE,
+  profileStorageUnavailablePayload,
+  PERSONAL_HEALTH_PROFILE_STORE_UNAVAILABLE,
+} from './personalHealthProfileStore.mjs';
+import {
+  validateSectionPayload,
+  validateFactInput,
+  calculateProfileCompletion,
+  resolveNextProfileQuestion,
+  buildPersonalProfileContext,
+  PROFILE_SECTIONS,
+  summarizeProfileForLogs,
+} from './personalHealthProfileService.mjs';
+import {
   resolveDurableJsonStorageDecision,
   durableStorageUnavailablePayload,
   hasDatabaseUrl,
@@ -232,6 +248,7 @@ let MOBILE_PUSH_FILE = path.join(DATA_DIR, 'mobile-push.json');
 let CALENDAR_DATA_FILE = path.join(DATA_DIR, 'calendar-data.json');
 let PERSONAL_EVENTS_FILE = path.join(DATA_DIR, 'personal-events.json');
 let MEMORY_CONSENT_FILE = path.join(DATA_DIR, 'memory-consent.json');
+let HEALTH_PROFILE_FILE = path.join(DATA_DIR, 'health-profile.json');
 
 const configureStoragePaths = (dataDir, environment) => {
   DATA_DIR = dataDir;
@@ -249,6 +266,7 @@ const configureStoragePaths = (dataDir, environment) => {
   CALENDAR_DATA_FILE = path.join(DATA_DIR, 'calendar-data.json');
   PERSONAL_EVENTS_FILE = path.join(DATA_DIR, 'personal-events.json');
   MEMORY_CONSENT_FILE = path.join(DATA_DIR, 'memory-consent.json');
+  HEALTH_PROFILE_FILE = path.join(DATA_DIR, 'health-profile.json');
 };
 
 const SESSION_COOKIE = 'luna_sid';
@@ -2057,6 +2075,15 @@ const start = async () => {
   });
   const memoryConsentStore = memoryConsentStoreHandle.store;
   const memoryConsentStoreAvailable = isMemoryConsentStoreAvailable(memoryConsentStoreHandle);
+  const healthProfileSharedPool = authPgPool || operationalPgPool || null;
+  const personalHealthProfileStoreHandle = await createPersonalHealthProfileStore(HEALTH_PROFILE_FILE, {
+    runtimeEnvironment,
+    ...(healthProfileSharedPool ? { pool: healthProfileSharedPool } : {}),
+  });
+  const personalHealthProfileStore = personalHealthProfileStoreHandle.store;
+  const personalHealthProfileStoreAvailable = isPersonalHealthProfileStoreAvailable(
+    personalHealthProfileStoreHandle,
+  );
 
   const reevaluateAfterSignalMutation = async (userId, before, after, mutationType) => {
     try {
@@ -2103,6 +2130,21 @@ const start = async () => {
       headers,
     );
   };
+
+  const sendHealthProfileUnavailable = (res, headers) => {
+    send(res, 503, profileStorageUnavailablePayload(), headers);
+  };
+
+  const isHealthProfileStorageError = (error) =>
+    error &&
+    typeof error === 'object' &&
+    (error.code === PERSONAL_HEALTH_PROFILE_STORE_UNAVAILABLE ||
+      error.code === PROFILE_STORAGE_UNAVAILABLE);
+
+  const profileResponse = (profile) => ({
+    profile,
+    completion: calculateProfileCompletion(profile),
+  });
 
   const buildMemoryConsentResponse = async (userId) => {
     if (!memoryConsentStoreAvailable) {
@@ -3652,6 +3694,424 @@ const start = async () => {
       return;
     }
 
+    // --- Authenticated Personal Health Profile ---
+    if (method === 'GET' && url.pathname === '/api/personal/profile') {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
+      if (!personalHealthProfileStoreAvailable) return sendHealthProfileUnavailable(res, headers);
+      try {
+        const profile = await personalHealthProfileStore.ensureProfile(auth.current.user.id);
+        send(res, 200, profileResponse(profile), headers);
+      } catch (error) {
+        if (isHealthProfileStorageError(error)) return sendHealthProfileUnavailable(res, headers);
+        send(res, 503, profileStorageUnavailablePayload(), headers);
+      }
+      return;
+    }
+
+    if (method === 'PATCH' && url.pathname === '/api/personal/profile') {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
+      if (!personalHealthProfileStoreAvailable) return sendHealthProfileUnavailable(res, headers);
+      if (!(await rateLimit(`health-profile-write:${ip}:${auth.current.user.id}`, 30, 60_000))) {
+        send(res, 429, { error: 'Too many profile writes. Try again in a minute.' }, headers);
+        return;
+      }
+      try {
+        const body = await readBody(req);
+        void body?.user_id;
+        void body?.userId;
+        const allowed = new Set(['skipped_initial', 'dismissed_questions', 'womens_health_applicable']);
+        const unknown = Object.keys(body || {}).find((key) => !allowed.has(key) && key !== 'user_id' && key !== 'userId');
+        if (unknown) {
+          send(res, 400, { error: `Unknown preference: ${unknown}`, code: 'UNKNOWN_FIELD' }, headers);
+          return;
+        }
+        const patch = {};
+        if ('skipped_initial' in (body || {})) {
+          if (typeof body.skipped_initial !== 'boolean') {
+            send(res, 400, { error: 'skipped_initial must be boolean.', code: 'VALIDATION_FAILED' }, headers);
+            return;
+          }
+          patch.skipped_initial = body.skipped_initial;
+        }
+        if ('womens_health_applicable' in (body || {})) {
+          if (typeof body.womens_health_applicable !== 'boolean') {
+            send(res, 400, { error: 'womens_health_applicable must be boolean.', code: 'VALIDATION_FAILED' }, headers);
+            return;
+          }
+          patch.womens_health_applicable = body.womens_health_applicable;
+        }
+        const current = await personalHealthProfileStore.ensureProfile(auth.current.user.id);
+        if ('dismissed_questions' in (body || {})) {
+          if (!body.dismissed_questions || typeof body.dismissed_questions !== 'object' || Array.isArray(body.dismissed_questions)) {
+            send(res, 400, { error: 'dismissed_questions must be an object.', code: 'VALIDATION_FAILED' }, headers);
+            return;
+          }
+          patch.dismissed_questions = {
+            ...(current.profile_preferences?.dismissed_questions || {}),
+            ...body.dismissed_questions,
+          };
+        }
+        const profile = await personalHealthProfileStore.patchPreferences(auth.current.user.id, patch);
+        send(res, 200, profileResponse(profile), headers);
+      } catch (error) {
+        if (isHealthProfileStorageError(error)) return sendHealthProfileUnavailable(res, headers);
+        send(res, 400, { error: 'Could not update profile preferences.' }, headers);
+      }
+      return;
+    }
+
+    if (method === 'GET' && url.pathname === '/api/personal/profile/completion') {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
+      if (!personalHealthProfileStoreAvailable) return sendHealthProfileUnavailable(res, headers);
+      try {
+        const profile = await personalHealthProfileStore.ensureProfile(auth.current.user.id);
+        send(res, 200, calculateProfileCompletion(profile), headers);
+      } catch (error) {
+        if (isHealthProfileStorageError(error)) return sendHealthProfileUnavailable(res, headers);
+        send(res, 503, profileStorageUnavailablePayload(), headers);
+      }
+      return;
+    }
+
+    if (method === 'GET' && url.pathname === '/api/personal/profile/context') {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
+      if (!personalHealthProfileStoreAvailable) return sendHealthProfileUnavailable(res, headers);
+      try {
+        const reportType = safeText(url.searchParams.get('reportType'), 40) || 'general';
+        const includeInferred = url.searchParams.get('includeInferred') === '1';
+        const maxFacts = Math.min(60, Math.max(1, Number(url.searchParams.get('maxFacts')) || 24));
+        const sectionsRaw = safeText(url.searchParams.get('sections'), 200);
+        const sectionsAllowlist = sectionsRaw
+          ? sectionsRaw
+              .split(',')
+              .map((s) => s.trim())
+              .filter((s) => PROFILE_SECTIONS.includes(s))
+          : null;
+        const ctx = await buildPersonalProfileContext({
+          store: personalHealthProfileStore,
+          userId: auth.current.user.id,
+          reportType,
+          includeInferred,
+          maxFacts,
+          sectionsAllowlist,
+        });
+        console.info('[health_profile] context', JSON.stringify(summarizeProfileForLogs(ctx)));
+        send(res, 200, ctx, headers);
+      } catch (error) {
+        if (isHealthProfileStorageError(error)) return sendHealthProfileUnavailable(res, headers);
+        send(res, 503, profileStorageUnavailablePayload(), headers);
+      }
+      return;
+    }
+
+    if (method === 'GET' && url.pathname === '/api/personal/profile/sections') {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
+      if (!personalHealthProfileStoreAvailable) return sendHealthProfileUnavailable(res, headers);
+      try {
+        const profile = await personalHealthProfileStore.ensureProfile(auth.current.user.id);
+        const completion = calculateProfileCompletion(profile);
+        send(res, 200, {
+          sections: PROFILE_SECTIONS.map((id) => ({
+            id,
+            filled: completion.completed_sections.includes(id) || Boolean(profile.sections?.[id]),
+          })),
+        }, headers);
+      } catch (error) {
+        if (isHealthProfileStorageError(error)) return sendHealthProfileUnavailable(res, headers);
+        send(res, 503, profileStorageUnavailablePayload(), headers);
+      }
+      return;
+    }
+
+    const profileSectionMatch = url.pathname.match(/^\/api\/personal\/profile\/sections\/([^/]+)$/);
+    if (method === 'PUT' && profileSectionMatch) {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
+      if (!personalHealthProfileStoreAvailable) return sendHealthProfileUnavailable(res, headers);
+      if (!(await rateLimit(`health-profile-write:${ip}:${auth.current.user.id}`, 30, 60_000))) {
+        send(res, 429, { error: 'Too many profile writes. Try again in a minute.' }, headers);
+        return;
+      }
+      const section = decodeURIComponent(profileSectionMatch[1]);
+      try {
+        const body = await readBody(req);
+        const sectionPayload = { ...(body || {}) };
+        delete sectionPayload.user_id;
+        delete sectionPayload.userId;
+        const validation = validateSectionPayload(section, sectionPayload);
+        if (!validation.ok) {
+          send(res, 400, { error: validation.error, code: validation.code, fields: validation.fields }, headers);
+          return;
+        }
+        const current = await personalHealthProfileStore.ensureProfile(auth.current.user.id);
+        const nextProfile = {
+          ...current,
+          sections: { ...(current.sections || {}), [section]: validation.data },
+        };
+        const completion = calculateProfileCompletion(nextProfile);
+        const profile = await personalHealthProfileStore.upsertSection(auth.current.user.id, section, validation.data, {
+          completionPercent: completion.completion_percent,
+        });
+        for (const [factKey, value] of Object.entries(validation.data)) {
+          if ((typeof value !== 'string' && typeof value !== 'number' && typeof value !== 'boolean') || value === '') continue;
+          await personalHealthProfileStore.upsertFact(auth.current.user.id, {
+            section,
+            fact_key: factKey,
+            value_json: value,
+            display_label: factKey,
+            source: 'user_entered',
+            trust_state: 'confirmed',
+          });
+        }
+        console.info('[health_profile] section_updated', JSON.stringify(summarizeProfileForLogs(profile)));
+        send(res, 200, profileResponse(profile), headers);
+      } catch (error) {
+        if (isHealthProfileStorageError(error)) return sendHealthProfileUnavailable(res, headers);
+        send(res, 400, { error: 'Could not update profile section.' }, headers);
+      }
+      return;
+    }
+
+    if (method === 'GET' && url.pathname === '/api/personal/profile/facts') {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
+      if (!personalHealthProfileStoreAvailable) return sendHealthProfileUnavailable(res, headers);
+      const section = url.searchParams.get('section');
+      const trustState = url.searchParams.get('trust_state');
+      if (section && !PROFILE_SECTIONS.includes(section)) {
+        send(res, 400, { error: 'Unknown section.', code: 'UNKNOWN_SECTION' }, headers);
+        return;
+      }
+      try {
+        const facts = await personalHealthProfileStore.listFacts(auth.current.user.id, {
+          section: section || undefined,
+          trustStates: trustState ? [trustState] : undefined,
+        });
+        send(res, 200, { facts }, headers);
+      } catch (error) {
+        if (isHealthProfileStorageError(error)) return sendHealthProfileUnavailable(res, headers);
+        send(res, 503, profileStorageUnavailablePayload(), headers);
+      }
+      return;
+    }
+
+    if (method === 'POST' && url.pathname === '/api/personal/profile/facts') {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
+      if (!personalHealthProfileStoreAvailable) return sendHealthProfileUnavailable(res, headers);
+      if (!(await rateLimit(`health-profile-write:${ip}:${auth.current.user.id}`, 30, 60_000))) {
+        send(res, 429, { error: 'Too many profile writes. Try again in a minute.' }, headers);
+        return;
+      }
+      try {
+        const body = await readBody(req);
+        const validation = validateFactInput(body);
+        if (!validation.ok) {
+          send(res, 400, { error: validation.error, code: validation.code }, headers);
+          return;
+        }
+        const fact = validation.data;
+        if (fact.source === 'luna_inferred') {
+          // Live-derived inferred profile writes require Memory consent.
+          // Manually entered profile facts remain usable when Memory is OFF.
+          if (memoryConsentStoreAvailable) {
+            const consent = await getMemoryConsentForWrite(
+              memoryConsentStore,
+              auth.current.user.id,
+            );
+            if (!consent?.enabled) {
+              send(
+                res,
+                403,
+                {
+                  error: 'Memory consent required for Live-derived profile facts.',
+                  code: 'MEMORY_CONSENT_REQUIRED',
+                },
+                headers,
+              );
+              return;
+            }
+          } else {
+            send(
+              res,
+              403,
+              {
+                error: 'Memory consent required for Live-derived profile facts.',
+                code: 'MEMORY_CONSENT_REQUIRED',
+              },
+              headers,
+            );
+            return;
+          }
+          const existing = await personalHealthProfileStore.listFacts(auth.current.user.id, {
+            section: fact.section,
+            trustStates: ['confirmed', 'corrected'],
+          });
+          if (existing.some((row) => row.fact_key === fact.fact_key)) {
+            send(res, 409, { error: 'A confirmed fact already exists.', code: 'CONFLICT_CONFIRMED' }, headers);
+            return;
+          }
+        }
+        const created = await personalHealthProfileStore.upsertFact(auth.current.user.id, fact);
+        send(res, 201, { fact: created }, headers);
+      } catch (error) {
+        if (isHealthProfileStorageError(error)) return sendHealthProfileUnavailable(res, headers);
+        send(res, 400, { error: 'Could not save profile fact.' }, headers);
+      }
+      return;
+    }
+
+    const profileFactActionMatch = url.pathname.match(/^\/api\/personal\/profile\/facts\/([^/]+)(?:\/(confirm|reject|correct))?$/);
+    if (profileFactActionMatch && ['POST', 'DELETE'].includes(method)) {
+      const [, encodedFactId, action] = profileFactActionMatch;
+      if (method === 'DELETE' && action) {
+        // Fall through to the normal 404 handling for malformed paths.
+      } else {
+        const auth = await requireMobileSession(req, res, headers);
+        if (!auth) return;
+        if (!personalHealthProfileStoreAvailable) return sendHealthProfileUnavailable(res, headers);
+        if (!(await rateLimit(`health-profile-write:${ip}:${auth.current.user.id}`, 30, 60_000))) {
+          send(res, 429, { error: 'Too many profile writes. Try again in a minute.' }, headers);
+          return;
+        }
+        const factId = safeId(decodeURIComponent(encodedFactId), 120);
+        if (!factId) {
+          send(res, 400, { error: 'Fact id is required.' }, headers);
+          return;
+        }
+        try {
+          if (method === 'DELETE') {
+            const fact = await personalHealthProfileStore.softDeleteFact(auth.current.user.id, factId);
+            if (!fact) return send(res, 404, { error: 'Fact not found.' }, headers);
+            send(res, 200, { fact }, headers);
+            return;
+          }
+          const existing = await personalHealthProfileStore.getFact(auth.current.user.id, factId);
+          if (!existing || existing.deleted_at) return send(res, 404, { error: 'Fact not found.' }, headers);
+          if (action === 'confirm') {
+            const fact = await personalHealthProfileStore.updateFactTrust(auth.current.user.id, factId, {
+              trust_state: 'confirmed',
+              ...(existing.source === 'luna_inferred' ? { source: 'user_confirmed' } : {}),
+            });
+            send(res, 200, { fact }, headers);
+            return;
+          }
+          if (action === 'reject') {
+            const fact = await personalHealthProfileStore.updateFactTrust(auth.current.user.id, factId, {
+              trust_state: 'rejected',
+            });
+            send(res, 200, { fact }, headers);
+            return;
+          }
+          if (action === 'correct') {
+            const body = await readBody(req);
+            if (!Object.prototype.hasOwnProperty.call(body || {}, 'value_json')) {
+              send(res, 400, { error: 'value_json is required.', code: 'VALIDATION_FAILED' }, headers);
+              return;
+            }
+            const fact = await personalHealthProfileStore.updateFactTrust(auth.current.user.id, factId, {
+              trust_state: 'corrected',
+              value_json: body.value_json,
+            });
+            send(res, 200, { fact }, headers);
+            return;
+          }
+          send(res, 404, { error: 'Not found.' }, headers);
+        } catch (error) {
+          if (isHealthProfileStorageError(error)) return sendHealthProfileUnavailable(res, headers);
+          send(res, 400, { error: 'Could not update profile fact.' }, headers);
+        }
+        return;
+      }
+    }
+
+    if (method === 'GET' && url.pathname === '/api/personal/profile/questions/next') {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
+      if (!personalHealthProfileStoreAvailable) return sendHealthProfileUnavailable(res, headers);
+      try {
+        const profile = await personalHealthProfileStore.ensureProfile(auth.current.user.id);
+        const question = resolveNextProfileQuestion({
+          profile,
+          currentSurface: safeText(url.searchParams.get('surface'), 40) || 'today',
+        });
+        if (question) {
+          await personalHealthProfileStore.patchPreferences(auth.current.user.id, {
+            last_question_shown_at: Date.now(),
+          });
+          console.info('[health_profile] question_shown', JSON.stringify({ question_id: question.id }));
+        }
+        send(res, 200, { question }, headers);
+      } catch (error) {
+        if (isHealthProfileStorageError(error)) return sendHealthProfileUnavailable(res, headers);
+        send(res, 503, profileStorageUnavailablePayload(), headers);
+      }
+      return;
+    }
+
+    const profileQuestionMatch = url.pathname.match(/^\/api\/personal\/profile\/questions\/([^/]+)\/respond$/);
+    if (method === 'POST' && profileQuestionMatch) {
+      const auth = await requireMobileSession(req, res, headers);
+      if (!auth) return;
+      if (!personalHealthProfileStoreAvailable) return sendHealthProfileUnavailable(res, headers);
+      if (!(await rateLimit(`health-profile-write:${ip}:${auth.current.user.id}`, 30, 60_000))) {
+        send(res, 429, { error: 'Too many profile writes. Try again in a minute.' }, headers);
+        return;
+      }
+      const questionId = decodeURIComponent(profileQuestionMatch[1]);
+      try {
+        const body = await readBody(req);
+        if (!['add', 'not_now', 'does_not_apply', 'completed'].includes(body?.result)) {
+          send(res, 400, { error: 'Invalid question result.', code: 'VALIDATION_FAILED' }, headers);
+          return;
+        }
+        const profile = await personalHealthProfileStore.ensureProfile(auth.current.user.id);
+        let nextProfile = profile;
+        if (['add', 'completed'].includes(body.result) && body.section_patch) {
+          const section = String(body.section_patch.section || '').trim();
+          const sectionData =
+            body.section_patch.data ??
+            Object.fromEntries(
+              Object.entries(body.section_patch).filter(([key]) => key !== 'section'),
+            );
+          const safeSectionData = { ...(sectionData || {}) };
+          delete safeSectionData.user_id;
+          delete safeSectionData.userId;
+          const validation = validateSectionPayload(section, safeSectionData);
+          if (!validation.ok) {
+            send(res, 400, { error: validation.error, code: validation.code, fields: validation.fields }, headers);
+            return;
+          }
+          nextProfile = {
+            ...profile,
+            sections: { ...(profile.sections || {}), [section]: validation.data },
+          };
+          const completion = calculateProfileCompletion(nextProfile);
+          nextProfile = await personalHealthProfileStore.upsertSection(auth.current.user.id, section, validation.data, {
+            completionPercent: completion.completion_percent,
+          });
+        }
+        const preferences = {
+          ...(nextProfile.profile_preferences || {}),
+          dismissed_questions: {
+            ...(nextProfile.profile_preferences?.dismissed_questions || {}),
+            [questionId]: body.result,
+          },
+        };
+        const updated = await personalHealthProfileStore.patchPreferences(auth.current.user.id, preferences);
+        send(res, 200, profileResponse(updated), headers);
+      } catch (error) {
+        if (isHealthProfileStorageError(error)) return sendHealthProfileUnavailable(res, headers);
+        send(res, 400, { error: 'Could not save question response.' }, headers);
+      }
+      return;
+    }
+
     if (method === 'POST' && url.pathname === '/api/personal/observations') {
       // Auth first; Gemini extraction requires premium entitlement.
       const auth = await requireMobileSession(req, res, headers);
@@ -4016,6 +4476,7 @@ const start = async () => {
           try {
             serverPack = await buildPersonalContextPack({
               store: personalEventsStore,
+              healthProfileStore: personalHealthProfileStoreAvailable ? personalHealthProfileStore : null,
               userId: auth.current.user.id,
               messageText: transcript,
               timezone,
@@ -4777,6 +5238,7 @@ const start = async () => {
                   mobilePushStore,
                   personalEventsStore,
                   memoryConsentStore,
+                  personalHealthProfileStore,
                   billingService,
                   adminState,
                 },

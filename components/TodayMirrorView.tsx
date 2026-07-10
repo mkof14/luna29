@@ -27,6 +27,7 @@ import {
   type TodayReviewDayState,
 } from '../utils/todayDailyReview';
 import { resolveTodayPatternExperience } from '../utils/todayPatternExperience';
+import { HealthProfileTodayPrompt } from './HealthProfileTodayPrompt';
 
 interface TodayMirrorViewProps {
   lang: Language;
@@ -950,6 +951,10 @@ export const TodayMirrorView: React.FC<TodayMirrorViewProps> = ({
               </button>
             ) : null}
           </div>
+        )}
+
+        {!showDailyReviewCard && !showPatternExperienceCard && (
+          <HealthProfileTodayPrompt onOpenProfile={onOpenMemory} />
         )}
 
         {showMemoryHint && (

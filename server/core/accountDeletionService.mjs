@@ -14,6 +14,7 @@
 import { createHash } from 'node:crypto';
 import { deletePersonalEventsForUser } from './personalEventsStore.mjs';
 import { deleteMemoryConsentForUser } from './memoryConsentStore.mjs';
+import { deletePersonalHealthProfileForUser } from './personalHealthProfileStore.mjs';
 import { deleteCalendarBundleForUser } from './calendarUserDataStore.mjs';
 import { deleteAllMobileReflectionsForUser } from './mobileReflectionsStore.mjs';
 import { deleteAllMobileReportsForUser } from './mobileReportsStore.mjs';
@@ -59,6 +60,7 @@ const emptyCounts = () => ({
   authUser: 0,
   personalEvents: 0,
   memoryConsent: 0,
+  healthProfile: 0,
   calendar: 0,
   mobileReflections: 0,
   mobileReports: 0,
@@ -148,6 +150,8 @@ export const deleteAccountLocalCascade = async ({
 
     deleted.personalEvents = await deletePersonalEventsForUser(client, uid);
     deleted.memoryConsent = await deleteMemoryConsentForUser(client, uid);
+    const healthProfile = await deletePersonalHealthProfileForUser(client, uid);
+    deleted.healthProfile = Number(healthProfile.profiles || 0) + Number(healthProfile.facts || 0);
     deleted.calendar = await deleteCalendarBundleForUser(client, uid);
 
     const reflections = await deleteAllMobileReflectionsForUser(client, uid);
@@ -214,6 +218,7 @@ export const deleteAccountLocalCascade = async ({
         counts: {
           personalEvents: deleted.personalEvents,
           memoryConsent: deleted.memoryConsent,
+          healthProfile: deleted.healthProfile,
           calendar: deleted.calendar,
           mobileReflections: deleted.mobileReflections,
           mobileReports: deleted.mobileReports,
@@ -282,6 +287,7 @@ export const deleteAccountLocalJsonCascade = async ({
   mobilePushStore,
   personalEventsStore,
   memoryConsentStore,
+  personalHealthProfileStore,
   billingService,
   adminState,
   reason = 'user_requested',
@@ -311,6 +317,13 @@ export const deleteAccountLocalJsonCascade = async ({
       memoryConsentStore.kind !== 'unavailable'
     ) {
       deleted.memoryConsent = await memoryConsentStore.hardDeleteForUser(uid);
+    }
+    if (
+      personalHealthProfileStore?.hardDeleteAllForUser &&
+      personalHealthProfileStore.available !== false &&
+      personalHealthProfileStore.kind !== 'unavailable'
+    ) {
+      deleted.healthProfile = await personalHealthProfileStore.hardDeleteAllForUser(uid);
     }
 
     if (calendarStore && typeof calendarStore === 'object' && calendarStore[uid]) {

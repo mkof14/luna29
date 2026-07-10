@@ -58,6 +58,8 @@ const createCascadeMockPool = () => {
   const tables = {
     personal_events: [],
     memory_consent: [],
+    personal_health_profiles: [],
+    personal_health_profile_facts: [],
     calendar_user_data: [],
     mobile_reflections: [],
     mobile_reflection_meta: [],
@@ -134,6 +136,18 @@ const createCascadeMockPool = () => {
       const before = tables.memory_consent.length;
       tables.memory_consent = tables.memory_consent.filter((r) => r.user_id !== uid);
       return { rows: [], rowCount: before - tables.memory_consent.length };
+    }
+    if (q.startsWith('DELETE FROM personal_health_profile_facts')) {
+      const uid = params[0];
+      const before = tables.personal_health_profile_facts.length;
+      tables.personal_health_profile_facts = tables.personal_health_profile_facts.filter((r) => r.user_id !== uid);
+      return { rows: [], rowCount: before - tables.personal_health_profile_facts.length };
+    }
+    if (q.startsWith('DELETE FROM personal_health_profiles')) {
+      const uid = params[0];
+      const before = tables.personal_health_profiles.length;
+      tables.personal_health_profiles = tables.personal_health_profiles.filter((r) => r.user_id !== uid);
+      return { rows: [], rowCount: before - tables.personal_health_profiles.length };
     }
     if (q.startsWith('DELETE FROM calendar_user_data')) {
       const uid = params[0];
@@ -327,6 +341,8 @@ const seedMinimalUser = (pool, userId = 'u1', email = 'u1@luna.test') => {
   pool.tables.auth_sessions.push({ token: 'tok1', user_id: userId });
   pool.tables.personal_events.push({ id: 'e1', user_id: userId, event_type: 'observation' });
   pool.tables.memory_consent.push({ user_id: userId });
+  pool.tables.personal_health_profiles.push({ user_id: userId });
+  pool.tables.personal_health_profile_facts.push({ id: 'hp1', user_id: userId });
   pool.tables.calendar_user_data.push({ user_id: userId });
   pool.tables.mobile_reflections.push({ id: 'r1', user_id: userId });
   pool.tables.billing_accounts.push({ user_id: userId });
@@ -369,6 +385,8 @@ describe('accountDeletionService local cascade (WS2.2)', () => {
       { id: 'e3', user_id: userB, event_type: 'observation' },
     );
     pool.tables.memory_consent.push({ user_id: userA }, { user_id: userB });
+    pool.tables.personal_health_profiles.push({ user_id: userA }, { user_id: userB });
+    pool.tables.personal_health_profile_facts.push({ id: 'hp-a', user_id: userA }, { id: 'hp-b', user_id: userB });
     pool.tables.calendar_user_data.push({ user_id: userA }, { user_id: userB });
     pool.tables.mobile_reflections.push({ id: 'r1', user_id: userA }, { id: 'r2', user_id: userB });
     pool.tables.mobile_reflection_meta.push({ user_id: userA }, { user_id: userB });
@@ -402,6 +420,7 @@ describe('accountDeletionService local cascade (WS2.2)', () => {
     expect(result.deleted.sessions).toBe(1);
     expect(result.deleted.personalEvents).toBe(2);
     expect(result.deleted.memoryConsent).toBe(1);
+    expect(result.deleted.healthProfile).toBe(2);
     expect(result.deleted.calendar).toBe(1);
     expect(result.deleted.mobilePush).toBe(1);
     expect(result.deleted.billingTrials).toBe(1);
@@ -410,6 +429,8 @@ describe('accountDeletionService local cascade (WS2.2)', () => {
 
     expect(pool.tables.personal_events.map((r) => r.user_id)).toEqual([userB]);
     expect(pool.tables.memory_consent.map((r) => r.user_id)).toEqual([userB]);
+    expect(pool.tables.personal_health_profiles.map((r) => r.user_id)).toEqual([userB]);
+    expect(pool.tables.personal_health_profile_facts.map((r) => r.user_id)).toEqual([userB]);
     expect(pool.tables.calendar_user_data.map((r) => r.user_id)).toEqual([userB]);
     expect(pool.tables.mobile_reflections.map((r) => r.user_id)).toEqual([userB]);
     expect(pool.tables.mobile_reports.map((r) => r.user_id)).toEqual([userB]);
