@@ -345,6 +345,9 @@ export const createAccountDeletionOrchestrator = (deps) => {
           op_id: op.id,
           user_id_hash: userIdHash,
           latency_ms: Date.now() - started,
+          cascade_errors: Array.isArray(cascadeResult?.errors)
+            ? cascadeResult.errors.slice(0, 3).map((e) => String(e).slice(0, 80))
+            : undefined,
         });
         return {
           ok: false,

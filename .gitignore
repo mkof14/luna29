@@ -11,6 +11,7 @@ pnpm-debug.log*
 playwright-report/
 test-results/
 .tmp-tests/
+.tmp-e2e/
 server/data/*.json
 .vercel
 .env*

@@ -1,7 +1,7 @@
 import { expect } from '@playwright/test';
 
-const E2E_EMAIL = process.env.E2E_EMAIL || 'dnainform@gmail.com';
-const E2E_PASSWORD = process.env.E2E_PASSWORD || 'LunaAdmin2026!';
+const E2E_EMAIL = process.env.E2E_EMAIL || 'e2e.user@luna.test';
+const E2E_PASSWORD = process.env.E2E_PASSWORD || 'E2eLocalPass123!';
 
 async function seedLocalSession(page, { onboardingComplete = false } = {}) {
   const payload = {
@@ -226,10 +226,15 @@ export async function completeOnboardingIfVisible(page) {
   }
 }
 
+export async function clickSidebarNav(page, testId) {
+  // Desktop sidebar + mobile drawer both render the same test ids.
+  await page.getByTestId(testId).first().click({ force: true });
+}
+
 export async function openMoreMenu(page) {
   const topNavMore = page.getByTestId('top-nav-more');
   const mobileMenu = page.getByTestId('mobile-nav-menu');
-  const sidebarDashboard = page.getByTestId('sidebar-nav-dashboard');
+  const sidebarDashboard = page.getByTestId('sidebar-nav-dashboard').first();
 
   if (await topNavMore.isVisible().catch(() => false)) {
     await topNavMore.click();

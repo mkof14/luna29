@@ -85,7 +85,7 @@ export default defineConfig(({ mode }) => {
     },
     proxy: {
       '/api': {
-        target: 'http://localhost:8787',
+        target: `http://127.0.0.1:${process.env.AUTH_API_PORT || 8787}`,
         changeOrigin: true,
       },
     },

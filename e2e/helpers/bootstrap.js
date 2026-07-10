@@ -4,7 +4,7 @@ export async function bootstrapMemberSession(page, { onboardingComplete = true }
     const session = {
       id: 'e2e-bootstrap-session-id',
       name: 'E2E Admin',
-      email: 'dnainform@gmail.com',
+      email: 'e2e.user@luna.test',
       provider: 'password',
       role: 'super_admin',
       permissions: [

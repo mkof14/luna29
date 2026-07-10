@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { openMoreMenu } from './helpers/auth';
+import { clickSidebarNav, openMoreMenu } from './helpers/auth.js';
 import { bootstrapMemberSession } from './helpers/bootstrap';
 
 test('labs clear draft removes saved input', async ({ page }) => {
@@ -8,7 +8,7 @@ test('labs clear draft removes saved input', async ({ page }) => {
   await page.waitForTimeout(300);
 
   await openMoreMenu(page);
-  await page.getByTestId('sidebar-nav-labs').click();
+  await clickSidebarNav(page, 'sidebar-nav-labs');
 
   const input = page.getByTestId('labs-report-input');
   await expect(input).toBeVisible();

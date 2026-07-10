@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { openMoreMenu } from './helpers/auth';
+import { clickSidebarNav, openMoreMenu } from './helpers/auth.js';
 import { bootstrapMemberSession } from './helpers/bootstrap';
 
 test('bridge reflection flow renders generated local note', async ({ page }) => {
@@ -7,7 +7,7 @@ test('bridge reflection flow renders generated local note', async ({ page }) => 
   await page.goto('/');
   await page.waitForTimeout(300);
   await openMoreMenu(page);
-  await page.getByTestId('sidebar-nav-bridge').click();
+  await clickSidebarNav(page, 'sidebar-nav-bridge');
 
   await page.getByRole('button', { name: /continue/i }).click();
 

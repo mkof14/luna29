@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { openMoreMenu } from './helpers/auth';
+import { clickSidebarNav, openMoreMenu } from './helpers/auth.js';
 import { bootstrapMemberSession } from './helpers/bootstrap';
 
 test('labs view survives corrupted draft payload', async ({ page }) => {
@@ -7,7 +7,7 @@ test('labs view survives corrupted draft payload', async ({ page }) => {
   await page.goto('/');
   await page.waitForTimeout(300);
   await openMoreMenu(page);
-  await page.getByTestId('sidebar-nav-labs').click();
+  await clickSidebarNav(page, 'sidebar-nav-labs');
 
   await page.evaluate(() => {
     window.localStorage.setItem('luna_labs_draft_v1', JSON.stringify({
@@ -20,9 +20,9 @@ test('labs view survives corrupted draft payload', async ({ page }) => {
   });
 
   await openMoreMenu(page);
-  await page.getByTestId('sidebar-nav-dashboard').click();
+  await clickSidebarNav(page, 'sidebar-nav-dashboard');
   await openMoreMenu(page);
-  await page.getByTestId('sidebar-nav-labs').click();
+  await clickSidebarNav(page, 'sidebar-nav-labs');
 
   const input = page.getByTestId('labs-report-input');
   await expect(input).toBeVisible();

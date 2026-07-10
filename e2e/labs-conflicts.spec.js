@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { openMoreMenu } from './helpers/auth';
+import { clickSidebarNav, openMoreMenu } from './helpers/auth.js';
 import { bootstrapMemberSession } from './helpers/bootstrap';
 
 test('labs conflict selector updates merged marker choice', async ({ page }) => {
@@ -7,7 +7,7 @@ test('labs conflict selector updates merged marker choice', async ({ page }) => 
   await page.goto('/');
   await page.waitForTimeout(300);
   await openMoreMenu(page);
-  await page.getByTestId('sidebar-nav-labs').click();
+  await clickSidebarNav(page, 'sidebar-nav-labs');
 
   await expect(page.getByTestId('labs-manual-marker-0')).toBeVisible();
   await page.getByTestId('labs-manual-marker-0').fill('TSH');

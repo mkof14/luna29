@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { openMoreMenu } from './helpers/auth';
+import { clickSidebarNav, openMoreMenu } from './helpers/auth.js';
 import { bootstrapMemberSession } from './helpers/bootstrap';
 
 test('labs draft input persists after reload', async ({ page }) => {
@@ -10,7 +10,7 @@ test('labs draft input persists after reload', async ({ page }) => {
   await page.evaluate(() => window.localStorage.removeItem('luna_labs_draft_v1'));
 
   await openMoreMenu(page);
-  await page.getByTestId('sidebar-nav-labs').click();
+  await clickSidebarNav(page, 'sidebar-nav-labs');
 
   const input = page.getByTestId('labs-report-input');
   await expect(input).toBeVisible();

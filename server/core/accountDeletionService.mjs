@@ -297,10 +297,19 @@ export const deleteAccountLocalJsonCascade = async ({
   const errors = [];
 
   try {
-    if (personalEventsStore?.hardDeleteAllForUser) {
+    // Unavailable backends have no durable rows in this runtime — skip (do not throw).
+    if (
+      personalEventsStore?.hardDeleteAllForUser &&
+      personalEventsStore.available !== false &&
+      personalEventsStore.kind !== 'unavailable'
+    ) {
       deleted.personalEvents = await personalEventsStore.hardDeleteAllForUser(uid);
     }
-    if (memoryConsentStore?.hardDeleteForUser) {
+    if (
+      memoryConsentStore?.hardDeleteForUser &&
+      memoryConsentStore.available !== false &&
+      memoryConsentStore.kind !== 'unavailable'
+    ) {
       deleted.memoryConsent = await memoryConsentStore.hardDeleteForUser(uid);
     }
 

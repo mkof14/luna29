@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { openMoreMenu } from './helpers/auth';
+import { clickSidebarNav, openMoreMenu } from './helpers/auth.js';
 import { bootstrapMemberSession } from './helpers/bootstrap';
 
 test('relationships note generation and medications CRUD flow work in local mode', async ({ page }) => {
@@ -8,7 +8,7 @@ test('relationships note generation and medications CRUD flow work in local mode
   await page.waitForTimeout(300);
 
   await openMoreMenu(page);
-  await page.getByTestId('sidebar-nav-relationships').click();
+  await clickSidebarNav(page, 'sidebar-nav-relationships');
 
   await expect(page.getByTestId('relationships-step-intro')).toBeVisible();
   await page.getByTestId('relationships-partner-input').fill('Alex');
@@ -22,7 +22,7 @@ test('relationships note generation and medications CRUD flow work in local mode
   await expect(page.getByTestId('relationships-result-message')).toContainText(/Alex|I am|My internal bandwidth|Привет|Сегодня/u);
 
   await openMoreMenu(page);
-  await page.getByTestId('sidebar-nav-meds').click();
+  await clickSidebarNav(page, 'sidebar-nav-meds');
   const cards = page.locator('[data-testid^="medications-card-"]');
   const initialCount = await cards.count();
 
