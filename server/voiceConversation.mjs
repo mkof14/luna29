@@ -139,11 +139,22 @@ const buildSystemPrompt = ({ lang, persona, mode, context }) => {
   if (pack && typeof pack === 'object' && pack.version === 'personal_context_v1') {
     try {
       // Lazy import avoided: format inline to keep voice module self-contained for prompt rules.
+      const healthProfile = pack.health_profile;
+      const healthProfileItems =
+        (Array.isArray(healthProfile?.facts) ? healthProfile.facts.length : 0) +
+        (healthProfile?.categories && typeof healthProfile.categories === 'object'
+          ? Object.values(healthProfile.categories).filter((v) => {
+              if (Array.isArray(v)) return v.length > 0;
+              if (v && typeof v === 'object') return Object.keys(v).length > 0;
+              return Boolean(v);
+            }).length
+          : 0);
       const items =
         (pack.recent_signals?.length || 0) +
         (pack.timeline_facts?.length || 0) +
         (pack.confirmed_patterns?.length || 0) +
-        (pack.relevant_facts?.length || 0);
+        (pack.relevant_facts?.length || 0) +
+        healthProfileItems;
       if (pack.status === 'ok' && items > 0) {
         const serialized = JSON.stringify(pack);
         if (serialized.length <= 8000) {

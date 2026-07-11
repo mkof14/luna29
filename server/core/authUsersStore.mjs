@@ -17,9 +17,16 @@ CREATE TABLE IF NOT EXISTS auth_users (
   role_override TEXT,
   last_provider TEXT,
   avatar_url TEXT,
+  email_verified BOOLEAN NOT NULL DEFAULT FALSE,
+  email_verified_at TIMESTAMPTZ,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE UNIQUE INDEX IF NOT EXISTS auth_users_email_uidx ON auth_users (LOWER(email));
+`;
+
+const USERS_SCHEMA_MIGRATE_SQL = `
+ALTER TABLE auth_users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE auth_users ADD COLUMN IF NOT EXISTS email_verified_at TIMESTAMPTZ;
 `;
 
 let authUsersSchemaReady = false;
@@ -33,6 +40,7 @@ export const ensureAuthUsersTable = async (pool) => {
   if (!pool) return false;
   try {
     await pool.query(USERS_SCHEMA_SQL);
+    await pool.query(USERS_SCHEMA_MIGRATE_SQL);
     authUsersSchemaReady = true;
     return true;
   } catch (error) {
@@ -56,6 +64,8 @@ const rowToUser = (row) => {
     roleOverride: row.role_override == null ? null : String(row.role_override),
     lastProvider: row.last_provider == null ? undefined : String(row.last_provider),
     avatarUrl: row.avatar_url == null ? undefined : String(row.avatar_url),
+    emailVerified: row.email_verified === true,
+    emailVerifiedAt: row.email_verified_at ? new Date(row.email_verified_at).toISOString() : null,
   };
 };
 
@@ -64,7 +74,8 @@ const rowToUser = (row) => {
  */
 export const loadUsersFromPostgres = async (pool) => {
   const result = await pool.query(
-    `SELECT id, email, name, password_hash, created_at, role_override, last_provider, avatar_url
+    `SELECT id, email, name, password_hash, created_at, role_override, last_provider, avatar_url,
+            email_verified, email_verified_at
      FROM auth_users
      ORDER BY created_at DESC`,
   );
@@ -86,8 +97,9 @@ export const saveUsersToPostgres = async (pool, users) => {
       const id = String(raw.id);
       await client.query(
         `INSERT INTO auth_users (
-           id, email, name, password_hash, created_at, role_override, last_provider, avatar_url, updated_at
-         ) VALUES ($1, $2, $3, $4, $5::timestamptz, $6, $7, $8, NOW())
+           id, email, name, password_hash, created_at, role_override, last_provider, avatar_url,
+           email_verified, email_verified_at, updated_at
+         ) VALUES ($1, $2, $3, $4, $5::timestamptz, $6, $7, $8, $9, $10::timestamptz, NOW())
          ON CONFLICT (id) DO UPDATE SET
            email = EXCLUDED.email,
            name = EXCLUDED.name,
@@ -95,6 +107,8 @@ export const saveUsersToPostgres = async (pool, users) => {
            role_override = EXCLUDED.role_override,
            last_provider = EXCLUDED.last_provider,
            avatar_url = EXCLUDED.avatar_url,
+           email_verified = EXCLUDED.email_verified,
+           email_verified_at = EXCLUDED.email_verified_at,
            updated_at = NOW()`,
         [
           id,
@@ -105,6 +119,8 @@ export const saveUsersToPostgres = async (pool, users) => {
           raw.roleOverride == null ? null : String(raw.roleOverride),
           raw.lastProvider == null ? null : String(raw.lastProvider),
           raw.avatarUrl == null ? null : String(raw.avatarUrl),
+          raw.emailVerified === true,
+          raw.emailVerifiedAt || null,
         ],
       );
     }
@@ -120,7 +136,8 @@ export const saveUsersToPostgres = async (pool, users) => {
 export const getUserByIdFromPostgres = async (pool, userId) => {
   if (!pool || !userId) return null;
   const result = await pool.query(
-    `SELECT id, email, name, password_hash, created_at, role_override, last_provider, avatar_url
+    `SELECT id, email, name, password_hash, created_at, role_override, last_provider, avatar_url,
+            email_verified, email_verified_at
      FROM auth_users WHERE id = $1 LIMIT 1`,
     [String(userId)],
   );
@@ -130,7 +147,8 @@ export const getUserByIdFromPostgres = async (pool, userId) => {
 export const getUserByEmailFromPostgres = async (pool, email) => {
   if (!pool || !email) return null;
   const result = await pool.query(
-    `SELECT id, email, name, password_hash, created_at, role_override, last_provider, avatar_url
+    `SELECT id, email, name, password_hash, created_at, role_override, last_provider, avatar_url,
+            email_verified, email_verified_at
      FROM auth_users WHERE LOWER(email) = LOWER($1) LIMIT 1`,
     [String(email).trim()],
   );

@@ -11,13 +11,17 @@ import { getLunaPageTheme } from '../utils/lunaPageThemes';
 import { MEMBER_CHIP_ACTIVE, MEMBER_CHIP_INACTIVE } from '../utils/memberPageStyles';
 import { MemoryControls } from './MemoryControls';
 import { HealthProfilePanel } from './HealthProfilePanel';
+import { trackHealthProfileOpened } from '../utils/healthProfileAnalytics';
+import { needsBillingRecovery } from '../utils/subscriptionAccess';
 
 interface ProfileViewProps {
   lang: Language;
   onBack: () => void;
+  onOpenSupport?: () => void;
+  onOpenPrivacy?: () => void;
 }
 
-export const ProfileView: React.FC<ProfileViewProps> = ({ lang, onBack }) => {
+export const ProfileView: React.FC<ProfileViewProps> = ({ lang, onBack, onOpenSupport, onOpenPrivacy }) => {
   const [log, setLog] = useState(() => dataService.getLog());
   const systemState = dataService.projectState(log);
   const [profile, setProfile] = useState<ProfileData>(systemState.profile);
@@ -123,10 +127,45 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ lang, onBack }) => {
 
       <LunaPageContentSection themeClass={getLunaPageTheme('profile').shellClass} padded={false}>
       <div className="space-y-8">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <nav
+          data-testid="settings-directory"
+          aria-label="Settings sections"
+          className="rounded-2xl border border-slate-200/80 dark:border-slate-700/60 bg-white/70 dark:bg-slate-900/40 px-4 py-4"
+        >
+          <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">Settings</p>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+            Account and billing live here. Clinical health information is in Personal Health Profile below.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {[
+              { id: 'settings-account', label: 'Account' },
+              { id: 'settings-billing', label: 'Billing' },
+              { id: 'settings-privacy', label: 'Privacy' },
+              { id: 'settings-memory', label: 'Memory' },
+              { id: 'personal-health-profile', label: 'Personal Health Profile' },
+              { id: 'settings-support', label: 'Support' },
+            ].map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                className={MEMBER_CHIP_INACTIVE}
+                onClick={() => document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-slate-500">
+            Notifications and Connected Services are not included in Closed Paid Beta.
+          </p>
+        </nav>
+
+        <div id="settings-billing" className="scroll-mt-28 space-y-4">
+          <p className="text-[10px] font-black uppercase tracking-[0.14em] text-luna-purple">Billing</p>
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="flex flex-wrap gap-6 text-sm">
             <div>
-              <span className="block text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Billing</span>
+              <span className="block text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Status</span>
               <span className="font-bold text-slate-900 dark:text-slate-100">
                 {billingEnabled ? `${billing.status}${billing.period ? ` • ${billing.period}` : ''}` : 'Disabled'}
               </span>
@@ -138,6 +177,19 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ lang, onBack }) => {
               </div>
             )}
           </div>
+          {needsBillingRecovery(billing.status) && (
+            <div
+              data-testid="billing-recovery-banner"
+              className="rounded-2xl border border-slate-300/80 dark:border-slate-600 bg-slate-50 dark:bg-slate-900/50 px-4 py-3 flex flex-wrap items-center justify-between gap-3"
+            >
+              <p className="text-sm text-slate-700 dark:text-slate-200">
+                Payment needs attention. Update billing to keep premium access.
+              </p>
+              <button type="button" className={MEMBER_CHIP_ACTIVE} disabled={billingLoading} onClick={() => void openBillingPortal()}>
+                Update billing
+              </button>
+            </div>
+          )}
           <div className="flex flex-col sm:flex-row flex-wrap gap-2 w-full lg:w-auto">
             <button
               type="button"
@@ -168,12 +220,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ lang, onBack }) => {
 
         {billingFeedback && <p className="text-xs font-bold text-rose-500 dark:text-rose-300">{billingFeedback}</p>}
 
-        <MemoryControls lang={lang} surface="profile" />
-        <HealthProfilePanel lang={lang} />
-
         <div className="rounded-2xl border border-slate-200/75 dark:border-slate-600/45 bg-slate-50/80 dark:bg-slate-950/40 p-4 md:p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="space-y-1 min-w-0">
-            <p className="text-[10px] font-black uppercase tracking-[0.14em] text-luna-purple dark:text-[#d8b4fe]">Membership Billing</p>
             <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 break-words">
               Status: {billing.status}
               {billing.period ? ` • ${billing.period}` : ''} • Plan: {billing.plan || 'none'}
@@ -198,21 +246,71 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ lang, onBack }) => {
             </button>
           </div>
         </div>
+        </div>
+
+        <div id="settings-privacy" className="scroll-mt-28 rounded-2xl border border-luna-purple/20 bg-luna-purple/5 p-4 space-y-3">
+          <p className="text-[10px] font-black uppercase tracking-[0.14em] text-luna-purple">Privacy</p>
+          <p className="text-sm text-slate-700 dark:text-slate-200">
+            Review how Luna29 uses your information. You can edit or remove your information at any time.
+          </p>
+          <div className="flex flex-wrap gap-3 text-xs">
+            <button
+              type="button"
+              className="underline underline-offset-2 text-slate-500 hover:text-luna-purple"
+              onClick={() => (onOpenPrivacy ? onOpenPrivacy() : window.location.assign('/privacy'))}
+            >
+              Privacy Notice
+            </button>
+            <a href="/data-rights" className="underline underline-offset-2 text-slate-500 hover:text-luna-purple">
+              Data Protection
+            </a>
+          </div>
+        </div>
+
+        <div id="settings-support" className="scroll-mt-28 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 p-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">Support</p>
+            <p className="text-sm text-slate-700 dark:text-slate-200">Contact Luna29 for Closed Paid Beta help.</p>
+          </div>
+          <button
+            type="button"
+            data-testid="settings-open-support"
+            className={MEMBER_CHIP_ACTIVE}
+            onClick={() => onOpenSupport?.()}
+          >
+            Contact
+          </button>
+        </div>
+
+        <div id="settings-memory" className="scroll-mt-28 space-y-2">
+          <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">Memory</p>
+          <MemoryControls
+            lang={lang}
+            surface="profile"
+            onOpenHealthProfile={() =>
+              document.getElementById('personal-health-profile')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            }
+          />
+        </div>
+
+        <div id="personal-health-profile" className="scroll-mt-28 space-y-3">
+          <HealthProfilePanel lang={lang} showIntro={false} />
+        </div>
       </div>
 
       <p className="text-base font-medium text-slate-600 dark:text-slate-300 max-w-2xl mx-auto text-center">
-        This data forms the primary lens through which Luna29 observes your biological rhythm.
+        Account details below are optional baseline markers. Clinical health information stays in Personal Health Profile.
       </p>
 
       <div className="grid grid-cols-1 gap-12">
         
         {/* PILLAR 1: PERSONAL PROFILE */}
-        <section className={sectionClasses}>
+        <section id="settings-account" className={`${sectionClasses} scroll-mt-28`}>
           <div className="flex flex-col md:flex-row md:items-start justify-between gap-8 pb-4 border-b-2 border-slate-100 dark:border-slate-800">
             <div className="flex items-center gap-6">
               <div className="w-16 h-16 bg-luna-purple/10 dark:bg-luna-purple/20 flex items-center justify-center rounded-[1.8rem] text-3xl shadow-sm">👤</div>
               <div className="space-y-1">
-                <h3 className="text-3xl font-black uppercase tracking-tight text-slate-900 dark:text-slate-100">Personal Pillar</h3>
+                <h3 className="text-3xl font-black uppercase tracking-tight text-slate-900 dark:text-slate-100">Account</h3>
                 <p className={helpTextClasses}>Your identification and physical baseline markers.</p>
               </div>
             </div>
@@ -257,36 +355,31 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ lang, onBack }) => {
           </div>
         </section>
 
-        {/* PILLAR 2: CLINICAL HEALTH */}
-        <section className={sectionClasses}>
+        {/* PILLAR 2: CLINICAL HEALTH — Personal Health Profile is the source of truth */}
+        <section className={sectionClasses} data-testid="profile-health-pillar-php">
           <div className="flex items-center gap-6 pb-4 border-b-2 border-slate-100 dark:border-slate-800">
             <div className="w-16 h-16 bg-rose-500/10 dark:bg-rose-500/20 flex items-center justify-center rounded-[1.8rem] text-3xl shadow-sm">🏥</div>
             <div className="space-y-1">
-              <h3 className="text-3xl font-black uppercase tracking-tight text-slate-900 dark:text-slate-100">Health Pillar</h3>
-              <p className={helpTextClasses}>Your clinical record and medical observations.</p>
+              <h3 className="text-3xl font-black uppercase tracking-tight text-slate-900 dark:text-slate-100">Health Information</h3>
+              <p className={helpTextClasses}>
+                Allergies, conditions, surgeries, and medications are managed in your Personal Health Profile — not duplicated here.
+              </p>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            <div className="space-y-8">
-              <div className="space-y-2">
-                <label className={labelClasses}>Reactive Allergies</label>
-                <textarea value={profile.allergies} onChange={e => updateProfile({ allergies: e.target.value })} placeholder="Foods, drugs, chemicals..." className={areaClasses} />
-              </div>
-              <div className="space-y-2">
-                <label className={labelClasses}>Persistent Conditions</label>
-                <textarea value={profile.conditions} onChange={e => updateProfile({ conditions: e.target.value })} placeholder="Active health matters..." className={areaClasses} />
-              </div>
-            </div>
-            <div className="space-y-8">
-              <div className="space-y-2">
-                <label className={labelClasses}>Recent Clinical Events</label>
-                <textarea value={profile.recentInterventions} onChange={e => updateProfile({ recentInterventions: e.target.value })} placeholder="Surgeries, major labs, interventions..." className={areaClasses} />
-              </div>
-              <div className="space-y-2">
-                <label className={labelClasses}>Cycle Management (Contraception)</label>
-                <textarea value={profile.contraception} onChange={e => updateProfile({ contraception: e.target.value })} placeholder="Methods used for cycle control..." className={areaClasses} />
-              </div>
-            </div>
+          <div className="rounded-2xl border border-luna-purple/20 bg-luna-purple/5 p-5 space-y-3">
+            <p className="text-sm text-slate-700 dark:text-slate-200">
+              Update medical history, medications, allergies, and family history in one place so Labs, Reports, and Live stay personalized.
+            </p>
+            <button
+              type="button"
+              className={MEMBER_CHIP_ACTIVE}
+              onClick={() => {
+                trackHealthProfileOpened('settings', null);
+                document.getElementById('personal-health-profile')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
+            >
+              Open Personal Health Profile
+            </button>
           </div>
         </section>
 
@@ -373,8 +466,20 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ lang, onBack }) => {
               <p className="text-[10px] text-slate-400 font-bold px-2 italic">Age of first menstruation.</p>
             </div>
             <div className="md:col-span-2 space-y-3">
-              <label className={labelClasses}>Genetic Predispositions & Family Traits</label>
-              <textarea value={profile.familyHistory} onChange={e => updateProfile({ familyHistory: e.target.value })} placeholder="Reproductive health history in your family..." className={areaClasses + " h-[100px]"} />
+              <label className={labelClasses}>Family History</label>
+              <p className="text-sm text-slate-600 dark:text-slate-300">
+                Family medical history is managed in your Personal Health Profile so it is not asked twice.
+              </p>
+              <button
+                type="button"
+                className={MEMBER_CHIP_INACTIVE}
+                onClick={() => {
+                  trackHealthProfileOpened('settings', null);
+                  document.getElementById('personal-health-profile')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }}
+              >
+                Open Personal Health Profile
+              </button>
             </div>
           </div>
         </section>

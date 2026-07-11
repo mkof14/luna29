@@ -1,5 +1,8 @@
 /** Role resolution — explicit super-admin list only; no auto-admin by email pattern. */
 export const ROLE_PERMISSIONS = {
+  /** Paying / beta members — no admin workspace access. */
+  member: [],
+  /** Explicit admin observer role (must be assigned). */
   viewer: ['view_financials', 'view_technical_metrics'],
   operator: ['manage_services', 'view_technical_metrics'],
   content_manager: ['manage_marketing', 'manage_email_templates'],
@@ -29,5 +32,5 @@ export const resolveRole = (email, roleOverride = null, superAdminEmails = new S
   if (roleOverride && ROLE_PERMISSIONS[roleOverride]) return roleOverride;
   const normalizedEmail = String(email || '').trim().toLowerCase();
   if (superAdminEmails.has(normalizedEmail)) return 'super_admin';
-  return 'viewer';
+  return 'member';
 };

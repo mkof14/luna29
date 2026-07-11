@@ -665,7 +665,6 @@ export const AudioReflection: React.FC<{ onBack: () => void, lang?: Language }> 
     recognition.lang = recognitionLang;
 
     recognition.onstart = () => {
-      console.log("Speech recognition started");
       setStatusMsg(copy.listening);
     };
 
@@ -704,7 +703,6 @@ export const AudioReflection: React.FC<{ onBack: () => void, lang?: Language }> 
     };
 
     recognition.onend = () => {
-      console.log("Speech recognition ended");
       recognitionActive.current = false;
       setStatusMsg("");
       if (!isStoppingRecognitionRef.current) return;
@@ -834,9 +832,7 @@ export const AudioReflection: React.FC<{ onBack: () => void, lang?: Language }> 
           }
           recognition.start();
           recognitionActive.current = true;
-          console.log("Recognition started successfully");
         } catch (e) {
-          console.warn("Recognition start error:", e);
           // Fallback: try to just start
           try { 
             recognition.abort();
@@ -865,8 +861,8 @@ export const AudioReflection: React.FC<{ onBack: () => void, lang?: Language }> 
       try { 
         recognitionRef.current.stop(); 
         recognitionActive.current = false;
-      } catch (e) {
-        console.warn("Recognition stop error:", e);
+      } catch (_e) {
+        /* ignore stop race */
       }
     }
 
@@ -1002,8 +998,7 @@ export const AudioReflection: React.FC<{ onBack: () => void, lang?: Language }> 
       };
       audio.onerror = () => setIsPlaying(false);
       
-      audio.play().catch(err => {
-        console.warn("Autoplay blocked:", err);
+      audio.play().catch(() => {
         setIsPlaying(false);
         if (aiResponse) speakText(aiResponse);
       });

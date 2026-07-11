@@ -25,6 +25,9 @@ import { conversionEvents } from './utils/conversionEvents';
 import { billingService } from './services/billingService';
 import { applyServerTrialToLocal, consumeTrialPending, markTrialPending } from './utils/subscriptionAccess';
 import { useCalendarReminderLoop } from './hooks/useCalendarReminders';
+import { useHealthProfileCompletion } from './hooks/useHealthProfileCompletion';
+import { personalEventsService } from './services/personalEventsService';
+import { readInviteFromUrl, readResetTokenFromUrl, readVerifyTokenFromUrl } from './utils/authUrlTokens';
 
 // SHARED COMPONENTS
 import { LunaLiveButton } from './components/LunaLiveButton';
@@ -40,8 +43,6 @@ const AppFooter = lazy(() => import('./components/AppFooter').then((m) => ({ def
 const InstallAppPrompt = lazy(() => import('./components/InstallAppPrompt').then((m) => ({ default: m.InstallAppPrompt })));
 const StandaloneWelcomeOverlay = lazy(() => import('./components/StandaloneWelcomeOverlay').then((m) => ({ default: m.StandaloneWelcomeOverlay })));
 const StandaloneLaunchSplash = lazy(() => import('./components/StandaloneLaunchSplash').then((m) => ({ default: m.StandaloneLaunchSplash })));
-const DevRuntimeBadge = lazy(() => import('./components/DevRuntimeBadge').then((m) => ({ default: m.DevRuntimeBadge })));
-
 const App: React.FC = () => {
   const [showLaunchSplash, setShowLaunchSplash] = useState(false);
   const [session, setSession] = useState<AuthSession | null>(null);
@@ -68,6 +69,14 @@ const App: React.FC = () => {
   const [checkinData, setCheckinData] = useState<Record<string, number>>({ 
     energy: 3, mood: 3, sleep: 3, libido: 3, irritability: 3, stress: 3 
   });
+  const [checkinClinical, setCheckinClinical] = useState(() => ({
+    symptoms: [] as string[],
+    isPeriod: false,
+    periodEvent: null as 'started' | 'ended' | null,
+    flow: '' as '' | 'none' | 'light' | 'medium' | 'heavy',
+    intensity: 3,
+    notes: '',
+  }));
   
   const { lang, setLang, theme, setTheme, ui } = useAppPreferences();
 
@@ -152,6 +161,42 @@ const App: React.FC = () => {
       window.clearTimeout(safetyTimer);
     };
   }, []);
+
+  useEffect(() => {
+    if (isAuthLoading) return;
+    const invite = readInviteFromUrl();
+    const reset = readResetTokenFromUrl();
+    const verify = readVerifyTokenFromUrl();
+    if (!invite && !reset && !verify) return;
+
+    if (session && verify) {
+      void authService
+        .verifyEmail(verify)
+        .then((result) => {
+          if (result.session) setSession(result.session);
+          else {
+            void authService.getSession().then((next) => {
+              if (next) setSession(next);
+            });
+          }
+          try {
+            const url = new URL(window.location.href);
+            url.searchParams.delete('verify');
+            window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+          } catch {
+            /* ignore */
+          }
+        })
+        .catch(() => undefined);
+      return;
+    }
+
+    if (!session) {
+      if (invite) setAuthMode('signup');
+      setShowAuthModal(true);
+    }
+  }, [isAuthLoading, session]);
+
   const {
     log,
     setLog,
@@ -185,10 +230,35 @@ const App: React.FC = () => {
   const onMemberBack = useMemo(() => createMemberHubBack(navigateTo), [navigateTo]);
 
   const saveCheckin = useCallback(() => {
-    dataService.logEvent('DAILY_CHECKIN', { metrics: { ...checkinData }, symptoms: [], isPeriod: false });
+    dataService.logEvent('DAILY_CHECKIN', {
+      metrics: { ...checkinData },
+      symptoms: [...checkinClinical.symptoms],
+      isPeriod: Boolean(checkinClinical.isPeriod || checkinClinical.periodEvent === 'started'),
+      periodEvent: checkinClinical.periodEvent,
+      flow: checkinClinical.flow || undefined,
+      intensity: checkinClinical.intensity,
+      notes: checkinClinical.notes.trim() || undefined,
+    });
+    if (checkinClinical.periodEvent === 'started') {
+      const length = Number(dataService.projectState(dataService.getLog()).cycleLength || 28);
+      dataService.logEvent('CYCLE_SYNC', {
+        day: 1,
+        length,
+        lastPeriodStart: new Date().toISOString().slice(0, 10),
+      });
+    }
     setLog(dataService.getLog());
     setShowSyncOverlay(false);
-  }, [checkinData, setLog]);
+    setCheckinClinical({
+      symptoms: [],
+      isPeriod: false,
+      periodEvent: null,
+      flow: '',
+      intensity: 3,
+      notes: '',
+    });
+    void personalEventsService.syncLocalLog().catch(() => undefined);
+  }, [checkinData, checkinClinical, setLog]);
 
   const saveCheckinAndBridge = useCallback(() => {
     saveCheckin();
@@ -200,6 +270,7 @@ const App: React.FC = () => {
   const sidebarGroups = useMemo(() => buildSidebarGroups(ui, canAccessAdmin, lang), [ui, canAccessAdmin, lang]);
   const topNavItems = useMemo(() => buildTopNavItems(ui, lang), [ui, lang]);
   const bottomNavItems = useMemo(() => buildBottomNavItems(ui, lang), [ui, lang]);
+  const healthProfileCompletion = useHealthProfileCompletion(Boolean(session?.id));
 
   const handleRoleChange = useCallback((role: AdminRole) => {
     if (!session) return;
@@ -319,9 +390,6 @@ const App: React.FC = () => {
             }}
           />
         </Suspense>
-        <Suspense fallback={null}>
-          <DevRuntimeBadge />
-        </Suspense>
       </div>
     );
   }
@@ -364,20 +432,26 @@ const App: React.FC = () => {
             onRoleChange={handleRoleChange}
           />
         </Suspense>
-        <Suspense fallback={null}>
-          <DevRuntimeBadge />
-        </Suspense>
       </>
     );
   }
 
   return (
       <div className="min-h-screen flex flex-col bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans relative overflow-x-hidden">
+        {session.emailVerified === false && session.provider === 'password' && (
+          <div
+            data-testid="email-verify-banner"
+            className="z-40 border-b border-amber-200/80 bg-amber-50 text-amber-950 px-4 py-3 text-sm text-center"
+          >
+            Verify your email to finish Closed Paid Beta setup. Check your inbox for the verification link.
+          </div>
+        )}
         <AppShellNav
           activeTab={activeTab}
           showSidebar={showSidebar}
           setShowSidebar={setShowSidebar}
           navigateTo={navigateTo}
+          onOpenLive={() => setShowLive(true)}
           sidebarGroups={sidebarGroups}
           topNavItems={topNavItems}
           lang={lang}
@@ -385,9 +459,10 @@ const App: React.FC = () => {
           theme={theme}
           setTheme={setTheme}
           onLogout={handleLogout}
+          healthProfileCompletionPercent={healthProfileCompletion.percent}
         />
 
-      <div className="lg:pl-[300px]">
+      <div className="lg:pl-[240px]">
       <MainContentRouter
         activeTab={activeTab}
         lang={lang}
@@ -443,6 +518,8 @@ const App: React.FC = () => {
           lang={lang}
           checkinData={checkinData}
           setCheckinData={setCheckinData}
+          clinical={checkinClinical}
+          setClinical={setCheckinClinical}
           onSave={saveCheckin}
           onSaveAndBridge={saveCheckinAndBridge}
         />
@@ -457,6 +534,10 @@ const App: React.FC = () => {
           lang={lang}
           accessMode="member"
           resumeMessages={liveResumeMessages}
+          onOpenHealthProfile={() => {
+            setShowLive(false);
+            navigateTo('profile');
+          }}
           onSessionComplete={(payload: LiveSessionClosePayload) => {
             setLiveResumeMessages(payload.resumeMessages);
             setLiveCloseSummary({
@@ -483,15 +564,13 @@ const App: React.FC = () => {
         bottomNavItems={bottomNavItems}
         navigateTo={navigateTo}
         setShowSidebar={setShowSidebar}
+        healthProfileCompletionPercent={healthProfileCompletion.percent}
       />
       <Suspense fallback={null}>
         <StandaloneWelcomeOverlay lang={lang} />
         <InstallAppPrompt lang={lang} />
       </Suspense>
       <PrivacyControls lang={lang} isAuthenticated />
-      <Suspense fallback={null}>
-        <DevRuntimeBadge />
-      </Suspense>
     </div>
   );
 };

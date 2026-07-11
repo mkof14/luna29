@@ -5,7 +5,7 @@
  */
 import type { TabType } from './navigation';
 
-/** Footer explore links in member zone — always in-app tabs, never public hrefs. */
+/** Footer explore links in member zone — product surfaces only. */
 export type MemberFooterExploreLink = {
   id: TabType;
   testId?: string;
@@ -17,12 +17,24 @@ export const MEMBER_FOOTER_EXPLORE_TABS: MemberFooterExploreLink[] = [
   { id: 'rhythm_calendar' },
   { id: 'ritual_path' },
   { id: 'bridge' },
+];
+
+/**
+ * Resources column — Personal Health Profile first, then knowledge pages.
+ * Profile uses the existing `profile` tab (HealthProfilePanel), not a new page.
+ */
+export const MEMBER_FOOTER_RESOURCE_TABS: MemberFooterExploreLink[] = [
+  { id: 'profile', testId: 'personal-health-profile' },
+  { id: 'contact', testId: 'contact' },
   { id: 'pricing' },
   { id: 'about', testId: 'about' },
   { id: 'how_it_works', testId: 'how_it_works' },
   { id: 'faq' },
   { id: 'learning' },
 ];
+
+/** Map public URL paths that should open the member profile tab. */
+export const PROFILE_PUBLIC_PATH = '/profile';
 
 /** Map public URL paths to member tabs when a signed-in session loads the SPA. */
 export const pathnameToMemberTab = (pathname: string): TabType | null => {
@@ -45,6 +57,7 @@ export const pathnameToMemberTab = (pathname: string): TabType | null => {
     '/cookies': 'cookies',
     '/data-rights': 'data_rights',
     '/legal': 'privacy',
+    '/profile': 'profile',
   };
   return map[path] ?? null;
 };

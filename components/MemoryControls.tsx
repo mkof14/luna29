@@ -23,6 +23,9 @@ import {
 } from '../utils/memorySignalLabels';
 import { MEMORY_COPY } from '../utils/memoryCopy';
 import { filterSurfacedPatterns } from '../utils/todayState';
+import { useHealthProfileCompletion } from '../hooks/useHealthProfileCompletion';
+import { HEALTH_PROFILE_COPY } from '../utils/healthProfileCopy';
+import { HealthProfileCompletionLabel } from './HealthProfileCompletionLabel';
 
 export { MEMORY_COPY };
 
@@ -33,6 +36,7 @@ type Props = {
   surface?: 'profile' | 'luna_live' | 'memory_settings';
   onClose?: () => void;
   onConsentChange?: (consent: MemoryConsentResponse) => void;
+  onOpenHealthProfile?: () => void;
 };
 
 const c = MEMORY_COPY;
@@ -54,7 +58,9 @@ export const MemoryControls: React.FC<Props> = ({
   surface = 'memory_settings',
   onClose,
   onConsentChange,
+  onOpenHealthProfile,
 }) => {
+  const profileCompletion = useHealthProfileCompletion(surface === 'profile' && !compact);
   const [consent, setConsent] = useState<MemoryConsentResponse | null>(null);
   const [consentState, setConsentState] = useState<'loading' | 'ready' | 'unavailable' | 'error'>('loading');
   const [signals, setSignals] = useState<SignalRecord[]>([]);
@@ -256,6 +262,31 @@ export const MemoryControls: React.FC<Props> = ({
           </button>
         )}
       </div>
+
+      {surface === 'profile' && !compact && profileCompletion.percent != null && (
+        <div
+          data-testid="memory-health-profile-context"
+          className="rounded-xl border border-luna-purple/20 bg-luna-purple/5 px-4 py-3 space-y-2"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+              {HEALTH_PROFILE_COPY.memoryProfileCompletion}
+            </p>
+            <HealthProfileCompletionLabel percent={profileCompletion.percent} />
+          </div>
+          <p className="text-xs text-slate-600 dark:text-slate-300">{HEALTH_PROFILE_COPY.memorySourcesTitle}</p>
+          <p className="text-sm text-slate-600 dark:text-slate-300">{HEALTH_PROFILE_COPY.memorySourcesBody}</p>
+          {onOpenHealthProfile && (
+            <button
+              type="button"
+              className="text-[10px] font-black uppercase tracking-[0.12em] text-luna-purple"
+              onClick={onOpenHealthProfile}
+            >
+              {HEALTH_PROFILE_COPY.entrySettingsShortcut}
+            </button>
+          )}
+        </div>
+      )}
 
       {consentState === 'loading' && <p className="text-sm text-slate-500">{c.loading}</p>}
 

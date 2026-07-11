@@ -32,6 +32,7 @@ const isLocalHostRuntime = (() => {
 })();
 
 const ROLE_PERMISSIONS: Record<AdminRole, AdminPermission[]> = {
+  member: [],
   viewer: ['view_financials', 'view_technical_metrics'],
   operator: ['manage_services', 'view_technical_metrics'],
   content_manager: ['manage_marketing', 'manage_email_templates'],
@@ -102,7 +103,7 @@ const resolveRole = (email: string): AdminRole => {
   if (import.meta.env.DEV && isLocalHostRuntime && DEV_SUPER_ADMIN_EMAIL && normalized === DEV_SUPER_ADMIN_EMAIL) {
     return 'super_admin';
   }
-  return 'viewer';
+  return 'member';
 };
 
 const toBase64Json = (value: unknown): string => btoa(unescape(encodeURIComponent(JSON.stringify(value))));
@@ -497,11 +498,14 @@ export const authService = {
     }
   },
 
-  async loginWithGoogleCredential(credential: string): Promise<AuthSession> {
+  async loginWithGoogleCredential(credential: string, inviteToken?: string | null): Promise<AuthSession> {
     try {
       const payload = await requestJson<{ session: AuthSession }>('/api/auth/google', {
         method: 'POST',
-        body: JSON.stringify({ credential }),
+        body: JSON.stringify({
+          credential,
+          ...(inviteToken ? { inviteToken } : {}),
+        }),
       });
       sessionCache = normalizeSession(payload.session);
       saveLocalSession(sessionCache);
@@ -515,6 +519,36 @@ export const authService = {
       }
       throw error;
     }
+  },
+
+  async getAuthConfig(): Promise<{
+    inviteOnly?: boolean;
+    emailEnabled?: boolean;
+    emailVerificationRequired?: boolean;
+    googleEnabled?: boolean;
+  }> {
+    return requestJson('/api/auth/config', { method: 'GET' });
+  },
+
+  async forgotPassword(email: string): Promise<void> {
+    await requestJson('/api/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  },
+
+  async resetPassword(token: string, password: string): Promise<void> {
+    await requestJson('/api/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ token, password }),
+    });
+  },
+
+  async verifyEmail(token: string): Promise<{ ok?: boolean; alreadyVerified?: boolean; session?: AuthSession }> {
+    return requestJson('/api/auth/verify-email', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    });
   },
 
   async updateRole(session: AuthSession, role: AdminRole): Promise<AuthSession> {

@@ -23,7 +23,7 @@ export enum ConfidenceLevel {
 
 export type AuthProvider = 'password' | 'google';
 
-export type AdminRole = 'viewer' | 'operator' | 'content_manager' | 'finance_manager' | 'super_admin';
+export type AdminRole = 'member' | 'viewer' | 'operator' | 'content_manager' | 'finance_manager' | 'super_admin';
 
 export type AdminPermission =
   | 'manage_services'
@@ -42,6 +42,7 @@ export interface AuthSession {
   permissions: AdminPermission[];
   lastLoginAt: string;
   avatarUrl?: string;
+  emailVerified?: boolean;
 }
 
 export interface SymptomArchetype {
@@ -78,6 +79,11 @@ export interface DailyCheckinPayload {
   metrics: Record<string, number>;
   symptoms: string[];
   isPeriod: boolean;
+  /** Optional clinical check-in fields for Closed Paid Beta. */
+  periodEvent?: 'started' | 'ended' | null;
+  flow?: 'none' | 'light' | 'medium' | 'heavy' | '';
+  intensity?: number | null;
+  notes?: string;
 }
 
 export interface CycleSyncPayload {

@@ -3,6 +3,7 @@ import {
   applyServerTrialToLocal,
   hasPremiumAccess,
   isPremiumBillingStatus,
+  needsBillingRecovery,
   readLocalTrialState,
   TRIAL_STORAGE_KEY,
 } from '../../utils/subscriptionAccess';
@@ -17,6 +18,13 @@ describe('subscriptionAccess', () => {
     expect(isPremiumBillingStatus('trialing')).toBe(true);
     expect(isPremiumBillingStatus('inactive')).toBe(false);
     expect(hasPremiumAccess({ status: 'active' })).toBe(true);
+  });
+
+  it('detects billing recovery statuses', () => {
+    expect(needsBillingRecovery('past_due')).toBe(true);
+    expect(needsBillingRecovery('unpaid')).toBe(true);
+    expect(needsBillingRecovery('incomplete')).toBe(true);
+    expect(needsBillingRecovery('active')).toBe(false);
   });
 
   it('does not grant premium from localStorage trial alone', () => {

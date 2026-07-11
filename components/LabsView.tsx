@@ -12,6 +12,26 @@ import { getLabsViewLocalizedContent } from '../utils/labsViewContent';
 import { MemberIconBackButton } from './member/MemberIconBackButton';
 import { MemberPageIntro } from './member/MemberPageIntro';
 import { LunaPageContentSection } from './shared/LunaPageContentSection';
+import { HealthProfileIncompleteNotice } from './HealthProfileIncompleteNotice';
+import {
+  ModuleReadinessPanel,
+  ProfilePersonalizationBadge,
+  ReportAttributionBlock,
+} from './healthProfile/ProfilePlatformIntegration';
+import {
+  getProfile,
+  getProfileContext,
+  isProfileUnavailable,
+  type PersonalHealthProfile as PhpProfile,
+} from '../services/personalHealthProfileService';
+import {
+  formatProfileContextForAnalysis,
+  labsDraftFromPhp,
+  labsFieldsCoveredByPhp,
+  type LabsDraftProfileFields,
+  type ProfileContextLike,
+} from '../utils/healthProfilePlatform';
+import { invalidateHealthProfileCompletionCache } from '../hooks/useHealthProfileCompletion';
 import { getLunaPageTheme } from '../utils/lunaPageThemes';
 import { clearLabsDraftSnapshot, createDefaultSexualScores, readLabsDraftSnapshot, writeLabsDraftSnapshot } from '../utils/labsDraft';
 import { briefService } from '../services/briefService';
@@ -162,7 +182,15 @@ const ensureReportId = () => {
   }
 };
 
-export const LabsView: React.FC<{ day: number; age: number; lang: Language; userId?: string; userName?: string; onBack?: () => void }> = ({ day, age, lang, userId, userName, onBack }) => {
+export const LabsView: React.FC<{
+  day: number;
+  age: number;
+  lang: Language;
+  userId?: string;
+  userName?: string;
+  onBack?: () => void;
+  onOpenHealthProfile?: () => void;
+}> = ({ day, age, lang, userId, userName, onBack, onOpenHealthProfile }) => {
   const defaultProfile = useMemo<PersonalHealthProfile>(
     () => ({ ...emptyProfile, birthYear: String(new Date().getFullYear() - age), cycleDay: String(day) }),
     [age, day],
@@ -194,6 +222,9 @@ export const LabsView: React.FC<{ day: number; age: number; lang: Language; user
   const [manualReportId, setManualReportId] = useState(() => initialDraft?.manualReportId || '');
   const [reportLang, setReportLang] = useState<Language>(() => initialDraft?.reportLang || lang);
   const [profile, setProfile] = useState<PersonalHealthProfile>(() => ({ ...defaultProfile, ...(initialDraft?.profile || {}) }));
+  const [phpProfile, setPhpProfile] = useState<PhpProfile | null>(null);
+  const [profileContext, setProfileContext] = useState<ProfileContextLike | null>(null);
+  const [phpCoveredFields, setPhpCoveredFields] = useState<Array<keyof LabsDraftProfileFields>>([]);
   const [lastDraftSavedAt, setLastDraftSavedAt] = useState<number | null>(null);
   const localized = useMemo(() => getLabsViewLocalizedContent(lang, reportLang), [lang, reportLang]);
   const {
@@ -234,6 +265,50 @@ export const LabsView: React.FC<{ day: number; age: number; lang: Language; user
 
   const hormoneSignals = useMemo(() => computeHormoneSignals(parsedValues), [parsedValues]);
   const hormoneSummary = useMemo(() => summarizeHormoneSignals(hormoneSignals), [hormoneSignals]);
+
+  useEffect(() => {
+    let alive = true;
+    void getProfile()
+      .then((result) => {
+        if (!alive || isProfileUnavailable(result)) return;
+        setPhpProfile(result);
+        const fromPhp = labsDraftFromPhp(result);
+        const covered = labsFieldsCoveredByPhp(result);
+        setPhpCoveredFields(covered);
+        setProfile((prev) => {
+          const next = { ...prev };
+          (Object.keys(fromPhp) as Array<keyof LabsDraftProfileFields>).forEach((key) => {
+            const value = fromPhp[key];
+            if (!value) return;
+            if (!String(prev[key] || '').trim() || covered.includes(key)) {
+              next[key] = value;
+            }
+          });
+          return next;
+        });
+      })
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const onFocus = () => {
+      void getProfile()
+        .then((result) => {
+          if (isProfileUnavailable(result)) return;
+          setPhpProfile(result);
+          const fromPhp = labsDraftFromPhp(result);
+          setPhpCoveredFields(labsFieldsCoveredByPhp(result));
+          setProfile((prev) => ({ ...prev, ...fromPhp }));
+          invalidateHealthProfileCompletionCache();
+        })
+        .catch(() => undefined);
+    };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, []);
 
   const markerStatuses = useMemo(() => {
     let low = 0;
@@ -670,7 +745,18 @@ export const LabsView: React.FC<{ day: number; age: number; lang: Language; user
 
   const handleAnalyze = async () => {
     const manualText = buildManualRowsText();
-    const combinedInput = [buildProfileText(), manualText, input].filter(Boolean).join('\n\n').trim();
+    let phpContextText = '';
+    try {
+      const ctx = await getProfileContext({ reportType: 'labs', maxFacts: 24 });
+      if (!isProfileUnavailable(ctx)) {
+        setProfileContext(ctx);
+        phpContextText = formatProfileContextForAnalysis(ctx);
+        if (ctx.completion_percent != null) invalidateHealthProfileCompletionCache();
+      }
+    } catch {
+      // Profile context is optional — analysis still runs from labs + local draft.
+    }
+    const combinedInput = [phpContextText, buildProfileText(), manualText, input].filter(Boolean).join('\n\n').trim();
     if (!combinedInput) return;
 
     setLoading(true);
@@ -766,69 +852,6 @@ export const LabsView: React.FC<{ day: number; age: number; lang: Language; user
     setTimeout(() => setReportActionFeedback(null), 2400);
   };
 
-  const handleSampleDownload = async () => {
-    const { buildLocalizedSampleReportHtml } = await import('../utils/reportSampleTemplate');
-    const logoUrl = versionedAbsoluteAsset(window.location.origin, LUNA_BRAND_PATHS.lockup);
-    const phaseArcImageUrl = versionedAbsoluteAsset(window.location.origin, '/images/moon_phases_arc.webp');
-    const sampleRows = [
-      { marker: 'Estradiol (E2)', value: '148 pg/mL', reference: '30-400', status: 'normal', category: exportMarkerCategory('Estradiol (E2)'), explanation: detailedUi.statusNormal, accent: hormoneTopic('Estradiol (E2)').accent },
-      { marker: 'Progesterone', value: '8.1 ng/mL', reference: '0.2-25', status: 'normal', category: exportMarkerCategory('Progesterone'), explanation: detailedUi.statusNormal, accent: hormoneTopic('Progesterone').accent },
-      { marker: 'TSH', value: '4.8 mIU/L', reference: '0.4-4.0', status: 'high', category: exportMarkerCategory('TSH'), explanation: detailedUi.statusHigh, accent: hormoneTopic('TSH').accent },
-      { marker: 'Ferritin', value: '18 ng/mL', reference: '15-150', status: 'low-normal', category: exportMarkerCategory('Ferritin'), explanation: detailedUi.statusLow, accent: hormoneTopic('Ferritin').accent },
-    ];
-    const sampleCycleDayRaw = Number(profile.cycleDay || systemState.currentDay || 21);
-    const sampleCycleDay = Number.isFinite(sampleCycleDayRaw) ? sampleCycleDayRaw : 21;
-    const localizedSampleHtml = buildLocalizedSampleReportHtml({
-      logoUrl,
-      phaseArcImageUrl,
-      reportTitle: exportReportUi.reportTitle,
-      sampleTitle: exportReportUi.sampleTitle,
-      subtitle: detailedUi.subtitle,
-      generatedAtLabel: medForm.generatedAt,
-      generatedAtValue: reportGeneratedAt,
-      patientIdLabel: medForm.patientId,
-      panelLabel: medForm.panel,
-      sourceLabel: medForm.source,
-      allMarkersLabel: medForm.allMarkers,
-      summaryLabel: medForm.summary,
-      disclaimerTitle: medForm.disclaimerTitle,
-      disclaimerBody: medForm.disclaimerBody,
-      reportCopyright,
-      servicePromise: exportReportUi.servicePromise,
-      serviceBullets: exportReportUi.serviceBullets,
-      stableLabel: womenUi.stable,
-      highPriorityLabel: womenUi.highPriority,
-      watchLabel: womenUi.watch,
-      hormoneSignalsLabel: reportsUi.hormoneSignals,
-      dayLabel: reportsUi.day,
-      cycleDayValue: sampleCycleDay,
-      sexualSummaryLabel: sexualUi.summaryLabel,
-      painLabel: sexualUi.scoreLabels.pain,
-      markerLabel: reportsUi.marker || 'Marker',
-      valueLabel: reportsUi.value || 'Value',
-      referenceLabel: reportsUi.reference || 'Reference',
-      statusLabel: reportsUi.status,
-      categoryLabel: womenUi.combinationsTitle,
-      explanationLabel: detailedUi.explanation,
-      textInputSourceLabel: reportSourcesUi.textInput,
-      manualTableSourceLabel: reportSourcesUi.manualTable,
-      clinicalFocusTitle: womenUi.clinicalFocusTitle,
-      estProgTitle: womenUi.estProgTitle,
-      estProgBody: womenUi.estProgBody,
-      insulinAndrogenTitle: womenUi.insulinAndrogenTitle,
-      insulinAndrogenBody: womenUi.insulinAndrogenBody,
-      recommendationsTitle: womenUi.recommendationsTitle,
-      recCycle: womenUi.recCycle,
-      recRepeat: womenUi.recRepeat,
-      recDoctor: womenUi.recDoctor,
-      recLifestyle: womenUi.recLifestyle,
-      rows: sampleRows,
-    });
-    downloadFile(`luna-sample-report-${reportLang}.html`, localizedSampleHtml, 'text/html;charset=utf-8');
-    setReportActionFeedback(reportActions.sampleDownloaded);
-    setTimeout(() => setReportActionFeedback(null), 2000);
-  };
-
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -862,6 +885,13 @@ export const LabsView: React.FC<{ day: number; age: number; lang: Language; user
       <p className="text-base font-medium text-slate-700 dark:text-slate-300 max-w-4xl leading-relaxed">
         {reportsUi.workflow}
       </p>
+
+      <HealthProfileIncompleteNotice variant="labs" onContinue={onOpenHealthProfile} />
+      <HealthProfileIncompleteNotice variant="reports" onContinue={onOpenHealthProfile} />
+      <div className="grid gap-3 md:grid-cols-2">
+        <ProfilePersonalizationBadge profile={phpProfile} surface="labs" />
+        <ModuleReadinessPanel profile={phpProfile} />
+      </div>
 
       <section className="rounded-[1.4rem] border border-slate-200/80 dark:border-slate-700/70 bg-white/75 dark:bg-slate-900/55 p-5 md:p-6 space-y-3">
         <p className="text-sm md:text-base font-black uppercase tracking-[0.14em] text-luna-purple">{visualGuide.title}</p>
@@ -954,7 +984,24 @@ export const LabsView: React.FC<{ day: number; age: number; lang: Language; user
           </article>
 
           <article ref={profileSectionRef} className="rounded-[2rem] border border-slate-200/80 dark:border-slate-700/70 bg-white/80 dark:bg-[#081a3d]/85 p-6 space-y-4 shadow-luna-rich">
-            <h3 className="text-base md:text-lg font-black uppercase tracking-[0.16em] text-luna-purple">{reportsUi.profileTitle}</h3>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <h3 className="text-base md:text-lg font-black uppercase tracking-[0.16em] text-luna-purple">{reportsUi.profileTitle}</h3>
+              {onOpenHealthProfile && (
+                <button
+                  type="button"
+                  onClick={onOpenHealthProfile}
+                  className="text-[10px] font-black uppercase tracking-[0.12em] text-luna-purple"
+                  data-testid="labs-open-health-profile"
+                >
+                  Personal Health Profile
+                </button>
+              )}
+            </div>
+            {phpCoveredFields.length > 0 && (
+              <p className="text-xs text-slate-500 dark:text-slate-400" data-testid="labs-php-reuse-notice">
+                Using your Personal Health Profile for {phpCoveredFields.join(', ')}. Edit those details in your profile — they are not asked again here.
+              </p>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {[
                 ['birthYear', reportsUi.profileBirthYear],
@@ -962,7 +1009,9 @@ export const LabsView: React.FC<{ day: number; age: number; lang: Language; user
                 ['cycleDay', reportsUi.profileCycleDay],
                 ['medications', reportsUi.profileMedications],
                 ['knownConditions', reportsUi.profileKnownConditions],
-              ].map(([key, label]) => (
+              ]
+                .filter(([key]) => !phpCoveredFields.includes(key as keyof LabsDraftProfileFields))
+                .map(([key, label]) => (
                 <label key={key} className="space-y-1">
                   <span className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-500">{label}</span>
                   <input
@@ -972,14 +1021,39 @@ export const LabsView: React.FC<{ day: number; age: number; lang: Language; user
                   />
                 </label>
               ))}
-              <label className="md:col-span-2 space-y-1">
-                <span className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-500">{reportsUi.goals}</span>
-                <textarea
-                  value={profile.goals}
-                  onChange={(e) => updateProfile('goals', e.target.value)}
-                  className="w-full h-20 px-3 py-2 rounded-xl border border-slate-300/70 dark:border-slate-700/70 bg-white dark:bg-slate-900/80 text-sm font-semibold text-slate-800 dark:text-slate-100 resize-none"
-                />
-              </label>
+              {phpCoveredFields.includes('medications') && (
+                <div className="space-y-1" data-testid="labs-php-medications">
+                  <span className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-500">{reportsUi.profileMedications}</span>
+                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{profile.medications || '—'}</p>
+                </div>
+              )}
+              {phpCoveredFields.includes('knownConditions') && (
+                <div className="space-y-1" data-testid="labs-php-conditions">
+                  <span className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-500">{reportsUi.profileKnownConditions}</span>
+                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{profile.knownConditions || '—'}</p>
+                </div>
+              )}
+              {phpCoveredFields.includes('birthYear') && (
+                <div className="space-y-1" data-testid="labs-php-birth-year">
+                  <span className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-500">{reportsUi.profileBirthYear}</span>
+                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{profile.birthYear || '—'}</p>
+                </div>
+              )}
+              {!phpCoveredFields.includes('goals') ? (
+                <label className="md:col-span-2 space-y-1">
+                  <span className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-500">{reportsUi.goals}</span>
+                  <textarea
+                    value={profile.goals}
+                    onChange={(e) => updateProfile('goals', e.target.value)}
+                    className="w-full h-20 px-3 py-2 rounded-xl border border-slate-300/70 dark:border-slate-700/70 bg-white dark:bg-slate-900/80 text-sm font-semibold text-slate-800 dark:text-slate-100 resize-none"
+                  />
+                </label>
+              ) : (
+                <div className="md:col-span-2 space-y-1" data-testid="labs-php-goals">
+                  <span className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-500">{reportsUi.goals}</span>
+                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{profile.goals || '—'}</p>
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-500">{reportsUi.symptomsQuick}</p>
@@ -1230,28 +1304,23 @@ export const LabsView: React.FC<{ day: number; age: number; lang: Language; user
                 <span className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">{profile.cycleDay || systemState.currentDay} {reportsUi.day}</span>
               </div>
               <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">{reportIdentityLine || reportUi.reportSubtitle}</p>
-              <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 leading-relaxed line-clamp-4">{analysis?.text || reportUi.sampleBody}</p>
+              <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 leading-relaxed line-clamp-4">
+                {analysis?.text || 'Add lab markers to generate your report. No sample health data is shown.'}
+              </p>
             </div>
+            <ReportAttributionBlock
+              profile={phpProfile}
+              context={profileContext && !isProfileUnavailable(profileContext) ? profileContext : null}
+            />
+            <ProfilePersonalizationBadge profile={phpProfile} surface="reports" />
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
               <button onClick={handleReportCopy} className="px-2.5 py-2.5 min-h-[44px] rounded-lg border border-slate-300/70 dark:border-slate-700/70 text-[10px] font-black tracking-[0.05em] text-slate-700 dark:text-slate-300 whitespace-normal break-words leading-tight text-center">{reportUi.copy}</button>
               <button onClick={handleReportPrint} className="px-2.5 py-2.5 min-h-[44px] rounded-lg border border-slate-300/70 dark:border-slate-700/70 text-[10px] font-black tracking-[0.05em] text-slate-700 dark:text-slate-300 whitespace-normal break-words leading-tight text-center">{reportUi.print}</button>
               <button onClick={handleReportShare} className="px-2.5 py-2.5 min-h-[44px] rounded-lg border border-slate-300/70 dark:border-slate-700/70 text-[10px] font-black tracking-[0.05em] text-slate-700 dark:text-slate-300 whitespace-normal break-words leading-tight text-center">{reportUi.share}</button>
               <button onClick={handleReportDownload} className="px-2.5 py-2.5 min-h-[44px] rounded-lg border border-slate-300/70 dark:border-slate-700/70 text-[10px] font-black tracking-[0.05em] text-slate-700 dark:text-slate-300 whitespace-normal break-words leading-tight text-center">{reportUi.download}</button>
               <button onClick={handleReportPdf} className="px-2.5 py-2.5 min-h-[44px] rounded-lg border border-luna-purple/35 bg-luna-purple/10 text-[10px] font-black tracking-[0.05em] text-luna-purple whitespace-normal break-words leading-tight text-center">{reportUi.pdf}</button>
-              <button onClick={handleSampleDownload} className="px-2.5 py-2.5 min-h-[44px] rounded-lg border border-luna-coral/40 bg-luna-coral/10 text-[10px] font-black tracking-[0.05em] text-luna-coral whitespace-normal break-words leading-tight text-center">{reportUi.sampleDownload}</button>
             </div>
             {reportActionFeedback && <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">{reportActionFeedback}</p>}
-          </article>
-
-          <article className="rounded-[2rem] border border-slate-200/80 dark:border-slate-700/70 bg-white/80 dark:bg-[#0f2344]/80 p-6 shadow-luna-rich space-y-3">
-            <p className="text-sm md:text-base font-black uppercase tracking-[0.14em] text-luna-purple">{reportUi.sampleTitle}</p>
-            <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 leading-relaxed">{reportUi.sampleBody}</p>
-            <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">{reportUi.servicePromise}</p>
-            <div className="space-y-1">
-              {reportUi.serviceBullets.map((item) => (
-                <p key={item} className="text-xs font-semibold text-slate-600 dark:text-slate-300">• {item}</p>
-              ))}
-            </div>
           </article>
 
           {hormoneSignals.length > 0 && (

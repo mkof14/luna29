@@ -157,6 +157,8 @@ describe('commercial launch hardening', () => {
     process.env.VERCEL_ENV = 'production';
     process.env.DATABASE_URL = 'postgresql://luna:luna@127.0.0.1:5432/luna_test_unused';
     process.env.AUTH_ALLOWED_ORIGINS = 'https://www.luna29.com';
+    process.env.AUTH_INVITE_ONLY = 'false';
+    process.env.AUTH_REQUIRE_EMAIL_VERIFICATION = 'false';
     vi.resetModules();
     const { buildApiHandler } = await import('../../server/core/apiHandler.mjs');
     const prodHandler = await buildApiHandler({ dataDir, environment: 'test' });

@@ -78,10 +78,10 @@ const INTROS: LangCopy<Record<MemberIntroPageId, MemberPageIntroCopy>> = {
       tips: ['Name + dose is enough; notes optional.', 'Remove entries when plans change.', 'Bring this list to visits — export from Profile if needed.'],
     },
     profile: {
-      eyebrow: 'Identity lens',
-      title: 'Profile',
-      body: 'Four pillars shape how Luna29 reads your rhythm: personal baseline, health context, mind sensitivities, heritage. Stored on your device.',
-      tips: ['Sync Profile after meaningful changes.', 'Billing lives here — separate from clinical data.', 'Units toggle affects display only.'],
+      eyebrow: 'Settings',
+      title: 'Settings',
+      body: 'Account, billing, privacy, memory, and support. Personal Health Profile is the clinical section on this page — separate from account settings.',
+      tips: ['Use the Settings directory to jump to Billing or Support.', 'Personal Health Profile is clinical — not account settings.', 'Sync Account after meaningful baseline changes.'],
     },
     labs: {
       eyebrow: 'Health reports',

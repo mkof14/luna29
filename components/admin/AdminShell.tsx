@@ -102,10 +102,10 @@ const AdminShellInner: React.FC<AdminShellInnerProps> = ({
               {session?.email || '—'}
             </span>
             <span className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${mode === 'dark' ? 'bg-white/5 text-slate-300 border border-white/10' : 'bg-slate-100 text-slate-700 border border-slate-200'}`}>
-              {roleLabel((session?.role || 'viewer') as AdminRole)}
+              {roleLabel((session?.role || 'member') as AdminRole)}
             </span>
             <select
-              value={session?.role || 'viewer'}
+              value={session?.role || 'member'}
               onChange={(e) => onRoleChange(e.target.value as AdminRole)}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${mode === 'dark' ? 'bg-[#0a101c] border-white/10 text-slate-200' : 'bg-white border-slate-300 text-slate-800'}`}
             >

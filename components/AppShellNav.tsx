@@ -4,15 +4,12 @@ import LanguageSelector from './LanguageSelector';
 import { LunaMenuLabel } from './SmoothLangText';
 import { Logo } from './Logo';
 import { Language, getLang } from '../constants';
-import { TabType } from '../utils/navigation';
+import { NavItem, TabType } from '../utils/navigation';
 import { langMap } from '../utils/languages';
 import { getBrandAssetUrl } from '../utils/lunaBrandAssets';
+import { HealthProfileCompletionLabel } from './HealthProfileCompletionLabel';
 
-type NavItem = {
-  id: TabType;
-  label: string;
-  icon: string;
-};
+import { trackHealthProfileOpened } from '../utils/healthProfileAnalytics';
 
 type NavGroup = {
   title: string;
@@ -24,6 +21,7 @@ interface AppShellNavProps {
   showSidebar: boolean;
   setShowSidebar: (next: boolean) => void;
   navigateTo: (tab: TabType, options?: { openSidebar?: boolean; keepSidebar?: boolean }) => void;
+  onOpenLive?: () => void;
   sidebarGroups: NavGroup[];
   topNavItems: NavItem[];
   lang: Language;
@@ -31,6 +29,8 @@ interface AppShellNavProps {
   theme: 'light' | 'dark';
   setTheme: (theme: 'light' | 'dark') => void;
   onLogout: () => void;
+  /** Server completion % for Personal Health Profile (shown under Settings). */
+  healthProfileCompletionPercent?: number | null;
 }
 
 export const AppShellNav: React.FC<AppShellNavProps> = ({
@@ -38,6 +38,7 @@ export const AppShellNav: React.FC<AppShellNavProps> = ({
   showSidebar,
   setShowSidebar,
   navigateTo,
+  onOpenLive,
   sidebarGroups,
   topNavItems,
   lang,
@@ -45,106 +46,16 @@ export const AppShellNav: React.FC<AppShellNavProps> = ({
   theme,
   setTheme,
   onLogout,
+  healthProfileCompletionPercent = null,
 }) => {
   const moreByLang = langMap('More', { ru: 'Еще', uk: 'Ще', es: 'Más', fr: 'Plus', de: 'Mehr', zh: '更多', ja: 'その他', pt: 'Mais', ar: 'المزيد', he: 'עוד' });
   const logoutByLang = langMap('Logout', { ru: 'Выйти', uk: 'Вийти', es: 'Salir', fr: 'Quitter', de: 'Abmelden', zh: '退出', ja: 'ログアウト', pt: 'Sair', ar: 'خروج', he: 'יציאה' });
   const copy = { more: getLang(moreByLang, lang), logout: getLang(logoutByLang, lang) };
-  const quickStartByLang = langMap('Quick Start', {
-    ru: 'Быстрый Старт',
-    uk: 'Швидкий Старт',
-    es: 'Inicio Rapido',
-    fr: 'Demarrage Rapide',
-    de: 'Schnellstart',
-    zh: '快速开始',
-    ja: 'クイックスタート',
-    pt: 'Inicio Rapido',
-    ar: 'بدء سريع',
-    he: 'התחלה מהירה',
-  });
-  const quickStartHintByLang = langMap(
-    {
-      dashboard: 'Step 1: Start with a quick check-in.',
-      cycle: 'Step 2: Review your cycle context.',
-      bridge: 'Step 3: Turn state into clear communication.',
-      other: 'Core flow lives in Home → Cycle → Bridge.',
-    },
-    {
-      ru: {
-        dashboard: 'Шаг 1: начните с короткого check-in.',
-        cycle: 'Шаг 2: проверьте контекст цикла.',
-        bridge: 'Шаг 3: переведите состояние в ясное сообщение.',
-        other: 'Базовый маршрут: Home → Cycle → Bridge.',
-      },
-      uk: {
-        dashboard: 'Крок 1: почніть із короткого check-in.',
-        cycle: 'Крок 2: перегляньте контекст циклу.',
-        bridge: 'Крок 3: перетворіть стан на зрозуміле повідомлення.',
-        other: 'Базовий маршрут: Home → Cycle → Bridge.',
-      },
-      es: {
-        dashboard: 'Paso 1: inicia con un check-in rapido.',
-        cycle: 'Paso 2: revisa el contexto del ciclo.',
-        bridge: 'Paso 3: convierte el estado en mensaje claro.',
-        other: 'Ruta base: Home → Cycle → Bridge.',
-      },
-      fr: {
-        dashboard: 'Etape 1: commencez par un check-in rapide.',
-        cycle: 'Etape 2: verifiez le contexte du cycle.',
-        bridge: 'Etape 3: transformez l etat en message clair.',
-        other: 'Parcours de base: Home → Cycle → Bridge.',
-      },
-      de: {
-        dashboard: 'Schritt 1: mit kurzem Check-in starten.',
-        cycle: 'Schritt 2: Zykluskontext ansehen.',
-        bridge: 'Schritt 3: Zustand in klare Botschaft ubersetzen.',
-        other: 'Basispfad: Home → Cycle → Bridge.',
-      },
-      zh: {
-        dashboard: '第1步：先做一次快速 check-in。',
-        cycle: '第2步：查看周期上下文。',
-        bridge: '第3步：把状态转成清晰表达。',
-        other: '核心路径：Home → Cycle → Bridge。',
-      },
-      ja: {
-        dashboard: 'ステップ1: まず短いチェックイン。',
-        cycle: 'ステップ2: サイクル文脈を確認。',
-        bridge: 'ステップ3: 状態を明確な言葉に変換。',
-        other: '基本導線: Home → Cycle → Bridge。',
-      },
-      pt: {
-        dashboard: 'Passo 1: comece com um check-in rapido.',
-        cycle: 'Passo 2: revise o contexto do ciclo.',
-        bridge: 'Passo 3: transforme o estado em mensagem clara.',
-        other: 'Fluxo base: Home → Cycle → Bridge.',
-      },
-      ar: {
-        dashboard: 'الخطوة 1: ابدئي بفحص سريع.',
-        cycle: 'الخطوة 2: راجعي سياق الدورة.',
-        bridge: 'الخطوة 3: حوّلي حالتك إلى تواصل واضح.',
-        other: 'المسار الأساسي: Home → Cycle → Bridge.',
-      },
-      he: {
-        dashboard: 'שלב 1: התחילי עם check-in קצר.',
-        cycle: 'שלב 2: בדקי את הקשר המחזור.',
-        bridge: 'שלב 3: הפכי מצב לתקשורת ברורה.',
-        other: 'מסלול ליבה: Home → Cycle → Bridge.',
-      },
-    }
-  );
-  const quickStartCopy = getLang(quickStartHintByLang, lang) || quickStartHintByLang.en;
-  const quickStartKey: 'dashboard' | 'cycle' | 'bridge' | 'other' =
-    activeTab === 'today_mirror'
-      ? 'dashboard'
-      : activeTab === 'cycle'
-        ? 'cycle'
-        : activeTab === 'history'
-          ? 'bridge'
-          : 'other';
 
   const isDark = theme === 'dark';
 
   const sidebarPanelClass =
-    'luna-app-sidebar h-full w-[300px] bg-[#f8f5fa] dark:bg-[#0f1a33] backdrop-blur-xl border-r border-slate-200/90 dark:border-slate-500/25 shadow-luna-deep p-8 flex flex-col overflow-y-auto no-scrollbar';
+    'luna-app-sidebar h-full w-[240px] bg-[#f8f5fa] dark:bg-[#0f1a33] backdrop-blur-xl border-r border-slate-200/90 dark:border-slate-500/25 shadow-luna-deep px-3 pt-6 pb-4 flex flex-col overflow-y-auto no-scrollbar';
 
   const groupAccents = [
     {
@@ -186,41 +97,37 @@ export const AppShellNav: React.FC<AppShellNavProps> = ({
 
   const sidebarContent = (
     <>
-      <header className="flex justify-between items-center mb-10">
-        <div className="flex items-center gap-0.5">
-          <img src={getBrandAssetUrl('appIcon')} alt="" aria-hidden="true" className="h-14 w-auto object-contain select-none pointer-events-none" />
-          <Logo size="sm" className="text-4xl leading-none" />
-        </div>
+      <header className="flex justify-end items-center mb-2 shrink-0 lg:hidden">
         <button
           type="button"
           onClick={() => setShowSidebar(false)}
-          className="lg:hidden w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-200/70 dark:hover:bg-slate-200/20 text-2xl font-light text-slate-700 dark:text-white"
+          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-200/70 dark:hover:bg-slate-200/20 text-xl font-light text-slate-700 dark:text-white shrink-0"
           aria-label="Close menu"
         >
           ×
         </button>
       </header>
 
-      <div className="flex flex-col gap-7 flex-1">
+      <div className="flex flex-col gap-3 flex-1 min-h-0 pt-1">
         {sidebarGroups.map((group, idx) => {
           const accent = groupAccents[idx % groupAccents.length];
           const groupActive = group.items.some((item) => item.id === activeTab);
           return (
           <div
             key={idx}
-            className={`space-y-2 transition-opacity duration-300 ${groupActive ? 'opacity-100' : 'opacity-72 hover:opacity-90 dark:opacity-95 dark:hover:opacity-100'}`}
+            className={`space-y-0.5 transition-opacity duration-300 ${groupActive ? 'opacity-100' : 'opacity-72 hover:opacity-90 dark:opacity-95 dark:hover:opacity-100'}`}
             aria-labelledby={`sidebar-group-${idx}`}
           >
-            {idx > 0 && <div className="h-px bg-gradient-to-r from-transparent via-slate-200/90 to-transparent dark:via-white/20 mx-1 mb-1" />}
-            <div className="relative px-1 pt-0.5">
+            {idx > 0 && <div className="h-px bg-gradient-to-r from-transparent via-slate-200/90 to-transparent dark:via-white/20 mx-1 mb-0.5" />}
+            <div className="relative px-0.5">
               <div
-                className={`absolute left-0 top-0 bottom-2 w-0.5 rounded-full bg-gradient-to-b ${accent.stripe} ${
+                className={`absolute left-0 top-0 bottom-1 w-0.5 rounded-full bg-gradient-to-b ${accent.stripe} ${
                   groupActive ? 'opacity-100' : 'opacity-45 dark:opacity-35'
                 }`}
               />
               <h3
                 id={`sidebar-group-${idx}`}
-                className={`pl-3 pb-2 mb-1 border-b text-[10px] font-black uppercase tracking-[0.34em] leading-none ${
+                className={`pl-2.5 pb-1 mb-0.5 border-b text-[9px] font-black uppercase tracking-[0.22em] leading-none ${
                   groupActive
                     ? isDark
                       ? 'text-white border-white/35'
@@ -233,7 +140,7 @@ export const AppShellNav: React.FC<AppShellNavProps> = ({
                 {group.title}
               </h3>
             </div>
-            <div className={`flex flex-col gap-1 px-0.5 ${groupActive ? '' : 'pl-0.5'}`}>
+            <div className={`flex flex-col gap-0.5 px-0.5 ${groupActive ? '' : 'pl-0.5'}`}>
               {group.items.map((item) => {
                 const isActive = activeTab === item.id;
                 const pillClass = isDark ? accent.pillDark : accent.pillLight;
@@ -243,23 +150,38 @@ export const AppShellNav: React.FC<AppShellNavProps> = ({
                   key={item.id}
                   data-testid={`sidebar-nav-${item.id}`}
                   aria-current={isActive ? 'page' : undefined}
-                  onClick={() => navigateTo(item.id, { openSidebar: true, keepSidebar: true })}
-                  className={`relative flex items-center gap-3 p-3 rounded-xl transition-all duration-250 border text-left w-full ${
+                  onClick={() => {
+                    if (item.id === 'live_ai') {
+                      onOpenLive?.();
+                      setShowSidebar(false);
+                      return;
+                    }
+                    if (item.id === 'profile') {
+                      trackHealthProfileOpened('nav', healthProfileCompletionPercent);
+                    }
+                    navigateTo(item.id as TabType, { openSidebar: true, keepSidebar: true });
+                  }}
+                  className={`relative flex items-center gap-2 px-2 py-1.5 rounded-lg transition-all duration-200 border text-left w-full ${
                     isActive
-                      ? `${pillClass} scale-[1.015]`
+                      ? `${pillClass}`
                       : `border-transparent ${isDark ? 'text-white/92' : 'text-slate-700'} ${hoverClass}`
                   }`}
                 >
                   {isActive && (
-                    <span className={`absolute left-0 top-2 bottom-2 w-1 rounded-full bg-gradient-to-b ${accent.stripe}`} />
+                    <span className={`absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full bg-gradient-to-b ${accent.stripe}`} />
                   )}
-                  <span className={`text-base shrink-0 ${isActive ? 'opacity-100' : 'opacity-75 dark:opacity-95'}`} aria-hidden>{item.icon}</span>
-                  <span
-                    className={`text-[11px] uppercase tracking-[0.12em] leading-snug ${
-                      isActive ? 'font-bold' : 'font-semibold'
-                    }`}
-                  >
-                    {item.label}
+                  <span className={`text-sm shrink-0 ${isActive ? 'opacity-100' : 'opacity-75 dark:opacity-95'}`} aria-hidden>{item.icon}</span>
+                  <span className="min-w-0 flex-1 flex flex-col items-start gap-0">
+                    <span
+                      className={`text-[10px] uppercase tracking-[0.08em] leading-snug ${
+                        isActive ? 'font-bold' : 'font-semibold'
+                      }`}
+                    >
+                      {item.label}
+                    </span>
+                    {item.id === 'profile' && healthProfileCompletionPercent != null && healthProfileCompletionPercent < 100 && (
+                      <HealthProfileCompletionLabel percent={healthProfileCompletionPercent} compact />
+                    )}
                   </span>
                 </button>
               );})}
@@ -268,13 +190,13 @@ export const AppShellNav: React.FC<AppShellNavProps> = ({
         );})}
       </div>
 
-      <div className="mt-8 pt-6 border-t border-slate-200/80 dark:border-white/15 dark:border-slate-600/40">
+      <div className="mt-4 pt-3 border-t border-slate-200/80 dark:border-white/15 dark:border-slate-600/40 shrink-0">
         <button
           type="button"
           onClick={onLogout}
-          className="w-full px-4 py-3 rounded-2xl border border-slate-300/70 dark:border-slate-500/45 text-slate-700 dark:text-white text-[10px] font-black uppercase tracking-[0.2em] hover:border-luna-purple/60 transition-colors"
+          className="w-full px-3 py-2 rounded-xl border border-slate-300/70 dark:border-slate-500/45 text-slate-700 dark:text-white text-[9px] font-black uppercase tracking-[0.16em] hover:border-luna-purple/60 transition-colors"
         >
-          <LunaMenuLabel text={copy.logout} muted className="opacity-95 text-[10px] font-semibold uppercase tracking-[0.18em]" />
+          <LunaMenuLabel text={copy.logout} muted className="opacity-95 text-[9px] font-semibold uppercase tracking-[0.14em]" />
         </button>
       </div>
     </>
@@ -291,27 +213,33 @@ export const AppShellNav: React.FC<AppShellNavProps> = ({
       </nav>
 
       <header
-        className="sticky top-0 z-[100] w-full lg:pl-[300px] bg-white/72 dark:bg-[#101a31]/74 backdrop-blur-xl border-b border-white/55 dark:border-white/12 shadow-sm transition-all duration-300"
+        className="sticky top-0 z-[100] w-full lg:ml-[240px] lg:w-[calc(100%-240px)] bg-white/72 dark:bg-[#101a31]/74 backdrop-blur-xl border-b border-white/55 dark:border-white/12 shadow-sm transition-all duration-300 overflow-hidden"
         style={{ paddingTop: 'env(safe-area-inset-top)' }}
       >
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between gap-8">
-          <div className="flex items-center gap-6 md:gap-8 shrink-0">
+        <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between gap-6">
+          <div className="flex items-center gap-4 shrink-0">
             <button
               data-testid="nav-logo-dashboard"
               onClick={() => navigateTo('today_mirror')}
-              className="flex items-center gap-0.5 origin-left scale-[1.12] hover:scale-[1.16] active:scale-[1.08] transition-transform"
+              className="flex items-center gap-1.5 hover:opacity-90 active:opacity-80 transition-opacity"
             >
-              <img src={getBrandAssetUrl('appIcon')} alt="" aria-hidden="true" className="h-16 w-auto md:h-20 object-contain select-none pointer-events-none" />
-              <Logo size="sm" className="text-5xl leading-none" />
+              <img src={getBrandAssetUrl('appIcon')} alt="" aria-hidden="true" className="h-9 w-auto object-contain select-none pointer-events-none" />
+              <Logo size="sm" className="text-3xl leading-none" />
             </button>
           </div>
 
-          <nav className="flex items-center gap-1 overflow-x-auto no-scrollbar py-2 flex-grow justify-center lg:justify-start px-2">
+          <nav className="flex items-center gap-1 overflow-x-auto no-scrollbar py-1 flex-grow justify-center lg:justify-start px-2">
             {topNavItems.map((item) => (
               <button
                 key={item.id}
                 data-testid={`top-nav-${item.id}`}
-                onClick={() => navigateTo(item.id)}
+                onClick={() => {
+                  if (item.id === 'live_ai') {
+                    onOpenLive?.();
+                    return;
+                  }
+                  navigateTo(item.id as TabType);
+                }}
                 className={`px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
                   activeTab === item.id
                     ? 'bg-luna-purple/10 shadow-sm'
@@ -335,22 +263,18 @@ export const AppShellNav: React.FC<AppShellNavProps> = ({
             </button>
           </nav>
 
-          <div className="flex items-center gap-4 shrink-0">
+          <div className="flex items-center gap-3 shrink-0">
             <div className="hidden sm:block">
               <LanguageSelector current={lang} onSelect={setLang} />
             </div>
             <ThemeToggle theme={theme} toggle={() => setTheme(theme === 'light' ? 'dark' : 'light')} />
             <button
               onClick={onLogout}
-              className="hidden md:inline-flex px-3 py-2 rounded-full border border-slate-300/80 dark:border-slate-700/80 text-[9px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300 hover:text-luna-purple hover:border-luna-purple/60 transition-colors"
+              className="hidden md:inline-flex px-3 py-1.5 rounded-full border border-slate-300/80 dark:border-slate-700/80 text-[9px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300 hover:text-luna-purple hover:border-luna-purple/60 transition-colors"
             >
               {copy.logout}
             </button>
           </div>
-        </div>
-        <div className="max-w-7xl mx-auto px-6 pb-2 hidden md:flex items-center gap-3">
-          <span className="text-[8px] font-black uppercase tracking-[0.25em] text-luna-purple">{getLang(quickStartByLang, lang)}</span>
-          <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">{quickStartCopy[quickStartKey]}</p>
         </div>
       </header>
     </>

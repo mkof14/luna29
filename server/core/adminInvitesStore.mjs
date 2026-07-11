@@ -7,6 +7,7 @@ import { randomBytes } from 'node:crypto';
 
 export const ADMIN_INVITES_TABLE = 'admin_invites';
 export const DEFAULT_ADMIN_INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+export const DEFAULT_SITE_INVITE_TTL_MS = 14 * 24 * 60 * 60 * 1000;
 
 const SCHEMA_SQL = `
 CREATE TABLE IF NOT EXISTS admin_invites (
@@ -128,16 +129,16 @@ export const listAdminInvites = async (pool, { limit = 100 } = {}) => {
 };
 
 /**
- * Read-only validation for admin invite consumption (does not mutate).
+ * Read-only validation for invite consumption (admin or site).
  * @returns {{ ok: true, invite } | { ok: false, reason: string, invite?: object }}
  */
-export const validateAdminInviteForConsume = async (pool, { inviteId, email, now = new Date() }) => {
+export const validateInviteForConsume = async (pool, { inviteId, email, kind = null, now = new Date() }) => {
   const id = String(inviteId || '');
   const normalizedEmail = String(email || '').toLowerCase();
   if (!id) return { ok: false, reason: 'unknown_invite' };
   const invite = await getAdminInviteById(pool, id);
   if (!invite) return { ok: false, reason: 'unknown_invite' };
-  if (invite.kind !== 'admin') return { ok: false, reason: 'not_admin_invite', invite };
+  if (kind && invite.kind !== kind) return { ok: false, reason: 'wrong_invite_kind', invite };
   if (invite.status === 'accepted' || invite.status === 'consumed') {
     return { ok: false, reason: 'already_consumed', invite };
   }
@@ -153,11 +154,17 @@ export const validateAdminInviteForConsume = async (pool, { inviteId, email, now
   return { ok: true, invite };
 };
 
+export const validateAdminInviteForConsume = async (pool, { inviteId, email, now = new Date() }) =>
+  validateInviteForConsume(pool, { inviteId, email, kind: 'admin', now });
+
+export const validateSiteInviteForConsume = async (pool, { inviteId, email, now = new Date() }) =>
+  validateInviteForConsume(pool, { inviteId, email, kind: 'site', now });
+
 /**
- * Atomically consume an admin invite (single-use).
+ * Atomically consume an invite (single-use).
  * @returns {{ ok: true, invite } | { ok: false, reason: string, invite?: object }}
  */
-export const consumeAdminInvite = async (pool, { inviteId, email, now = new Date() }) => {
+export const consumeInviteById = async (pool, { inviteId, email, kind = null, now = new Date() }) => {
   const id = String(inviteId || '');
   const normalizedEmail = String(email || '').toLowerCase();
   if (!id) return { ok: false, reason: 'unknown_invite' };
@@ -172,9 +179,9 @@ export const consumeAdminInvite = async (pool, { inviteId, email, now = new Date
       return { ok: false, reason: 'unknown_invite' };
     }
     const invite = rowToInvite(row);
-    if (invite.kind !== 'admin') {
+    if (kind && invite.kind !== kind) {
       await client.query('ROLLBACK');
-      return { ok: false, reason: 'not_admin_invite', invite };
+      return { ok: false, reason: 'wrong_invite_kind', invite };
     }
     if (invite.status === 'accepted' || invite.status === 'consumed') {
       await client.query('ROLLBACK');
@@ -224,6 +231,12 @@ export const consumeAdminInvite = async (pool, { inviteId, email, now = new Date
     client.release();
   }
 };
+
+export const consumeAdminInvite = async (pool, { inviteId, email, now = new Date() }) =>
+  consumeInviteById(pool, { inviteId, email, kind: 'admin', now });
+
+export const consumeSiteInvite = async (pool, { inviteId, email, now = new Date() }) =>
+  consumeInviteById(pool, { inviteId, email, kind: 'site', now });
 
 export const countAdminInvites = async (pool) => {
   const result = await pool.query(`SELECT COUNT(*)::int AS n FROM admin_invites`);

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Logo } from './Logo';
-import { Mic, MicOff, Moon, Sun, Volume2, VolumeX } from 'lucide-react';
+import { Mic, MicOff, Moon, Sun, Volume2, VolumeX, X } from 'lucide-react';
 import { Language, LangCopy, getLang } from '../constants';
 import {
   DEFAULT_LUNA_PERSONA_ID,
@@ -455,6 +455,7 @@ import {
   publicLiveTurnsLeft,
 } from '../utils/liveAssistantAccess';
 import { MemoryControls } from './MemoryControls';
+import { HealthProfileIncompleteNotice } from './HealthProfileIncompleteNotice';
 import { getMemoryConsent, type MemoryConsentResponse } from '../services/memoryConsentService';
 import { trackEvent } from '../services/analyticsService';
 
@@ -478,6 +479,8 @@ export const LiveAssistant: React.FC<{
   onSessionComplete?: (payload: LiveSessionClosePayload) => void;
   /** Seed prior turns when continuing a conversation (no duplicated session). */
   resumeMessages?: Array<{ role: 'user' | 'luna' | 'system'; text: string }>;
+  /** Optional Personal Health Profile entry — never interrupts chat. */
+  onOpenHealthProfile?: () => void;
 }> = ({
   isOpen,
   onClose,
@@ -488,6 +491,7 @@ export const LiveAssistant: React.FC<{
   onSignUp,
   onSessionComplete,
   resumeMessages,
+  onOpenHealthProfile,
 }) => {
   const isPublicPreview = accessMode === 'public';
   const idleBars = useMemo(() => Array.from({ length: 10 }, (_, i) => (i % 2 === 0 ? 8 : 10)), []);
@@ -971,20 +975,53 @@ export const LiveAssistant: React.FC<{
     };
   }, [isOpen, isPublicPreview, showMemory]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') finishSessionAndClose();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isOpen, finishSessionAndClose]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[400] bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-300">
-      <div className="relative w-full max-w-md h-[80vh] md:h-[75vh] rounded-[3.7rem] p-[1.5px] bg-[conic-gradient(from_160deg_at_50%_50%,rgba(244,114,182,0.9),rgba(167,139,250,0.9),rgba(96,165,250,0.9),rgba(52,211,153,0.9),rgba(244,114,182,0.9))] shadow-[0_30px_80px_rgba(44,71,132,0.55)]">
+    <div
+      className="fixed inset-0 z-[400] bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-300"
+      onClick={finishSessionAndClose}
+      role="presentation"
+    >
+      <div
+        className="relative w-full max-w-md h-[80vh] md:h-[75vh] rounded-[3.7rem] p-[1.5px] bg-[conic-gradient(from_160deg_at_50%_50%,rgba(244,114,182,0.9),rgba(167,139,250,0.9),rgba(96,165,250,0.9),rgba(52,211,153,0.9),rgba(244,114,182,0.9))] shadow-[0_30px_80px_rgba(44,71,132,0.55)]"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Luna29 Live"
+      >
         <div className={`relative w-full h-full flex flex-col rounded-[3.5rem] border overflow-hidden transition-all duration-500 ${themeClasses[assistantTheme]}`}>
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(75%_60%_at_20%_0%,rgba(255,255,255,0.18),transparent_62%),radial-gradient(70%_70%_at_90%_100%,rgba(139,92,246,0.18),transparent_65%)] dark:bg-[radial-gradient(75%_60%_at_20%_0%,rgba(96,165,250,0.14),transparent_62%),radial-gradient(70%_70%_at_90%_100%,rgba(244,114,182,0.16),transparent_65%)]" />
 
-          <nav className="relative p-6 flex justify-between items-center border-b border-inherit bg-inherit/40 backdrop-blur-md z-20">
-            <div className="flex items-center gap-4">
-              <div className="flex items-end gap-2">
-                <div className={`w-2.5 h-2.5 rounded-full ${status === 'CONNECTED' ? 'bg-emerald-500 shadow-[0_0_10px_#10b981] animate-pulse' : status === 'CONNECTING' ? 'bg-amber-500 animate-pulse' : 'bg-slate-500'}`} />
-                <Logo size="sm" className="!text-[2rem] !leading-none !pt-0 pointer-events-none" />
-                <span className="mb-1 text-[10px] font-black uppercase tracking-widest opacity-60">{copy.live}</span>
+          <button
+            type="button"
+            onClick={finishSessionAndClose}
+            aria-label="Close Luna29 Live"
+            data-testid="luna-live-close"
+            className={`absolute top-6 right-6 z-50 w-10 h-10 flex items-center justify-center rounded-full border shadow-lg transition-colors ${
+              assistantTheme === 'dark'
+                ? 'bg-slate-900/90 border-white/25 text-white hover:bg-slate-800'
+                : 'bg-white/95 border-slate-300 text-slate-800 hover:bg-slate-100'
+            }`}
+          >
+            <X className="w-5 h-5" strokeWidth={2.5} aria-hidden="true" />
+          </button>
+
+          <nav className="relative p-6 pr-16 flex justify-between items-center border-b border-inherit bg-inherit/40 backdrop-blur-md z-20 min-w-0">
+            <div className="flex items-center gap-4 min-w-0 overflow-hidden">
+              <div className="flex items-end gap-2 min-w-0">
+                <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${status === 'CONNECTED' ? 'bg-emerald-500 shadow-[0_0_10px_#10b981] animate-pulse' : status === 'CONNECTING' ? 'bg-amber-500 animate-pulse' : 'bg-slate-500'}`} />
+                <Logo size="sm" className="!text-[2rem] !leading-none !pt-0 pointer-events-none shrink-0" />
+                <span className="mb-1 text-[10px] font-black uppercase tracking-widest opacity-60 shrink-0">{copy.live}</span>
                 {isPublicPreview && (
                   <span className="mb-1 text-[8px] font-black uppercase tracking-widest text-amber-500/90">{copy.previewBadge}</span>
                 )}
@@ -1031,7 +1068,7 @@ export const LiveAssistant: React.FC<{
               )}
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => setAssistantTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
                 aria-label={assistantTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
@@ -1072,9 +1109,15 @@ export const LiveAssistant: React.FC<{
                   {memoryConsent?.status === 'enabled' ? 'Memory on' : memoryConsent?.status === 'consent_unavailable' ? 'Memory' : 'Memory off'}
                 </button>
               )}
-              <button onClick={finishSessionAndClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-500/10 transition-colors text-2xl font-light">×</button>
             </div>
           </nav>
+
+          {!isPublicPreview && (
+            <HealthProfileIncompleteNotice
+              variant="live"
+              onContinue={onOpenHealthProfile}
+            />
+          )}
 
           {!isPublicPreview && showMemory && (
             <div className="relative z-30 max-h-[45%] overflow-y-auto border-b border-inherit bg-inherit/90 backdrop-blur-md px-4 py-3" data-testid="luna-live-memory-panel">

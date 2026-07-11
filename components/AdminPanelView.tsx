@@ -856,9 +856,9 @@ const parseAdmins = (value: unknown): AdminMember[] => {
   return value
     .map((raw, index) => {
       const item = (raw || {}) as Partial<AdminMember>;
-      const role: AdminRole = (['viewer', 'operator', 'content_manager', 'finance_manager', 'super_admin'] as AdminRole[]).includes(item.role as AdminRole)
+      const role: AdminRole = (['member', 'viewer', 'operator', 'content_manager', 'finance_manager', 'super_admin'] as AdminRole[]).includes(item.role as AdminRole)
         ? (item.role as AdminRole)
-        : 'viewer';
+        : 'member';
       return {
         id: item.id || `adm-${index}`,
         name: String(item.name || 'Admin'),
@@ -1090,9 +1090,9 @@ export const AdminPanelView: React.FC<AdminPanelViewProps> = ({
         .map((item, index) => ({
           id: String(item.id || `inv-${index}`),
           email: String(item.email || '').toLowerCase(),
-          role: (['viewer', 'operator', 'content_manager', 'finance_manager', 'super_admin'] as AdminRole[]).includes(item.role)
+          role: (['member', 'viewer', 'operator', 'content_manager', 'finance_manager', 'super_admin'] as AdminRole[]).includes(item.role)
             ? item.role
-            : 'viewer',
+            : 'member',
           status: (item.status === 'accepted' ? 'accepted' : item.status === 'sent' ? 'sent' : 'pending') as AdminInvite['status'],
           sentAt: String(item.sentAt || new Date().toISOString()),
         }))
@@ -1255,17 +1255,17 @@ export const AdminPanelView: React.FC<AdminPanelViewProps> = ({
 
   const roleOptions: AdminRole[] = ['viewer', 'operator', 'content_manager', 'finance_manager', 'super_admin'];
   const roleLabelByLang: LangCopy< Record<AdminRole, string>> = {
-    en: { viewer: 'Observer', operator: 'Coordinator', content_manager: 'Content Lead', finance_manager: 'Finance Lead', super_admin: 'Super Admin' },
-    ru: { viewer: 'Наблюдатель', operator: 'Координатор', content_manager: 'Контент-лид', finance_manager: 'Финансовый лид', super_admin: 'Супер админ' },
-    uk: { viewer: 'Спостерігач', operator: 'Координатор', content_manager: 'Контент-лід', finance_manager: 'Фінансовий лід', super_admin: 'Супер адмін' },
-    es: { viewer: 'Observador', operator: 'Coordinador', content_manager: 'Lider de contenido', finance_manager: 'Lider financiero', super_admin: 'Super Admin' },
-    fr: { viewer: 'Observateur', operator: 'Coordinateur', content_manager: 'Responsable contenu', finance_manager: 'Responsable finance', super_admin: 'Super Admin' },
-    de: { viewer: 'Beobachter', operator: 'Koordinator', content_manager: 'Content Lead', finance_manager: 'Finance Lead', super_admin: 'Super Admin' },
-    zh: { viewer: '观察者', operator: '协调员', content_manager: '内容负责人', finance_manager: '财务负责人', super_admin: '超级管理员' },
-    ja: { viewer: 'オブザーバー', operator: 'コーディネーター', content_manager: 'コンテンツ担当', finance_manager: '財務担当', super_admin: 'スーパー管理者' },
-    pt: { viewer: 'Observador', operator: 'Coordenador', content_manager: 'Lider de conteudo', finance_manager: 'Lider financeiro', super_admin: 'Super Admin' },
-  ar: { viewer: 'مراقبة', operator: 'منسّقة', content_manager: 'مسؤولة المحتوى', finance_manager: 'مسؤولة المالية', super_admin: 'مسؤولة عليا' },
-  he: { viewer: 'צופה', operator: 'רכזת', content_manager: 'אחראית תוכן', finance_manager: 'אחראית כספים', super_admin: 'מנהלת-על' },};
+    en: { member: 'Member', viewer: 'Observer', operator: 'Coordinator', content_manager: 'Content Lead', finance_manager: 'Finance Lead', super_admin: 'Super Admin' },
+    ru: { member: 'Участник', viewer: 'Наблюдатель', operator: 'Координатор', content_manager: 'Контент-лид', finance_manager: 'Финансовый лид', super_admin: 'Супер админ' },
+    uk: { member: 'Учасниця', viewer: 'Спостерігач', operator: 'Координатор', content_manager: 'Контент-лід', finance_manager: 'Фінансовий лід', super_admin: 'Супер адмін' },
+    es: { member: 'Miembro', viewer: 'Observador', operator: 'Coordinador', content_manager: 'Lider de contenido', finance_manager: 'Lider financiero', super_admin: 'Super Admin' },
+    fr: { member: 'Membre', viewer: 'Observateur', operator: 'Coordinateur', content_manager: 'Responsable contenu', finance_manager: 'Responsable finance', super_admin: 'Super Admin' },
+    de: { member: 'Mitglied', viewer: 'Beobachter', operator: 'Koordinator', content_manager: 'Content Lead', finance_manager: 'Finance Lead', super_admin: 'Super Admin' },
+    zh: { member: '成员', viewer: '观察者', operator: '协调员', content_manager: '内容负责人', finance_manager: '财务负责人', super_admin: '超级管理员' },
+    ja: { member: 'メンバー', viewer: 'オブザーバー', operator: 'コーディネーター', content_manager: 'コンテンツ担当', finance_manager: '財務担当', super_admin: 'スーパー管理者' },
+    pt: { member: 'Membro', viewer: 'Observador', operator: 'Coordenador', content_manager: 'Lider de conteudo', finance_manager: 'Lider financeiro', super_admin: 'Super Admin' },
+  ar: { member: 'عضوة', viewer: 'مراقبة', operator: 'منسّقة', content_manager: 'مسؤولة المحتوى', finance_manager: 'مسؤولة المالية', super_admin: 'مسؤولة عليا' },
+  he: { member: 'חברה', viewer: 'צופה', operator: 'רכזת', content_manager: 'אחראית תוכן', finance_manager: 'אחראית כספים', super_admin: 'מנהלת-על' },};
   const roleLabel = (role: AdminRole) => (getLang(roleLabelByLang, lang) || roleLabelByLang.en)[role];
 
   const runTechChecks = async () => {
@@ -1879,9 +1879,9 @@ export const AdminPanelView: React.FC<AdminPanelViewProps> = ({
         </div>
         <div className="flex flex-wrap gap-3 items-center">
           <span className="px-4 py-2 rounded-full bg-luna-purple/10 text-luna-purple text-[10px] font-black uppercase tracking-widest">{session?.email || copy.noSession}</span>
-          <span className="px-4 py-2 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-black uppercase tracking-widest">{copy.role}: {roleLabel((session?.role || 'viewer') as AdminRole)}</span>
+          <span className="px-4 py-2 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-black uppercase tracking-widest">{copy.role}: {roleLabel((session?.role || 'member') as AdminRole)}</span>
           <select
-            value={session?.role || 'viewer'}
+            value={session?.role || 'member'}
             onChange={(e) => onRoleChange(e.target.value as AdminRole)}
             className="px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-[10px] font-black uppercase tracking-widest"
           >

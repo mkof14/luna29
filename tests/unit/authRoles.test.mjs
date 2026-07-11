@@ -6,8 +6,9 @@ describe('authRoles', () => {
     const admins = buildSuperAdminEmailSet('owner@luna.app');
     admins.add('owner@luna.app');
     expect(resolveRole('owner@luna.app', null, admins)).toBe('super_admin');
-    expect(resolveRole('admin@luna.app', null, admins)).toBe('viewer');
-    expect(resolveRole('founder@startup.io', null, admins)).toBe('viewer');
+    expect(resolveRole('admin@luna.app', null, admins)).toBe('member');
+    expect(resolveRole('founder@startup.io', null, admins)).toBe('member');
+    expect(ROLE_PERMISSIONS.member).toEqual([]);
   });
 
   it('respects role override when valid', () => {

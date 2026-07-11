@@ -241,6 +241,7 @@ export const getProfileContext = (params: {
   return request<{
     status: string;
     facts: PersonalHealthFact[];
+    sections?: Partial<Record<ProfileSectionId, Record<string, unknown>>>;
     missing_context?: string[];
     completion_percent?: number;
   }>(`/api/personal/profile/context${suffix}`);

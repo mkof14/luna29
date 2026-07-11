@@ -24,7 +24,6 @@ const MyVoiceFilesView = lazy(() => import('./MyVoiceFilesView').then((m) => ({ 
 const FAQView = lazy(() => import('./FAQView').then((m) => ({ default: m.FAQView })));
 const ContactView = lazy(() => import('./ContactView').then((m) => ({ default: m.ContactView })));
 const ProfileView = lazy(() => import('./ProfileView').then((m) => ({ default: m.ProfileView })));
-const PrivacyPolicyView = lazy(() => import('./PrivacyPolicyView').then((m) => ({ default: m.PrivacyPolicyView })));
 const CrisisCenterView = lazy(() => import('./CrisisCenterView').then((m) => ({ default: m.CrisisCenterView })));
 const PartnerFAQView = lazy(() => import('./PartnerFAQView').then((m) => ({ default: m.PartnerFAQView })));
 const RelationshipsView = lazy(() => import('./RelationshipsView').then((m) => ({ default: m.RelationshipsView })));
@@ -283,7 +282,14 @@ export const MainContentRouter: React.FC<MainContentRouterProps> = ({
             onBack={onMemberBack}
           />
         )}
-        {activeTab === 'profile' && <ProfileView lang={lang} onBack={onMemberBack} />}
+        {activeTab === 'profile' && (
+          <ProfileView
+            lang={lang}
+            onBack={onMemberBack}
+            onOpenSupport={() => navigateTo('contact')}
+            onOpenPrivacy={() => navigateTo('privacy')}
+          />
+        )}
         {activeTab === 'bridge' && <BridgeView lang={lang} onBack={onMemberBack} />}
         {activeTab === 'relationships' && <RelationshipsView phase={currentPhase} lang={lang} onBack={onMemberBack} />}
         {activeTab === 'family' && <FamilyView phase={currentPhase} lang={lang} onBack={onMemberBack} />}
@@ -298,11 +304,19 @@ export const MainContentRouter: React.FC<MainContentRouterProps> = ({
             userId={session?.id}
             userName={session?.name}
             onBack={onMemberBack}
+            onOpenHealthProfile={() => navigateTo('profile')}
           />
         )}
-        {activeTab === 'meds' && <MedicationsView medications={systemState.medications} lang={lang} onBack={onMemberBack} />}
+        {activeTab === 'meds' && (
+          <MedicationsView
+            medications={systemState.medications}
+            lang={lang}
+            onBack={onMemberBack}
+            onOpenHealthProfile={() => navigateTo('profile')}
+          />
+        )}
         {activeTab === 'history' && <HistoryView log={dataService.getLog()} lang={lang} onBack={onMemberBack} />}
-        {activeTab === 'privacy' && <PrivacyPolicyView lang={lang} onBack={onMemberBack} />}
+        {activeTab === 'privacy' && <LegalDocumentView lang={lang} doc="privacy" onBack={onMemberBack} mode="member" />}
         {activeTab === 'terms' && <LegalDocumentView lang={lang} doc="terms" onBack={onMemberBack} mode="member" />}
         {activeTab === 'medical' && <LegalDocumentView lang={lang} doc="medical" onBack={onMemberBack} mode="member" />}
         {activeTab === 'cookies' && <LegalDocumentView lang={lang} doc="cookies" onBack={onMemberBack} mode="member" />}

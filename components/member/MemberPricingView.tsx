@@ -36,7 +36,7 @@ export const MemberPricingView: React.FC<MemberPricingViewProps> = ({ lang, onBa
 
   const subscribe = async () => {
     try {
-      const session = await billingService.createCheckoutSession('year');
+      const session = await billingService.createCheckoutSession(billingPeriod);
       window.location.href = session.url;
     } catch {
       // billing may be disabled locally
@@ -83,8 +83,8 @@ export const MemberPricingView: React.FC<MemberPricingViewProps> = ({ lang, onBa
             <p className={MEMBER_PRICE_LABEL}>{pricing.monthNote}</p>
             <p className="text-4xl font-black text-slate-900 dark:text-white">{pricing.month}</p>
             <p className={MEMBER_BODY_TEXT}>{pricing.recommended}</p>
-            <button type="button" onClick={startTrial} className={`${PUBLIC_BTN_PRIMARY} ${PUBLIC_BTN_PRIMARY_GLOW} w-full justify-center`}>
-              {cta.trial}
+            <button type="button" onClick={subscribe} className={`${PUBLIC_BTN_PRIMARY} ${PUBLIC_BTN_PRIMARY_GLOW} w-full justify-center`}>
+              {cta.subscribe}
             </button>
           </article>
           <article className={`${MEMBER_INNER_CARD} p-6 md:p-8 space-y-4 ${billingPeriod === 'year' ? 'ring-2 ring-luna-purple/35' : ''}`}>
@@ -95,6 +95,12 @@ export const MemberPricingView: React.FC<MemberPricingViewProps> = ({ lang, onBa
               {cta.subscribe}
             </button>
           </article>
+        </div>
+        <p className={`${MEMBER_MUTED_TEXT} text-center max-w-xl mx-auto`}>{cta.note}</p>
+        <div className="flex justify-center">
+          <button type="button" onClick={startTrial} className={MEMBER_CHIP_INACTIVE}>
+            {cta.trial}
+          </button>
         </div>
       </div>
     </section>

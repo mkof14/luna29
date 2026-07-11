@@ -9,6 +9,11 @@ import { buildApiSecurityHeaders } from './securityHeaders.mjs';
 import { readBodyWithLimit, hasAiProcessingConsent } from './httpUtils.mjs';
 import { resolveRole as resolveRoleSafe, ROLE_PERMISSIONS as CORE_ROLE_PERMISSIONS } from './authRoles.mjs';
 import { sendCalendarReminderEmail, isCalendarEmailEnabled } from './calendarEmail.mjs';
+import {
+  createAuthSecurityToken,
+  consumeAuthSecurityToken,
+  ensureAuthSecurityTokensTable,
+} from './authSecurityTokensStore.mjs';
 import { dispatchDueEmailReminders } from './calendarReminders.mjs';
 import { createRateLimiter, isUpstashRateLimitEnabled, rateLimitBackendLabel } from './rateLimit.mjs';
 import {
@@ -298,6 +303,17 @@ const GOOGLE_CLIENT_IDS = new Set(
 const AUTH_ALLOW_UNVERIFIED_GOOGLE_RAW = process.env.AUTH_ALLOW_UNVERIFIED_GOOGLE === 'true';
 const AUTH_ALLOW_UNVERIFIED_GOOGLE =
   AUTH_ALLOW_UNVERIFIED_GOOGLE_RAW && !isProductionLikeRuntime(process.env);
+/** Closed Paid Beta: invite required in production-like runtimes unless AUTH_INVITE_ONLY=false. */
+const AUTH_INVITE_ONLY =
+  String(process.env.AUTH_INVITE_ONLY || (isProductionLikeRuntime(process.env) ? 'true' : 'false')).toLowerCase() ===
+  'true';
+const AUTH_REQUIRE_EMAIL_VERIFICATION =
+  String(
+    process.env.AUTH_REQUIRE_EMAIL_VERIFICATION || (isProductionLikeRuntime(process.env) ? 'true' : 'false'),
+  ).toLowerCase() === 'true';
+const PUBLIC_SITE_URL = String(process.env.PUBLIC_SITE_URL || process.env.STRIPE_SUCCESS_URL || '')
+  .trim()
+  .replace(/\/$/, '') || 'https://luna29.com';
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.API_KEY || '';
 const BILLING_ENABLED = process.env.STRIPE_BILLING_ENABLED === 'true';
 const STRIPE_SECRET_KEY = String(process.env.STRIPE_SECRET_KEY || '').trim();
@@ -947,6 +963,14 @@ const verifyGoogleCredential = async (credential) => {
 const resolveRole = (email, roleOverride = null) =>
   resolveRoleSafe(email, roleOverride, SUPER_ADMIN_EMAILS);
 
+const isUserEmailVerified = (user) => {
+  if (!user) return false;
+  if (user.lastProvider === 'google') return true;
+  // Legacy accounts without the field remain usable; new password signups set false explicitly.
+  if (user.emailVerified === false) return false;
+  return user.emailVerified === true || user.emailVerified == null;
+};
+
 const buildSessionPayload = (user) => {
   const role = resolveRole(user.email, user.roleOverride || null);
   const provider = user.lastProvider === 'google' ? 'google' : 'password';
@@ -959,6 +983,7 @@ const buildSessionPayload = (user) => {
     permissions: ROLE_PERMISSIONS[role],
     lastLoginAt: new Date().toISOString(),
     avatarUrl: user.avatarUrl,
+    emailVerified: isUserEmailVerified(user),
   };
 };
 
@@ -2558,6 +2583,7 @@ const start = async () => {
         const email = normalizeEmail(body.email);
         const password = String(body.password || '');
         const name = typeof body.name === 'string' && body.name.trim() ? safeText(body.name, 120) : normalizeName(email, 'Luna29 Member');
+        const inviteToken = safeText(body.inviteToken || body.invite || '', 120);
 
         if (!email || !email.includes('@')) {
           send(res, 400, { error: 'Provide a valid email.' }, headers);
@@ -2572,18 +2598,67 @@ const start = async () => {
           return;
         }
 
+        if (AUTH_INVITE_ONLY && !inviteToken) {
+          send(res, 403, { error: 'A valid invitation is required for Closed Paid Beta.', code: 'INVITE_REQUIRED' }, headers);
+          return;
+        }
+
+        let pendingInviteRole = null;
+        let pendingInviteKind = null;
+        if (inviteToken && operationalRecordsMode !== 'unavailable') {
+          const peek = await adminStore.validateInvite({ inviteId: inviteToken, email });
+          if (!peek.ok) {
+            if (AUTH_INVITE_ONLY) {
+              const reason = peek.reason === 'expired' ? 'This invitation has expired.' : 'This invitation is invalid or already used.';
+              send(res, 403, { error: reason, code: 'INVITE_INVALID', reason: peek.reason }, headers);
+              return;
+            }
+          } else if (peek.invite?.kind === 'admin') {
+            const inviteRole =
+              peek.invite.role && ROLE_PERMISSIONS[peek.invite.role] ? peek.invite.role : null;
+            if (inviteRole) pendingInviteRole = inviteRole;
+            pendingInviteKind = 'admin';
+          } else if (peek.invite?.kind === 'site') {
+            pendingInviteKind = 'site';
+          }
+        } else if (AUTH_INVITE_ONLY) {
+          send(res, 403, { error: 'A valid invitation is required for Closed Paid Beta.', code: 'INVITE_REQUIRED' }, headers);
+          return;
+        }
+
+        if (AUTH_INVITE_ONLY && !pendingInviteKind) {
+          send(res, 403, { error: 'A valid invitation is required for Closed Paid Beta.', code: 'INVITE_INVALID' }, headers);
+          return;
+        }
+
         const user = {
           id: randomBytes(12).toString('hex'),
           email,
           name,
           passwordHash: hashPassword(password),
           createdAt: new Date().toISOString(),
-          roleOverride: null,
+          roleOverride: pendingInviteRole,
           lastProvider: 'password',
           avatarUrl: undefined,
+          emailVerified: false,
+          emailVerifiedAt: null,
         };
         users = [user, ...users];
         await saveUsers();
+
+        if (pendingInviteKind && inviteToken && operationalRecordsMode !== 'unavailable') {
+          const consumeResult = await adminStore.consumeInvite({ inviteId: inviteToken, email });
+          if (!consumeResult.ok) {
+            users = users.filter((item) => item.id !== user.id);
+            await saveUsers();
+            if (AUTH_INVITE_ONLY) {
+              send(res, 403, { error: 'This invitation could not be used. Request a new invite.', code: 'INVITE_INVALID' }, headers);
+              return;
+            }
+          } else if (operationalRecordsMode === 'json') {
+            await adminStore.save();
+          }
+        }
 
         const token = createSession(user);
         await saveSessions();
@@ -4640,7 +4715,9 @@ const start = async () => {
         googleEnabled: GOOGLE_CLIENT_IDS.size > 0,
         googleUnverifiedAllowed: AUTH_ALLOW_UNVERIFIED_GOOGLE,
         superAdminBootstrapConfigured: SUPER_ADMIN_BOOTSTRAP_PASSWORD_CONFIGURED,
-        emailEnabled: true,
+        emailEnabled: isCalendarEmailEnabled(),
+        inviteOnly: AUTH_INVITE_ONLY,
+        emailVerificationRequired: AUTH_REQUIRE_EMAIL_VERIFICATION,
       }, headers);
       return;
     }
@@ -4683,16 +4760,38 @@ const start = async () => {
           return;
         }
 
-        // Invite ordering: validate → persist role_override → consume.
-        // Never burn a single-use invite before role authority is durable.
+        if (AUTH_INVITE_ONLY && !inviteToken) {
+          send(res, 403, { error: 'A valid invitation is required for Closed Paid Beta.', code: 'INVITE_REQUIRED' }, headers);
+          return;
+        }
+
+        // Invite ordering: validate → persist user → consume.
         let pendingInviteRole = null;
+        let pendingInviteKind = null;
         if (inviteToken && operationalRecordsMode !== 'unavailable') {
           const peek = await adminStore.validateInvite({ inviteId: inviteToken, email });
-          if (peek.ok && peek.invite?.kind === 'admin') {
+          if (!peek.ok) {
+            if (AUTH_INVITE_ONLY) {
+              const reason = peek.reason === 'expired' ? 'This invitation has expired.' : 'This invitation is invalid or already used.';
+              send(res, 403, { error: reason, code: 'INVITE_INVALID', reason: peek.reason }, headers);
+              return;
+            }
+          } else if (peek.invite?.kind === 'admin') {
             const inviteRole =
               peek.invite.role && ROLE_PERMISSIONS[peek.invite.role] ? peek.invite.role : null;
             if (inviteRole) pendingInviteRole = inviteRole;
+            pendingInviteKind = 'admin';
+          } else if (peek.invite?.kind === 'site') {
+            pendingInviteKind = 'site';
           }
+        } else if (AUTH_INVITE_ONLY) {
+          send(res, 403, { error: 'A valid invitation is required for Closed Paid Beta.', code: 'INVITE_REQUIRED' }, headers);
+          return;
+        }
+
+        if (AUTH_INVITE_ONLY && !pendingInviteKind) {
+          send(res, 403, { error: 'A valid invitation is required for Closed Paid Beta.', code: 'INVITE_INVALID' }, headers);
+          return;
         }
 
         const user = {
@@ -4704,20 +4803,26 @@ const start = async () => {
           roleOverride: pendingInviteRole,
           lastProvider: 'password',
           avatarUrl: undefined,
+          emailVerified: false,
+          emailVerifiedAt: null,
         };
         users = [user, ...users];
         await saveUsers();
 
-        if (pendingInviteRole && inviteToken && operationalRecordsMode !== 'unavailable') {
+        if (pendingInviteKind && inviteToken && operationalRecordsMode !== 'unavailable') {
           try {
             const consumeResult = await adminStore.consumeInvite({ inviteId: inviteToken, email });
             if (!consumeResult.ok) {
-              // Lost race / expired between peek and consume — do not leave unearned privilege.
               user.roleOverride = null;
               await saveUsers();
+              if (AUTH_INVITE_ONLY) {
+                users = users.filter((item) => item.id !== user.id);
+                await saveUsers();
+                send(res, 403, { error: 'This invitation could not be used. Request a new invite.', code: 'INVITE_INVALID' }, headers);
+                return;
+              }
             }
           } catch (consumeError) {
-            // Consume failed unexpectedly after role persist — revoke provisional role; invite remains usable.
             user.roleOverride = null;
             try {
               await saveUsers();
@@ -4728,6 +4833,26 @@ const start = async () => {
           }
           if (operationalRecordsMode === 'json') {
             await adminStore.save();
+          }
+        }
+
+        if (AUTH_REQUIRE_EMAIL_VERIFICATION && isCalendarEmailEnabled()) {
+          try {
+            await ensureAuthSecurityTokensTable(authPgPool);
+            const issued = await createAuthSecurityToken(authPgPool, {
+              email,
+              kind: 'email_verify',
+              userId: user.id,
+            });
+            const verifyUrl = `${PUBLIC_SITE_URL}/?verify=${encodeURIComponent(issued.rawToken)}`;
+            await sendCalendarReminderEmail({
+              to: email,
+              subject: 'Verify your Luna29 email',
+              text: `Verify your email for Luna29 Closed Paid Beta:\n${verifyUrl}\nThis link expires in one hour.`,
+              html: `<p>Verify your email for Luna29 Closed Paid Beta.</p><p><a href="${verifyUrl}">Verify email</a></p><p>This link expires in one hour.</p>`,
+            });
+          } catch {
+            /* non-blocking — account still created */
           }
         }
 
@@ -4884,7 +5009,32 @@ const start = async () => {
         }
 
         let user = users.find((item) => item.email === email);
+        const inviteToken = safeText(body.inviteToken || body.invite || '', 120);
         if (!user) {
+          if (AUTH_INVITE_ONLY && !inviteToken) {
+            send(res, 403, { error: 'A valid invitation is required for Closed Paid Beta.', code: 'INVITE_REQUIRED' }, headers);
+            return;
+          }
+          let pendingInviteKind = null;
+          if (inviteToken && operationalRecordsMode !== 'unavailable') {
+            const peek = await adminStore.validateInvite({ inviteId: inviteToken, email });
+            if (!peek.ok) {
+              if (AUTH_INVITE_ONLY) {
+                send(res, 403, { error: 'This invitation is invalid or already used.', code: 'INVITE_INVALID', reason: peek.reason }, headers);
+                return;
+              }
+            } else {
+              pendingInviteKind = peek.invite?.kind || null;
+            }
+          } else if (AUTH_INVITE_ONLY) {
+            send(res, 403, { error: 'A valid invitation is required for Closed Paid Beta.', code: 'INVITE_REQUIRED' }, headers);
+            return;
+          }
+          if (AUTH_INVITE_ONLY && !pendingInviteKind) {
+            send(res, 403, { error: 'A valid invitation is required for Closed Paid Beta.', code: 'INVITE_INVALID' }, headers);
+            return;
+          }
+
           user = {
             id: randomBytes(12).toString('hex'),
             email,
@@ -4894,8 +5044,21 @@ const start = async () => {
             roleOverride: null,
             lastProvider: 'google',
             avatarUrl: claims.picture,
+            emailVerified: true,
+            emailVerifiedAt: new Date().toISOString(),
           };
           users = [user, ...users];
+
+          if (pendingInviteKind && inviteToken && operationalRecordsMode !== 'unavailable') {
+            const consumeResult = await adminStore.consumeInvite({ inviteId: inviteToken, email });
+            if (!consumeResult.ok && AUTH_INVITE_ONLY) {
+              users = users.filter((item) => item.id !== user.id);
+              await saveUsers();
+              send(res, 403, { error: 'This invitation could not be used. Request a new invite.', code: 'INVITE_INVALID' }, headers);
+              return;
+            }
+            if (operationalRecordsMode === 'json') await adminStore.save();
+          }
         } else {
           if (await isDeletionBlockingUser(user.id)) {
             send(res, 403, { error: 'Account deletion in progress.', code: 'ACCOUNT_DELETION_IN_PROGRESS' }, headers);
@@ -4904,6 +5067,8 @@ const start = async () => {
           user.lastProvider = 'google';
           user.name = claims.name ? safeText(claims.name, 120) : user.name;
           user.avatarUrl = claims.picture || user.avatarUrl;
+          user.emailVerified = true;
+          user.emailVerifiedAt = user.emailVerifiedAt || new Date().toISOString();
         }
 
         await saveUsers();
@@ -4913,6 +5078,126 @@ const start = async () => {
         send(res, 200, { session: buildSessionPayload(user) }, { ...headers, 'Set-Cookie': createSessionCookie(token) });
       } catch (error) {
         send(res, 400, { error: error instanceof Error ? error.message : 'Google authorization failed.' }, headers);
+      }
+      return;
+    }
+
+    if (method === 'POST' && url.pathname === '/api/auth/forgot-password') {
+      if (!(await rateLimit(`forgot:${ip}`, 8, 60_000))) {
+        send(res, 429, { error: 'Too many reset requests. Try again in a minute.' }, headers);
+        return;
+      }
+      try {
+        const body = await readBody(req);
+        const email = normalizeEmail(body.email);
+        // Always return ok to avoid account enumeration.
+        if (email && email.includes('@')) {
+          const user = users.find((item) => item.email === email && item.passwordHash);
+          if (user && isCalendarEmailEnabled()) {
+            await ensureAuthSecurityTokensTable(authPgPool);
+            const issued = await createAuthSecurityToken(authPgPool, {
+              email,
+              kind: 'password_reset',
+              userId: user.id,
+            });
+            const resetUrl = `${PUBLIC_SITE_URL}/?reset=${encodeURIComponent(issued.rawToken)}`;
+            await sendCalendarReminderEmail({
+              to: email,
+              subject: 'Reset your Luna29 password',
+              text: `Reset your Luna29 password:\n${resetUrl}\nThis link expires in one hour. If you did not request this, ignore this email.`,
+              html: `<p>Reset your Luna29 password.</p><p><a href="${resetUrl}">Reset password</a></p><p>This link expires in one hour.</p>`,
+            });
+          }
+        }
+        send(res, 200, { ok: true }, headers);
+      } catch (error) {
+        send(res, 200, { ok: true }, headers);
+      }
+      return;
+    }
+
+    if (method === 'POST' && url.pathname === '/api/auth/reset-password') {
+      if (!(await rateLimit(`reset:${ip}`, 10, 60_000))) {
+        send(res, 429, { error: 'Too many reset attempts. Try again in a minute.' }, headers);
+        return;
+      }
+      try {
+        const body = await readBody(req);
+        const rawToken = safeText(body.token || body.resetToken || '', 200);
+        const password = String(body.password || '');
+        if (!rawToken) {
+          send(res, 400, { error: 'Reset link is invalid.', code: 'INVALID_TOKEN' }, headers);
+          return;
+        }
+        if (password.length < 8) {
+          send(res, 400, { error: 'Password must contain at least 8 characters.' }, headers);
+          return;
+        }
+        const consumed = await consumeAuthSecurityToken(authPgPool, { rawToken, kind: 'password_reset' });
+        if (!consumed.ok) {
+          const message =
+            consumed.reason === 'expired'
+              ? 'This reset link has expired. Request a new one.'
+              : 'This reset link is invalid or already used.';
+          send(res, 400, { error: message, code: consumed.reason || 'INVALID_TOKEN' }, headers);
+          return;
+        }
+        const email = consumed.token.email;
+        const user = users.find((item) => item.email === email);
+        if (!user || !user.passwordHash) {
+          send(res, 400, { error: 'This reset link is invalid or already used.', code: 'INVALID_TOKEN' }, headers);
+          return;
+        }
+        user.passwordHash = hashPassword(password);
+        await saveUsers();
+        send(res, 200, { ok: true }, headers);
+      } catch (error) {
+        send(res, 400, { error: error instanceof Error ? error.message : 'Unable to reset password.' }, headers);
+      }
+      return;
+    }
+
+    if (method === 'POST' && url.pathname === '/api/auth/verify-email') {
+      if (!(await rateLimit(`verify:${ip}`, 20, 60_000))) {
+        send(res, 429, { error: 'Too many verification attempts. Try again in a minute.' }, headers);
+        return;
+      }
+      try {
+        const body = await readBody(req);
+        const rawToken = safeText(body.token || body.verifyToken || '', 200);
+        if (!rawToken) {
+          send(res, 400, { error: 'Verification link is invalid.', code: 'INVALID_TOKEN' }, headers);
+          return;
+        }
+        const consumed = await consumeAuthSecurityToken(authPgPool, { rawToken, kind: 'email_verify' });
+        if (!consumed.ok) {
+          if (consumed.reason === 'already_consumed') {
+            send(res, 200, { ok: true, alreadyVerified: true }, headers);
+            return;
+          }
+          const message =
+            consumed.reason === 'expired'
+              ? 'This verification link has expired.'
+              : 'This verification link is invalid.';
+          send(res, 400, { error: message, code: consumed.reason || 'INVALID_TOKEN' }, headers);
+          return;
+        }
+        const email = consumed.token.email;
+        const user = users.find((item) => item.email === email);
+        if (!user) {
+          send(res, 400, { error: 'This verification link is invalid.', code: 'INVALID_TOKEN' }, headers);
+          return;
+        }
+        if (user.emailVerified) {
+          send(res, 200, { ok: true, alreadyVerified: true }, headers);
+          return;
+        }
+        user.emailVerified = true;
+        user.emailVerifiedAt = new Date().toISOString();
+        await saveUsers();
+        send(res, 200, { ok: true, session: buildSessionPayload(user) }, headers);
+      } catch (error) {
+        send(res, 400, { error: error instanceof Error ? error.message : 'Unable to verify email.' }, headers);
       }
       return;
     }

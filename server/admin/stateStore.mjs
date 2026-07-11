@@ -2,10 +2,11 @@ import { ROLE_PERMISSIONS } from '../core/authRoles.mjs';
 import {
   generateInviteToken,
   DEFAULT_ADMIN_INVITE_TTL_MS,
+  DEFAULT_SITE_INVITE_TTL_MS,
   listAdminInvites,
   insertAdminInvite,
-  consumeAdminInvite,
-  validateAdminInviteForConsume,
+  consumeInviteById,
+  validateInviteForConsume,
   updateAdminInviteDelivered,
 } from '../core/adminInvitesStore.mjs';
 import { appendAdminAuditEvent, listAdminAuditEvents } from '../core/adminAuditStore.mjs';
@@ -80,7 +81,7 @@ export const sanitizeAdminState = (raw, { safeText, normalizeEmail, numberOr }) 
       id: safeText(item.id || `adm-${index}`, 80),
       name: safeText(item.name || 'Admin', 120),
       email: normalizeEmail(item.email || ''),
-      role: ROLE_PERMISSIONS[item.role] ? item.role : 'viewer',
+      role: ROLE_PERMISSIONS[item.role] ? item.role : 'member',
       active: Boolean(item.active),
     }));
   }
@@ -283,7 +284,7 @@ export const createAdminStateStore = ({
       const expiresAt =
         kind === 'admin'
           ? new Date(Date.now() + DEFAULT_ADMIN_INVITE_TTL_MS).toISOString()
-          : undefined;
+          : new Date(Date.now() + DEFAULT_SITE_INVITE_TTL_MS).toISOString();
       const inviteLink = `${inviteLinkBase}${encodeURIComponent(id)}`;
       const invite = {
         id,
@@ -308,14 +309,14 @@ export const createAdminStateStore = ({
     /**
      * Read-only invite check (no consume). Used to persist role_override before burning the token.
      */
-    async validateInvite({ inviteId, email }) {
+    async validateInvite({ inviteId, email, kind = null }) {
       if (isPostgres) {
-        return validateAdminInviteForConsume(pool, { inviteId, email });
+        return validateInviteForConsume(pool, { inviteId, email, kind });
       }
       const invites = adminState.invites || [];
       const invite = invites.find((item) => item.id === inviteId);
       if (!invite) return { ok: false, reason: 'unknown_invite' };
-      if (invite.kind !== 'admin') return { ok: false, reason: 'not_admin_invite', invite };
+      if (kind && invite.kind !== kind) return { ok: false, reason: 'wrong_invite_kind', invite };
       if (invite.status === 'accepted' || invite.status === 'consumed') {
         return { ok: false, reason: 'already_consumed', invite };
       }
@@ -329,11 +330,11 @@ export const createAdminStateStore = ({
       return { ok: true, invite };
     },
     /**
-     * Consume admin invite (single-use). JSON mode mirrors atomic semantics in-process.
+     * Consume invite (single-use). JSON mode mirrors atomic semantics in-process.
      */
-    async consumeInvite({ inviteId, email }) {
+    async consumeInvite({ inviteId, email, kind = null }) {
       if (isPostgres) {
-        const result = await consumeAdminInvite(pool, { inviteId, email });
+        const result = await consumeInviteById(pool, { inviteId, email, kind });
         adminState.invites = await listAdminInvites(pool, { limit: 500 });
         return result;
       }
@@ -341,7 +342,7 @@ export const createAdminStateStore = ({
       const idx = invites.findIndex((item) => item.id === inviteId);
       if (idx < 0) return { ok: false, reason: 'unknown_invite' };
       const invite = invites[idx];
-      if (invite.kind !== 'admin') return { ok: false, reason: 'not_admin_invite', invite };
+      if (kind && invite.kind !== kind) return { ok: false, reason: 'wrong_invite_kind', invite };
       if (invite.status === 'accepted' || invite.status === 'consumed') {
         return { ok: false, reason: 'already_consumed', invite };
       }

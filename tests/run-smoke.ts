@@ -308,14 +308,46 @@ const testCoreUtils = () => {
   const bottom = buildBottomNavItems(ui);
 
   assert.equal(sidebar.length, 5, 'sidebar should have five groups');
-  assert.equal(top.length, 5, 'top nav should include five main items');
-  assert.equal(bottom.length, 5, 'bottom nav should include five main items');
+  assert.equal(top.length, 5, 'top nav should include five primary items');
+  assert.equal(bottom.length, 5, 'bottom nav should include five primary items');
+  assert.deepEqual(
+    top.map((item) => item.id),
+    bottom.map((item) => item.id),
+    'top and bottom primary chrome must match',
+  );
   assert.equal(sidebar[0].items[0].id, 'today_mirror', 'first sidebar item should be today_mirror');
-  assert.equal(top[2].id, 'cycle', 'top nav third item should be cycle');
+  assert.equal(top[2].id, 'labs', 'top nav should include health reports');
+  assert.equal(top[3].id, 'profile', 'top nav should include settings');
+  assert.equal(top[3].label, 'Settings', 'profile tab labeled Settings');
   assert.equal(bottom[0].id, 'today_mirror', 'first bottom item should be today_mirror');
+  assert.ok(
+    sidebar[0].items.some((item) => item.id === 'profile' && item.label === 'Settings'),
+    'main group should include Settings',
+  );
+  assert.ok(
+    sidebar[0].items.some((item) => item.id === 'labs'),
+    'main group should include labs/reports',
+  );
+  assert.ok(
+    sidebar[1].items.some((item) => item.id === 'live_ai'),
+    'daily group should include Live AI',
+  );
   assert.ok(
     sidebar[2].items.some((item) => item.id === 'rhythm_calendar'),
     'insights group should include rhythm calendar',
+  );
+  assert.ok(
+    !sidebar[2].items.some((item) => item.id === 'insights_paywall'),
+    'unlock insights must not be a permanent nav destination',
+  );
+  assert.ok(
+    sidebar[4].items.some((item) => item.id === 'contact'),
+    'help group should include contact',
+  );
+  assert.equal(
+    sidebar[2].items.find((item) => item.id === 'dashboard')?.label,
+    'Dashboard',
+    'dashboard must not be labeled as home',
   );
 };
 

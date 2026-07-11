@@ -15,7 +15,7 @@ import {
   getFooterSpiritActions,
   getFooterTrustLine,
 } from '../utils/publicFooterSpirit';
-import { MEMBER_FOOTER_EXPLORE_TABS } from '../utils/memberFooterNavigation';
+import { MEMBER_FOOTER_EXPLORE_TABS, MEMBER_FOOTER_RESOURCE_TABS } from '../utils/memberFooterNavigation';
 import { Language, TranslationSchema, LangCopy, getLang } from '../constants';
 
 interface BeforeInstallPromptEvent extends Event {
@@ -103,18 +103,24 @@ export const AppFooter: React.FC<AppFooterProps> = ({
   const footerMoonAccent = getFooterMoonAccent(lang);
   const legalNav = getLegalNavLabels(lang);
 
-  const footerSectionTitlesByLang: LangCopy<{ explore: string; legal: string; install: string; preferences: string }> = {
-    en: { explore: 'Explore', legal: 'Legal', install: 'Install App', preferences: 'Language & Theme' },
-    ru: { explore: 'Разделы', legal: 'Юридический раздел', install: 'Установить App', preferences: 'Язык и тема' },
-    uk: { explore: 'Розділи', legal: 'Юридичний розділ', install: 'Встановити App', preferences: 'Мова і тема' },
-    es: { explore: 'Secciones', legal: 'Legal', install: 'Instalar App', preferences: 'Idioma y tema' },
-    fr: { explore: 'Sections', legal: 'Juridique', install: 'Installer App', preferences: 'Langue et theme' },
-    de: { explore: 'Bereiche', legal: 'Rechtliches', install: 'App installieren', preferences: 'Sprache und Design' },
-    zh: { explore: '页面', legal: '法律信息', install: '安装 App', preferences: '语言与主题' },
-    ja: { explore: 'ページ', legal: '法務情報', install: 'App をインストール', preferences: '言語とテーマ' },
-    pt: { explore: 'Secoes', legal: 'Legal', install: 'Instalar App', preferences: 'Idioma e tema' },
-    ar: { explore: 'استكشاف', legal: 'قانوني', install: 'تثبيت التطبيق', preferences: 'اللغة والمظهر' },
-    he: { explore: 'חקירה', legal: 'משפטי', install: 'התקנת אפליקציה', preferences: 'שפה וערכת נושא' },
+  const footerSectionTitlesByLang: LangCopy<{
+    explore: string;
+    resources: string;
+    legal: string;
+    install: string;
+    preferences: string;
+  }> = {
+    en: { explore: 'Explore', resources: 'Resources', legal: 'Legal', install: 'Install App', preferences: 'Language & Theme' },
+    ru: { explore: 'Разделы', resources: 'Ресурсы', legal: 'Юридический раздел', install: 'Установить App', preferences: 'Язык и тема' },
+    uk: { explore: 'Розділи', resources: 'Ресурси', legal: 'Юридичний розділ', install: 'Встановити App', preferences: 'Мова і тема' },
+    es: { explore: 'Secciones', resources: 'Recursos', legal: 'Legal', install: 'Instalar App', preferences: 'Idioma y tema' },
+    fr: { explore: 'Sections', resources: 'Ressources', legal: 'Juridique', install: 'Installer App', preferences: 'Langue et theme' },
+    de: { explore: 'Bereiche', resources: 'Ressourcen', legal: 'Rechtliches', install: 'App installieren', preferences: 'Sprache und Design' },
+    zh: { explore: '页面', resources: '资源', legal: '法律信息', install: '安装 App', preferences: '语言与主题' },
+    ja: { explore: 'ページ', resources: 'リソース', legal: '法務情報', install: 'App をインストール', preferences: '言語とテーマ' },
+    pt: { explore: 'Secoes', resources: 'Recursos', legal: 'Legal', install: 'Instalar App', preferences: 'Idioma e tema' },
+    ar: { explore: 'استكشاف', resources: 'موارد', legal: 'قانوني', install: 'تثبيت التطبيق', preferences: 'اللغة والمظهر' },
+    he: { explore: 'חקירה', resources: 'משאבים', legal: 'משפטי', install: 'התקנת אפליקציה', preferences: 'שפה וערכת נושא' },
   };
 
   const pricingLabelByLang: LangCopy<string> = {
@@ -226,17 +232,17 @@ export const AppFooter: React.FC<AppFooterProps> = ({
   };
 
   const storeBadgesByLang: LangCopy<{ appStore: string; googlePlay: string; soon: string }> = {
-    en: { appStore: 'App Store', googlePlay: 'Google Play', soon: 'Store links coming soon.' },
-    ru: { appStore: 'App Store', googlePlay: 'Google Play', soon: 'Ссылки на магазины скоро появятся.' },
-    uk: { appStore: 'App Store', googlePlay: 'Google Play', soon: 'Посилання на магазини зʼявляться незабаром.' },
-    es: { appStore: 'App Store', googlePlay: 'Google Play', soon: 'Enlaces de tiendas próximamente.' },
-    fr: { appStore: 'App Store', googlePlay: 'Google Play', soon: 'Liens stores bientôt disponibles.' },
-    de: { appStore: 'App Store', googlePlay: 'Google Play', soon: 'Store-Links folgen in Kürze.' },
-    zh: { appStore: 'App Store', googlePlay: 'Google Play', soon: '商店链接即将上线。' },
-    ja: { appStore: 'App Store', googlePlay: 'Google Play', soon: 'ストアリンクは近日公開。' },
-    pt: { appStore: 'App Store', googlePlay: 'Google Play', soon: 'Links das lojas em breve.' },
-    ar: { appStore: 'App Store', googlePlay: 'Google Play', soon: 'روابط المتاجر قريباً.' },
-    he: { appStore: 'App Store', googlePlay: 'Google Play', soon: 'קישורי החנות יופיעו בקרוב.' },
+    en: { appStore: 'App Store', googlePlay: 'Google Play', soon: 'Mobile apps are available via install on supported devices.' },
+    ru: { appStore: 'App Store', googlePlay: 'Google Play', soon: 'Мобильные приложения доступны через установку на поддерживаемых устройствах.' },
+    uk: { appStore: 'App Store', googlePlay: 'Google Play', soon: 'Мобільні застосунки доступні через встановлення на підтримуваних пристроях.' },
+    es: { appStore: 'App Store', googlePlay: 'Google Play', soon: 'Las apps móviles están disponibles mediante instalación en dispositivos compatibles.' },
+    fr: { appStore: 'App Store', googlePlay: 'Google Play', soon: 'Les apps mobiles sont disponibles via installation sur les appareils pris en charge.' },
+    de: { appStore: 'App Store', googlePlay: 'Google Play', soon: 'Mobile Apps sind über die Installation auf unterstützten Geräten verfügbar.' },
+    zh: { appStore: 'App Store', googlePlay: 'Google Play', soon: '可在支持的设备上安装移动应用。' },
+    ja: { appStore: 'App Store', googlePlay: 'Google Play', soon: '対応デバイスへのインストールでモバイルアプリを利用できます。' },
+    pt: { appStore: 'App Store', googlePlay: 'Google Play', soon: 'Apps móveis estão disponíveis via instalação em dispositivos compatíveis.' },
+    ar: { appStore: 'App Store', googlePlay: 'Google Play', soon: 'تطبيقات الجوال متاحة عبر التثبيت على الأجهزة المدعومة.' },
+    he: { appStore: 'App Store', googlePlay: 'Google Play', soon: 'אפליקציות לנייד זמינות בהתקנה במכשירים נתמכים.' },
   };
 
   const installGuideModalByLang: LangCopy<{ title: string; close: string }> = {
@@ -260,16 +266,18 @@ export const AppFooter: React.FC<AppFooterProps> = ({
   const installGuideModal = getLang(installGuideModalByLang, lang) || installGuideModalByLang.en;
 
   const exploreLabel = (id: TabType): string => {
-    if (id === 'dashboard') return ui.publicHome.tabs.home;
-    if (id === 'cycle') return ui.publicHome.tabs.map;
+    if (id === 'dashboard') return memberNav.memberHome;
+    if (id === 'cycle') return memberNav.rhythm;
     if (id === 'rhythm_calendar') return memberNav.rhythmCalendar;
     if (id === 'ritual_path') return publicHomeNavLabels.ritual;
-    if (id === 'bridge') return ui.navigation.bridge || 'The Bridge';
+    if (id === 'bridge') return memberNav.bridge;
     if (id === 'pricing') return getLang(pricingLabelByLang, lang) || 'Pricing';
     if (id === 'about') return getLang(aboutLabelByLang, lang) || 'About';
     if (id === 'how_it_works') return getLang(howItWorksLabelByLang, lang) || 'How It Works';
-    if (id === 'faq') return getLang(faqLabelByLang, lang) || 'FAQ';
+    if (id === 'faq') return memberNav.faq;
     if (id === 'learning') return getLang(learningLabelByLang, lang) || 'Learning';
+    if (id === 'profile') return memberNav.settings;
+    if (id === 'contact') return memberNav.contact;
     if (id === 'admin') return ui.navigation.admin || memberNav.adminConsole;
     return id;
   };
@@ -290,7 +298,17 @@ export const AppFooter: React.FC<AppFooterProps> = ({
       }
       return links;
     },
-    [lang, memberNav.adminConsole, memberNav.rhythmCalendar, publicHomeNavLabels.ritual, ui.navigation.admin, ui.navigation.bridge, ui.publicHome.tabs.home, ui.publicHome.tabs.map, canAccessAdmin]
+    [lang, memberNav, publicHomeNavLabels.ritual, ui.navigation.admin, canAccessAdmin],
+  );
+
+  const footerResourceLinks: FooterTabLink[] = useMemo(
+    () =>
+      MEMBER_FOOTER_RESOURCE_TABS.map((item) => ({
+        id: item.id,
+        testId: item.testId,
+        label: exploreLabel(item.id),
+      })),
+    [lang, memberNav],
   );
 
   const footerLegalLinks: FooterTabLink[] = useMemo(
@@ -303,11 +321,6 @@ export const AppFooter: React.FC<AppFooterProps> = ({
     ],
     [legalNav]
   );
-
-  const footerExploreMid = Math.ceil(footerExploreLinks.length / 2);
-  const footerExploreColumns = [footerExploreLinks.slice(0, footerExploreMid), footerExploreLinks.slice(footerExploreMid)];
-  const footerLegalMid = Math.ceil(footerLegalLinks.length / 2);
-  const footerLegalColumns = [footerLegalLinks.slice(0, footerLegalMid), footerLegalLinks.slice(footerLegalMid)];
 
   const socialLinks = useMemo(() => {
     const candidates = [
@@ -371,30 +384,31 @@ export const AppFooter: React.FC<AppFooterProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-8 sm:gap-x-12 gap-y-10 sm:gap-y-12 min-w-0">
-            <nav className="space-y-4 min-w-0 sm:col-span-2 xl:col-span-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-x-8 sm:gap-x-12 gap-y-10 sm:gap-y-12 min-w-0">
+            <nav className="space-y-4 min-w-0">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em]">
                 <LunaShimmerText text={footerSectionTitles.explore} className="opacity-90 font-semibold" />
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5 text-[13px] font-light">
-                {footerExploreColumns.map((column, columnIndex) => (
-                  <div key={`footer-explore-col-${columnIndex}`} className="flex flex-col gap-2.5">
-                    {column.map((link) => renderExploreLink(link, `footer-explore-${columnIndex}-${link.id}`))}
-                  </div>
-                ))}
+              <div className="flex flex-col gap-2.5 text-[13px] font-light">
+                {footerExploreLinks.map((link) => renderExploreLink(link, `footer-explore-${link.id}`))}
               </div>
             </nav>
 
-            <nav className="space-y-4 min-w-0 sm:col-span-2 xl:col-span-1">
+            <nav className="space-y-4 min-w-0" aria-label={footerSectionTitles.resources}>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em]">
+                <LunaShimmerText text={footerSectionTitles.resources} className="opacity-90 font-semibold" />
+              </p>
+              <div className="flex flex-col gap-2.5 text-[13px] font-light">
+                {footerResourceLinks.map((link) => renderExploreLink(link, `footer-resource-${link.id}`))}
+              </div>
+            </nav>
+
+            <nav className="space-y-4 min-w-0">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em]">
                 <LunaShimmerText text={footerSectionTitles.legal} className="opacity-90 font-semibold" />
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5 text-[13px] font-light">
-                {footerLegalColumns.map((column, columnIndex) => (
-                  <div key={`footer-legal-col-${columnIndex}`} className="flex flex-col gap-2.5">
-                    {column.map((link) => renderLegalLink(link, `footer-legal-${columnIndex}-${link.id}`))}
-                  </div>
-                ))}
+              <div className="flex flex-col gap-2.5 text-[13px] font-light">
+                {footerLegalLinks.map((link) => renderLegalLink(link, `footer-legal-${link.id}`))}
               </div>
             </nav>
 

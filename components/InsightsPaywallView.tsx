@@ -49,7 +49,7 @@ export const InsightsPaywallView: React.FC<InsightsPaywallViewProps> = ({ lang, 
       trial: '7-day free trial',
       cancel: 'Cancel anytime',
       back: 'Back',
-      unavailable: 'Billing is not available yet.',
+      unavailable: 'Billing is temporarily unavailable. Try again shortly.',
       loading: 'Checking billing...',
     },
     ru: {
@@ -131,6 +131,7 @@ export const InsightsPaywallView: React.FC<InsightsPaywallViewProps> = ({ lang, 
   const [billingEnabled, setBillingEnabled] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [feedback, setFeedback] = useState<string>('');
+  const [billingPeriod, setBillingPeriod] = useState<'month' | 'year'>('year');
 
   useEffect(() => {
     let mounted = true;
@@ -161,7 +162,7 @@ export const InsightsPaywallView: React.FC<InsightsPaywallViewProps> = ({ lang, 
       return;
     }
     try {
-      const payload = await billingService.createCheckoutSession('year');
+      const payload = await billingService.createCheckoutSession(billingPeriod);
       if (payload.url) window.location.href = payload.url;
     } catch (error) {
       setFeedback(error instanceof Error ? error.message : copy.unavailable);
@@ -179,8 +180,12 @@ export const InsightsPaywallView: React.FC<InsightsPaywallViewProps> = ({ lang, 
         </div>
 
         <article className="rounded-2xl bg-slate-100/75 dark:bg-slate-800/60 p-5 space-y-2">
-          <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{copy.exampleA}</p>
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{copy.exampleB}</p>
+          <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+            Insights are built from your check-ins and reflections — never sample health information.
+          </p>
+          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+            Unlock deeper pattern discovery after you subscribe.
+          </p>
         </article>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -194,13 +199,36 @@ export const InsightsPaywallView: React.FC<InsightsPaywallViewProps> = ({ lang, 
           ))}
         </div>
 
-        <div className="rounded-2xl bg-slate-100/75 dark:bg-slate-800/60 p-5 space-y-1">
-          <p className="text-2xl font-black text-slate-900 dark:text-slate-100">{copy.annual}</p>
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{copy.monthly}</p>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            data-testid="insights-period-year"
+            onClick={() => setBillingPeriod('year')}
+            className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest ${
+              billingPeriod === 'year'
+                ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+                : 'bg-slate-200/80 text-slate-700 dark:bg-slate-800 dark:text-slate-200'
+            }`}
+          >
+            {copy.annual}
+          </button>
+          <button
+            type="button"
+            data-testid="insights-period-month"
+            onClick={() => setBillingPeriod('month')}
+            className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest ${
+              billingPeriod === 'month'
+                ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+                : 'bg-slate-200/80 text-slate-700 dark:bg-slate-800 dark:text-slate-200'
+            }`}
+          >
+            {copy.monthly}
+          </button>
         </div>
 
         <div className="space-y-3">
           <button
+            data-testid="insights-unlock"
             onClick={handleUnlock}
             disabled={loading}
             className="w-full md:w-auto px-8 py-3 rounded-full bg-luna-purple text-white text-[11px] font-black uppercase tracking-[0.16em] hover:brightness-105 transition-all disabled:opacity-45"

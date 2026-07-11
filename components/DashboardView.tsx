@@ -292,6 +292,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   };
 
   const premiumActive = useMemo(() => ['active', 'trialing'].includes((billing.status || '').toLowerCase()), [billing.status]);
+  const needsRecovery = useMemo(() => ['past_due', 'unpaid', 'incomplete'].includes((billing.status || '').toLowerCase()), [billing.status]);
   const canUsePaidInsights = billingEnabled && premiumActive;
 
   const paywallCopyByLang: LangCopy<{ locked: string; lineA: string; lineB: string; unlock: string; close: string; inPlan: string; featurePattern: string; featureMonthly: string; featureHistory: string; featureVoice: string }> = {
@@ -434,7 +435,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   const projectedState = useMemo(() => dataService.projectState(events), [events]);
   const dailyMirrorCopyByLang = {
-    en: { dayMorning: 'Good morning', dayAfternoon: 'Good afternoon', dayEvening: 'Good evening', reflectionTitle: "Today's reflection", reflectionSub: 'Speak or check in. Luna29 reflects and helps you see your rhythm.', dailyAction: 'Daily action', speakTitle: 'Speak to Luna29', speakSub: 'Tap to record', quickAction: 'Quick action', quickTitle: 'Quick check-in', quickSub: '30 sec today check-in', rhythmTitle: 'Your Rhythm', rhythmSub: 'A calm snapshot for today.', cycle: 'Cycle', energy: 'Energy', mood: 'Mood', sleep: 'Sleep', levelLow: 'Low', levelMedium: 'Medium', levelHigh: 'High', learning: 'Learning', phaseSuffix: 'phase', insightsTitle: 'Luna29 Insights', learnTitle: 'Luna29 is learning about you.', learnSub: 'Discovery coming soon.', patternTitle: 'Pattern preview', patternOneA: 'Energy drops', patternOneB: '2 days before cycle', patternTwoA: 'Sleep < 6h', patternTwoB: 'affects sensitivity', disclaimer: 'Observational guidance only. Not medical advice.', moreTools: 'More tools' },
+    en: { dayMorning: 'Good morning', dayAfternoon: 'Good afternoon', dayEvening: 'Good evening', reflectionTitle: "Today's reflection", reflectionSub: 'Speak or check in. Luna29 reflects and helps you see your rhythm.', dailyAction: 'Daily action', speakTitle: 'Speak to Luna29', speakSub: 'Tap to record', quickAction: 'Quick action', quickTitle: 'Quick check-in', quickSub: '30 sec today check-in', rhythmTitle: 'Your Rhythm', rhythmSub: 'A calm snapshot for today.', cycle: 'Cycle', energy: 'Energy', mood: 'Mood', sleep: 'Sleep', levelLow: 'Low', levelMedium: 'Medium', levelHigh: 'High', learning: 'Learning', phaseSuffix: 'phase', insightsTitle: 'Luna29 Insights', learnTitle: 'Luna29 is learning about you.', learnSub: 'Complete a few check-ins to unlock personal observations.', patternTitle: 'Pattern preview', patternOneA: 'Energy drops', patternOneB: '2 days before cycle', patternTwoA: 'Sleep < 6h', patternTwoB: 'affects sensitivity', disclaimer: 'Observational guidance only. Not medical advice.', moreTools: 'More tools' },
     ru: { dayMorning: 'Доброе утро', dayAfternoon: 'Добрый день', dayEvening: 'Добрый вечер', reflectionTitle: 'Сегодняшняя рефлексия', reflectionSub: 'Скажите голосом или сделайте check-in. Luna29 поможет увидеть ваш ритм.', dailyAction: 'Ежедневное действие', speakTitle: 'Поговорить с Luna29', speakSub: 'Нажмите для записи', quickAction: 'Быстрое действие', quickTitle: 'Быстрый check-in', quickSub: '30 секунд сегодня', rhythmTitle: 'Ваш ритм', rhythmSub: 'Спокойный срез на сегодня.', cycle: 'Цикл', energy: 'Энергия', mood: 'Настроение', sleep: 'Сон', levelLow: 'Низкий', levelMedium: 'Средний', levelHigh: 'Высокий', learning: 'Изучаем', phaseSuffix: 'фаза', insightsTitle: 'Инсайты Luna29', learnTitle: 'Luna29 изучает ваш ритм.', learnSub: 'Наблюдения скоро появятся.', patternTitle: 'Превью паттернов', patternOneA: 'Энергия снижается', patternOneB: 'за 2 дня до цикла', patternTwoA: 'Сон < 6 ч', patternTwoB: 'повышает чувствительность', disclaimer: 'Наблюдательные подсказки. Не медицинский совет.', moreTools: 'Дополнительные инструменты' },
     uk: { dayMorning: 'Доброго ранку', dayAfternoon: 'Добрий день', dayEvening: 'Добрий вечір', reflectionTitle: 'Сьогоднішня рефлексія', reflectionSub: 'Скажіть голосом або зробіть check-in. Luna29 допоможе побачити ваш ритм.', dailyAction: 'Щоденна дія', speakTitle: 'Поговорити з Luna29', speakSub: 'Натисніть для запису', quickAction: 'Швидка дія', quickTitle: 'Швидкий check-in', quickSub: '30 секунд сьогодні', rhythmTitle: 'Ваш ритм', rhythmSub: 'Спокійний зріз на сьогодні.', cycle: 'Цикл', energy: 'Енергія', mood: 'Настрій', sleep: 'Сон', levelLow: 'Низький', levelMedium: 'Середній', levelHigh: 'Високий', learning: 'Вивчаємо', phaseSuffix: 'фаза', insightsTitle: 'Інсайти Luna29', learnTitle: 'Luna29 вивчає ваш ритм.', learnSub: 'Спостереження скоро зʼявляться.', patternTitle: 'Попередній перегляд патернів', patternOneA: 'Енергія знижується', patternOneB: 'за 2 дні до циклу', patternTwoA: 'Сон < 6 год', patternTwoB: 'підвищує чутливість', disclaimer: 'Лише спостережні підказки. Не медична порада.', moreTools: 'Додаткові інструменти' },
     es: { dayMorning: 'Buenos días', dayAfternoon: 'Buenas tardes', dayEvening: 'Buenas noches', reflectionTitle: 'Reflexión de hoy', reflectionSub: 'Habla o haz check-in. Luna29 refleja y te ayuda a ver tu ritmo.', dailyAction: 'Acción diaria', speakTitle: 'Habla con Luna29', speakSub: 'Toca para grabar', quickAction: 'Acción rápida', quickTitle: 'Check-in rápido', quickSub: '30 seg hoy', rhythmTitle: 'Tu ritmo', rhythmSub: 'Una vista tranquila de hoy.', cycle: 'Ciclo', energy: 'Energía', mood: 'Estado de ánimo', sleep: 'Sueño', levelLow: 'Bajo', levelMedium: 'Medio', levelHigh: 'Alto', learning: 'Aprendiendo', phaseSuffix: 'fase', insightsTitle: 'Insights de Luna29', learnTitle: 'Luna29 está aprendiendo sobre ti.', learnSub: 'Pronto habrá descubrimientos.', patternTitle: 'Vista previa de patrones', patternOneA: 'La energía baja', patternOneB: '2 días antes del ciclo', patternTwoA: 'Sueño < 6h', patternTwoB: 'afecta la sensibilidad', disclaimer: 'Guía observacional. No es consejo médico.', moreTools: 'Más herramientas' },
@@ -675,6 +676,23 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   return (
     <section className="relative overflow-hidden luna-page-shell luna-page-bodymap luna-page-focus luna-focus-bodymap space-y-24 animate-in fade-in slide-in-from-bottom-8 duration-1000 p-8 md:p-10 bg-[radial-gradient(130%_110%_at_10%_0%,rgba(255,255,255,0.66),rgba(245,240,252,0.5)_46%,rgba(240,236,248,0.42)_100%)] dark:bg-[radial-gradient(130%_110%_at_10%_0%,rgba(88,86,156,0.3),rgba(12,25,53,0.85)_46%,rgba(7,17,38,0.97)_100%)]">
+      {needsRecovery && (
+        <div
+          data-testid="billing-recovery-banner"
+          className="relative z-10 rounded-2xl border border-slate-300/80 dark:border-slate-600 bg-white/90 dark:bg-slate-900/70 px-4 py-3 flex flex-wrap items-center justify-between gap-3"
+        >
+          <p className="text-sm text-slate-700 dark:text-slate-200">
+            Payment needs attention. Update billing to keep premium access — your account stays open.
+          </p>
+          <button
+            type="button"
+            onClick={() => void openPortal()}
+            className="px-4 py-2 rounded-full bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-[10px] font-black uppercase tracking-widest"
+          >
+            Update billing
+          </button>
+        </div>
+      )}
       <div className="pointer-events-none absolute -top-20 -left-12 w-72 h-72 rounded-full bg-fuchsia-300/25 dark:bg-fuchsia-500/18 blur-[95px]" />
       <div className="pointer-events-none absolute top-[22rem] -right-16 w-80 h-80 rounded-full bg-indigo-300/24 dark:bg-indigo-500/18 blur-[110px]" />
       <div className="pointer-events-none absolute bottom-32 left-1/3 w-72 h-72 rounded-full bg-rose-200/26 dark:bg-rose-500/16 blur-[100px]" />
@@ -805,18 +823,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </div>
               {canUsePaidInsights ? (
                 <>
-                  <div className="space-y-2">
-                    <p className="text-sm font-black text-slate-800 dark:text-slate-100">{paywallCopy.featureVoice}</p>
-                    <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
-                      Luna29 notices that emotionally heavier days often follow shorter sleep and tighter work pressure.
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-sm font-black text-slate-800 dark:text-slate-100">{paywallCopy.featureMonthly}</p>
-                    <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
-                      {weeklyInsight || 'Your month is starting to form: keep reflecting to unlock a fuller rhythm view.'}
-                    </p>
-                  </div>
+                  {weeklyInsight ? (
+                    <div className="space-y-2">
+                      <p className="text-sm font-black text-slate-800 dark:text-slate-100">{paywallCopy.featureMonthly}</p>
+                      <p className="text-sm font-medium text-slate-700 dark:text-slate-200">{weeklyInsight}</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-sm font-black text-slate-800 dark:text-slate-100">{dm.learnTitle}</p>
+                      <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                        Complete a few check-ins so Luna29 can reflect patterns from your own information.
+                      </p>
+                    </div>
+                  )}
                 </>
               ) : (
                 <button
@@ -896,18 +915,23 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <Sparkles size={14} className="text-luna-purple" />
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-luna-purple">{dm.patternTitle}</p>
             </div>
-            {canUsePaidInsights ? (
+            {canUsePaidInsights && insightLines.length > 0 ? (
               <>
-                <article className="rounded-2xl border border-white/55 dark:border-white/10 bg-gradient-to-br from-[#ffffffde] via-[#fbf3ffdd] to-[#f2efffd8] dark:from-[#0c2348] dark:via-[#13315a] dark:to-[#183b66] p-4">
-                  <p className="text-sm font-black text-slate-800 dark:text-slate-100">{dm.patternOneA}</p>
-                  <p className="mt-1 text-sm font-medium text-slate-600 dark:text-slate-300">{dm.patternOneB}</p>
-                </article>
-                <article className="rounded-2xl border border-white/55 dark:border-white/10 bg-gradient-to-br from-[#ffffffde] via-[#fbf3ffdd] to-[#f2efffd8] dark:from-[#0c2348] dark:via-[#13315a] dark:to-[#183b66] p-4">
-                  <p className="text-sm font-black text-slate-800 dark:text-slate-100">{dm.patternTwoA}</p>
-                  <p className="mt-1 text-sm font-medium text-slate-600 dark:text-slate-300">{dm.patternTwoB}</p>
-                </article>
+                {insightLines.slice(0, 2).map((line, index) => (
+                  <article
+                    key={`pattern-${index}`}
+                    className="rounded-2xl border border-white/55 dark:border-white/10 bg-gradient-to-br from-[#ffffffde] via-[#fbf3ffdd] to-[#f2efffd8] dark:from-[#0c2348] dark:via-[#13315a] dark:to-[#183b66] p-4"
+                  >
+                    <p className="text-sm font-medium text-slate-700 dark:text-slate-200">{line}</p>
+                  </article>
+                ))}
                 <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{dm.disclaimer}</p>
               </>
+            ) : canUsePaidInsights ? (
+              <div className="rounded-2xl border border-white/55 dark:border-white/10 bg-white/70 dark:bg-slate-900/50 p-4">
+                <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{dm.learnTitle}</p>
+                <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{dm.learnSub}</p>
+              </div>
             ) : (
               <button
                 onClick={openSoftPaywall}

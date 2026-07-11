@@ -15,6 +15,7 @@ import {
   PUBLIC_SHELL_PAD,
   PUBLIC_SURFACE,
 } from './public/publicPageStyles';
+import { HEALTH_PROFILE_COPY } from '../utils/healthProfileCopy';
 
 interface AboutLunaViewProps {
   lang: Language;
@@ -64,6 +65,17 @@ export const AboutLunaView: React.FC<AboutLunaViewProps> = ({ lang, mode = 'publ
       alive = false;
     };
   }, [lang]);
+
+  useEffect(() => {
+    if (!content) return;
+    if (typeof window === 'undefined') return;
+    if (window.location.hash !== '#personal-health-profile') return;
+    const timer = window.setTimeout(() => {
+      document.getElementById('personal-health-profile')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+    return () => window.clearTimeout(timer);
+  }, [content]);
+
   if (!content) {
     return (
       <section className={`${mode === 'public' ? 'luna-page-shell luna-page-knowledge p-6 md:p-8' : MEMBER_PAGE_KNOWLEDGE} animate-in fade-in duration-500`}>
@@ -115,6 +127,24 @@ export const AboutLunaView: React.FC<AboutLunaViewProps> = ({ lang, mode = 'publ
           <p className={`mt-2 ${PUBLIC_BODY}`}>{about.block2Text2}</p>
         </article>
       </div>
+
+      <section
+        id="personal-health-profile"
+        data-testid="public-personal-health-profile"
+        className={`${PUBLIC_SHELL} luna-page-knowledge ${PUBLIC_SHELL_PAD}`}
+      >
+        <div className={`${PUBLIC_SHELL_INNER} ${PUBLIC_SURFACE} space-y-4`}>
+          <h3 className={PUBLIC_H3}>{HEALTH_PROFILE_COPY.entryPublicTitle}</h3>
+          <p className={PUBLIC_BODY}>{HEALTH_PROFILE_COPY.entryPublicBody}</p>
+          <ul className="space-y-1.5">
+            {HEALTH_PROFILE_COPY.entryPublicBullets.map((item) => (
+              <li key={item} className={PUBLIC_BODY}>
+                • {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
 
       <section className={`${PUBLIC_SHELL} luna-page-reports ${PUBLIC_SHELL_PAD}`}>
         <div className={`${PUBLIC_SHELL_INNER} ${PUBLIC_SURFACE} space-y-4`}>

@@ -37,6 +37,12 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 export const isPremiumBillingStatus = (status?: string): boolean =>
   ['active', 'trialing'].includes(String(status || '').toLowerCase());
 
+export const isPastDueBillingStatus = (status?: string): boolean =>
+  String(status || '').toLowerCase() === 'past_due';
+
+export const needsBillingRecovery = (status?: string): boolean =>
+  isPastDueBillingStatus(status) || ['unpaid', 'incomplete'].includes(String(status || '').toLowerCase());
+
 export const readLocalTrialState = (): TrialState | null => {
   if (typeof window === 'undefined') return null;
   try {

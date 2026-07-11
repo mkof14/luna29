@@ -1,17 +1,14 @@
 import React from 'react';
-import { TabType } from '../utils/navigation';
-
-type BottomItem = {
-  id: TabType;
-  label: string;
-  icon: string;
-};
+import { TabType, NavItem } from '../utils/navigation';
+import { HealthProfileCompletionLabel } from './HealthProfileCompletionLabel';
+import { trackHealthProfileOpened } from '../utils/healthProfileAnalytics';
 
 interface AppMobileNavProps {
   activeTab: TabType;
-  bottomNavItems: BottomItem[];
+  bottomNavItems: NavItem[];
   navigateTo: (tab: TabType) => void;
   setShowSidebar: (next: boolean) => void;
+  healthProfileCompletionPercent?: number | null;
 }
 
 export const AppMobileNav: React.FC<AppMobileNavProps> = ({
@@ -19,6 +16,7 @@ export const AppMobileNav: React.FC<AppMobileNavProps> = ({
   bottomNavItems,
   navigateTo,
   setShowSidebar,
+  healthProfileCompletionPercent = null,
 }) => {
   return (
     <nav
@@ -30,11 +28,19 @@ export const AppMobileNav: React.FC<AppMobileNavProps> = ({
         <button
           key={item.id}
           data-testid={`mobile-nav-${item.id}`}
-          onClick={() => navigateTo(item.id)}
-          className={`flex flex-col items-center gap-1 transition-all ${activeTab === item.id ? 'text-luna-purple scale-110' : 'text-slate-400'}`}
+          onClick={() => {
+            if (item.id === 'profile') {
+              trackHealthProfileOpened('nav', healthProfileCompletionPercent);
+            }
+            navigateTo(item.id as TabType);
+          }}
+          className={`flex flex-col items-center gap-0.5 transition-all max-w-[4.5rem] ${activeTab === item.id ? 'text-luna-purple scale-110' : 'text-slate-400'}`}
         >
           <span className="text-xl">{item.icon}</span>
-          <span className="text-[8px] font-black uppercase tracking-widest">{item.label}</span>
+          <span className="text-[7px] font-black uppercase tracking-widest leading-tight text-center">{item.label}</span>
+          {item.id === 'profile' && healthProfileCompletionPercent != null && healthProfileCompletionPercent < 100 && (
+            <HealthProfileCompletionLabel percent={healthProfileCompletionPercent} compact className="text-[7px] font-bold tabular-nums" />
+          )}
         </button>
       ))}
       <button

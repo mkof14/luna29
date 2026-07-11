@@ -20,6 +20,7 @@ import { PublicHomeSection } from './public/PublicHomeSection';
 import { getMemberNavCopy } from '../utils/memberNavLabels';
 import { getBrandAssetUrl } from '../utils/lunaBrandAssets';
 import { getLegalHubLabel, getLegalNavLabels, LEGAL_ENTITY_NAME, LegalNavDocType } from '../utils/legal';
+import { HEALTH_PROFILE_COPY } from '../utils/healthProfileCopy';
 import { getPublicHomeContent } from '../utils/publicHomeContent';
 import { resolveHeroAbVariant } from '../utils/publicHomeAb';
 import {
@@ -792,18 +793,18 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     { id: 'bridge', label: ui.navigation.bridge || 'The Bridge' },
     { id: 'pricing', label: getLang(pricingLabelByLang, lang) || 'Pricing' },
   ] as const;
-  const footerSectionTitlesByLang: LangCopy<{ explore: string; legal: string; install: string; preferences: string }> = {
-    en: { explore: 'Explore', legal: 'Legal', install: 'Install App', preferences: 'Language & Theme' },
-    ru: { explore: 'Разделы', legal: 'Юридический раздел', install: 'Установить App', preferences: 'Язык и тема' },
-    uk: { explore: 'Розділи', legal: 'Юридичний розділ', install: 'Встановити App', preferences: 'Мова і тема' },
-    es: { explore: 'Secciones', legal: 'Legal', install: 'Instalar App', preferences: 'Idioma y tema' },
-    fr: { explore: 'Sections', legal: 'Juridique', install: 'Installer App', preferences: 'Langue et theme' },
-    de: { explore: 'Bereiche', legal: 'Rechtliches', install: 'App installieren', preferences: 'Sprache und Design' },
-    zh: { explore: '页面', legal: '法律信息', install: '安装 App', preferences: '语言与主题' },
-    ja: { explore: 'ページ', legal: '法務情報', install: 'App をインストール', preferences: '言語とテーマ' },
-    pt: { explore: 'Secoes', legal: 'Legal', install: 'Instalar App', preferences: 'Idioma e tema' },
-    ar: { explore: 'استكشاف', legal: 'قانوني', install: 'تثبيت التطبيق', preferences: 'اللغة والمظهر' },
-    he: { explore: 'חקירה', legal: 'משפטי', install: 'התקנת אפליקציה', preferences: 'שפה וערכת נושא' },
+  const footerSectionTitlesByLang: LangCopy<{ explore: string; resources: string; legal: string; install: string; preferences: string }> = {
+    en: { explore: 'Explore', resources: 'Resources', legal: 'Legal', install: 'Install App', preferences: 'Language & Theme' },
+    ru: { explore: 'Разделы', resources: 'Ресурсы', legal: 'Юридический раздел', install: 'Установить App', preferences: 'Язык и тема' },
+    uk: { explore: 'Розділи', resources: 'Ресурси', legal: 'Юридичний розділ', install: 'Встановити App', preferences: 'Мова і тема' },
+    es: { explore: 'Secciones', resources: 'Recursos', legal: 'Legal', install: 'Instalar App', preferences: 'Idioma y tema' },
+    fr: { explore: 'Sections', resources: 'Ressources', legal: 'Juridique', install: 'Installer App', preferences: 'Langue et theme' },
+    de: { explore: 'Bereiche', resources: 'Ressourcen', legal: 'Rechtliches', install: 'App installieren', preferences: 'Sprache und Design' },
+    zh: { explore: '页面', resources: '资源', legal: '法律信息', install: '安装 App', preferences: '语言与主题' },
+    ja: { explore: 'ページ', resources: 'リソース', legal: '法務情報', install: 'App をインストール', preferences: '言語とテーマ' },
+    pt: { explore: 'Secoes', resources: 'Recursos', legal: 'Legal', install: 'Instalar App', preferences: 'Idioma e tema' },
+    ar: { explore: 'استكشاف', resources: 'الموارد', legal: 'قانوني', install: 'تثبيت التطبيق', preferences: 'اللغة والمظهر' },
+    he: { explore: 'חקירה', resources: 'משאבים', legal: 'משפטי', install: 'התקנת אפליקציה', preferences: 'שפה וערכת נושא' },
   };
 
   const legalNav = getLegalNavLabels(lang);
@@ -817,6 +818,19 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       data_rights: 'data_rights',
     };
     setActivePage(pageByDoc[doc]);
+  };
+  const openPersonalHealthProfileExplainer = () => {
+    setActivePage('about');
+    try {
+      window.history.replaceState({}, '', `${window.location.pathname}#personal-health-profile`);
+    } catch {
+      /* ignore */
+    }
+    window.requestAnimationFrame(() => {
+      window.setTimeout(() => {
+        document.getElementById('personal-health-profile')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 120);
+    });
   };
   const footerSectionTitles = getLang(footerSectionTitlesByLang, lang) || footerSectionTitlesByLang.en;
   const themeLabelByLang: LangCopy< string> = {
@@ -1746,12 +1760,15 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
   ar: { home: 'الرئيسية', ritual: 'المسار الطقسي', map: 'خريطة الجسم', adminLogin: 'دخول الإدارة' },
   he: { home: 'בית', ritual: 'נתיב טקסי', map: 'מפת הגוף', adminLogin: 'כניסת אדמין' },};
   const publicHomeNavLabels = getLang(publicHomeNavLabelsByLang, lang) || publicHomeNavLabelsByLang.en;
-  const footerPageLinks: Array<{ id: PublicPage; label: string }> = [
+  const footerExploreLinks: Array<{ id: PublicPage; label: string }> = [
     { id: 'home', label: ui.publicHome.tabs.home },
     { id: 'map', label: ui.publicHome.tabs.map },
     { id: 'calendar', label: memberNav.rhythmCalendar },
     { id: 'ritual', label: publicHomeNavLabels.ritual },
     { id: 'bridge', label: ui.navigation.bridge || 'The Bridge' },
+  ];
+  const footerResourceLinks: Array<{ id: PublicPage | 'personal_health_profile'; label: string; testId?: string }> = [
+    { id: 'personal_health_profile', label: HEALTH_PROFILE_COPY.entryPublicTitle, testId: 'personal-health-profile' },
     { id: 'pricing', label: getLang(pricingLabelByLang, lang) || 'Pricing' },
     { id: 'about', label: getLang(aboutLabelByLang, lang) || 'About' },
     { id: 'how_it_works', label: getLang(howItWorksLabelByLang, lang) || 'How It Works' },
@@ -1766,10 +1783,6 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     { id: 'cookies', label: legalNav.cookies },
     { id: 'data_rights', label: legalNav.data_rights },
   ];
-  const footerExploreMid = Math.ceil(footerPageLinks.length / 2);
-  const footerExploreColumns = [footerPageLinks.slice(0, footerExploreMid), footerPageLinks.slice(footerExploreMid)];
-  const footerLegalMid = Math.ceil(footerLegalLinks.length / 2);
-  const footerLegalColumns = [footerLegalLinks.slice(0, footerLegalMid), footerLegalLinks.slice(footerLegalMid)];
   const footerMicroRitual = getFooterMicroRitual(lang);
   const footerTrustLine = getFooterTrustLine(lang);
   const footerSpiritActions = getFooterSpiritActions(lang);
@@ -2089,45 +2102,64 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-8 sm:gap-x-12 gap-y-10 sm:gap-y-12 min-w-0">
-            <nav className="space-y-4 min-w-0 sm:col-span-2 xl:col-span-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-x-8 sm:gap-x-12 gap-y-10 sm:gap-y-12 min-w-0">
+            <nav className="space-y-4 min-w-0">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em]">
                 <LunaShimmerText text={footerSectionTitles.explore} className="opacity-90 font-semibold" />
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5 text-[13px] font-light">
-                {footerExploreColumns.map((column, columnIndex) => (
-                  <div key={`footer-explore-col-${columnIndex}`} className="flex flex-col gap-2.5">
-                    {column.map((page) => (
-                      <button
-                        key={`footer-${page.id}`}
-                        onClick={() => setActivePage(page.id)}
-                        className="text-left"
-                      >
-                        <LunaMenuLabel text={page.label} muted className="font-light" />
-                      </button>
-                    ))}
-                  </div>
+              <div className="flex flex-col gap-2.5 text-[13px] font-light">
+                {footerExploreLinks.map((page) => (
+                  <button
+                    key={`footer-explore-${page.id}`}
+                    type="button"
+                    onClick={() => setActivePage(page.id)}
+                    className="text-left"
+                  >
+                    <LunaMenuLabel text={page.label} muted className="font-light" />
+                  </button>
                 ))}
               </div>
             </nav>
 
-            <nav className="space-y-4 min-w-0 sm:col-span-2 xl:col-span-1">
+            <nav className="space-y-4 min-w-0" aria-label={footerSectionTitles.resources}>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em]">
+                <LunaShimmerText text={footerSectionTitles.resources} className="opacity-90 font-semibold" />
+              </p>
+              <div className="flex flex-col gap-2.5 text-[13px] font-light">
+                {footerResourceLinks.map((link) => (
+                  <button
+                    key={`footer-resource-${link.id}`}
+                    type="button"
+                    data-testid={link.testId ? `footer-nav-${link.testId}` : undefined}
+                    onClick={() => {
+                      if (link.id === 'personal_health_profile') {
+                        openPersonalHealthProfileExplainer();
+                        return;
+                      }
+                      setActivePage(link.id);
+                    }}
+                    className="text-left"
+                  >
+                    <LunaMenuLabel text={link.label} muted className="font-light" />
+                  </button>
+                ))}
+              </div>
+            </nav>
+
+            <nav className="space-y-4 min-w-0">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em]">
                 <LunaShimmerText text={footerSectionTitles.legal} className="opacity-90 font-semibold" />
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5 text-[13px] font-light">
-                {footerLegalColumns.map((column, columnIndex) => (
-                  <div key={`footer-legal-col-${columnIndex}`} className="flex flex-col gap-2.5">
-                    {column.map((link) => (
-                      <button
-                        key={`footer-legal-${link.id}`}
-                        onClick={() => setActivePage(link.id)}
-                        className="text-left"
-                      >
-                        <LunaMenuLabel text={link.label} muted className="font-light" />
-                      </button>
-                    ))}
-                  </div>
+              <div className="flex flex-col gap-2.5 text-[13px] font-light">
+                {footerLegalLinks.map((link) => (
+                  <button
+                    key={`footer-legal-${link.id}`}
+                    type="button"
+                    onClick={() => setActivePage(link.id)}
+                    className="text-left"
+                  >
+                    <LunaMenuLabel text={link.label} muted className="font-light" />
+                  </button>
                 ))}
               </div>
             </nav>

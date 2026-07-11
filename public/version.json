@@ -1,9 +1,9 @@
 {
   "semver": "1.2.0",
-  "release": "deploy/2026-07-02-1901-soft-launch-final",
-  "cacheKey": "20260702sf",
+  "release": "deploy/2026-07-11-rc1-closed-paid-beta",
+  "cacheKey": "20260711rc1",
   "status": "completed",
-  "completedAt": "2026-07-02T19:01:18Z",
-  "label": "Soft launch final — time greetings, live email sends, consent audit, email hero JPEGs",
-  "builtAt": "2026-07-02T19:03:42.117Z"
+  "completedAt": "2026-07-11T23:46:00Z",
+  "label": "RC1 closed paid beta — nav freeze, Live close fix, commercial Health Profile",
+  "builtAt": "2026-07-11T23:46:00Z"
 }
