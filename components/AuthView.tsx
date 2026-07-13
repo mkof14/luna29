@@ -34,7 +34,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ ui, onSuccess, initialMode =
   const [authError, setAuthError] = useState<string | null>(null);
   const [authInfo, setAuthInfo] = useState<string | null>(null);
   const [googleReady, setGoogleReady] = useState(false);
-  const [inviteOnly, setInviteOnly] = useState(true);
+  const [inviteOnly, setInviteOnly] = useState(false);
   const [resetToken] = useState(() => readResetTokenFromUrl());
   const googleButtonRef = useRef<HTMLDivElement>(null);
 

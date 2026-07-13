@@ -1,9 +1,9 @@
 {
   "semver": "1.2.0",
-  "release": "deploy/2026-07-11-rc1-closed-paid-beta",
-  "cacheKey": "20260711rc1",
+  "release": "deploy/2026-07-13-open-registration",
+  "cacheKey": "20260713open",
   "status": "completed",
-  "completedAt": "2026-07-11T23:46:00Z",
-  "label": "RC1 closed paid beta — nav freeze, Live close fix, commercial Health Profile",
-  "builtAt": "2026-07-11T23:46:00Z"
+  "completedAt": "2026-07-13T17:30:00Z",
+  "label": "Open registration — invite gate off; email verification remains required",
+  "builtAt": "2026-07-13T17:30:00Z"
 }

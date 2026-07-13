@@ -443,7 +443,7 @@ const App: React.FC = () => {
             data-testid="email-verify-banner"
             className="z-40 border-b border-amber-200/80 bg-amber-50 text-amber-950 px-4 py-3 text-sm text-center"
           >
-            Verify your email to finish Closed Paid Beta setup. Check your inbox for the verification link.
+            Verify your email to finish account setup. Check your inbox for the verification link.
           </div>
         )}
         <AppShellNav

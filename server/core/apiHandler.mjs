@@ -303,10 +303,9 @@ const GOOGLE_CLIENT_IDS = new Set(
 const AUTH_ALLOW_UNVERIFIED_GOOGLE_RAW = process.env.AUTH_ALLOW_UNVERIFIED_GOOGLE === 'true';
 const AUTH_ALLOW_UNVERIFIED_GOOGLE =
   AUTH_ALLOW_UNVERIFIED_GOOGLE_RAW && !isProductionLikeRuntime(process.env);
-/** Closed Paid Beta: invite required in production-like runtimes unless AUTH_INVITE_ONLY=false. */
+/** Open registration by default. Set AUTH_INVITE_ONLY=true to restore invite-gated signup. */
 const AUTH_INVITE_ONLY =
-  String(process.env.AUTH_INVITE_ONLY || (isProductionLikeRuntime(process.env) ? 'true' : 'false')).toLowerCase() ===
-  'true';
+  String(process.env.AUTH_INVITE_ONLY || 'false').toLowerCase() === 'true';
 const AUTH_REQUIRE_EMAIL_VERIFICATION =
   String(
     process.env.AUTH_REQUIRE_EMAIL_VERIFICATION || (isProductionLikeRuntime(process.env) ? 'true' : 'false'),
@@ -4848,8 +4847,8 @@ const start = async () => {
             await sendCalendarReminderEmail({
               to: email,
               subject: 'Verify your Luna29 email',
-              text: `Verify your email for Luna29 Closed Paid Beta:\n${verifyUrl}\nThis link expires in one hour.`,
-              html: `<p>Verify your email for Luna29 Closed Paid Beta.</p><p><a href="${verifyUrl}">Verify email</a></p><p>This link expires in one hour.</p>`,
+              text: `Verify your email for Luna29:\n${verifyUrl}\nThis link expires in one hour.`,
+              html: `<p>Verify your email for Luna29.</p><p><a href="${verifyUrl}">Verify email</a></p><p>This link expires in one hour.</p>`,
             });
           } catch {
             /* non-blocking — account still created */

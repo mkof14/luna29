@@ -61,6 +61,8 @@ const vars = {
     'https://www.luna29.com,https://luna29.com,https://luna29.vercel.app,http://localhost:3000,http://127.0.0.1:3000',
   AUTH_GOOGLE_CLIENT_IDS: local.AUTH_GOOGLE_CLIENT_IDS || local.VITE_GOOGLE_CLIENT_ID,
   AUTH_ALLOW_UNVERIFIED_GOOGLE: 'false',
+  AUTH_INVITE_ONLY: 'false',
+  AUTH_REQUIRE_EMAIL_VERIFICATION: local.AUTH_REQUIRE_EMAIL_VERIFICATION || 'true',
 
   // AI (server-side)
   GEMINI_API_KEY: local.GEMINI_API_KEY,
