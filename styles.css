@@ -215,7 +215,12 @@ html.dark .public-page-art-header__image {
   text-shadow: 0 2px 14px rgba(0, 0, 0, 0.4);
 }
 
-* {
+/* Theme transitions only on surfaces that change with .dark — avoid global * cost on LCP. */
+html,
+body,
+.luna-page-shell,
+.luna-app-sidebar,
+.luna-vivid-card-soft {
   transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
 }
 

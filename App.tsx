@@ -12,10 +12,6 @@ import {
   type MemberNavigateOptions,
   MEMBER_HUB_TAB,
 } from './utils/memberNavigation';
-import { AppShellNav } from './components/AppShellNav';
-import { AppMobileNav } from './components/AppMobileNav';
-import { MainContentRouter } from './components/MainContentRouter';
-import { OnboardingGate } from './components/OnboardingGate';
 import { PrivacyControls } from './components/PrivacyControls';
 import { useHealthModel } from './hooks/useHealthModel';
 import { authService } from './services/authService';
@@ -23,7 +19,8 @@ import { captureAppError, initMonitoring } from './services/monitoringService';
 import { initAnalytics, trackEvent, trackPageView } from './services/analyticsService';
 import { conversionEvents } from './utils/conversionEvents';
 import { billingService } from './services/billingService';
-import { applyServerTrialToLocal, consumeTrialPending, markTrialPending } from './utils/subscriptionAccess';
+import { consumeCheckoutPending, consumeTrialPending } from './utils/subscriptionAccess';
+import { captureUtmFromLocation } from './utils/utmAttribution';
 import { useCalendarReminderLoop } from './hooks/useCalendarReminders';
 import { useHealthProfileCompletion } from './hooks/useHealthProfileCompletion';
 import { personalEventsService } from './services/personalEventsService';
@@ -31,9 +28,17 @@ import { readInviteFromUrl, readResetTokenFromUrl, readVerifyTokenFromUrl } from
 
 // SHARED COMPONENTS
 import { LunaLiveButton } from './components/LunaLiveButton';
-const LiveAssistant = lazy(() => import('./components/LiveAssistant').then((m) => ({ default: m.LiveAssistant })));
 import type { LiveSessionClosePayload } from './components/LiveAssistant';
 import type { LiveCloseSummary } from './utils/liveSessionContinuity';
+
+/** Member chrome — lazy so anonymous home does not download the member graph. */
+const AppShellNav = lazy(() => import('./components/AppShellNav').then((m) => ({ default: m.AppShellNav })));
+const AppMobileNav = lazy(() => import('./components/AppMobileNav').then((m) => ({ default: m.AppMobileNav })));
+const MainContentRouter = lazy(() =>
+  import('./components/MainContentRouter').then((m) => ({ default: m.MainContentRouter })),
+);
+const OnboardingGate = lazy(() => import('./components/OnboardingGate').then((m) => ({ default: m.OnboardingGate })));
+const LiveAssistant = lazy(() => import('./components/LiveAssistant').then((m) => ({ default: m.LiveAssistant })));
 const HormoneDetail = lazy(() => import('./components/HormoneDetail'));
 const CheckinOverlay = lazy(() => import('./components/CheckinOverlay').then((m) => ({ default: m.CheckinOverlay })));
 const AuthView = lazy(() => import('./components/AuthView').then((m) => ({ default: m.AuthView })));
@@ -43,6 +48,12 @@ const AppFooter = lazy(() => import('./components/AppFooter').then((m) => ({ def
 const InstallAppPrompt = lazy(() => import('./components/InstallAppPrompt').then((m) => ({ default: m.InstallAppPrompt })));
 const StandaloneWelcomeOverlay = lazy(() => import('./components/StandaloneWelcomeOverlay').then((m) => ({ default: m.StandaloneWelcomeOverlay })));
 const StandaloneLaunchSplash = lazy(() => import('./components/StandaloneLaunchSplash').then((m) => ({ default: m.StandaloneLaunchSplash })));
+
+const MemberFallback = () => (
+  <div className="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-950 text-slate-500 dark:text-slate-400">
+    <div className="text-[10px] font-black uppercase tracking-[0.3em]">Loading…</div>
+  </div>
+);
 const App: React.FC = () => {
   const [showLaunchSplash, setShowLaunchSplash] = useState(false);
   const [session, setSession] = useState<AuthSession | null>(null);
@@ -112,12 +123,14 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    captureUtmFromLocation();
     initMonitoring().catch(() => undefined);
     initAnalytics().catch(() => undefined);
     dataService.hydrateLog().catch(() => undefined);
   }, []);
 
   useEffect(() => {
+    captureUtmFromLocation();
     trackPageView(window.location.pathname);
   }, [activeTab]);
 
@@ -257,6 +270,7 @@ const App: React.FC = () => {
       intensity: 3,
       notes: '',
     });
+    conversionEvents.checkinCompleted('sliders');
     void personalEventsService.syncLocalLog().catch(() => undefined);
   }, [checkinData, checkinClinical, setLog]);
 
@@ -352,13 +366,18 @@ const App: React.FC = () => {
                 setSession(nextSession);
                 const isAdmin = authService.canAccessAdminWorkspace(nextSession);
                 setActiveTab(isAdmin ? 'admin' : MEMBER_HUB_TAB);
-                if (consumeTrialPending()) {
+                // New subscribers: Stripe Checkout only (7-day trial via subscription_data).
+                const pendingPeriod =
+                  consumeCheckoutPending() || (consumeTrialPending() ? 'year' : null);
+                if (pendingPeriod && !isAdmin) {
                   try {
-                    const result = await billingService.startServerTrial();
-                    applyServerTrialToLocal(result.trial as { startedAt: string; endsAt: string; used?: boolean });
+                    conversionEvents.checkoutStarted(pendingPeriod);
+                    const checkout = await billingService.createCheckoutSession(pendingPeriod);
                     conversionEvents.trialStarted();
+                    window.location.assign(checkout.url);
+                    return;
                   } catch {
-                    // trial may already be used server-side
+                    // billing may be disabled / misconfigured — stay in member hub
                   }
                 }
               }}
@@ -396,47 +415,39 @@ const App: React.FC = () => {
 
   if (!hasCompletedOnboarding) {
     return (
-      <>
+      <Suspense fallback={<MemberFallback />}>
         <OnboardingGate
           lang={lang}
           onComplete={() => {
+            conversionEvents.onboardingCompleted();
             setLog(dataService.getLog());
             setHasCompletedOnboarding(true);
             setActiveTab(MEMBER_HUB_TAB);
           }}
         />
-        <Suspense fallback={null}>
-          <StandaloneWelcomeOverlay lang={lang} />
-          <InstallAppPrompt lang={lang} />
-        </Suspense>
-      </>
+        <StandaloneWelcomeOverlay lang={lang} />
+        <InstallAppPrompt lang={lang} />
+      </Suspense>
     );
   }
 
   if (activeTab === 'admin' && canAccessAdmin) {
     return (
-      <>
-        <Suspense
-          fallback={
-            <div className="min-h-screen flex items-center justify-center bg-[#070b14] text-slate-400">
-              <div className="text-[10px] font-black uppercase tracking-[0.3em]">Loading Admin…</div>
-            </div>
-          }
-        >
-          <AdminWorkspaceView
-            session={session}
-            lang={lang}
-            setLang={setLang}
-            onBack={() => navigateTo(MEMBER_HUB_TAB)}
-            onLogout={handleLogout}
-            onRoleChange={handleRoleChange}
-          />
-        </Suspense>
-      </>
+      <Suspense fallback={<MemberFallback />}>
+        <AdminWorkspaceView
+          session={session}
+          lang={lang}
+          setLang={setLang}
+          onBack={() => navigateTo(MEMBER_HUB_TAB)}
+          onLogout={handleLogout}
+          onRoleChange={handleRoleChange}
+        />
+      </Suspense>
     );
   }
 
   return (
+    <Suspense fallback={<MemberFallback />}>
       <div className="min-h-screen flex flex-col bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans relative overflow-x-hidden">
         {session.emailVerified === false && session.provider === 'password' && (
           <div
@@ -462,55 +473,52 @@ const App: React.FC = () => {
           healthProfileCompletionPercent={healthProfileCompletion.percent}
         />
 
-      <div className="lg:pl-[240px]">
-      <MainContentRouter
-        activeTab={activeTab}
-        lang={lang}
-        ui={ui}
-        currentPhase={currentPhase}
-        systemState={systemState}
-        log={log}
-        hormoneData={hormoneData}
-        ruleOutput={ruleOutput}
-        isNarrativeLoading={isNarrativeLoading}
-        stateNarrative={stateNarrative}
-        setSelectedHormone={setSelectedHormone}
-        setShowSyncOverlay={setShowSyncOverlay}
-        setShowLive={setShowLive}
-        setLog={setLog}
-        navigateTo={navigateTo}
-        onMemberBack={onMemberBack}
-        session={session}
-        onLogout={handleLogout}
-        liveCloseSummary={liveCloseSummary}
-        liveRefreshToken={liveRefreshToken}
-        onContinueLiveConversation={() => {
-          setLiveCloseSummary(null);
-          trackEvent('continue_conversation_clicked', {
-            surface: 'today',
-            action: 'continue',
-            result: 'ok',
-          });
-          setShowLive(true);
-        }}
-        onDismissLiveContinuity={() => setLiveCloseSummary(null)}
-      />
+        <div className="lg:pl-[240px]">
+          <MainContentRouter
+            activeTab={activeTab}
+            lang={lang}
+            ui={ui}
+            currentPhase={currentPhase}
+            systemState={systemState}
+            log={log}
+            hormoneData={hormoneData}
+            ruleOutput={ruleOutput}
+            isNarrativeLoading={isNarrativeLoading}
+            stateNarrative={stateNarrative}
+            setSelectedHormone={setSelectedHormone}
+            setShowSyncOverlay={setShowSyncOverlay}
+            setShowLive={setShowLive}
+            setLog={setLog}
+            navigateTo={navigateTo}
+            onMemberBack={onMemberBack}
+            session={session}
+            onLogout={handleLogout}
+            liveCloseSummary={liveCloseSummary}
+            liveRefreshToken={liveRefreshToken}
+            onContinueLiveConversation={() => {
+              setLiveCloseSummary(null);
+              trackEvent('continue_conversation_clicked', {
+                surface: 'today',
+                action: 'continue',
+                result: 'ok',
+              });
+              setShowLive(true);
+            }}
+            onDismissLiveContinuity={() => setLiveCloseSummary(null)}
+          />
 
-      <Suspense fallback={null}>
-        <AppFooter
-          ui={ui}
-          lang={lang}
-          theme={theme}
-          setLang={setLang}
-          setTheme={setTheme}
-          navigateTo={navigateTo}
-          onOpenLive={() => setShowLive(true)}
-          canAccessAdmin={canAccessAdmin}
-        />
-      </Suspense>
-      </div>
+          <AppFooter
+            ui={ui}
+            lang={lang}
+            theme={theme}
+            setLang={setLang}
+            setTheme={setTheme}
+            navigateTo={navigateTo}
+            onOpenLive={() => setShowLive(true)}
+            canAccessAdmin={canAccessAdmin}
+          />
+        </div>
 
-      <Suspense fallback={null}>
         <CheckinOverlay
           isOpen={showSyncOverlay}
           onClose={() => setShowSyncOverlay(false)}
@@ -523,10 +531,8 @@ const App: React.FC = () => {
           onSave={saveCheckin}
           onSaveAndBridge={saveCheckinAndBridge}
         />
-      </Suspense>
 
-      <LunaLiveButton onClick={() => setShowLive(true)} isActive={showLive} />
-      <Suspense fallback={null}>
+        <LunaLiveButton onClick={() => setShowLive(true)} isActive={showLive} />
         <LiveAssistant
           isOpen={showLive}
           onClose={() => setShowLive(false)}
@@ -549,6 +555,7 @@ const App: React.FC = () => {
             if (activeTab !== MEMBER_HUB_TAB) {
               setActiveTab(MEMBER_HUB_TAB);
             }
+            conversionEvents.liveAssistantSaved();
             trackEvent('today_refreshed_after_live', {
               surface: 'today',
               action: 'refresh',
@@ -556,22 +563,22 @@ const App: React.FC = () => {
             });
           }}
         />
-        {selectedHormone && <HormoneDetail hormone={selectedHormone} lang={lang} onClose={() => setSelectedHormone(null)} />}
-      </Suspense>
+        {selectedHormone && (
+          <HormoneDetail hormone={selectedHormone} lang={lang} onClose={() => setSelectedHormone(null)} />
+        )}
 
-      <AppMobileNav
-        activeTab={activeTab}
-        bottomNavItems={bottomNavItems}
-        navigateTo={navigateTo}
-        setShowSidebar={setShowSidebar}
-        healthProfileCompletionPercent={healthProfileCompletion.percent}
-      />
-      <Suspense fallback={null}>
+        <AppMobileNav
+          activeTab={activeTab}
+          bottomNavItems={bottomNavItems}
+          navigateTo={navigateTo}
+          setShowSidebar={setShowSidebar}
+          healthProfileCompletionPercent={healthProfileCompletion.percent}
+        />
         <StandaloneWelcomeOverlay lang={lang} />
         <InstallAppPrompt lang={lang} />
-      </Suspense>
-      <PrivacyControls lang={lang} isAuthenticated />
-    </div>
+        <PrivacyControls lang={lang} isAuthenticated />
+      </div>
+    </Suspense>
   );
 };
 

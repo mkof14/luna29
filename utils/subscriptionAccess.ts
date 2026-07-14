@@ -88,7 +88,8 @@ export const isLocalTrialActive = (): boolean => readLocalTrialState()?.status =
 /**
  * Premium access from server billing status only.
  * localStorage trial is a display cache and must not grant authoritative premium.
- * Server `/api/billing/status` overlays active Luna trials as status `trialing`.
+ * When Stripe billing is enabled, premium comes from Stripe webhooks (`active`/`trialing`).
+ * Luna `/api/billing/trial/start` is blocked in that mode (USE_STRIPE_CHECKOUT).
  */
 export const hasPremiumAccess = (billing?: BillingStatusPayload | null): boolean =>
   isPremiumBillingStatus(billing?.status);

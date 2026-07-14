@@ -13,6 +13,7 @@ import { MemoryControls } from './MemoryControls';
 import { HealthProfilePanel } from './HealthProfilePanel';
 import { trackHealthProfileOpened } from '../utils/healthProfileAnalytics';
 import { needsBillingRecovery } from '../utils/subscriptionAccess';
+import { conversionEvents } from '../utils/conversionEvents';
 
 interface ProfileViewProps {
   lang: Language;
@@ -111,7 +112,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ lang, onBack, onOpenSu
     setBillingFeedback('');
     setBillingLoading(true);
     try {
+      conversionEvents.checkoutStarted(period);
       const payload = await billingService.createCheckoutSession(period);
+      conversionEvents.trialStarted();
       window.location.assign(payload.url);
     } catch (error) {
       setBillingFeedback(error instanceof Error ? error.message : 'Could not start checkout.');

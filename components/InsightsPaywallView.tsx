@@ -6,6 +6,7 @@ import { MemberPageIntro } from './member/MemberPageIntro';
 import { LunaPageContentSection } from './shared/LunaPageContentSection';
 import { getLunaPageTheme } from '../utils/lunaPageThemes';
 import { billingService } from '../services/billingService';
+import { conversionEvents } from '../utils/conversionEvents';
 
 interface InsightsPaywallViewProps {
   lang: Language;
@@ -135,6 +136,7 @@ export const InsightsPaywallView: React.FC<InsightsPaywallViewProps> = ({ lang, 
 
   useEffect(() => {
     let mounted = true;
+    conversionEvents.paywallViewed('insights');
     billingService
       .getStatus()
       .then((payload) => {
@@ -162,7 +164,9 @@ export const InsightsPaywallView: React.FC<InsightsPaywallViewProps> = ({ lang, 
       return;
     }
     try {
+      conversionEvents.checkoutStarted(billingPeriod);
       const payload = await billingService.createCheckoutSession(billingPeriod);
+      conversionEvents.trialStarted();
       if (payload.url) window.location.href = payload.url;
     } catch (error) {
       setFeedback(error instanceof Error ? error.message : copy.unavailable);

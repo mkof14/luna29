@@ -6,7 +6,7 @@ import { GoogleGenAI } from '@google/genai';
 import { OAuth2Client } from 'google-auth-library';
 import { getPublicVoiceConfig, handleVoiceConversation, listElevenLabsVoices, extractVoiceStructure } from '../voiceConversation.mjs';
 import { buildApiSecurityHeaders } from './securityHeaders.mjs';
-import { readBodyWithLimit, hasAiProcessingConsent } from './httpUtils.mjs';
+import { readBodyWithLimit, readRawBodyWithLimit, hasAiProcessingConsent } from './httpUtils.mjs';
 import { resolveRole as resolveRoleSafe, ROLE_PERMISSIONS as CORE_ROLE_PERMISSIONS } from './authRoles.mjs';
 import { sendCalendarReminderEmail, isCalendarEmailEnabled } from './calendarEmail.mjs';
 import {
@@ -23,6 +23,14 @@ import {
   PREMIUM_REQUIRED,
   ENTITLEMENT_STORAGE_UNAVAILABLE,
 } from './entitlements.mjs';
+import {
+  buildCheckoutSessionFields,
+  isLunaServerTrialAllowed,
+  resolveCheckoutPeriod,
+  resolveCheckoutPriceId,
+  resolveStripeTrialDays,
+  USE_STRIPE_CHECKOUT,
+} from './stripeSubscriberPath.mjs';
 import {
   resolveAllowedOrigins,
   shouldEnforceOrigin,
@@ -322,16 +330,9 @@ const STRIPE_PRICE_YEARLY_ID = String(process.env.STRIPE_PRICE_YEARLY_ID || '').
 const STRIPE_SUCCESS_URL = String(process.env.STRIPE_SUCCESS_URL || '').trim();
 const STRIPE_CANCEL_URL = String(process.env.STRIPE_CANCEL_URL || '').trim();
 const STRIPE_PORTAL_RETURN_URL = String(process.env.STRIPE_PORTAL_RETURN_URL || '').trim();
-const STRIPE_TRIAL_DAYS = Math.max(0, Number(process.env.STRIPE_TRIAL_DAYS || '7') || 0);
+const STRIPE_TRIAL_DAYS = resolveStripeTrialDays(process.env.STRIPE_TRIAL_DAYS);
 const ADMIN_EMERGENCY_RESET_KEY = String(process.env.ADMIN_EMERGENCY_RESET_KEY || '').trim();
 const HEALTH_VERBOSE_SECRET = String(process.env.HEALTH_VERBOSE_SECRET || '').trim();
-
-const buildStripeCheckoutFields = (fields) => {
-  if (STRIPE_TRIAL_DAYS > 0) {
-    fields.push(['subscription_data[trial_period_days]', String(STRIPE_TRIAL_DAYS)]);
-  }
-  return fields;
-};
 
 const ROLE_PERMISSIONS = CORE_ROLE_PERMISSIONS;
 
@@ -804,6 +805,26 @@ const buildHealthPayload = async ({ verbose = false, durableDecision = null } = 
   if (webhookLedgerProbe === 'unavailable') warnings.push('stripe_webhook_events table unreachable.');
   if (deletionOpsProbe === 'unavailable') warnings.push('account_deletion_ops table unreachable.');
 
+  // Counts only (no payloads / secrets) — helps verify HMAC path without Admin UI.
+  let stripeWebhookOps = null;
+  if (billingStorageMode === 'postgres' && pool) {
+    try {
+      const summary = await summarizeStripeWebhookOps(pool);
+      stripeWebhookOps = {
+        ok: Boolean(summary?.ok),
+        counts: summary?.counts || {},
+      };
+      if (summary?.ok && Number(summary?.counts?.failed || 0) > 0) {
+        warnings.push(`Stripe webhook ledger has ${summary.counts.failed} failed event(s).`);
+      }
+    } catch {
+      stripeWebhookOps = { ok: false, counts: {} };
+      warnings.push('Stripe webhook ops summary unavailable.');
+    }
+  } else if (billingStorageMode === 'json') {
+    stripeWebhookOps = { ok: true, counts: {}, note: 'json_dev_ledger' };
+  }
+
   const databaseCheck = dbLiveOk
     ? 'postgres'
     : databaseConfigured
@@ -828,6 +849,7 @@ const buildHealthPayload = async ({ verbose = false, durableDecision = null } = 
       billingStorage: billingStorageLabel,
       trialStorage: trialStorageLabel,
       stripeWebhookLedger: webhookLedgerProbe === 'ok' ? 'postgres' : webhookLedgerProbe,
+      stripeWebhookOps,
       accountDeletionOps: deletionOpsProbe === 'ok' ? 'postgres' : deletionOpsProbe,
       operationalRecordsStorage: operationalRecordsLabel,
       userDataStorage: userDataLabel,
@@ -898,13 +920,7 @@ const resolveHealthVerboseAccess = (req, url) => {
 
 const readBody = async (req) => readBodyWithLimit(req);
 
-const readRawBody = async (req) => {
-  const chunks = [];
-  for await (const chunk of req) {
-    chunks.push(chunk);
-  }
-  return Buffer.concat(chunks);
-};
+const readRawBody = async (req) => readRawBodyWithLimit(req);
 
 const decodeGoogleJwt = (credential) => {
   try {
@@ -3091,18 +3107,42 @@ const start = async () => {
     }
 
     if (method === 'GET' && url.pathname === '/api/mobile/billing/status') {
-      send(
-        res,
-        200,
-        {
-          enabled: BILLING_ENABLED && Boolean(STRIPE_SECRET_KEY),
-          monthlyPrice: '$12.99',
-          yearlyPrice: '$89',
-          trial: '7-day free trial',
-          provider: BILLING_ENABLED ? 'stripe' : 'disabled',
-        },
-        headers,
-      );
+      const payload = {
+        enabled: BILLING_ENABLED && Boolean(STRIPE_SECRET_KEY),
+        monthlyPrice: '$12.99',
+        yearlyPrice: '$89',
+        trial: '7-day free trial',
+        provider: BILLING_ENABLED ? 'stripe' : 'disabled',
+      };
+      // Optional auth (cookie or Bearer) — never 401; marketing payload always works.
+      try {
+        if (billingStorageMode !== 'unavailable') {
+          const current = await getVerifiedRequestUser(req);
+          if (current?.user?.id) {
+            const { billing } = await billingService.getStatusForUser(current.user);
+            const status = String(billing?.status || 'none');
+            send(
+              res,
+              200,
+              {
+                ...payload,
+                entitlement: {
+                  status,
+                  plan: billing?.plan,
+                  period: billing?.period,
+                  entitled: ['active', 'trialing'].includes(status.toLowerCase()),
+                  pastDue: status.toLowerCase() === 'past_due',
+                },
+              },
+              headers,
+            );
+            return;
+          }
+        }
+      } catch {
+        // Fall through to marketing-only payload.
+      }
+      send(res, 200, payload, headers);
       return;
     }
 
@@ -5679,6 +5719,20 @@ const start = async () => {
     if (method === 'POST' && url.pathname === '/api/billing/trial/start') {
       const auth = await requireMobileSession(req, res, headers);
       if (!auth) return;
+      // Production Stripe path: trial is only via Checkout (subscription_data[trial_period_days]).
+      if (!isLunaServerTrialAllowed(BILLING_ENABLED)) {
+        send(
+          res,
+          403,
+          {
+            error: 'Start your trial through Stripe Checkout.',
+            code: USE_STRIPE_CHECKOUT,
+            trialDays: STRIPE_TRIAL_DAYS,
+          },
+          headers,
+        );
+        return;
+      }
       if (billingStorageMode === 'unavailable') {
         send(res, 503, billingStorageUnavailablePayload('database_missing'), headers);
         return;
@@ -5717,8 +5771,15 @@ const start = async () => {
 
       try {
         const body = await readBody(req);
-        const period = safeText(body.period || 'month', 12) === 'year' ? 'year' : 'month';
-        const price = period === 'year' ? STRIPE_PRICE_YEARLY_ID : STRIPE_PRICE_MONTHLY_ID;
+        const period = resolveCheckoutPeriod(body.period);
+        const price = resolveCheckoutPriceId(period, {
+          monthlyId: STRIPE_PRICE_MONTHLY_ID,
+          yearlyId: STRIPE_PRICE_YEARLY_ID,
+        });
+        if (!price) {
+          send(res, 503, { error: 'Missing STRIPE_PRICE_MONTHLY_ID or STRIPE_PRICE_YEARLY_ID.' }, headers);
+          return;
+        }
         // Ensure durable account row exists before checkout (no Stripe customer invent).
         if (billingStorageMode === 'postgres') {
           await billingService.ensureBillingAccount({
@@ -5727,23 +5788,17 @@ const start = async () => {
           });
         }
         const existingCustomerId = await billingService.getStripeCustomerIdForUser(auth.current.user);
-        const checkoutFields = [
-          ['mode', 'subscription'],
-          ['success_url', STRIPE_SUCCESS_URL],
-          ['cancel_url', STRIPE_CANCEL_URL],
-          ['client_reference_id', auth.current.user.id],
-          ['line_items[0][price]', price],
-          ['line_items[0][quantity]', '1'],
-          ['metadata[luna_user_id]', auth.current.user.id],
-          ['metadata[luna_email]', auth.current.user.email],
-          ['metadata[luna_period]', period],
-        ];
-        if (existingCustomerId) {
-          checkoutFields.push(['customer', existingCustomerId]);
-        } else {
-          checkoutFields.push(['customer_email', auth.current.user.email]);
-        }
-        const form = stripeFormBody(buildStripeCheckoutFields(checkoutFields));
+        const checkoutFields = buildCheckoutSessionFields({
+          period,
+          priceId: price,
+          userId: auth.current.user.id,
+          email: auth.current.user.email,
+          successUrl: STRIPE_SUCCESS_URL,
+          cancelUrl: STRIPE_CANCEL_URL,
+          trialDays: STRIPE_TRIAL_DAYS,
+          existingCustomerId,
+        });
+        const form = stripeFormBody(checkoutFields);
 
         const response = await fetch('https://api.stripe.com/v1/checkout/sessions', {
           method: 'POST',
@@ -5866,8 +5921,10 @@ const start = async () => {
       // Exact raw body — never JSON.stringify before signature verification.
       const rawBody = await readRawBody(req);
       const sig = req.headers['stripe-signature'];
+      // Request-time secret so Vercel env updates apply without stale module cache.
+      const webhookSecret = String(process.env.STRIPE_WEBHOOK_SECRET || STRIPE_WEBHOOK_SECRET || '').trim();
 
-      if (!verifyStripeSignature(rawBody, sig, STRIPE_WEBHOOK_SECRET)) {
+      if (!verifyStripeSignature(rawBody, sig, webhookSecret)) {
         // Invalid signature: reject; do not create trusted ledger entries.
         send(res, 401, { error: 'Invalid Stripe signature.' }, headers);
         return;

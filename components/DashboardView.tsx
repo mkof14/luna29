@@ -14,6 +14,7 @@ import { TabType } from '../utils/navigation';
 import { dataService } from '../services/dataService';
 import { HormoneTestingGuide } from './HormoneTestingGuide';
 import { billingService, BillingStatusPayload } from '../services/billingService';
+import { conversionEvents } from '../utils/conversionEvents';
 import { getMemberTimeGreeting } from '../utils/timeOfDayGreeting';
 
 interface DashboardViewProps {
@@ -274,7 +275,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const startCheckout = async (period: 'month' | 'year') => {
     try {
       setBillingFeedback('');
+      conversionEvents.checkoutStarted(period);
       const payload = await billingService.createCheckoutSession(period);
+      conversionEvents.trialStarted();
       if (payload.url) window.location.href = payload.url;
     } catch (error) {
       setBillingFeedback(error instanceof Error ? error.message : 'Failed to start checkout.');

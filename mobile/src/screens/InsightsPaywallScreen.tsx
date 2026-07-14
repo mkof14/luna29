@@ -19,6 +19,7 @@ export function InsightsPaywallScreen({
     yearlyPrice: string;
     trial: string;
     provider: string;
+    entitlement?: { status: string; entitled: boolean; pastDue: boolean };
   } | null>(null);
 
   React.useEffect(() => {
@@ -119,7 +120,11 @@ export function InsightsPaywallScreen({
         </View>
         <Text style={styles.price}>{priceLine}</Text>
         <Text style={styles.trial}>
-          {copy.provider}: {billingStatus?.provider || 'disabled'} · {billingStatus?.enabled ? copy.statusEnabled : copy.statusDisabled}
+          {copy.provider}: {billingStatus?.provider || 'disabled'} ·{' '}
+          {billingStatus?.enabled ? copy.statusEnabled : copy.statusDisabled}
+          {billingStatus?.entitlement
+            ? ` · ${billingStatus.entitlement.entitled ? 'Premium' : billingStatus.entitlement.status}`
+            : ''}
         </Text>
         <LunaButton
           onPress={() => {

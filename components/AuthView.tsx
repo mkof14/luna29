@@ -12,6 +12,7 @@ import {
   renderGoogleSignInButton,
 } from '../utils/googleIdentity';
 import { readInviteFromUrl, readResetTokenFromUrl, readVerifyTokenFromUrl } from '../utils/authUrlTokens';
+import { conversionEvents } from '../utils/conversionEvents';
 
 interface AuthViewProps {
   ui: AuthCopy;
@@ -77,9 +78,13 @@ export const AuthView: React.FC<AuthViewProps> = ({ ui, onSuccess, initialMode =
     async (response: { credential?: string }) => {
       setAuthError(null);
       setIsLoading(true);
+      const signupIntent = mode === 'signup';
       try {
         if (!response.credential) throw new Error('Google sign-in was cancelled.');
+        if (signupIntent) conversionEvents.signUpStarted('google');
         const session = await authService.loginWithGoogleCredential(response.credential, inviteToken);
+        if (signupIntent) conversionEvents.signUpCompleted('google');
+        else conversionEvents.signInCompleted('google');
         onSuccess(session);
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Google sign-in failed.';
@@ -93,7 +98,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ ui, onSuccess, initialMode =
         setIsLoading(false);
       }
     },
-    [onSuccess, inviteToken],
+    [onSuccess, inviteToken, mode],
   );
 
   const onGoogleError = useCallback((message: string) => {
@@ -154,10 +159,13 @@ export const AuthView: React.FC<AuthViewProps> = ({ ui, onSuccess, initialMode =
       if (mode === 'signup' && inviteOnly && !inviteToken) {
         throw new Error('A valid invitation is required for Closed Paid Beta.');
       }
+      if (mode === 'signup') conversionEvents.signUpStarted('email');
       const session =
         mode === 'signin'
           ? await authService.loginWithPassword(email, password)
           : await authService.signupWithPassword(email, password, inviteToken);
+      if (mode === 'signup') conversionEvents.signUpCompleted('email');
+      else conversionEvents.signInCompleted('email');
       onSuccess(session);
     } catch (error) {
       setAuthError(error instanceof Error ? error.message : 'Sign-in failed.');

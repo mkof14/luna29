@@ -54,20 +54,39 @@ export const PublicHomeSection: React.FC<PublicHomeSectionProps> = ({
           <div className="space-y-5 md:space-y-6 min-w-0">
             <p className="text-[10px] font-black uppercase tracking-[0.28em] text-luna-purple">{homeEyebrow}</p>
             <div className="space-y-2">
-              <Logo size="sm" className="text-5xl md:text-6xl leading-none" />
+              <Logo size="sm" className="text-3xl sm:text-5xl md:text-6xl leading-none" />
               <p className="text-sm font-medium text-slate-600 dark:text-slate-400">{homeContent.heroTagline}</p>
               <span className="inline-flex text-[10px] font-semibold uppercase tracking-[0.16em] text-luna-purple/90 bg-luna-purple/10 px-3 py-1 rounded-full">
                 {homeContent.diffBadge}
               </span>
-              <h1 className="text-2xl md:text-[2rem] font-black tracking-tight text-slate-900 dark:text-slate-100 leading-tight">
+              <h1 className="text-xl sm:text-2xl md:text-[2rem] font-black tracking-tight text-slate-900 dark:text-slate-100 leading-tight">
                 {homeContent.heroTitle}
               </h1>
             </div>
-            <p className="max-w-xl text-base md:text-lg font-medium text-slate-700 dark:text-slate-200/90 leading-relaxed">
+            <p className="max-w-xl text-sm sm:text-base md:text-lg font-medium text-slate-700 dark:text-slate-200/90 leading-relaxed">
               {homeContent.heroSubtitle}
             </p>
-            <p className="text-sm font-semibold text-slate-500 dark:text-slate-300">{homeStory.heroSub}</p>
+            <p className="text-sm font-semibold text-slate-500 dark:text-slate-300 hidden sm:block">{homeStory.heroSub}</p>
             <p className="text-[12px] font-normal leading-relaxed text-slate-600 dark:text-slate-400">{homeContent.trustLine}</p>
+
+            {/* Primary CTAs before secondary doors — keep trial above the fold on mobile. */}
+            <div className="flex flex-wrap gap-3 pt-1">
+              <button
+                type="button"
+                onClick={onStartTrial}
+                className={`${PUBLIC_BTN_PRIMARY} px-7 py-3 text-sm tracking-[0.06em]`}
+              >
+                <span className={PUBLIC_BTN_PRIMARY_GLOW} />
+                <span className="relative z-10">{homeContent.trialCta}</span>
+              </button>
+              <button
+                type="button"
+                onClick={onSignIn}
+                className={`${PUBLIC_BTN_SECONDARY} px-7 py-3 text-sm tracking-[0.06em]`}
+              >
+                {homeContent.freeCta}
+              </button>
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
               <button
@@ -89,34 +108,18 @@ export const PublicHomeSection: React.FC<PublicHomeSectionProps> = ({
                 <p className="mt-3 text-xs font-semibold text-luna-purple underline underline-offset-4">{homeContent.doorDemoCta}</p>
               </button>
             </div>
-
-            <div className="flex flex-wrap gap-3 pt-1">
-              <button
-                type="button"
-                onClick={onStartTrial}
-                className={`${PUBLIC_BTN_PRIMARY} px-7 py-3 text-sm tracking-[0.06em]`}
-              >
-                <span className={PUBLIC_BTN_PRIMARY_GLOW} />
-                <span className="relative z-10">{homeContent.trialCta}</span>
-              </button>
-              <button
-                type="button"
-                onClick={onSignIn}
-                className={`${PUBLIC_BTN_SECONDARY} px-7 py-3 text-sm tracking-[0.06em]`}
-              >
-                {homeContent.freeCta}
-              </button>
-            </div>
           </div>
 
-          <div className="relative overflow-hidden rounded-[2.2rem] border border-slate-200/70 dark:border-slate-700/70 shadow-luna-deep">
+          <div className="relative overflow-hidden rounded-[2.2rem] border border-slate-200/70 dark:border-slate-700/70 shadow-luna-deep max-lg:max-h-[200px]">
             <img
-              src={getBrandAssetUrl('hero')}
+              src={getBrandAssetUrl('heroWide')}
               alt="Luna29"
+              width={1280}
+              height={720}
               loading="eager"
               fetchPriority="high"
               decoding="async"
-              className="h-[280px] md:h-[340px] w-full object-cover object-[center_38%] [mask-image:linear-gradient(to_bottom,black_0%,black_78%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_0%,black_78%,transparent_100%)]"
+              className="h-[200px] md:h-[340px] w-full object-cover object-[center_38%] [mask-image:linear-gradient(to_bottom,black_0%,black_78%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_0%,black_78%,transparent_100%)]"
             />
             <div className="absolute inset-x-0 bottom-0 z-10 h-24 bg-gradient-to-t from-slate-100/95 via-slate-100/40 to-transparent dark:from-slate-950/95 dark:via-slate-950/40" />
           </div>

@@ -85,17 +85,17 @@ const microRitualByLang: LangCopy<Record<TimeOfDay, string>> = {
 };
 
 const trustLineByLang: LangCopy<string> = {
-  en: 'Your data stays close · No ads · Not a medical diagnosis',
-  ru: 'Данные рядом с вами · Без рекламы · Не медицинский диагноз',
-  uk: 'Дані поруч із вами · Без реклами · Не медичний діагноз',
-  es: 'Tus datos cerca de ti · Sin anuncios · No es un diagnostico medico',
-  fr: 'Vos donnees restent proches · Sans publicite · Pas un diagnostic medical',
-  de: 'Ihre Daten bleiben nah · Keine Werbung · Keine medizinische Diagnose',
-  zh: '数据留在您身边 · 无广告 · 非医疗诊断',
-  ja: 'データは身近に · 広告なし · 医療診断ではありません',
-  pt: 'Seus dados ficam perto · Sem anuncios · Nao e diagnostico medico',
-  ar: 'Your data stays close · No ads · Not a medical diagnosis',
-  he: 'Your data stays close · No ads · Not a medical diagnosis',
+  en: 'Your data stays close · Never sold · Not a medical diagnosis',
+  ru: 'Данные рядом с вами · Никогда не продаём · Не медицинский диагноз',
+  uk: 'Дані поруч із вами · Ніколи не продаємо · Не медичний діагноз',
+  es: 'Tus datos cerca de ti · Nunca se venden · No es un diagnostico medico',
+  fr: 'Vos donnees restent proches · Jamais vendues · Pas un diagnostic medical',
+  de: 'Ihre Daten bleiben nah · Niemals verkauft · Keine medizinische Diagnose',
+  zh: '数据留在您身边 · 永不出售 · 非医疗诊断',
+  ja: 'データは身近に · 売却しません · 医療診断ではありません',
+  pt: 'Seus dados ficam perto · Nunca vendidos · Nao e diagnostico medico',
+  ar: 'Your data stays close · Never sold · Not a medical diagnosis',
+  he: 'Your data stays close · Never sold · Not a medical diagnosis',
 };
 
 const spiritActionsByLang: LangCopy<{ askLuna: string; whyLuna29: string }> = {

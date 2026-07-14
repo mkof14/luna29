@@ -31,6 +31,7 @@ import {
   upsertSubscription,
 } from './billingSubscriptionsStore.mjs';
 import { getUserByIdFromPostgres } from './authUsersStore.mjs';
+import { statusFromCheckoutSession } from './stripeSubscriberPath.mjs';
 
 export const SUPPORTED_STRIPE_EVENTS = Object.freeze([
   'checkout.session.completed',
@@ -105,7 +106,10 @@ export const extractStripeEventProjection = (event) => {
   let currentPeriodEnd = null;
   let stripePriceId = null;
 
-  if (eventType === 'checkout.session.completed' || eventType === 'invoice.paid') {
+  if (eventType === 'checkout.session.completed') {
+    status = statusFromCheckoutSession(data);
+    planKey = 'premium';
+  } else if (eventType === 'invoice.paid') {
     status = 'active';
     planKey = 'premium';
   } else if (eventType === 'invoice.payment_failed') {

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Language, LangCopy, getLang } from '../../constants';
 import { getLandingNarratives } from '../../utils/publicLandingNarratives';
 import { billingService } from '../../services/billingService';
+import { conversionEvents } from '../../utils/conversionEvents';
 import { MEMBER_BODY_TEXT, MEMBER_INNER_CARD, MEMBER_MUTED_TEXT, MEMBER_PAGE_PRICING, MEMBER_PAGE_TITLE, MEMBER_PRICE_LABEL, MEMBER_CHIP_ACTIVE, MEMBER_CHIP_INACTIVE } from '../../utils/memberPageStyles';
 import { MemberBackButton } from './MemberBackButton';
 import { PUBLIC_BTN_PRIMARY, PUBLIC_BTN_PRIMARY_GLOW } from '../public/publicButtonStyles';
@@ -30,17 +31,23 @@ export const MemberPricingView: React.FC<MemberPricingViewProps> = ({ lang, onBa
   const pricing = getLandingNarratives(lang).pricingCopy;
   const cta = getLang(ctaByLang, lang) || ctaByLang.en;
 
-  const startTrial = () => {
-    billingService.startServerTrial().catch(() => undefined);
-  };
-
-  const subscribe = async () => {
+  const startStripeCheckout = async () => {
     try {
+      conversionEvents.checkoutStarted(billingPeriod);
       const session = await billingService.createCheckoutSession(billingPeriod);
+      conversionEvents.trialStarted();
       window.location.href = session.url;
     } catch {
       // billing may be disabled locally
     }
+  };
+
+  const startTrial = () => {
+    void startStripeCheckout();
+  };
+
+  const subscribe = () => {
+    void startStripeCheckout();
   };
 
   const toggleByLang: LangCopy<{ month: string; year: string }> = {

@@ -29,7 +29,7 @@ import {
   getFooterSpiritActions,
   getFooterTrustLine,
 } from '../utils/publicFooterSpirit';
-import { markCheckoutPending, markTrialPending } from '../utils/subscriptionAccess';
+import { markCheckoutPending } from '../utils/subscriptionAccess';
 import { buildPublicPageUrl, resolveSiteUrl, updatePageMeta } from '../utils/pageMeta';
 
 const HowItWorksView = lazy(() => import('./HowItWorksView').then((m) => ({ default: m.HowItWorksView })));
@@ -150,23 +150,14 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
   he: { title: 'Luna29 Mobile', appStore: 'הורדה מ-App Store', googlePlay: 'קבלי ב-Google Play', soon: 'קישורי החנות יופעלו לאחר השקה.' },};
   const storeBadges = getLang(storeBadgeCopyByLang, lang) || storeBadgeCopyByLang.en;
 
-  const loadingLabelByLang: LangCopy< string> = {
-    en: 'Loading',
-    ru: 'Загрузка',
-    uk: 'Завантаження',
-    es: 'Cargando',
-    fr: 'Chargement',
-    de: 'Laden',
-    zh: '加载中',
-    ja: '読み込み中',
-    pt: 'Carregando',
-  ar: 'جارٍ التحميل',
-  he: 'טוען',};
   const lazyFallback = (
-    <div className="min-h-[40vh] flex items-center justify-center text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
-      {getLang(loadingLabelByLang, lang)}...
-    </div>
+    <div
+      className="min-h-[52vh] w-full rounded-[2rem] bg-gradient-to-b from-white/70 to-slate-100/40 dark:from-slate-900/50 dark:to-slate-950/30 border border-white/50 dark:border-white/10 animate-pulse"
+      aria-hidden="true"
+    />
   );
+
+  // Section chunks prefetch on nav hover/focus/touch only (see prefetchPublicPage).
 
   const installGuideByLang = {
     en: {
@@ -631,36 +622,8 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
   }, []);
 
   const startTrial = () => {
-    const pricingUi = getLang(pricingUiByLang, lang) || pricingUiByLang.en;
-    const existing = readTrialState();
-    if (existing?.status === 'active') {
-      setTrialState(existing);
-      setTrialFeedback(
-        pricingUi.trialActiveFeedback.replace(
-          '{days}',
-          String(Math.max(1, Math.ceil((Date.parse(existing.endsAt) - Date.now()) / DAY_MS))),
-        ),
-      );
-      onSignIn();
-      return;
-    }
-    if (existing?.used) {
-      setTrialState(existing);
-      setTrialFeedback(pricingUi.trialUsedFeedback);
-      return;
-    }
-
-    const now = Date.now();
-    const next: TrialState = {
-      startedAt: new Date(now).toISOString(),
-      endsAt: new Date(now + TRIAL_DAYS * DAY_MS).toISOString(),
-      status: 'active',
-      used: true,
-    };
-    localStorage.setItem(TRIAL_STORAGE_KEY, JSON.stringify(next));
-    setTrialState(next);
-    setTrialFeedback(pricingUi.trialStartedFeedback);
-    markTrialPending();
+    // Trial is Stripe Checkout with STRIPE_TRIAL_DAYS — same path as subscribe.
+    markCheckoutPending(billingPeriod);
     onSignUp();
   };
 
@@ -1916,6 +1879,14 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     { page: 'pricing', label: getLang(pricingLabelByLang, lang) || 'Pricing' },
   ];
 
+  const prefetchPublicPage = (page: PublicPage) => {
+    if (page === 'map') void import('./public/PublicMapSection');
+    else if (page === 'ritual') void import('./public/PublicRitualSection');
+    else if (page === 'calendar') void import('./public/PublicCalendarSection');
+    else if (page === 'pricing') void import('./public/PublicPricingSection');
+    else if (page === 'bridge') void import('./public/PublicBridgeSection');
+  };
+
   return (
     <div className="min-h-screen w-full relative overflow-x-hidden bg-gradient-to-b from-[#ebe4f4] via-slate-100 to-[#e4ecf6] dark:from-slate-950 dark:via-slate-950 dark:to-slate-950 text-slate-900 dark:text-slate-100">
       <header
@@ -1924,14 +1895,21 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       >
         <div className="max-w-[1160px] mx-auto px-3 sm:px-4 md:px-6 h-14 sm:h-16 md:h-[4.5rem] flex items-center justify-between gap-2 sm:gap-4 min-w-0">
           <button type="button" onClick={() => setActivePage('home')} className="flex items-center gap-1 min-w-0 shrink origin-left scale-[1.14] hover:scale-[1.18] active:scale-[1.1] transition-transform overflow-visible pr-1.5">
-            <img src={getBrandAssetUrl('appIcon')} alt="" aria-hidden="true" className="h-10 sm:h-14 w-auto md:h-16 object-contain select-none pointer-events-none shrink-0" />
+            <img src={getBrandAssetUrl('appIcon192')} alt="" aria-hidden="true" className="h-10 sm:h-14 w-auto md:h-16 object-contain select-none pointer-events-none shrink-0" />
             <Logo size="sm" className="cursor-default text-3xl sm:text-5xl leading-none shrink-0" />
           </button>
           <nav className="hidden md:flex items-center gap-4 min-w-0">
             {publicNavItems.map((item, index) => (
               <React.Fragment key={item.page}>
                 {index > 0 && <span className="text-slate-400/80 animate-color-shift-luna-suffix text-sm leading-none select-none">·</span>}
-                <button type="button" onClick={() => setActivePage(item.page)} className={publicNavClass(item.page)}>
+                <button
+                  type="button"
+                  onClick={() => setActivePage(item.page)}
+                  onMouseEnter={() => prefetchPublicPage(item.page)}
+                  onFocus={() => prefetchPublicPage(item.page)}
+                  onTouchStart={() => prefetchPublicPage(item.page)}
+                  className={publicNavClass(item.page)}
+                >
                   <LunaMenuLabel text={item.label} active={activePage === item.page} />
                 </button>
               </React.Fragment>
@@ -2077,7 +2055,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
         <div className="max-w-7xl mx-auto space-y-14 relative z-10">
           <div className="space-y-4 max-w-2xl">
             <div className="flex items-center gap-0.5 origin-left scale-[1.12]">
-              <img src={getBrandAssetUrl('appIcon')} alt="" aria-hidden="true" className="h-16 w-auto md:h-[4.5rem] object-contain select-none pointer-events-none" />
+              <img src={getBrandAssetUrl('appIcon192')} alt="" aria-hidden="true" className="h-16 w-auto md:h-[4.5rem] object-contain select-none pointer-events-none" />
               <Logo size="sm" className="cursor-default text-4xl md:text-5xl leading-none" />
             </div>
             <p className="text-base md:text-lg font-semibold text-slate-800 dark:text-slate-400">{homeStory.heroLead}</p>

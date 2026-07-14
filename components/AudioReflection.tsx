@@ -13,6 +13,7 @@ import { LunaPageContentSection } from './shared/LunaPageContentSection';
 import { getLunaPageTheme } from '../utils/lunaPageThemes';
 import { useTimeOfDayTick } from '../hooks/useTimeOfDayTick';
 import { getMemberTimeGreeting } from '../utils/timeOfDayGreeting';
+import { conversionEvents } from '../utils/conversionEvents';
 
 type SpeechRecognitionAlternativeLike = {
   transcript: string;
@@ -1063,6 +1064,8 @@ export const AudioReflection: React.FC<{ onBack: () => void, lang?: Language }> 
       }
     }
     dataService.logEvent('AUDIO_REFLECTION', { text: transcription, ai_response: aiResponse });
+    const voiceCount = dataService.getLog().filter((event) => event.type === 'AUDIO_REFLECTION').length;
+    if (voiceCount === 1) conversionEvents.firstVoiceReflection('audio_reflection');
     // Task 3: authenticated observation + structured signal extraction (best-effort; never blocks local save).
     const reflectionText = String(transcription || '').trim();
     if (reflectionText) {

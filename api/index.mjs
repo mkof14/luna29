@@ -8,6 +8,13 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 let requestHandlerPromise;
 
+/** Keep raw body available for Stripe webhook HMAC (Vercel Node helpers). */
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
 export default async function handler(req, res) {
   if (!requestHandlerPromise) {
     requestHandlerPromise = buildApiHandler({

@@ -15,6 +15,7 @@ import { MemberIconBackButton } from './member/MemberIconBackButton';
 import { MemberPageIntro } from './member/MemberPageIntro';
 import { LunaPageContentSection } from './shared/LunaPageContentSection';
 import { getLunaPageTheme } from '../utils/lunaPageThemes';
+import { conversionEvents } from '../utils/conversionEvents';
 
 type BridgeStep = 'entry' | 'reflection' | 'result';
 
@@ -101,6 +102,7 @@ export const BridgeView: React.FC<{ lang: Language; onBack: () => void }> = ({ l
         const next = incrementBridgeUsage(localStorage.getItem('luna_bridge_usage'), new Date());
         setUsageCount(next.count);
         localStorage.setItem('luna_bridge_usage', JSON.stringify(next));
+        conversionEvents.bridgeCompleted();
       }
     } catch (_e) {
       setError(copy.generateError);

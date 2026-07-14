@@ -59,6 +59,23 @@ export default defineConfig(({ mode }) => {
   build: {
     outDir: 'dist',
     sourcemap: false,
+    // Anonymous home should not modulepreload member/secondary public chunks.
+    modulePreload: {
+      resolveDependencies(_filename, deps) {
+        const defer = [
+          'feature-voice',
+          'feature-public-legal',
+          'feature-public-about',
+          'feature-public-how',
+          'feature-auth',
+          'AdminWorkspace',
+          'LabsView',
+          'LiveAssistant',
+          'ProfileView',
+        ];
+        return deps.filter((dep) => !defer.some((part) => dep.includes(part)));
+      },
+    },
     rollupOptions: {
       output: {
         manualChunks(id) {

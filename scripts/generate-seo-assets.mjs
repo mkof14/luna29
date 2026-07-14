@@ -27,9 +27,16 @@ const paths = [
   '/data-rights',
 ];
 
+const now = new Date().toISOString().slice(0, 10);
+
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${paths.map((entry) => `  <url><loc>${siteUrl}${entry === '/' ? '/' : entry}</loc></url>`).join('\n')}
+${paths
+  .map(
+    (entry) =>
+      `  <url><loc>${siteUrl}${entry === '/' ? '/' : entry}</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq></url>`,
+  )
+  .join('\n')}
 </urlset>
 `;
 

@@ -1,9 +1,9 @@
 {
   "semver": "1.2.0",
-  "release": "deploy/2026-07-13-open-registration",
-  "cacheKey": "20260713open",
+  "release": "deploy/2026-07-02-1901-soft-launch-final",
+  "cacheKey": "20260702sf",
   "status": "completed",
-  "completedAt": "2026-07-13T17:30:00Z",
-  "label": "Open registration — invite gate off; email verification remains required",
-  "builtAt": "2026-07-13T17:30:00Z"
+  "completedAt": "2026-07-02T19:01:18Z",
+  "label": "Soft launch final — time greetings, live email sends, consent audit, email hero JPEGs",
+  "builtAt": "2026-07-14T18:45:30.365Z"
 }

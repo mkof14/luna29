@@ -75,14 +75,19 @@ export const billingService = {
   },
 
   async startServerTrial(): Promise<{ trial: Record<string, unknown>; alreadyActive?: boolean }> {
+    // Dev/test only. When STRIPE_BILLING_ENABLED=true the API returns USE_STRIPE_CHECKOUT.
     const response = await fetch('/api/billing/trial/start', {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
     });
-    const data = await parseJson<{ trial: Record<string, unknown>; alreadyActive?: boolean }>(response);
+    const data = await parseJson<{
+      trial: Record<string, unknown>;
+      alreadyActive?: boolean;
+      code?: string;
+    }>(response);
     if (!response.ok) {
-      throw new Error(data.error || `Request failed (${response.status})`);
+      throw new Error(data.error || data.code || `Request failed (${response.status})`);
     }
     return data;
   },

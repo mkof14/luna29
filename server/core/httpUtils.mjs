@@ -20,6 +20,11 @@ export const readBodyWithLimit = async (req, maxBytes = DEFAULT_MAX_BODY_BYTES) 
 };
 
 export const readRawBodyWithLimit = async (req, maxBytes = DEFAULT_MAX_BODY_BYTES) => {
+  // Prefer already-buffered raw bytes when a platform helper preserved them.
+  if (Buffer.isBuffer(req?.rawBody)) return req.rawBody;
+  if (Buffer.isBuffer(req?.body)) return req.body;
+  if (typeof req?.body === 'string') return Buffer.from(req.body, 'utf8');
+
   const chunks = [];
   let total = 0;
   for await (const chunk of req) {
@@ -27,7 +32,7 @@ export const readRawBodyWithLimit = async (req, maxBytes = DEFAULT_MAX_BODY_BYTE
     if (total > maxBytes) {
       throw new Error(`Request body too large (max ${maxBytes} bytes).`);
     }
-    chunks.push(chunk);
+    chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
   }
   return Buffer.concat(chunks);
 };

@@ -1,4 +1,5 @@
 import { readPrivacyConsent } from '../utils/privacyCompliance';
+import { utmEventParams } from '../utils/utmAttribution';
 
 declare global {
   interface Window {
@@ -80,5 +81,5 @@ export const trackPageView = (path?: string) => {
 export const trackEvent = (name: string, params: Record<string, string | number | boolean> = {}) => {
   const measurementId = readGa4Id();
   if (!measurementId || !hasAnalyticsConsent() || typeof window === 'undefined') return;
-  window.gtag?.('event', name, params);
+  window.gtag?.('event', name, { ...utmEventParams(), ...params });
 };
