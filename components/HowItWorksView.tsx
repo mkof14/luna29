@@ -15,6 +15,7 @@ import {
   PUBLIC_SHELL_PAD,
   PUBLIC_SURFACE,
 } from './public/publicPageStyles';
+import { getPublicChromeCopy } from '../utils/publicChromeCopy';
 
 interface HowItWorksViewProps {
   lang: Language;
@@ -124,6 +125,7 @@ export const HowItWorksView: React.FC<HowItWorksViewProps> = ({ lang, onBack, mo
     );
   };
 
+  const chrome = getPublicChromeCopy(lang);
   const shellClass = mode === 'member' ? MEMBER_PAGE_KNOWLEDGE : 'luna-page-shell luna-page-knowledge animate-in fade-in duration-500 space-y-8 relative p-6 md:p-8 max-w-6xl mx-auto';
 
   return (
@@ -131,7 +133,7 @@ export const HowItWorksView: React.FC<HowItWorksViewProps> = ({ lang, onBack, mo
       {onBack && mode === 'member' && <MemberBackButton lang={lang} onClick={onBack} />}
       {onBack && mode === 'public' && (
         <button onClick={onBack} className="mb-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-luna-purple transition-all">
-          ← Back
+          {chrome.back}
         </button>
       )}
 
@@ -259,7 +261,7 @@ export const HowItWorksView: React.FC<HowItWorksViewProps> = ({ lang, onBack, mo
           <p className="text-sm font-semibold text-slate-600 dark:text-slate-300 leading-relaxed">{extra.localModeBody}</p>
         </article>
         <article className="rounded-[2.5rem] border border-slate-200/70 dark:border-slate-800 bg-gradient-to-br from-[#e9eefb]/90 to-[#dff6f3]/90 dark:from-slate-900/80 dark:to-slate-800/70 p-7 md:p-8 shadow-luna-rich space-y-4">
-          <h3 className="text-xl font-black tracking-tight">{extra.reportsTitle}</h3>
+          <h3 className="text-xl font-black tracking-tight">{chrome.healthReportsTitle}</h3>
           <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">{extra.reportsBody}</p>
         </article>
       </div>

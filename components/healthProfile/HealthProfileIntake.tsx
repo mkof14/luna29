@@ -35,6 +35,7 @@ import {
   ReportReadinessBlock,
 } from './HealthProfileIntelligence';
 import { MEMBER_CHIP_ACTIVE, MEMBER_CHIP_INACTIVE } from '../../utils/memberPageStyles';
+import { getHealthProfileCopy } from '../../utils/healthProfileCopy';
 
 type Props = { lang: Language };
 
@@ -50,12 +51,13 @@ const valueText = (fact: PersonalHealthFact) =>
  * Reuses getProfile / putSection / completion — no API or schema changes.
  */
 export const HealthProfileIntake: React.FC<Props> = ({ lang }) => {
+  const hp = getHealthProfileCopy(lang);
   const [profile, setProfile] = useState<PersonalHealthProfile | null>(null);
   const [facts, setFacts] = useState<PersonalHealthFact[]>([]);
   const [state, setState] = useState<'loading' | 'ready' | 'unavailable' | 'error'>('loading');
   const [busy, setBusy] = useState(false);
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
-  const [saveMessage, setSaveMessage] = useState('Information saved');
+  const [saveMessage, setSaveMessage] = useState(() => getHealthProfileCopy(lang).informationSaved);
   const [activeId, setActiveId] = useState<IntakeSectionId>('about_you');
   const [expanded, setExpanded] = useState<Record<string, boolean>>({ about_you: true });
   const [mobileStep, setMobileStep] = useState(0);
@@ -170,16 +172,16 @@ export const HealthProfileIntake: React.FC<Props> = ({ lang }) => {
   if (state === 'loading') {
     return (
       <section className="rounded-[1.5rem] border border-slate-200/70 dark:border-slate-700/50 bg-white/90 dark:bg-slate-900/70 p-8" data-testid="health-profile-panel">
-        <p className="text-sm text-slate-500">Loading Health Profile…</p>
+        <p className="text-sm text-slate-500">{hp.loading}</p>
       </section>
     );
   }
   if (state === 'unavailable' || state === 'error' || !profile) {
     return (
       <section data-testid="health-profile-unavailable" className="rounded-[1.5rem] border border-slate-200/70 dark:border-slate-700/50 bg-white/90 dark:bg-slate-900/70 p-8 space-y-2">
-        <h2 className="text-lg font-bold text-slate-900 dark:text-slate-50">Personal Health Profile</h2>
+        <h2 className="text-lg font-bold text-slate-900 dark:text-slate-50">{hp.pageHeroTitle}</h2>
         <p className="text-sm text-amber-700 dark:text-amber-300">
-          Your health profile is temporarily unavailable. The rest of Luna remains available.
+          {hp.unavailable}
         </p>
       </section>
     );
@@ -197,24 +199,24 @@ export const HealthProfileIntake: React.FC<Props> = ({ lang }) => {
       >
         <div className="space-y-2 max-w-2xl">
           <h2 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-slate-50">
-            Personal Health Profile
+            {hp.pageHeroTitle}
           </h2>
           <p className="text-sm md:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
-            Add what helps Luna personalize your reports, Live, and recommendations. Skip anything. Change anytime.
+            {hp.pageHeroBody}
           </p>
         </div>
 
         <div className="space-y-2">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">Completion</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">{hp.entryCompletionLabel}</p>
               <p className="mt-0.5 text-3xl font-black tabular-nums text-slate-900 dark:text-slate-50" data-testid="intake-profile-completion">
                 {progress.percent}%
               </p>
             </div>
             <p className="text-sm text-slate-500 dark:text-slate-400" data-testid="intake-confidence-value">
-              Confidence · {progress.confidence}
-              {progress.estimatedMinutes > 0 ? ` · ~${progress.estimatedMinutes} min left` : ''}
+              {hp.confidenceLabel} · {progress.confidence}
+              {progress.estimatedMinutes > 0 ? ` · ~${progress.estimatedMinutes} ${hp.minLeft}` : ''}
             </p>
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
@@ -342,7 +344,7 @@ export const HealthProfileIntake: React.FC<Props> = ({ lang }) => {
       <div className="hidden lg:grid lg:grid-cols-[220px_minmax(0,1fr)] gap-6 items-start">
         <nav
           className="sticky top-24 space-y-0.5 rounded-[1.25rem] bg-white/90 dark:bg-slate-900/60 border border-slate-200/70 dark:border-slate-700/50 p-2.5"
-          aria-label="Personal Health Profile sections"
+          aria-label={hp.pageHeroTitle}
           data-testid="intake-desktop-nav"
         >
           {sections.map((s) => {

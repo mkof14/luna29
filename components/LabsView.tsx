@@ -9,6 +9,8 @@ import { isSupportedLabFile } from '../utils/runtimeGuards';
 import { copyTextSafely, shareTextSafely } from '../utils/share';
 import { Language } from '../constants';
 import { getLabsViewLocalizedContent } from '../utils/labsViewContent';
+import { getPublicChromeCopy } from '../utils/publicChromeCopy';
+import { getHealthProfileCopy } from '../utils/healthProfileCopy';
 import { MemberIconBackButton } from './member/MemberIconBackButton';
 import { MemberPageIntro } from './member/MemberPageIntro';
 import { LunaPageContentSection } from './shared/LunaPageContentSection';
@@ -227,6 +229,8 @@ export const LabsView: React.FC<{
   const [phpCoveredFields, setPhpCoveredFields] = useState<Array<keyof LabsDraftProfileFields>>([]);
   const [lastDraftSavedAt, setLastDraftSavedAt] = useState<number | null>(null);
   const localized = useMemo(() => getLabsViewLocalizedContent(lang, reportLang), [lang, reportLang]);
+  const chrome = getPublicChromeCopy(lang);
+  const hpCopy = getHealthProfileCopy(lang);
   const {
     sexualUi,
     visualGuide,
@@ -886,8 +890,8 @@ export const LabsView: React.FC<{
         {reportsUi.workflow}
       </p>
 
-      <HealthProfileIncompleteNotice variant="labs" onContinue={onOpenHealthProfile} />
-      <HealthProfileIncompleteNotice variant="reports" onContinue={onOpenHealthProfile} />
+      <HealthProfileIncompleteNotice variant="labs" lang={lang} onContinue={onOpenHealthProfile} />
+      <HealthProfileIncompleteNotice variant="reports" lang={lang} onContinue={onOpenHealthProfile} />
       <div className="grid gap-3 md:grid-cols-2">
         <ProfilePersonalizationBadge profile={phpProfile} surface="labs" />
         <ModuleReadinessPanel profile={phpProfile} />
@@ -993,13 +997,13 @@ export const LabsView: React.FC<{
                   className="text-[10px] font-black uppercase tracking-[0.12em] text-luna-purple"
                   data-testid="labs-open-health-profile"
                 >
-                  Personal Health Profile
+                  {hpCopy.openProfile}
                 </button>
               )}
             </div>
             {phpCoveredFields.length > 0 && (
               <p className="text-xs text-slate-500 dark:text-slate-400" data-testid="labs-php-reuse-notice">
-                Using your Personal Health Profile for {phpCoveredFields.join(', ')}. Edit those details in your profile — they are not asked again here.
+                {hpCopy.phpReusePrefix} {phpCoveredFields.join(', ')}. {hpCopy.phpReuseSuffix}
               </p>
             )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -1271,7 +1275,7 @@ export const LabsView: React.FC<{
           <article className="rounded-[2rem] border border-slate-200/80 dark:border-slate-700/70 bg-gradient-to-br from-[#e8e6f8]/90 via-[#e7f2fb]/88 to-[#e6f7f3]/86 dark:from-[#0d1f3f]/92 dark:via-[#12294b]/90 dark:to-[#133651]/88 p-6 space-y-4 shadow-luna-rich">
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm md:text-base font-black uppercase tracking-[0.14em] text-luna-purple">{reportsUi.hormoneInfographic}</p>
-              <img src={versionedStaticAsset('/images/moon_phases_arc.webp')} alt="Cycle visual" className="h-10 w-24 object-cover rounded-lg border border-white/60 dark:border-slate-700/60" />
+              <img src={versionedStaticAsset('/images/moon_phases_arc.webp')} alt={chrome.cycleVisualLabel} className="h-10 w-24 object-cover rounded-lg border border-white/60 dark:border-slate-700/60" />
             </div>
             <div className="space-y-2">
               {hormoneTopicStats.length > 0 ? hormoneTopicStats.map((entry) => (

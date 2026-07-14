@@ -111,18 +111,18 @@ export const InstallAppPrompt: React.FC<InstallAppPromptProps> = ({ lang }) => {
       iosHint: 'No iPhone: Compartilhar -> Adicionar a Tela Inicial',
     },
   ar: {
-      title: 'Install Luna29 App',
-      subtitle: 'Open faster and use full-screen like a native app.',
-      install: 'Install',
-      later: 'Later',
-      iosHint: 'On iPhone: Share -> Add to Home Screen',
+      title: 'تثبيت تطبيق Luna29',
+      subtitle: 'افتحي أسرع واستخدمي ملء الشاشة كتطبيق أصلي.',
+      install: 'تثبيت',
+      later: 'لاحقاً',
+      iosHint: 'على iPhone: مشاركة → إضافة إلى الشاشة الرئيسية',
     },
   he: {
-      title: 'Install Luna29 App',
-      subtitle: 'Open faster and use full-screen like a native app.',
-      install: 'Install',
-      later: 'Later',
-      iosHint: 'On iPhone: Share -> Add to Home Screen',
+      title: 'התקנת אפליקציית Luna29',
+      subtitle: 'פתחי מהר יותר והשתמשי במסך מלא כמו אפליקציה מקורית.',
+      install: 'התקנה',
+      later: 'אחר כך',
+      iosHint: 'ב-iPhone: שיתוף → הוספה למסך הבית',
     },};
 
   const copy = getLang(copyByLang, lang) || copyByLang.en;

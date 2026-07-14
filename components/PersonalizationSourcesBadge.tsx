@@ -1,13 +1,15 @@
 import React from 'react';
-import { HEALTH_PROFILE_COPY as c } from '../utils/healthProfileCopy';
+import { getHealthProfileCopy, HEALTH_PROFILE_COPY } from '../utils/healthProfileCopy';
 import type { ProfileSectionId } from '../services/personalHealthProfileService';
+import type { Language } from '../constants';
 
-export type PersonalizationSource = keyof typeof c.badgeSources;
+export type PersonalizationSource = keyof typeof HEALTH_PROFILE_COPY.badgeSources;
 
 type Props = {
   using?: PersonalizationSource[];
   missingSectionIds?: Array<ProfileSectionId | string | null | undefined>;
   className?: string;
+  lang?: Language;
 };
 
 /**
@@ -17,7 +19,9 @@ export const PersonalizationSourcesBadge: React.FC<Props> = ({
   using = ['labs', 'profile', 'timeline', 'memory', 'today'],
   missingSectionIds = [],
   className = '',
+  lang,
 }) => {
+  const c = getHealthProfileCopy(lang);
   const missingLabels = Array.from(
     new Set(
       missingSectionIds

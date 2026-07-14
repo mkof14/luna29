@@ -16,6 +16,7 @@ import { HormoneTestingGuide } from './HormoneTestingGuide';
 import { billingService, BillingStatusPayload } from '../services/billingService';
 import { conversionEvents } from '../utils/conversionEvents';
 import { getMemberTimeGreeting } from '../utils/timeOfDayGreeting';
+import { getPublicChromeCopy } from '../utils/publicChromeCopy';
 
 interface DashboardViewProps {
   lang: Language;
@@ -46,6 +47,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 }) => {
   const retentionCopy = getLang(DASHBOARD_RETENTION_COPY, lang) || DASHBOARD_RETENTION_COPY.en;
   const billingCopy = getLang(DASHBOARD_BILLING_COPY, lang) || DASHBOARD_BILLING_COPY.en;
+  const chrome = getPublicChromeCopy(lang);
   const REMINDER_STORAGE_KEY = 'luna_daily_reminder_v1';
   const EVENING_SKIP_STORAGE_KEY = 'luna_evening_reflection_skip_v1';
 
@@ -1146,7 +1148,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 onClick={() => navigateTo('labs')}
                 className="px-5 py-2.5 rounded-full border border-luna-purple/40 text-luna-purple bg-white/80 dark:bg-slate-900/70 text-[9px] font-black uppercase tracking-[0.12em] hover:bg-luna-purple/10 transition-all"
               >
-                My Health Reports
+                {chrome.healthReportsTitle}
               </button>
             </div>
           </div>

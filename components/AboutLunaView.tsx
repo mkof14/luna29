@@ -15,7 +15,7 @@ import {
   PUBLIC_SHELL_PAD,
   PUBLIC_SURFACE,
 } from './public/publicPageStyles';
-import { HEALTH_PROFILE_COPY } from '../utils/healthProfileCopy';
+import { getPublicChromeCopy } from '../utils/publicChromeCopy';
 
 interface AboutLunaViewProps {
   lang: Language;
@@ -84,6 +84,7 @@ export const AboutLunaView: React.FC<AboutLunaViewProps> = ({ lang, mode = 'publ
     );
   }
   const { about, reportExplainer } = content;
+  const chrome = getPublicChromeCopy(lang);
   const wrapperClass = mode === 'public' ? 'luna-page-shell luna-page-knowledge p-6 md:p-8' : MEMBER_PAGE_KNOWLEDGE;
 
   return (
@@ -91,7 +92,7 @@ export const AboutLunaView: React.FC<AboutLunaViewProps> = ({ lang, mode = 'publ
       {onBack && mode === 'member' && <MemberBackButton lang={lang} onClick={onBack} />}
       {onBack && mode === 'public' && (
         <button onClick={onBack} className="mb-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400 hover:text-luna-purple transition-all">
-          ← Back
+          {chrome.back}
         </button>
       )}
 
@@ -134,10 +135,10 @@ export const AboutLunaView: React.FC<AboutLunaViewProps> = ({ lang, mode = 'publ
         className={`${PUBLIC_SHELL} luna-page-knowledge ${PUBLIC_SHELL_PAD}`}
       >
         <div className={`${PUBLIC_SHELL_INNER} ${PUBLIC_SURFACE} space-y-4`}>
-          <h3 className={PUBLIC_H3}>{HEALTH_PROFILE_COPY.entryPublicTitle}</h3>
-          <p className={PUBLIC_BODY}>{HEALTH_PROFILE_COPY.entryPublicBody}</p>
+          <h3 className={PUBLIC_H3}>{chrome.healthProfileTitle}</h3>
+          <p className={PUBLIC_BODY}>{chrome.healthProfileBody}</p>
           <ul className="space-y-1.5">
-            {HEALTH_PROFILE_COPY.entryPublicBullets.map((item) => (
+            {chrome.healthProfileBullets.map((item) => (
               <li key={item} className={PUBLIC_BODY}>
                 • {item}
               </li>
@@ -148,7 +149,7 @@ export const AboutLunaView: React.FC<AboutLunaViewProps> = ({ lang, mode = 'publ
 
       <section className={`${PUBLIC_SHELL} luna-page-reports ${PUBLIC_SHELL_PAD}`}>
         <div className={`${PUBLIC_SHELL_INNER} ${PUBLIC_SURFACE} space-y-4`}>
-        <p className={PUBLIC_H3}>My Health Reports</p>
+        <p className={PUBLIC_H3}>{chrome.healthReportsTitle}</p>
         <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">{reportExplainer.title}</h3>
         <p className={PUBLIC_BODY}>{reportExplainer.body1}</p>
         <p className={PUBLIC_BODY}>{reportExplainer.body2}</p>

@@ -5,6 +5,7 @@ import {
   CYCLE_VISUAL_SVG,
 } from './reportSampleTemplate';
 import { LUNA_BRAND_PATHS, resolveLunaSiteUrl } from './lunaBrandAssets';
+import { getPublicChromeCopy } from './publicChromeCopy';
 
 const SAMPLE_ACCENTS = ['#7c3aed', '#db2777', '#ea580c', '#0891b2'];
 
@@ -68,6 +69,7 @@ const absoluteBrandUrl = (path: string): string => {
 
 export async function buildPublicSampleReportHtml(lang: Language): Promise<string> {
   const localized = getLabsViewLocalizedContent(lang, lang);
+  const chrome = getPublicChromeCopy(lang);
   const {
     reportUi,
     reportsUi,
@@ -113,15 +115,15 @@ export async function buildPublicSampleReportHtml(lang: Language): Promise<strin
     summaryLabel: medForm.summary,
     disclaimerTitle: medForm.disclaimerTitle,
     disclaimerBody: medForm.disclaimerBody,
-    reportCopyright: 'Sample preview · Not a medical diagnosis · For illustration only',
-    siteAddressLabel: 'Website',
+    reportCopyright: chrome.sampleCopyright,
+    siteAddressLabel: chrome.siteAddressLabel,
     servicePromise: reportUi.servicePromise,
     serviceBullets: reportUi.serviceBullets,
     stableLabel: womenUi.stable,
     highPriorityLabel: womenUi.highPriority,
     watchLabel: womenUi.watch,
     hormoneSignalsLabel: reportsUi.hormoneSignals,
-    cycleVisualLabel: 'Cycle visual',
+    cycleVisualLabel: chrome.cycleVisualLabel,
     dayLabel: reportsUi.day,
     cycleDayValue: 21,
     sexualSummaryLabel: sexualUi.summaryLabel,

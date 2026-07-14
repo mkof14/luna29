@@ -17,6 +17,12 @@ import {
 } from '../utils/publicFooterSpirit';
 import { MEMBER_FOOTER_EXPLORE_TABS, MEMBER_FOOTER_RESOURCE_TABS } from '../utils/memberFooterNavigation';
 import { Language, TranslationSchema, LangCopy, getLang } from '../constants';
+import { getLabsViewLocalizedContent } from '../utils/labsViewContent';
+import {
+  downloadPublicSampleReport,
+  previewPublicSampleReport,
+} from '../utils/publicSampleReportPreview';
+import { getInstallGuideCopy } from '../utils/installGuideCopy';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -245,25 +251,11 @@ export const AppFooter: React.FC<AppFooterProps> = ({
     he: { appStore: 'App Store', googlePlay: 'Google Play', soon: 'אפליקציות לנייד זמינות בהתקנה במכשירים נתמכים.' },
   };
 
-  const installGuideModalByLang: LangCopy<{ title: string; close: string }> = {
-    en: { title: 'Install Luna29', close: 'Close' },
-    ru: { title: 'Установить Luna29', close: 'Закрыть' },
-    uk: { title: 'Встановити Luna29', close: 'Закрити' },
-    es: { title: 'Instalar Luna29', close: 'Cerrar' },
-    fr: { title: 'Installer Luna29', close: 'Fermer' },
-    de: { title: 'Luna29 installieren', close: 'Schließen' },
-    zh: { title: '安装 Luna29', close: '关闭' },
-    ja: { title: 'Luna29 をインストール', close: '閉じる' },
-    pt: { title: 'Instalar Luna29', close: 'Fechar' },
-    ar: { title: 'تثبيت Luna29', close: 'إغلاق' },
-    he: { title: 'התקנת Luna29', close: 'סגירה' },
-  };
-
   const footerSectionTitles = getLang(footerSectionTitlesByLang, lang) || footerSectionTitlesByLang.en;
   const publicHomeNavLabels = getLang(publicHomeNavLabelsByLang, lang) || publicHomeNavLabelsByLang.en;
   const installActions = getLang(installActionsByLang, lang) || installActionsByLang.en;
   const storeBadges = getLang(storeBadgesByLang, lang) || storeBadgesByLang.en;
-  const installGuideModal = getLang(installGuideModalByLang, lang) || installGuideModalByLang.en;
+  const installGuideModal = getInstallGuideCopy(lang);
 
   const exploreLabel = (id: TabType): string => {
     if (id === 'dashboard') return memberNav.memberHome;
@@ -310,6 +302,8 @@ export const AppFooter: React.FC<AppFooterProps> = ({
       })),
     [lang, memberNav],
   );
+
+  const { reportUi } = useMemo(() => getLabsViewLocalizedContent(lang, lang), [lang]);
 
   const footerLegalLinks: FooterTabLink[] = useMemo(
     () => [
@@ -400,6 +394,26 @@ export const AppFooter: React.FC<AppFooterProps> = ({
               </p>
               <div className="flex flex-col gap-2.5 text-[13px] font-light">
                 {footerResourceLinks.map((link) => renderExploreLink(link, `footer-resource-${link.id}`))}
+                <button
+                  type="button"
+                  data-testid="footer-nav-sample-report-view"
+                  onClick={() => {
+                    void previewPublicSampleReport(lang);
+                  }}
+                  className="text-left"
+                >
+                  <LunaMenuLabel text={reportUi.sampleView} muted className="font-light" />
+                </button>
+                <button
+                  type="button"
+                  data-testid="footer-nav-sample-report-download"
+                  onClick={() => {
+                    void downloadPublicSampleReport(lang);
+                  }}
+                  className="text-left"
+                >
+                  <LunaMenuLabel text={reportUi.sampleDownload} muted className="font-light" />
+                </button>
               </div>
             </nav>
 
@@ -515,10 +529,10 @@ export const AppFooter: React.FC<AppFooterProps> = ({
             <p className="text-xs font-black uppercase tracking-[0.24em] text-luna-purple">{installGuideModal.title}</p>
             <p className="text-sm font-semibold text-slate-600 dark:text-slate-300 leading-relaxed">
               {mobilePlatform === 'ios'
-                ? 'Safari → Share → Add to Home Screen.'
+                ? installGuideModal.shortIos
                 : mobilePlatform === 'android'
-                  ? 'Chrome menu → Install App.'
-                  : 'Use Chrome or Edge menu → Install Luna29.'}
+                  ? installGuideModal.shortAndroid
+                  : installGuideModal.shortDesktop}
             </p>
             {!isStandaloneMode && (
               <button

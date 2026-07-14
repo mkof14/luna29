@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import type { ProfileSectionId } from '../services/personalHealthProfileService';
-import { HEALTH_PROFILE_COPY as c } from '../utils/healthProfileCopy';
+import { getHealthProfileCopy } from '../utils/healthProfileCopy';
+import type { Language } from '../constants';
 import { MEMBER_CHIP_ACTIVE, MEMBER_CHIP_INACTIVE } from '../utils/memberPageStyles';
 import {
   dismissHealthProfileTodayCard,
@@ -23,9 +24,13 @@ type Props = {
   variant: Variant;
   onContinue?: () => void;
   showBadge?: boolean;
+  lang?: Language;
 };
 
-const liveSuggestion = (section: ProfileSectionId | null | undefined) => {
+const liveSuggestion = (
+  section: ProfileSectionId | null | undefined,
+  c: ReturnType<typeof getHealthProfileCopy>,
+) => {
   if (!section) return c.entryLiveReminder;
   return c.entryLiveBySection[section] || missingPersonalizationHint(section) || c.entryLiveReminder;
 };
@@ -38,7 +43,9 @@ export const HealthProfileIncompleteNotice: React.FC<Props> = ({
   variant,
   onContinue,
   showBadge = variant === 'labs' || variant === 'reports',
+  lang,
 }) => {
+  const c = getHealthProfileCopy(lang);
   const completionState = useHealthProfileCompletion(true);
   const completion = completionState.percent;
   const recommendedNext = completionState.recommendedNext;
@@ -118,7 +125,7 @@ export const HealthProfileIncompleteNotice: React.FC<Props> = ({
         data-testid="health-profile-live-reminder"
         className="px-4 py-2 border-b border-inherit bg-inherit/80 text-center space-y-1"
       >
-        <p className="text-[11px] font-medium opacity-80">{liveSuggestion(recommendedNext)}</p>
+        <p className="text-[11px] font-medium opacity-80">{liveSuggestion(recommendedNext, c)}</p>
         <ProfilePersonalizationBadge
           surface="live"
           className="mx-auto max-w-md text-left border-0 bg-transparent px-0 py-1"

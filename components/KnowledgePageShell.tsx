@@ -14,6 +14,7 @@ import {
 import { MemberBackButton } from './member/MemberBackButton';
 import { Language } from '../constants';
 import { MEMBER_PAGE_KNOWLEDGE } from '../utils/memberPageStyles';
+import { getPublicChromeCopy } from '../utils/publicChromeCopy';
 
 export type KnowledgeStat = { label: string; value: string };
 
@@ -40,6 +41,7 @@ export const KnowledgePageShell: React.FC<KnowledgePageShellProps> = ({
   titleB,
   subtitle,
   stats,
+  backLabel,
   onBack,
   footerTitle,
   footerQuote,
@@ -50,6 +52,7 @@ export const KnowledgePageShell: React.FC<KnowledgePageShellProps> = ({
   const isMember = mode === 'member';
   const title = [titleA, titleB].filter(Boolean).join(' ').trim();
   const heroImage = PUBLIC_PAGE_ART[heroPage] ?? PUBLIC_PAGE_ART.learning;
+  const chrome = getPublicChromeCopy(lang);
   const wrapperClass = isMember
     ? `${MEMBER_PAGE_KNOWLEDGE}`
     : 'luna-page-shell luna-page-knowledge max-w-6xl mx-auto p-6 md:p-8 pb-32';
@@ -63,7 +66,7 @@ export const KnowledgePageShell: React.FC<KnowledgePageShellProps> = ({
           onClick={onBack}
           className="mb-6 group inline-flex items-center gap-3 rounded-full border border-slate-300/90 dark:border-slate-400/55 bg-white/92 dark:bg-slate-800/92 px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.22em] text-slate-700 dark:text-slate-100 hover:text-luna-purple transition-all"
         >
-          ← Back
+          {backLabel || chrome.back}
         </button>
       )}
 

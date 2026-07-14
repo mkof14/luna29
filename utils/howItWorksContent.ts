@@ -56,7 +56,7 @@ export const EXTRA_HOW_COPY: LangCopy< ExtraHowCopy> = {
     onboardingBody: 'Дни 1-2 фиксируют базу, дни 3-5 показывают сдвиги паттернов, дни 6-7 формируют первый отчет Inner Weather и личные правила ритма.',
     localModeTitle: 'Режим Разработки (Local-First)',
     localModeBody: 'Сейчас система работает локально. Данные остаются на этом устройстве, пока вы сами их не экспортируете.',
-    reportsTitle: 'My Health Reports',
+    reportsTitle: 'Мои отчёты о здоровье',
     reportsBody: 'Формирует отчет для врача с женским клиническим фокусом: сочетания гормонов, эффекты, риски и практические рекомендации.',
   },
   uk: {
@@ -70,7 +70,7 @@ export const EXTRA_HOW_COPY: LangCopy< ExtraHowCopy> = {
     onboardingBody: 'Дні 1-2 формують базу, дні 3-5 показують зсуви патернів, дні 6-7 дають перший звіт Inner Weather і власні правила ритму.',
     localModeTitle: 'Режим Розробки (Local-First)',
     localModeBody: 'Поточне налаштування працює локально. Дані залишаються на пристрої, доки ви їх не експортуєте.',
-    reportsTitle: 'My Health Reports',
+    reportsTitle: 'Мої звіти про здоров’я',
     reportsBody: 'Формує звіт для лікаря з жіночим клінічним фокусом: гормональні поєднання, ефекти, ризики та практичні дії.',
   },
   es: {
@@ -84,7 +84,7 @@ export const EXTRA_HOW_COPY: LangCopy< ExtraHowCopy> = {
     onboardingBody: 'Días 1-2 establecen base, 3-5 detectan cambios de patrón, 6-7 generan tu primer resumen Inner Weather y reglas personales.',
     localModeTitle: 'Modo Desarrollo (Local-First)',
     localModeBody: 'La configuración actual corre en local. Tus datos quedan en este dispositivo salvo exportación manual.',
-    reportsTitle: 'My Health Reports',
+    reportsTitle: 'Mis informes de salud',
     reportsBody: 'Genera reporte clínico enfocado en salud femenina: combinaciones hormonales, efectos potenciales, riesgos y acciones sugeridas.',
   },
   fr: {
@@ -98,7 +98,7 @@ export const EXTRA_HOW_COPY: LangCopy< ExtraHowCopy> = {
     onboardingBody: 'Jours 1-2 base initiale, 3-5 détection de variations, 6-7 premier résumé Inner Weather et règles personnelles.',
     localModeTitle: 'Mode Développement (Local-First)',
     localModeBody: 'La configuration actuelle est locale. Les données restent sur cet appareil sauf export manuel.',
-    reportsTitle: 'My Health Reports',
+    reportsTitle: 'Mes rapports de santé',
     reportsBody: 'Génère un rapport clinique orienté santé féminine: combinaisons hormonales, effets possibles, risques et actions recommandées.',
   },
   de: {
@@ -112,7 +112,7 @@ export const EXTRA_HOW_COPY: LangCopy< ExtraHowCopy> = {
     onboardingBody: 'Tag 1-2 Basis erfassen, 3-5 Musteränderungen erkennen, 6-7 erste Inner-Weather-Zusammenfassung und persönliche Regeln erstellen.',
     localModeTitle: 'Entwicklungsmodus (Local-First)',
     localModeBody: 'Das System läuft aktuell lokal. Daten bleiben auf diesem Gerät bis zum manuellen Export.',
-    reportsTitle: 'My Health Reports',
+    reportsTitle: 'Meine Gesundheitsberichte',
     reportsBody: 'Erstellt einen frauenfokussierten klinischen Bericht mit Hormonkombinationen, möglichen Effekten, Risiken und Handlungsempfehlungen.',
   },
   zh: {
@@ -126,7 +126,7 @@ export const EXTRA_HOW_COPY: LangCopy< ExtraHowCopy> = {
     onboardingBody: '第 1-2 天建立基线，第 3-5 天识别模式变化，第 6-7 天生成首个 Inner Weather 总结与个人节律规则。',
     localModeTitle: '开发模式（Local-First）',
     localModeBody: '当前为本地运行。除非你手动导出，数据将保存在本机。',
-    reportsTitle: 'My Health Reports',
+    reportsTitle: '我的健康报告',
     reportsBody: '生成女性健康临床报告：激素组合、潜在影响、风险区域和可执行建议。',
   },
   ja: {
@@ -140,7 +140,7 @@ export const EXTRA_HOW_COPY: LangCopy< ExtraHowCopy> = {
     onboardingBody: '1-2日目で基準を作り、3-5日目で変化を把握、6-7日目で最初のInner Weather要約と個人ルールを作成します。',
     localModeTitle: '開発モード（Local-First）',
     localModeBody: '現在はローカル実行です。手動エクスポートしない限りデータは端末内に保存されます。',
-    reportsTitle: 'My Health Reports',
+    reportsTitle: 'マイヘルスレポート',
     reportsBody: '女性向けの臨床レポートを生成し、ホルモン組み合わせ、想定影響、リスク、行動提案を提示します。',
   },
   pt: {
@@ -154,7 +154,7 @@ export const EXTRA_HOW_COPY: LangCopy< ExtraHowCopy> = {
     onboardingBody: 'Dias 1-2 criam base, 3-5 mostram mudanças de padrão, 6-7 geram o primeiro resumo Inner Weather e regras pessoais.',
     localModeTitle: 'Modo De Desenvolvimento (Local-First)',
     localModeBody: 'A configuração atual roda localmente. Os dados ficam neste dispositivo, salvo exportação manual.',
-    reportsTitle: 'My Health Reports',
+    reportsTitle: 'Meus relatórios de saúde',
     reportsBody: 'Gera relatório clínico focado na mulher com combinações hormonais, efeitos potenciais, riscos e recomendações práticas.',
   },
   ar: {
@@ -168,7 +168,7 @@ export const EXTRA_HOW_COPY: LangCopy< ExtraHowCopy> = {
     onboardingBody: 'اليومان 1-2 يلتقطان خط الأساس، والأيام 3-5 تكشف تحوّلات الأنماط، والأيمان 6-7 ينشئان أول ملخص Inner Weather وقواعد إيقاعك الشخصية.',
     localModeTitle: 'وضع التطوير (Local-First)',
     localModeBody: 'الإعداد الحالي يعمل محلياً. تبقى البيانات على هذا الجهاز ما لم تصدّريها يدوياً.',
-    reportsTitle: 'My Health Reports',
+    reportsTitle: 'تقاريري الصحية',
     reportsBody: 'ينشئ تقريراً جاهزاً للطبيب موجّهاً للنساء: تركيبات هرمونية، آثار محتملة، مناطق خطر وتوصيات عملية.',
   },
   he: {
@@ -182,7 +182,7 @@ export const EXTRA_HOW_COPY: LangCopy< ExtraHowCopy> = {
     onboardingBody: 'ימים 1-2 קובעים baseline, ימים 3-5 מגלים שינויי דפוס, ימים 6-7 יוצרים את סיכום Inner Weather הראשון וכללי הקצב האישיים.',
     localModeTitle: 'מצב פיתוח (Local-First)',
     localModeBody: 'ההגדרה הנוכחית רצה מקומית. הנתונים נשארים במכשיר זה אלא אם מייצאים ידנית.',
-    reportsTitle: 'My Health Reports',
+    reportsTitle: 'דוחות הבריאות שלי',
     reportsBody: 'מייצר דוח מוכן לרופא ממוקד נשים: שילובי הורמונים, השפעות אפשריות, אזורי סיכון והמלצות מעשיות.',
   },};
 

@@ -1543,7 +1543,12 @@ const LEARNING_DATA: LangCopy<AccordionCategory[]> = {
 };
 
 export function getLearningViewContent(lang: Language): { copy: LearningViewCopy; categories: AccordionCategory[] } {
-  const copy = getLang(COPY, lang) || LEARNING_COPY_I18N[lang] || COPY.en;
-  const categories = getLang(LEARNING_DATA, lang) || LEARNING_DATA_I18N[lang] || LEARNING_DATA.en;
+  // Prefer dedicated i18n overlays when present — COPY/LEARNING_DATA stubs for es–pt were English.
+  const copy = (LEARNING_COPY_I18N[lang] as LearningViewCopy | undefined)
+    || getLang(COPY, lang)
+    || COPY.en;
+  const categories = LEARNING_DATA_I18N[lang]
+    || getLang(LEARNING_DATA, lang)
+    || LEARNING_DATA.en;
   return { copy, categories };
 }

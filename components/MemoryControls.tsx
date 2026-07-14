@@ -24,7 +24,7 @@ import {
 import { MEMORY_COPY } from '../utils/memoryCopy';
 import { filterSurfacedPatterns } from '../utils/todayState';
 import { useHealthProfileCompletion } from '../hooks/useHealthProfileCompletion';
-import { HEALTH_PROFILE_COPY } from '../utils/healthProfileCopy';
+import { getHealthProfileCopy } from '../utils/healthProfileCopy';
 import { HealthProfileCompletionLabel } from './HealthProfileCompletionLabel';
 
 export { MEMORY_COPY };
@@ -54,12 +54,14 @@ const publicSignalView = (signal: SignalRecord) => {
 };
 
 export const MemoryControls: React.FC<Props> = ({
+  lang,
   compact = false,
   surface = 'memory_settings',
   onClose,
   onConsentChange,
   onOpenHealthProfile,
 }) => {
+  const hp = getHealthProfileCopy(lang);
   const profileCompletion = useHealthProfileCompletion(surface === 'profile' && !compact);
   const [consent, setConsent] = useState<MemoryConsentResponse | null>(null);
   const [consentState, setConsentState] = useState<'loading' | 'ready' | 'unavailable' | 'error'>('loading');
@@ -270,19 +272,19 @@ export const MemoryControls: React.FC<Props> = ({
         >
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-              {HEALTH_PROFILE_COPY.memoryProfileCompletion}
+              {hp.memoryProfileCompletion}
             </p>
-            <HealthProfileCompletionLabel percent={profileCompletion.percent} />
+            <HealthProfileCompletionLabel percent={profileCompletion.percent} lang={lang} />
           </div>
-          <p className="text-xs text-slate-600 dark:text-slate-300">{HEALTH_PROFILE_COPY.memorySourcesTitle}</p>
-          <p className="text-sm text-slate-600 dark:text-slate-300">{HEALTH_PROFILE_COPY.memorySourcesBody}</p>
+          <p className="text-xs text-slate-600 dark:text-slate-300">{hp.memorySourcesTitle}</p>
+          <p className="text-sm text-slate-600 dark:text-slate-300">{hp.memorySourcesBody}</p>
           {onOpenHealthProfile && (
             <button
               type="button"
               className="text-[10px] font-black uppercase tracking-[0.12em] text-luna-purple"
               onClick={onOpenHealthProfile}
             >
-              {HEALTH_PROFILE_COPY.entrySettingsShortcut}
+              {hp.entrySettingsShortcut}
             </button>
           )}
         </div>

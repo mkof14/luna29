@@ -20,7 +20,6 @@ import { PublicHomeSection } from './public/PublicHomeSection';
 import { getMemberNavCopy } from '../utils/memberNavLabels';
 import { getBrandAssetUrl } from '../utils/lunaBrandAssets';
 import { getLegalHubLabel, getLegalNavLabels, LEGAL_ENTITY_NAME, LegalNavDocType } from '../utils/legal';
-import { HEALTH_PROFILE_COPY } from '../utils/healthProfileCopy';
 import { getPublicHomeContent } from '../utils/publicHomeContent';
 import { resolveHeroAbVariant } from '../utils/publicHomeAb';
 import {
@@ -31,6 +30,13 @@ import {
 } from '../utils/publicFooterSpirit';
 import { markCheckoutPending } from '../utils/subscriptionAccess';
 import { buildPublicPageUrl, resolveSiteUrl, updatePageMeta } from '../utils/pageMeta';
+import { getLabsViewLocalizedContent } from '../utils/labsViewContent';
+import {
+  downloadPublicSampleReport,
+  previewPublicSampleReport,
+} from '../utils/publicSampleReportPreview';
+import { getInstallGuideCopy } from '../utils/installGuideCopy';
+import { getPublicChromeCopy } from '../utils/publicChromeCopy';
 
 const HowItWorksView = lazy(() => import('./HowItWorksView').then((m) => ({ default: m.HowItWorksView })));
 const FAQView = lazy(() => import('./FAQView').then((m) => ({ default: m.FAQView })));
@@ -732,10 +738,10 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       { hormone: 'Cortisol', why: 'Stress and recovery dynamics.' },
     ],
   };
-  const reportsOverview = landingNarratives?.reportsOverview || {
+  const reportsOverviewBase = landingNarratives?.reportsOverview || {
     title: 'My Health Reports',
     subtitle: 'Structured report from labs and symptoms.',
-    points: ['Upload labs', 'Track markers', 'Generate report', 'Export in selected language'],
+    points: ['Upload labs', 'Track markers', 'Generate report', 'Export in selected language'] as [string, string, string, string],
   };
   const pricingCopy = landingNarratives?.pricingCopy || {
     title: 'Simple, Transparent Pricing',
@@ -999,95 +1005,9 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     await publicInstallPrompt.userChoice;
     setInstallFeedback(mobilePlatform === 'other' ? installActions.desktopTip : installActions.androidTip);
   };
-  const installGuideModalByLang: Partial<
-    Record<
-      Language,
-      {
-        title: string;
-        how: string;
-        intro: string;
-        iosTitle: string;
-        androidTitle: string;
-        iosStep1: string;
-        iosStep2: string;
-        androidStep1: string;
-        androidStep2: string;
-        desktopTitle?: string;
-        desktopStep1?: string;
-        desktopStep2?: string;
-        openDesktopPrompt?: string;
-        fallback: string;
-        close: string;
-        openPrompt: string;
-      }
-    >
-  > = {
-    en: {
-      title: 'Install App',
-      how: 'How Install Works',
-      intro: 'Install adds Luna29 to your home screen and opens full-screen like an app.',
-      iosTitle: 'iPhone Install',
-      androidTitle: 'Android Install',
-      iosStep1: 'Step 1: Open Luna29 in Safari.',
-      iosStep2: 'Step 2: Tap Share and choose Add to Home Screen.',
-      androidStep1: 'Step 1: Open Luna29 in Chrome/Edge.',
-      androidStep2: 'Step 2: Tap browser menu and choose Install App.',
-      desktopTitle: 'Desktop Install',
-      desktopStep1: 'Step 1: Open Luna29 in Chrome or Edge.',
-      desktopStep2: 'Step 2: Click Install in the address bar or browser menu.',
-      fallback: 'Open Safari -> Share -> Add to Home Screen.',
-      close: 'Close',
-      openPrompt: 'Open Android Install',
-      openDesktopPrompt: 'Install Luna29 on Desktop',
-    },
-    ru: {
-      title: 'Install App',
-      how: 'How Install Works',
-      intro: 'Install добавляет Luna29 на домашний экран и открывает в полноэкранном режиме как app.',
-      iosTitle: 'iPhone Install',
-      androidTitle: 'Android Install',
-      iosStep1: 'Step 1: Open Luna29 in Safari.',
-      iosStep2: 'Step 2: Tap Share and choose Add to Home Screen.',
-      androidStep1: 'Step 1: Open Luna29 in Chrome/Edge.',
-      androidStep2: 'Step 2: Tap browser menu and choose Install App.',
-      desktopTitle: 'Desktop Install',
-      desktopStep1: 'Шаг 1: Откройте Luna29 в Chrome или Edge.',
-      desktopStep2: 'Шаг 2: Нажмите «Установить» в адресной строке или меню браузера.',
-      fallback: 'Open Safari -> Share -> Add to Home Screen.',
-      close: 'Закрыть',
-      openPrompt: 'Открыть Android Install',
-      openDesktopPrompt: 'Установить Luna29 на компьютер',
-    },
-    ar: {
-      title: 'تثبيت التطبيق',
-      how: 'كيف يعمل التثبيت',
-      intro: 'يضيف التثبيت Luna29 إلى الشاشة الرئيسية ويفتح بملء الشاشة كتطبيق.',
-      iosTitle: 'تثبيت iPhone',
-      androidTitle: 'تثبيت Android',
-      iosStep1: 'الخطوة 1: افتحي Luna29 في Safari.',
-      iosStep2: 'الخطوة 2: اضغطي مشاركة واختي «إضافة إلى الشاشة الرئيسية».',
-      androidStep1: 'الخطوة 1: افتحي Luna29 في Chrome/Edge.',
-      androidStep2: 'الخطوة 2: اضغطي قائمة المتصفح واختي «تثبيت التطبيق».',
-      fallback: 'Safari -> مشاركة -> إضافة إلى الشاشة الرئيسية.',
-      close: 'إغلاق',
-      openPrompt: 'فتح تثبيت Android',
-    },
-    he: {
-      title: 'התקנת אפליקציה',
-      how: 'איך ההתקנה עובדת',
-      intro: 'ההתקנה מוסיפה את Luna29 למסך הבית ופותחת במסך מלא כמו אפליקציה.',
-      iosTitle: 'התקנה ב-iPhone',
-      androidTitle: 'התקנה ב-Android',
-      iosStep1: 'שלב 1: פתחי את Luna29 ב-Safari.',
-      iosStep2: 'שלב 2: הקישי שיתוף ובחרי «הוספה למסך הבית».',
-      androidStep1: 'שלב 1: פתחי את Luna29 ב-Chrome/Edge.',
-      androidStep2: 'שלב 2: הקישי בתפריט הדפדפן ובחרי «התקנת אפליקציה».',
-      fallback: 'Safari -> שיתוף -> הוספה למסך הבית.',
-      close: 'סגירה',
-      openPrompt: 'פתיחת התקנת Android',
-    },
-  };
-  const installGuideModal = getLang(installGuideModalByLang, lang) || installGuideModalByLang.en!;
+  const installGuideModal = getInstallGuideCopy(lang);
+  const publicChrome = getPublicChromeCopy(lang);
+  const reportsOverview = { ...reportsOverviewBase, title: publicChrome.healthReportsTitle };
 
   const socialLinks = useMemo(() => {
     const normalizeExternalUrl = (value: unknown) => {
@@ -1228,6 +1148,16 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
       flowSummary: 'Juntos, esses blocos formam uma visão clara do seu estado interno.',
       appliedTitle: 'Aplicado na zona de membros',
       appliedBody: 'Na área de membros, Luna29 Balance vira prática: dia do ciclo, mudanças de fase, estados de sensibilidade e ligação dos marcadores com decisões diárias.',
+    },
+    ar: {
+      flowSummary: 'معًا يشكّل هذا صورة واضحة لحالتكِ الداخلية.',
+      appliedTitle: 'مطبّق في منطقة الأعضاء',
+      appliedBody: 'في منطقة الأعضاء يصبح Luna29 Balance عمليًا: يوم الدورة، تحوّلات المرحلة، حالات الحساسية، وربط المؤشرات بالقرارات اليومية.',
+    },
+    he: {
+      flowSummary: 'יחד זה יוצר תמונה ברורה של המצב הפנימי שלך.',
+      appliedTitle: 'מיושם באזור החברות',
+      appliedBody: 'באזור החברות Luna29 Balance הופך מעשי: יום מחזור, מעברי פאזה, מצבי רגישות וחיבור סמנים להחלטות יומיומיות.',
     },
   };
   const publicShared = getLang(publicSharedByLang, lang) || publicSharedByLang.en!;
@@ -1730,8 +1660,9 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     { id: 'ritual', label: publicHomeNavLabels.ritual },
     { id: 'bridge', label: ui.navigation.bridge || 'The Bridge' },
   ];
+  const { reportUi } = getLabsViewLocalizedContent(lang, lang);
   const footerResourceLinks: Array<{ id: PublicPage | 'personal_health_profile'; label: string; testId?: string }> = [
-    { id: 'personal_health_profile', label: HEALTH_PROFILE_COPY.entryPublicTitle, testId: 'personal-health-profile' },
+    { id: 'personal_health_profile', label: publicChrome.healthProfileTitle, testId: 'personal-health-profile' },
     { id: 'pricing', label: getLang(pricingLabelByLang, lang) || 'Pricing' },
     { id: 'about', label: getLang(aboutLabelByLang, lang) || 'About' },
     { id: 'how_it_works', label: getLang(howItWorksLabelByLang, lang) || 'How It Works' },
@@ -2121,6 +2052,26 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
                     <LunaMenuLabel text={link.label} muted className="font-light" />
                   </button>
                 ))}
+                <button
+                  type="button"
+                  data-testid="footer-nav-sample-report-view"
+                  onClick={() => {
+                    void previewPublicSampleReport(lang);
+                  }}
+                  className="text-left"
+                >
+                  <LunaMenuLabel text={reportUi.sampleView} muted className="font-light" />
+                </button>
+                <button
+                  type="button"
+                  data-testid="footer-nav-sample-report-download"
+                  onClick={() => {
+                    void downloadPublicSampleReport(lang);
+                  }}
+                  className="text-left"
+                >
+                  <LunaMenuLabel text={reportUi.sampleDownload} muted className="font-light" />
+                </button>
               </div>
             </nav>
 

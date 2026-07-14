@@ -1,15 +1,18 @@
 import React, { useEffect, useRef } from 'react';
-import { HEALTH_PROFILE_COPY as c } from '../utils/healthProfileCopy';
+import { getHealthProfileCopy } from '../utils/healthProfileCopy';
 import { HealthProfileCompletionLabel } from './HealthProfileCompletionLabel';
 import { trackHealthProfileOpened } from '../utils/healthProfileAnalytics';
 import { useHealthProfileCompletion } from '../hooks/useHealthProfileCompletion';
+import type { Language } from '../constants';
 
 type Props = {
   trackOpened?: boolean;
+  lang?: Language;
 };
 
 /** Canonical Personal Health Profile page hero — completion from existing API. */
-export const HealthProfilePageHero: React.FC<Props> = ({ trackOpened = true }) => {
+export const HealthProfilePageHero: React.FC<Props> = ({ trackOpened = true, lang }) => {
+  const c = getHealthProfileCopy(lang);
   const { percent } = useHealthProfileCompletion(true);
   const tracked = useRef(false);
 
@@ -27,12 +30,12 @@ export const HealthProfilePageHero: React.FC<Props> = ({ trackOpened = true }) =
       <div className="space-y-2 max-w-2xl">
         <h2 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-slate-100">{c.pageHeroTitle}</h2>
         <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-          Add what helps Luna personalize your reports, Live, and recommendations. Skip anything. Change anytime.
+          {c.pageHeroBody}
         </p>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">{c.entryCompletionLabel}</p>
-        <HealthProfileCompletionLabel percent={percent} />
+        <HealthProfileCompletionLabel percent={percent} lang={lang} />
       </div>
       {percent != null && (
         <div className="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">

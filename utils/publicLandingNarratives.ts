@@ -570,52 +570,52 @@ export type HomeStory = {
       points: ['Upload scan/photo or paste text', 'Track lab markers by categories', 'Generate branded report with ID and date', 'Copy, Print, Share, Download, PDF in selected language'],
     },
     ru: {
-      title: 'My Health Reports',
+      title: 'Мои отчёты о здоровье',
       subtitle: 'Понятная страница для врача: анализы и симптомы в одном структурированном отчете.',
       points: ['Загрузка скана/фото или вставка текста', 'Отслеживание показателей по категориям', 'Фирменный отчет с ID и датой генерации', 'Copy, Print, Share, Download, PDF на выбранном языке'],
     },
     uk: {
-      title: 'My Health Reports',
+      title: 'Мої звіти про здоров’я',
       subtitle: 'Зрозуміла сторінка для лікаря: аналізи та симптоми в одному структурованому звіті.',
       points: ['Завантаження скану/фото або вставка тексту', 'Відстеження показників за категоріями', 'Фірмовий звіт з ID і датою генерації', 'Copy, Print, Share, Download, PDF обраною мовою'],
     },
     es: {
-      title: 'My Health Reports',
+      title: 'Mis informes de salud',
       subtitle: 'Página clara para consulta médica: análisis y síntomas en un reporte estructurado.',
       points: ['Sube escaneo/foto o pega texto', 'Seguimiento de marcadores por categorías', 'Reporte de marca con ID y fecha', 'Copy, Print, Share, Download, PDF en idioma elegido'],
     },
     fr: {
-      title: 'My Health Reports',
+      title: 'Mes rapports de santé',
       subtitle: 'Une page claire pour la consultation: analyses et symptômes dans un rapport structuré.',
       points: ['Téléverser scan/photo ou coller du texte', 'Suivi des marqueurs par catégories', 'Rapport de marque avec ID et date', 'Copy, Print, Share, Download, PDF dans la langue choisie'],
     },
     de: {
-      title: 'My Health Reports',
+      title: 'Meine Gesundheitsberichte',
       subtitle: 'Klare Seite für den Arzttermin: Laborwerte und Symptome in einem strukturierten Bericht.',
       points: ['Scan/Foto hochladen oder Text einfügen', 'Marker nach Kategorien verfolgen', 'Markenbericht mit ID und Erstellungsdatum', 'Copy, Print, Share, Download, PDF in gewählter Sprache'],
     },
     zh: {
-      title: 'My Health Reports',
+      title: '我的健康报告',
       subtitle: '清晰的报告页面：将化验与症状整合为结构化医生沟通报告。',
       points: ['上传扫描/照片或粘贴文本', '按类别追踪实验室指标', '生成带品牌、用户ID和日期的报告', '支持 Copy、Print、Share、Download、PDF 和语言选择'],
     },
     ja: {
-      title: 'My Health Reports',
+      title: 'マイヘルスレポート',
       subtitle: '検査値と症状を医師向けに整理する、わかりやすいレポートページ。',
       points: ['スキャン/写真アップロードまたはテキスト貼り付け', 'カテゴリ別に検査マーカーを管理', 'ID・生成日付きのブランドレポート作成', '選択言語で Copy / Print / Share / Download / PDF'],
     },
     pt: {
-      title: 'My Health Reports',
+      title: 'Meus relatórios de saúde',
       subtitle: 'Página clara para consulta médica: exames e sintomas em um relatório estruturado.',
       points: ['Envie scan/foto ou cole texto', 'Acompanhe marcadores por categorias', 'Relatório de marca com ID e data', 'Copy, Print, Share, Download, PDF no idioma escolhido'],
     },
   ar: {
-      title: 'My Health Reports',
+      title: 'تقاريري الصحية',
       subtitle: 'صفحة واضحة جاهزة للطبيب: تحوّل التحاليل والأعراض إلى تقرير منظّم واحد.',
       points: ['رفع مسح/صورة أو لصق نص', 'تتبّع مؤشرات المختبر حسب الفئات', 'إنشاء تقرير بعلامة تجارية مع المعرّف والتاريخ', 'Copy وPrint وShare وDownload وPDF باللغة المختارة'],
     },
   he: {
-      title: 'My Health Reports',
+      title: 'דוחות הבריאות שלי',
       subtitle: 'עמוד ברור מוכן לרופא: הופך בדיקות ותסמינים לדוח מובנה אחד.',
       points: ['העלאת סריקה/תמונה או הדבקת טקסט', 'מעקב אחר סמני מעבדה לפי קטגוריות', 'יצירת דוח ממותג עם מזהה ותאריך', 'Copy, Print, Share, Download, PDF בשפה שנבחרה'],
     },};
