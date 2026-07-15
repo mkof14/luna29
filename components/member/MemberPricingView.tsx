@@ -13,17 +13,17 @@ type MemberPricingViewProps = {
 };
 
 const ctaByLang: LangCopy<{ trial: string; subscribe: string; note: string }> = {
-  en: { trial: 'Start free trial', subscribe: 'Subscribe now', note: 'Cancel anytime · 7-day free trial included.' },
-  ru: { trial: 'Начать пробный период', subscribe: 'Оформить подписку', note: 'Отмена в любой момент · 7 дней trial включены.' },
-  uk: { trial: 'Почати пробний період', subscribe: 'Оформити підписку', note: 'Скасування будь-коли · 7 днів trial включено.' },
-  es: { trial: 'Iniciar prueba gratis', subscribe: 'Suscribirse ahora', note: 'Cancela cuando quieras · 7 días de prueba incluidos.' },
-  fr: { trial: 'Commencer l essai gratuit', subscribe: "S'abonner", note: 'Annulation à tout moment · essai 7 jours inclus.' },
-  de: { trial: 'Kostenlose Testphase starten', subscribe: 'Jetzt abonnieren', note: 'Jederzeit kündbar · 7 Tage Test inklusive.' },
-  zh: { trial: '开始免费试用', subscribe: '立即订阅', note: '随时取消 · 含 7 天试用。' },
-  ja: { trial: '無料トライアルを開始', subscribe: '今すぐ登録', note: 'いつでも解約 · 7日間トライアル付き。' },
-  pt: { trial: 'Iniciar teste gratuito', subscribe: 'Assinar agora', note: 'Cancele quando quiser · teste de 7 dias incluído.' },
-  ar: { trial: 'ابدئي التجربة المجانية', subscribe: 'اشتركي الآن', note: 'إلغاء في أي وقت · تجربة 7 أيام مشمولة.' },
-  he: { trial: 'התחילי ניסיון חינם', subscribe: 'הירשמי עכשיו', note: 'ביטול בכל עת · כולל 7 ימי ניסיון.' },
+  en: { trial: 'Start free trial', subscribe: 'Subscribe now', note: 'Pilot mode · Cancel anytime · 7-day free trial included.' },
+  ru: { trial: 'Начать пробный период', subscribe: 'Оформить подписку', note: 'Пилотный режим · Отмена в любой момент · 7 дней trial включены.' },
+  uk: { trial: 'Почати пробний період', subscribe: 'Оформити підписку', note: 'Пілотний режим · Скасування будь-коли · 7 днів trial включено.' },
+  es: { trial: 'Iniciar prueba gratis', subscribe: 'Suscribirse ahora', note: 'Modo piloto · Cancela cuando quieras · 7 días de prueba incluidos.' },
+  fr: { trial: 'Commencer l essai gratuit', subscribe: "S'abonner", note: 'Mode pilote · Annulation à tout moment · essai 7 jours inclus.' },
+  de: { trial: 'Kostenlose Testphase starten', subscribe: 'Jetzt abonnieren', note: 'Pilotmodus · Jederzeit kündbar · 7 Tage Test inklusive.' },
+  zh: { trial: '开始免费试用', subscribe: '立即订阅', note: '试点模式 · 随时取消 · 含 7 天试用。' },
+  ja: { trial: '無料トライアルを開始', subscribe: '今すぐ登録', note: 'パイロット · いつでも解約 · 7日間トライアル付き。' },
+  pt: { trial: 'Iniciar teste gratuito', subscribe: 'Assinar agora', note: 'Modo piloto · Cancele quando quiser · teste de 7 dias incluído.' },
+  ar: { trial: 'ابدئي التجربة المجانية', subscribe: 'اشتركي الآن', note: 'وضع تجريبي · إلغاء في أي وقت · تجربة 7 أيام مشمولة.' },
+  he: { trial: 'התחילי ניסיון חינם', subscribe: 'הירשמי עכשיו', note: 'מצב פיילוט · ביטול בכל עת · כולל 7 ימי ניסיון.' },
 };
 
 export const MemberPricingView: React.FC<MemberPricingViewProps> = ({ lang, onBack }) => {

@@ -358,6 +358,7 @@ const App: React.FC = () => {
           {showAuthModal && (
             <AuthView
               ui={ui}
+              lang={lang}
               initialMode={authMode}
               onClose={() => setShowAuthModal(false)}
               onBack={() => setShowAuthModal(false)}

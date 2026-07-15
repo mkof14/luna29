@@ -37,6 +37,7 @@ import {
 } from '../utils/publicSampleReportPreview';
 import { getInstallGuideCopy } from '../utils/installGuideCopy';
 import { getPublicChromeCopy } from '../utils/publicChromeCopy';
+import { getPublicPilotNotice } from '../utils/publicPilotNotice';
 
 const HowItWorksView = lazy(() => import('./HowItWorksView').then((m) => ({ default: m.HowItWorksView })));
 const FAQView = lazy(() => import('./FAQView').then((m) => ({ default: m.FAQView })));
@@ -752,7 +753,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
     yearNote: 'per year',
     saveBadge: 'Save 25% yearly',
     cta: 'Subscribe after account',
-    recommended: 'Cancel anytime · 7-day free trial included.',
+    recommended: 'Pilot mode · Cancel anytime · 7-day free trial included.',
   };
   const pricingUi = getLang(pricingUiByLang, lang) || pricingUiByLang.en;
   const sections = [
@@ -1007,6 +1008,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
   };
   const installGuideModal = getInstallGuideCopy(lang);
   const publicChrome = getPublicChromeCopy(lang);
+  const pilotNotice = getPublicPilotNotice(lang);
   const reportsOverview = { ...reportsOverviewBase, title: publicChrome.healthReportsTitle };
 
   const socialLinks = useMemo(() => {
@@ -1871,6 +1873,19 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
             </button>
           </div>
         </div>
+        <div
+          data-testid="pilot-mode-banner"
+          className="border-t border-[#c9bdd9]/55 dark:border-slate-700/55 bg-[#f4eef8]/95 dark:bg-slate-900/90"
+        >
+          <div className="max-w-[1160px] mx-auto px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 flex items-start sm:items-center gap-2.5 sm:gap-3 min-w-0">
+            <span className="shrink-0 mt-0.5 sm:mt-0 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.18em] text-luna-purple bg-luna-purple/10 px-2.5 py-1 rounded-full">
+              {pilotNotice.badge}
+            </span>
+            <p className="text-[11px] sm:text-xs font-medium leading-relaxed text-slate-600 dark:text-slate-300 min-w-0">
+              {pilotNotice.body}
+            </p>
+          </div>
+        </div>
       </header>
 
       <main className="max-w-[1160px] mx-auto px-3 sm:px-4 md:px-6 pt-6 sm:pt-8 md:pt-10 pb-14 sm:pb-16 md:pb-24 relative z-10 space-y-10 sm:space-y-12 md:space-y-14 luna-public-baseline min-w-0 w-full">
@@ -1886,6 +1901,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onSignIn, 
             homePatternNote={getLang(homePatternNoteByLang, lang) || homePatternNoteByLang.en || ''}
             homeStory={homeStory}
             homeContent={homeContent}
+            pilotNotice={pilotNotice}
             hormoneFocus={hormoneFocus}
             calendarService={calendarHomeService}
             onSignIn={onSignIn}

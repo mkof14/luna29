@@ -384,7 +384,7 @@ export type HomeStory = {
       yearNote: 'per year',
       saveBadge: 'Save 25% yearly',
       cta: 'Subscribe after account',
-      recommended: 'Cancel anytime · 7-day free trial included.',
+      recommended: 'Pilot mode · Cancel anytime · 7-day free trial included.',
     },
     ru: {
       title: 'Прозрачная И Простая Цена',
@@ -395,7 +395,7 @@ export type HomeStory = {
       yearNote: 'в год',
       saveBadge: 'Экономия 25% в годовом плане',
       cta: 'Подписаться после аккаунта',
-      recommended: 'Отмена в любой момент · trial 7 дней включён.',
+      recommended: 'Пилотный режим · Отмена в любой момент · trial 7 дней включён.',
     },
     uk: {
       title: 'Прозора Та Проста Ціна',
@@ -406,14 +406,14 @@ export type HomeStory = {
       yearNote: 'за рік',
       saveBadge: 'Економія 25% на річному плані',
       cta: 'Підписатися після акаунта',
-      recommended: 'Скасування будь-коли · trial 7 днів включено.',
+      recommended: 'Пілотний режим · Скасування будь-коли · trial 7 днів включено.',
     },
-    es: { title: 'Precio Claro Y Simple', subtitle: 'Empieza gratis. Mejora cuando quieras patrones, informes y Bridge ilimitado.', month: '$12.99', year: '$89', monthNote: 'por mes', yearNote: 'por ano', saveBadge: 'Ahorra 25% anual', cta: 'Suscribirse tras cuenta', recommended: 'Cancela cuando quieras · prueba 7 dias incluida.' },
-    fr: { title: 'Tarif Clair Et Simple', subtitle: 'Commencez gratuitement. Passez au payant pour plus de patterns et Bridge illimite.', month: '$12.99', year: '$89', monthNote: 'par mois', yearNote: 'par an', saveBadge: '25% d economie annuelle', cta: "S'abonner apres compte", recommended: 'Resiliation a tout moment · essai 7 jours inclus.' },
-    de: { title: 'Klare Einfache Preise', subtitle: 'Kostenlos starten. Upgrade fur tiefere Muster, Reports und unbegrenztes Bridge.', month: '$12.99', year: '$89', monthNote: 'pro Monat', yearNote: 'pro Jahr', saveBadge: '25% sparen jahrlich', cta: 'Nach Konto abonnieren', recommended: 'Jederzeit kuendbar · 7-Tage-Test inklusive.' },
-    zh: { title: '清晰透明的价格', subtitle: '免费开始。需要更深模式、报告与无限 Bridge 时再升级。', month: '$12.99', year: '$89', monthNote: '每月', yearNote: '每年', saveBadge: '年付节省25%', cta: '创建账户后订阅', recommended: '随时取消 · 含 7 天试用。' },
-    ja: { title: 'わかりやすい料金', subtitle: '無料で開始。より深いパターン・レポート・無制限Bridgeは有料プランへ。', month: '$12.99', year: '$89', monthNote: '月額', yearNote: '年額', saveBadge: '年額で25%オフ', cta: 'アカウント後に登録', recommended: 'いつでも解約 · 7日間トライアル付き。' },
-    pt: { title: 'Preco Simples E Claro', subtitle: 'Comece gratis. Faca upgrade para padroes, relatorios e Bridge ilimitado.', month: '$12.99', year: '$89', monthNote: 'por mes', yearNote: 'por ano', saveBadge: 'Economize 25% no anual', cta: 'Assinar apos conta', recommended: 'Cancele quando quiser · teste de 7 dias incluso.' },
+    es: { title: 'Precio Claro Y Simple', subtitle: 'Empieza gratis. Mejora cuando quieras patrones, informes y Bridge ilimitado.', month: '$12.99', year: '$89', monthNote: 'por mes', yearNote: 'por ano', saveBadge: 'Ahorra 25% anual', cta: 'Suscribirse tras cuenta', recommended: 'Modo piloto · Cancela cuando quieras · prueba 7 dias incluida.' },
+    fr: { title: 'Tarif Clair Et Simple', subtitle: 'Commencez gratuitement. Passez au payant pour plus de patterns et Bridge illimite.', month: '$12.99', year: '$89', monthNote: 'par mois', yearNote: 'par an', saveBadge: '25% d economie annuelle', cta: "S'abonner apres compte", recommended: 'Mode pilote · Resiliation a tout moment · essai 7 jours inclus.' },
+    de: { title: 'Klare Einfache Preise', subtitle: 'Kostenlos starten. Upgrade fur tiefere Muster, Reports und unbegrenztes Bridge.', month: '$12.99', year: '$89', monthNote: 'pro Monat', yearNote: 'pro Jahr', saveBadge: '25% sparen jahrlich', cta: 'Nach Konto abonnieren', recommended: 'Pilotmodus · Jederzeit kuendbar · 7-Tage-Test inklusive.' },
+    zh: { title: '清晰透明的价格', subtitle: '免费开始。需要更深模式、报告与无限 Bridge 时再升级。', month: '$12.99', year: '$89', monthNote: '每月', yearNote: '每年', saveBadge: '年付节省25%', cta: '创建账户后订阅', recommended: '试点模式 · 随时取消 · 含 7 天试用。' },
+    ja: { title: 'わかりやすい料金', subtitle: '無料で開始。より深いパターン・レポート・無制限Bridgeは有料プランへ。', month: '$12.99', year: '$89', monthNote: '月額', yearNote: '年額', saveBadge: '年額で25%オフ', cta: 'アカウント後に登録', recommended: 'パイロット · いつでも解約 · 7日間トライアル付き。' },
+    pt: { title: 'Preco Simples E Claro', subtitle: 'Comece gratis. Faca upgrade para padroes, relatorios e Bridge ilimitado.', month: '$12.99', year: '$89', monthNote: 'por mes', yearNote: 'por ano', saveBadge: 'Economize 25% no anual', cta: 'Assinar apos conta', recommended: 'Modo piloto · Cancele quando quiser · teste de 7 dias incluso.' },
   ar: {
       title: 'أسعار بسيطة وشفافة',
       subtitle: 'ابدئي مجاناً. ترقّي عندما تريدين أنماطاً أعمق وتقارير وBridge غير محدود.',
@@ -422,8 +422,8 @@ export type HomeStory = {
       monthNote: 'شهرياً',
       yearNote: 'سنوياً',
       saveBadge: 'وفّري 25% سنوياً',
-      cta: 'Subscribe after account',
-      recommended: 'Cancel anytime · 7-day free trial included.',
+      cta: 'اشتراك بعد إنشاء الحساب',
+      recommended: 'وضع تجريبي · إلغاء في أي وقت · تجربة مجانية 7 أيام مشمولة.',
     },
   he: {
       title: 'תמחור פשוט ושקוף',
@@ -433,8 +433,8 @@ export type HomeStory = {
       monthNote: 'לחודש',
       yearNote: 'לשנה',
       saveBadge: 'חיסכון של 25% בתשלום שנתי',
-      cta: 'Subscribe after account',
-      recommended: 'Cancel anytime · 7-day free trial included.',
+      cta: 'הרשמה אחרי יצירת חשבון',
+      recommended: 'מצב פיילוט · ביטול בכל עת · כולל ניסיון חינם ל-7 ימים.',
     },};
 
   const homeToggleByLang: LangCopy< { more: string; less: string }> = {

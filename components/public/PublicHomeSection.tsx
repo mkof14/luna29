@@ -5,6 +5,7 @@ import { PUBLIC_BTN_PRIMARY, PUBLIC_BTN_PRIMARY_GLOW, PUBLIC_BTN_SECONDARY, PUBL
 import { getBrandAssetUrl } from '../../utils/lunaBrandAssets';
 import type { HomeStory } from '../../utils/publicLandingNarratives';
 import type { PublicHomeContent } from '../../utils/publicHomeContent';
+import type { PublicPilotNotice } from '../../utils/publicPilotNotice';
 
 type HormoneFocus = {
   title: string;
@@ -17,6 +18,7 @@ type PublicHomeSectionProps = {
   homePatternNote: string;
   homeStory: HomeStory;
   homeContent: PublicHomeContent;
+  pilotNotice: PublicPilotNotice;
   hormoneFocus: HormoneFocus;
   calendarService: { title: string; body: string };
   onSignIn: () => void;
@@ -32,6 +34,7 @@ export const PublicHomeSection: React.FC<PublicHomeSectionProps> = ({
   homePatternNote,
   homeStory,
   homeContent,
+  pilotNotice,
   hormoneFocus,
   calendarService,
   onSignIn,
@@ -56,9 +59,17 @@ export const PublicHomeSection: React.FC<PublicHomeSectionProps> = ({
             <div className="space-y-2">
               <Logo size="sm" className="text-3xl sm:text-5xl md:text-6xl leading-none" />
               <p className="text-sm font-medium text-slate-600 dark:text-slate-400">{homeContent.heroTagline}</p>
-              <span className="inline-flex text-[10px] font-semibold uppercase tracking-[0.16em] text-luna-purple/90 bg-luna-purple/10 px-3 py-1 rounded-full">
-                {homeContent.diffBadge}
-              </span>
+              <div className="flex flex-wrap gap-2">
+                <span className="inline-flex text-[10px] font-semibold uppercase tracking-[0.16em] text-luna-purple/90 bg-luna-purple/10 px-3 py-1 rounded-full">
+                  {homeContent.diffBadge}
+                </span>
+                <span
+                  data-testid="pilot-mode-hero-badge"
+                  className="inline-flex text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-600 dark:text-slate-300 bg-slate-200/70 dark:bg-slate-800/70 px-3 py-1 rounded-full"
+                >
+                  {pilotNotice.badge}
+                </span>
+              </div>
               <h1 className="text-xl sm:text-2xl md:text-[2rem] font-black tracking-tight text-slate-900 dark:text-slate-100 leading-tight">
                 {homeContent.heroTitle}
               </h1>

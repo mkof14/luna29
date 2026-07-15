@@ -13,9 +13,12 @@ import {
 } from '../utils/googleIdentity';
 import { readInviteFromUrl, readResetTokenFromUrl, readVerifyTokenFromUrl } from '../utils/authUrlTokens';
 import { conversionEvents } from '../utils/conversionEvents';
+import { Language } from '../constants';
+import { getPublicPilotNotice } from '../utils/publicPilotNotice';
 
 interface AuthViewProps {
   ui: AuthCopy;
+  lang?: Language;
   onSuccess: (session: AuthSession) => void;
   initialMode?: 'signin' | 'signup';
   onClose?: () => void;
@@ -24,7 +27,8 @@ interface AuthViewProps {
 
 type AuthMode = 'signin' | 'signup' | 'forgot' | 'reset';
 
-export const AuthView: React.FC<AuthViewProps> = ({ ui, onSuccess, initialMode = 'signin', onClose, onBack }) => {
+export const AuthView: React.FC<AuthViewProps> = ({ ui, lang = 'en', onSuccess, initialMode = 'signin', onClose, onBack }) => {
+  const pilotNotice = getPublicPilotNotice(lang);
   const [mode, setMode] = useState<AuthMode>(() =>
     readResetTokenFromUrl() ? 'reset' : initialMode === 'signup' ? 'signup' : 'signin',
   );
@@ -221,6 +225,13 @@ export const AuthView: React.FC<AuthViewProps> = ({ ui, onSuccess, initialMode =
             <Logo size="lg" className="mx-auto" />
             <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-slate-100">{headline}</h2>
             <p className="text-sm font-medium text-slate-500 dark:text-slate-400 leading-relaxed">{subheadline}</p>
+            <p
+              data-testid="auth-pilot-notice"
+              className="text-xs font-medium text-slate-600 dark:text-slate-300 leading-relaxed rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-slate-50/80 dark:bg-slate-900/50 px-3 py-2"
+            >
+              <span className="font-black uppercase tracking-[0.16em] text-luna-purple mr-2">{pilotNotice.badge}</span>
+              {pilotNotice.body}
+            </p>
             {mode === 'signup' && inviteToken && (
               <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">Invitation detected</p>
             )}
